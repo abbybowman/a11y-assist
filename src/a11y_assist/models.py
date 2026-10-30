@@ -109,6 +109,10 @@ class FocusStop(BaseModel):
     url: str
     screenshot: str | None = Field(description="Path relative to the run folder.")
     is_body: bool = Field(description="Focus is on <body>/document, not an element.")
+    page_has_focus: bool = Field(
+        description="document.hasFocus() in the focused frame. False when focus "
+        "has left the page, e.g. to the browser UI after the last element."
+    )
 
 
 class FocusWalk(BaseModel):
