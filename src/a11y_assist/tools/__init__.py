@@ -1,8 +1,8 @@
 """Tools submodule — one tool per file.
 
-Each tool module (e.g. `example_tool.py`) exposes a `register(mcp)` function
-that attaches its `@mcp.tool`-decorated function to the server. This file
-aggregates them into a single `register_tools(mcp)` that `app.py` calls.
+Each tool module exposes a `register(mcp)` function that attaches its
+`@mcp.tool`-decorated function to the server. This file aggregates them into a
+single `register_tools(mcp)` that `app.py` calls.
 
 To add a tool:
   1. Create `tools/<your_tool>.py` with a `register(mcp)` function.
@@ -11,12 +11,9 @@ To add a tool:
 
 from __future__ import annotations
 
-from a11y_assist.tools import example_tool
-
 
 def register_tools(mcp) -> None:
     """Register all tools with the MCP server."""
-    example_tool.register(mcp)
 
 
 __all__ = ["register_tools"]
