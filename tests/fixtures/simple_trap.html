@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Fixture: simple keyboard trap</title></head>
+<body>
+  <h1>Simple trap</h1>
+  <button id="before" type="button">Before</button>
+  <label for="trap">Trapped field</label> <input id="trap" type="text">
+  <button id="after" type="button">After (unreachable from the trap)</button>
+  <script>
+    // Once the field has focus, Tab and Shift+Tab are swallowed and focus is
+    // forced back to the field.
+    const trap = document.getElementById("trap");
+    trap.addEventListener("keydown", (e) => {
+      if (e.key === "Tab") { e.preventDefault(); trap.focus(); }
+    });
+  </script>
+</body>
+</html>
