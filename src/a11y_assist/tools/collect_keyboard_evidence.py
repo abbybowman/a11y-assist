@@ -64,7 +64,7 @@ def register(mcp: FastMCP) -> None:
         Returns a compact summary: run_id, paths to the run folder, evidence
         folder, keyboard.json, report.json and the JSONL step log; per-direction
         counts and why each walk stopped; one finding per test (currently all
-        NOT_TESTED because no rules spec is loaded); and any pending judgment
+        NOT_TESTED because no rules spec is implemented); and any pending judgment
         questions to answer with submit_judgments. Navigation outside the
         allowlist, including via redirects, is blocked and reported in errors.
 

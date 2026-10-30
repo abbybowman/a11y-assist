@@ -7,8 +7,8 @@
    walk, each on a freshly loaded page.
 4. Write evidence/keyboard.json and report.json.
 
-No rules spec exists yet, so every in-scope TT test is reported NOT_TESTED and
-no judgment questions are generated.
+No rules spec is implemented yet, so every in-scope TT test is reported
+NOT_TESTED and no judgment questions are generated.
 """
 
 from __future__ import annotations
@@ -43,8 +43,8 @@ UNTRUSTED_NOTICE = (
 )
 
 NO_RULES_RATIONALE = (
-    "Keyboard evidence was collected, but no rules spec is loaded "
-    "(rules_spec=none), so no outcome was determined."
+    "Keyboard evidence was collected, but no rules spec is implemented for "
+    "this test yet, so no outcome was determined."
 )
 
 

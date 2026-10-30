@@ -12,8 +12,9 @@ test ID. The package name is provisional.
 ## Status
 
 **Scaffold only.** It collects evidence and has the data model and plumbing.
-It does **not** decide pass/fail yet. Outcome logic will come only from a
-separate rules spec, which is not written yet.
+It does **not** decide pass/fail yet. Outcome logic comes only from the rules
+specs in [docs/rules/](docs/rules/), one file per TT test
+(`<id>-<short-name>.md`). The 4.C spec is written but not implemented yet.
 
 What works today:
 
@@ -23,7 +24,7 @@ What works today:
 | HAR record + replay | Page is recorded once, both walks run against the replay |
 | Navigation allowlist | `.gov` and `.mil` by default, enforced on every top-level navigation and redirect hop; `file://` only in dev mode |
 | ANDI 29.2.2 | Vendored, injectable from local files, never loaded from ssa.gov. Not used by any test yet |
-| Findings for TT 4.A–4.F | Always `NOT_TESTED` (no rules spec) |
+| Findings for TT 4.A–4.F | Always `NOT_TESTED` (no rules implemented yet) |
 | `submit_judgments` | Records answers from the calling agent; does not set outcomes |
 | ApiJudge | Stub (`NotImplementedError`) |
 
@@ -112,7 +113,8 @@ report.json                 findings, pending questions, versions, disclaimer
 
 See `.env.example` and `src/a11y_assist/config.py`. Main settings:
 `ALLOWED_DOMAINS`, `DEV_MODE`, `BROWSER_CHANNEL`, `HEADLESS`,
-`MAX_TAB_PRESSES`, `RULES_SPEC_VERSION`, `JUDGE_BACKEND`, `JUDGING_MODEL`.
+`MAX_TAB_PRESSES`, `JUDGE_BACKEND`, `JUDGING_MODEL`. Rules spec versions are
+read from each spec's front matter (`spec_version`) and recorded in every report.
 
 ## Contributing
 

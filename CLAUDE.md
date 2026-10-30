@@ -12,9 +12,11 @@ by TT test ID. Package: `a11y_assist` (name is provisional).
    "compliant" or "Section 508 conformant" about a tested page anywhere.
 2. **The rules spec is the only source of outcome logic.** No PASS/FAIL/DNA
    decision may be coded anywhere else: not in evidence collection, the judge
-   plumbing, the tools or the tests. Until the spec exists, tests in scope are
-   reported `NOT_TESTED`. Judgment answers are recorded, never turned into
-   outcomes outside the spec.
+   plumbing, the tools or the tests. Specs live in `docs/rules/`, one file per
+   TT test (`<id>-<short-name>.md`, e.g. `4c-no-keyboard-trap.md`); each
+   spec's `spec_version` front matter is recorded in every report. Until a
+   test's spec is implemented, it is reported `NOT_TESTED`. Judgment answers
+   are recorded, never turned into outcomes outside the spec.
 3. **A false PASS is the worst error.** When a rule cannot decide, the outcome
    is `NEEDS_REVIEW` (the `Finding` default). Never default to PASS, never infer
    PASS from missing evidence, and prefer NEEDS_REVIEW over a low-confidence
@@ -62,8 +64,10 @@ src/a11y_assist/
   pipeline.py   collect_keyboard_evidence orchestration
   runlog.py     runs/<run_id>/ folder, steps.jsonl
   versions.py   version collection
+  rules.py      loads docs/rules/ specs and their front matter versions
   models.py     Pydantic models
   tools/        one MCP tool per file
+docs/rules/     rules specs (one per TT test) and <id>-build-tasks.md checklists
 third_party/    ANDI 29.2.2, jQuery 3.7.1, PROVENANCE.json
 tests/fixtures/ no_trap.html, simple_trap.html, modal_dialog.html
 runs/           output (git-ignored)

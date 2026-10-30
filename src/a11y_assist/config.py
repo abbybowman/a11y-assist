@@ -54,9 +54,12 @@ class Settings(BaseSettings):
     # ── Vendored tools ────────────────────────────────────────────────────────
     third_party_dir: Path = REPO_ROOT / "third_party"
 
+    # ── Rules specs ───────────────────────────────────────────────────────────
+    # One spec per TT test. Each spec's version comes from its own front matter
+    # (spec_version) and is recorded in every report; it is not configurable.
+    rules_dir: Path = REPO_ROOT / "docs" / "rules"
+
     # ── Versions recorded in every report ─────────────────────────────────────
-    # No rules spec exists yet, so no outcome logic runs. Set this when it does.
-    rules_spec_version: str = "none"
     # "client": questions go to the calling agent (submit_judgments).
     # "api": NASA hosted model (not implemented yet).
     judge_backend: str = "client"

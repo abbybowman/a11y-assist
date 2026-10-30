@@ -11,6 +11,7 @@ from a11y_assist import __version__
 from a11y_assist.andi import provenance
 from a11y_assist.config import Settings
 from a11y_assist.models import Versions
+from a11y_assist.rules import spec_versions
 
 
 def collect_versions(settings: Settings, browser: Browser | None) -> Versions:
@@ -24,6 +25,6 @@ def collect_versions(settings: Settings, browser: Browser | None) -> Versions:
         browser=browser.version if browser else None,
         os=platform.platform(),
         python=platform.python_version(),
-        rules_spec=settings.rules_spec_version,
+        rules_spec=spec_versions(settings.rules_dir),
         judging_model=settings.judging_model,
     )

@@ -214,7 +214,12 @@ class Versions(BaseModel):
     browser: str | None
     os: str
     python: str
-    rules_spec: str
+    rules_spec: dict[str, str] = Field(
+        description=(
+            "TT test ID -> rules spec version from the spec's front matter, "
+            "with the spec file's SHA-256 prefix."
+        )
+    )
     judging_model: str
 
 

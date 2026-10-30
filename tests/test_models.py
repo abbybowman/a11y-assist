@@ -20,7 +20,7 @@ def _versions() -> Versions:
         browser=None,
         os="test",
         python="3",
-        rules_spec="none",
+        rules_spec={"4.C": "1.0.0"},
         judging_model="none",
     )
 
