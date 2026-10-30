@@ -1,8 +1,7 @@
-"""a11y_assist — a starter MCP server package.
+"""a11y_assist — agent-assisted DHS Trusted Tester 5.1.3 evidence collection.
 
-Rename this package to your service name (e.g. `census_mcp`, `weather_mcp`)
-before you publish. See the repo README ("Rename the package") for the two
-places you need to update.
+NOT a certified Trusted Tester tool. The package name is provisional; see
+CLAUDE.md ("Renaming the package").
 """
 
 __version__ = "0.1.0"

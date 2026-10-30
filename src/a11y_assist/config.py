@@ -57,6 +57,9 @@ class Settings(BaseSettings):
     # ── Versions recorded in every report ─────────────────────────────────────
     # No rules spec exists yet, so no outcome logic runs. Set this when it does.
     rules_spec_version: str = "none"
+    # "client": questions go to the calling agent (submit_judgments).
+    # "api": NASA hosted model (not implemented yet).
+    judge_backend: str = "client"
     # Identifier of the model that answers judgment questions, if any.
     judging_model: str = "none"
 

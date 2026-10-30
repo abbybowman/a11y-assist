@@ -114,7 +114,7 @@ class NavigationGuard:
             self.redirects.append(
                 {"from": url, "status": response.status, "to": target}
             )
-            self._log("redirect_held", "info", status=response.status, to=target)
+            self._log("redirect_held", "info", http_status=response.status, to=target)
             return await route.fulfill(
                 status=200, content_type="text/html", body=REDIRECT_STUB
             )

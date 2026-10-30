@@ -185,6 +185,14 @@ class JudgmentAnswer(BaseModel):
     decided_by: DecidedBy = DecidedBy.MODEL
 
 
+class RecordedJudgment(BaseModel):
+    """An answered question. The rules spec maps these to finding outcomes."""
+
+    question: JudgmentQuestion
+    answer: JudgmentAnswer
+    recorded_at: datetime
+
+
 # ── Run records ──────────────────────────────────────────────────────────────
 
 
@@ -221,4 +229,7 @@ class Report(BaseModel):
     versions: Versions
     findings: list[Finding] = Field(default_factory=list)
     pending_questions: list[JudgmentQuestion] = Field(default_factory=list)
+    judgments: list[RecordedJudgment] = Field(default_factory=list)
+    judge_backend: str = "client"
+    errors: list[str] = Field(default_factory=list)
     evidence_dir: str
