@@ -1,189 +1,136 @@
-# GSA MCP Hackathon — Server Template
+# a11y-assist
 
-A ready-to-run starter for building a [Model Context Protocol (MCP)](https://modelcontextprotocol.io) server in Python, plus deployment kits for **IBM Cloud (watsonx Orchestrate)** and **Databricks**.
+> **Not a certified Trusted Tester result.** This tool produces agent-assisted
+> findings only. Its output is not a DHS Trusted Tester certified test result
+> and must not be reported, cited or relied on as one. A certified Trusted
+> Tester must perform any test that counts for Section 508 conformance.
 
-Built with [FastMCP](https://github.com/jlowin/fastmcp) and [uv](https://docs.astral.sh/uv/). If you have never built an MCP server before, start with **[QUICKSTART.md](QUICKSTART.md)**.
+An MCP server that runs parts of the DHS Trusted Tester (TT) 5.1.3 Section 508
+web test process in a real, visible Chrome browser and reports findings by TT
+test ID. The package name is provisional.
 
----
+## Status
 
-## What is an MCP server?
+**Scaffold only.** It collects evidence and has the data model and plumbing.
+It does **not** decide pass/fail yet. Outcome logic will come only from a
+separate rules spec, which is not written yet.
 
-An MCP server exposes **tools** (functions the model can call), **prompts** (reusable conversation starters), and **resources** (data the model can read) to an AI client such as Claude Desktop, Claude Code, or an agent platform like watsonx Orchestrate. You write the tools; the client's model decides when to call them.
+What works today:
 
-This template gives you a working server with one example of each, so you can replace the examples with your own service and deploy.
+| Area | State |
+| --- | --- |
+| `collect_keyboard_evidence(url)` | Tab and Shift+Tab walks with a record per focus stop (selector, tag, role, accessible name, tabindex, bounding box, iframe path, page focus, screenshot) |
+| HAR record + replay | Page is recorded once, both walks run against the replay |
+| Navigation allowlist | `.gov` and `.mil` by default, enforced on every top-level navigation and redirect hop; `file://` only in dev mode |
+| ANDI 29.2.2 | Vendored, injectable from local files, never loaded from ssa.gov. Not used by any test yet |
+| Findings for TT 4.A–4.F | Always `NOT_TESTED` (no rules spec) |
+| `submit_judgments` | Records answers from the calling agent; does not set outcomes |
+| ApiJudge | Stub (`NotImplementedError`) |
 
----
+Known limits:
 
-## Repo structure
+- Role and accessible name come from Playwright's ARIA snapshot, not from
+  Chrome's accessibility tree or ANDI.
+- HAR replay freezes network responses, not client-side randomness or time.
+- A page Content-Security-Policy that forbids inline scripts will block ANDI
+  injection. No CSP bypass is enabled.
+- Tests run in CI against Playwright's Chromium (headless). Headed Google
+  Chrome on Windows must be checked locally (see below).
 
-```
-mcp-hackathon-template/
-├── README.md                  # This file
-├── QUICKSTART.md              # 5-minute clone → run → connect walkthrough
-├── main.py                    # Local entry point (uv run python main.py)
-├── pyproject.toml             # Package + dependencies (uv)
-├── requirements.txt           # Mirror of runtime deps (for buildpack hosts)
-├── Dockerfile                 # Container image (streamable-HTTP, port 8080)
-├── manifest.yaml              # cloud.gov (Cloud Foundry) deploy
-├── server.json                # MCP registry metadata
-├── .env.example               # Copy to .env for local dev
-├── .github/workflows/ci.yml   # Lint + test on push/PR
-├── docs/                      # Vendor-contributed reference materials
-├── src/
-│   └── a11y_assist/        # ← rename to your service
-│       ├── app.py             # Thin entry point: builds FastMCP, picks transport
-│       ├── config.py          # Settings from env vars / .env
-│       ├── models.py          # Pydantic models & enums for tool params
-│       ├── utils.py           # Shared helpers (HTTP client, pagination)
-│       ├── routes.py          # HTTP-only routes (/health, /version)
-│       ├── tools/             # ONE FILE PER TOOL
-│       │   ├── __init__.py    #   register_tools(mcp) aggregator
-│       │   └── example_tool.py
-│       ├── prompts/
-│       │   ├── __init__.py    #   register_prompts(mcp) aggregator
-│       │   └── example.py
-│       └── resources/
-│           ├── __init__.py    #   register_resources(mcp) aggregator
-│           └── example.py
-├── tests/                     # Import + registration smoke tests
-├── eval/                      # Stub → build a Phoenix eval harness (see mcp-eval skill)
-└── deploy/
-    ├── README.md              # Which deployment kit to use
-    ├── ibm/                   # watsonx Orchestrate: 3 kits (see below)
-    └── databricks/            # Databricks Apps kit
-```
+## TT tests in scope
 
----
+Test names come from
+[section508coordinators.github.io/TrustedTester/keyboard.html](https://section508coordinators.github.io/TrustedTester/keyboard.html).
+They have not yet been checked against the official TT 5.1.3 PDF.
 
-## Getting started
+| ID | TT test name | WCAG SC |
+| --- | --- | --- |
+| 4.A | 2.1.1-keyboard-access | 2.1.1 |
+| 4.B | 2.1.1-no-keystroke-timing | 2.1.1 |
+| 4.C | 2.1.2-no-keyboard-trap | 2.1.2 |
+| 4.D | 2.4.7-focus-visible | 2.4.7 |
+| 4.E | 3.2.1-on-focus | 3.2.1 |
+| 4.F | 2.4.3-focus-order-meaning | 2.4.3 |
 
-### Prerequisites
-- [uv](https://docs.astral.sh/uv/) — `pip install uv` or `brew install uv`
+TT 5 also defines 4.G and 4.H (focus order reveal/return), not yet in scope.
 
-### Install and run
+## Setup (Windows, Git Bash)
+
+Run natively on Windows, not in WSL2, so the browser can be shown. Requires
+[uv](https://docs.astral.sh/uv/) and Google Chrome.
 
 ```bash
 cp .env.example .env
-uv sync
-uv run python main.py
+uv sync --group dev
 ```
 
-The server starts in **stdio** mode — it talks JSON-RPC over stdin/stdout, which is how local clients (Claude Desktop, Claude Code) launch it. See [QUICKSTART.md](QUICKSTART.md) to connect a client.
-
-### Verify
+Check the setup on your machine with real, visible Chrome. This runs every
+browser test (allowlist and redirects, HAR replay, ANDI injection, focus
+walks) in installed Chrome:
 
 ```bash
-uv sync --group dev
-uv run pytest tests/ -v      # tests
-uv run ruff check .          # lint
+TEST_BROWSER_CHANNEL=chrome TEST_HEADED=1 uv run pytest -v
 ```
 
----
+Plain `uv run pytest` uses Playwright's bundled Chromium, headless. That needs
+a one-time `uv run playwright install chromium`, which downloads into your
+user profile.
 
-## The one-tool-per-file pattern
+## Connect to Claude Code
 
-Each tool lives in its own file under `src/a11y_assist/tools/` and exposes a `register(mcp)` function. `tools/__init__.py` calls each one from a single `register_tools(mcp)`. This keeps the tool list scannable and lets you add or remove an integration by touching two files.
+Add to `.mcp.json` in your project (use the absolute path to this repo):
 
-**Step 1 — create `src/a11y_assist/tools/my_tool.py`:**
-
-```python
-from typing import Annotated
-from urllib.parse import quote
-from fastmcp import FastMCP
-
-from a11y_assist.utils import fetch_json
-
-
-def register(mcp: FastMCP) -> None:
-    @mcp.tool(
-        name="example_get_thing",
-        annotations={
-            "title": "Get a thing",
-            "readOnlyHint": True,
-            "destructiveHint": False,
-            "idempotentHint": True,
-            "openWorldHint": True,
-        },
-    )
-    async def get_thing(thing_id: Annotated[str, "The ID to fetch."]) -> dict:
-        """One-line summary. Document the data source, its update cadence,
-        and the return shape here — the model reads this docstring."""
-        safe_id = quote(thing_id, safe="")
-        return await fetch_json(f"things/{safe_id}")
+```json
+{
+  "mcpServers": {
+    "a11y-assist": {
+      "command": "uv",
+      "args": ["--directory", "C:/path/to/a11y-assist", "run", "a11y-assist"]
+    }
+  }
+}
 ```
 
-**Step 2 — wire it up in `tools/__init__.py`:**
+Then ask, for example: "Collect keyboard evidence for https://www.section508.gov/".
 
-```python
-from a11y_assist.tools import example_tool, my_tool
+## Output
 
-def register_tools(mcp) -> None:
-    example_tool.register(mcp)
-    my_tool.register(mcp)  # ← add this line
+Each run writes `runs/<timestamp>-<id>/`:
+
+```
+evidence/page.har.zip       recorded page
+evidence/forward/NNN.png    screenshot after each Tab
+evidence/backward/NNN.png   screenshot after each Shift+Tab
+evidence/keyboard.json      all focus stops
+steps.jsonl                 step log
+report.json                 findings, pending questions, versions, disclaimer
 ```
 
-**Step 3 — add any API key** as a typed field in `config.py` and document the env var in `.env.example`.
+`runs/` is git-ignored. Evidence holds page content; treat it as untrusted.
 
-Prompts (`prompts/`) and resources (`resources/`) follow the exact same `register(mcp)` + aggregator pattern.
+## Configuration
 
----
+See `.env.example` and `src/a11y_assist/config.py`. Main settings:
+`ALLOWED_DOMAINS`, `DEV_MODE`, `BROWSER_CHANNEL`, `HEADLESS`,
+`MAX_TAB_PRESSES`, `RULES_SPEC_VERSION`, `JUDGE_BACKEND`, `JUDGING_MODEL`.
 
-## Rename the package
+## Contributing
 
-Before publishing your server, rename `a11y_assist` to your service (e.g. `census_mcp`):
-
-1. Rename the folder `src/a11y_assist/` → `src/<your_name>/`.
-2. Update `pyproject.toml`: the `[project].name`, `[project.scripts]`, and `[tool.hatch.build.targets.wheel].packages`.
-3. Find-and-replace `a11y_assist` across `src/`, `tests/`, `main.py`, `Dockerfile`, and `manifest.yaml`.
-
----
-
-## Tool design tips (federal data)
-
-- **Return structured data, not prose.** Return dicts/lists with consistent keys and let the model narrate.
-- **Document freshness.** Federal datasets lag; state the update frequency and "as-of" date in the docstring.
-- **Expose pagination.** Use `PaginationParams` / `paginate()` from `utils.py`, and return `has_more` / `next_offset`.
-- **Use explicit timeouts.** `utils.fetch_json` defaults to 30s.
-- **Actionable errors.** Return an error dict with a `hint`, not a raw stack trace.
-- **Constrain outbound requests.** Keep API origins in operator-controlled code or configuration, pass only validated relative paths to `fetch_json`, and encode path segments. Never pass a tool-supplied URL directly to an HTTP client.
-- **Treat redirects and DNS as security boundaries.** Redirects are disabled by default. A server that must fetch caller-supplied URLs needs connection-time IP validation on every hop plus network egress controls; a one-time DNS check is not sufficient.
-- **Keep sensitive data out of errors and logs.** Do not expose or log upstream bodies, headers, full URLs, query strings, credentials, stack traces, SSNs, dates of birth, or addresses.
-
----
-
-## Deploying
-
-Local development uses stdio. To share your server with an agent platform, deploy it and register it. See **[deploy/README.md](deploy/README.md)** for a chooser, then:
-
-- **IBM watsonx Orchestrate** — [deploy/ibm/](deploy/ibm/) (three kits: local stdio toolkit, Code Engine build-from-Git, and prebuilt image).
-- **Databricks Apps** — [deploy/databricks/](deploy/databricks/).
-
-Both read the same server code; `app.py` automatically serves HTTP when the platform injects a port.
-
----
-
-## Partner reference materials
-
-The [`docs/`](docs/) directory contains educational reference materials that
-IBM and Databricks may contribute for hackathon participants. Vendor-contributed
-materials do not represent the views, positions, or policies of GSA or the
-United States Government.
-
-GSA does not endorse any commercial product, service, or enterprise referenced
-in these materials. Reference to a commercial product, service, or enterprise
-does not constitute or imply endorsement, recommendation, or favoring by GSA or
-the United States Government. These materials are provided for educational
-purposes only. See [`docs/README.md`](docs/README.md) for the complete notice and
-contribution guidance.
-
----
-
-## Evaluations
-
-Measuring how well an LLM can use your tools is the real test of server quality. This template intentionally does **not** ship an eval harness — see [eval/README.md](eval/README.md) for how to build one with the `mcp-eval` skill.
-
----
+Read [CLAUDE.md](CLAUDE.md) first. It lists the project's principles: never
+claim certification, outcome logic only from the rules spec, NEEDS_REVIEW over
+a false PASS, pinned and recorded versions, page content as untrusted data, and
+verify with tests.
 
 ## License
 
-[MIT](LICENSE). See [SECURITY.md](SECURITY.md) for the vulnerability disclosure policy and hackathon security notes.
+MIT (see [LICENSE](LICENSE)), from the GSA-TTS
+[mcp-hackathon-template](https://github.com/GSA-TTS/mcp-hackathon-template).
+
+Third-party software (see [NOTICE](NOTICE)):
+
+- **ANDI 29.2.2**, Copyright Social Security Administration, Apache License 2.0
+  ([third_party/andi/NOTICE](third_party/andi/NOTICE),
+  [LICENSE.md](third_party/andi/LICENSE.md)). Unmodified copy; use does not
+  imply SSA endorsement.
+- **jQuery 3.7.1**, Copyright OpenJS Foundation and other contributors, MIT
+  ([third_party/jquery/LICENSE.txt](third_party/jquery/LICENSE.txt)).
