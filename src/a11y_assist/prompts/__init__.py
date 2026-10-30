@@ -11,7 +11,7 @@ To add a prompt:
 
 from __future__ import annotations
 
-from example_server.prompts import example
+from a11y_assist.prompts import example
 
 
 def register_prompts(mcp) -> None:

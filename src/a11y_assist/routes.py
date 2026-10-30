@@ -14,7 +14,7 @@ from fastmcp import FastMCP
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
-from example_server import __version__
+from a11y_assist import __version__
 
 
 def register_routes(mcp: FastMCP) -> None:

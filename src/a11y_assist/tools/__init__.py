@@ -11,7 +11,7 @@ To add a tool:
 
 from __future__ import annotations
 
-from example_server.tools import example_tool
+from a11y_assist.tools import example_tool
 
 
 def register_tools(mcp) -> None:

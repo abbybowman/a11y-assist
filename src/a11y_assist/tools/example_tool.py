@@ -20,8 +20,8 @@ from typing import Annotated, Any
 import httpx
 from fastmcp import FastMCP
 
-from example_server.models import PaginationParams, ResponseFormat
-from example_server.utils import fetch_json, paginate
+from a11y_assist.models import PaginationParams, ResponseFormat
+from a11y_assist.utils import fetch_json, paginate
 
 
 def register(mcp: FastMCP) -> None:
@@ -63,7 +63,7 @@ def register(mcp: FastMCP) -> None:
 
         # ── Replace everything below with a real API call ────────────────────
         #
-        # from example_server.config import settings
+        # from a11y_assist.config import settings
         #
         # try:
         #     payload = await fetch_json(

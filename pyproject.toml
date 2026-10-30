@@ -1,5 +1,5 @@
 [project]
-name = "example-server"
+name = "a11y-assist"
 version = "0.1.0"
 description = "Starter MCP server for the GSA MCP hackathon"
 readme = "README.md"
@@ -12,15 +12,15 @@ dependencies = [
 ]
 
 [project.scripts]
-# Lets you run the server with `uv run example-server`.
-example-server = "example_server.app:main"
+# Lets you run the server with `uv run a11y-assist`.
+a11y-assist = "a11y_assist.app:main"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/example_server"]
+packages = ["src/a11y_assist"]
 
 [dependency-groups]
 # Dev + eval-only deps. Install with `uv sync --group dev`.

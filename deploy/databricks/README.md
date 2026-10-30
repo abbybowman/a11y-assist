@@ -8,7 +8,7 @@ and exposes it behind your workspace's authentication.
 - **Port:** Databricks injects `DATABRICKS_APP_PORT` (defaults to `8000`); this
   template's `app.py` detects it and serves HTTP automatically — no code changes.
 
-> **How the template already supports this:** `src/example_server/app.py` checks
+> **How the template already supports this:** `src/a11y_assist/app.py` checks
 > for `DATABRICKS_APP_PORT` (and generic `PORT`) and switches to streamable-HTTP
 > on that port. That's the only wiring Databricks Apps needs.
 
@@ -156,7 +156,7 @@ databricks apps delete "${APP_NAME}"
 - **Auth-gated by default:** Databricks Apps sit behind workspace SSO/OAuth, so
   unauthenticated probes return 302/401 — that's expected, not a failure. Use a
   bearer token to reach the app programmatically.
-- **Renamed package:** if you renamed `example_server`, update the module path in
+- **Renamed package:** if you renamed `a11y_assist`, update the module path in
   `app.yaml` (`python -m <your_pkg>.app`).
 - **`app.yaml` location:** Databricks reads `app.yaml` from the deployed source
   root. The deploy script stages this kit's copy at the repo root for the sync

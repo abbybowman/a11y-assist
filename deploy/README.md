@@ -13,7 +13,7 @@ This template ships deployment kits for two targets:
 
 ## The server code doesn't change
 
-Every kit runs the **same** server in `src/example_server/`. The entry point
+Every kit runs the **same** server in `src/a11y_assist/`. The entry point
 `app.py` auto-selects its transport:
 
 - a platform port (`DATABRICKS_APP_PORT` or `PORT`) → **HTTP** on that port;
