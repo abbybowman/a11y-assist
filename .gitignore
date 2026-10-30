@@ -28,3 +28,6 @@ htmlcov/
 .zed/
 *.swp
 
+
+# Run output (evidence, HAR files, screenshots, reports)
+runs/
