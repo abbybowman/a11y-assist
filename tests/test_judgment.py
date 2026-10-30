@@ -1,0 +1,34 @@
+"""Judge backends."""
+
+from __future__ import annotations
+
+import pytest
+
+from a11y_assist.judgment import ApiJudge, ClientJudge, get_judge
+from a11y_assist.models import JudgmentQuestion, Outcome, TestId
+
+Q = JudgmentQuestion(
+    question_id="q1",
+    test_id=TestId.T4D,
+    question="?",
+    rubric="r",
+    allowed_outcomes=[Outcome.FAIL, Outcome.NEEDS_REVIEW],
+    evidence_paths=["/tmp/x.png"],
+)
+
+
+async def test_client_judge_defers_every_question():
+    result = await ClientJudge().judge([Q])
+    assert result.answers == [] and result.pending == [Q]
+
+
+async def test_api_judge_is_a_stub():
+    with pytest.raises(NotImplementedError):
+        await ApiJudge().judge([Q])
+
+
+def test_get_judge():
+    assert isinstance(get_judge("client"), ClientJudge)
+    assert isinstance(get_judge("api"), ApiJudge)
+    with pytest.raises(ValueError):
+        get_judge("other")
