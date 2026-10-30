@@ -1,12 +1,18 @@
 """Server configuration loaded from environment variables or a .env file.
 
-Every field can be overridden by an environment variable of the same name
-(upper- or lower-case). Copy `.env.example` to `.env` for local development.
+Every field can be overridden by an environment variable of the same name,
+prefixed with nothing (e.g. `HEADLESS=true`, `DEV_MODE=true`). Copy
+`.env.example` to `.env` for local development.
 """
 
 from __future__ import annotations
 
+from pathlib import Path
+
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
 class Settings(BaseSettings):
@@ -19,21 +25,40 @@ class Settings(BaseSettings):
     )
 
     # ── Transport ─────────────────────────────────────────────────────────────
-    # "stdio"           — local subprocess (Claude Desktop / Claude Code / Zed)
-    # "streamable-http" — remote HTTP server (containers, cloud deploys)
-    #
-    # NOTE: app.py also auto-selects HTTP when a platform injects DATABRICKS_APP_PORT
-    # or PORT, so you usually do NOT need to set this on a cloud host.
     mcp_transport: str = "stdio"
-    mcp_host: str = "0.0.0.0"
+    mcp_host: str = "127.0.0.1"
     mcp_port: int = 8000
 
-    # ── Dataset API keys ──────────────────────────────────────────────────────
-    # Add a typed field for each API key your tools need, then read it from
-    # `settings.<field>` in your tool. Document the matching env var in
-    # `.env.example`. Example:
-    #
-    #   example_api_key: str = ""   # ← set EXAMPLE_API_KEY in the environment
+    # ── Navigation policy ─────────────────────────────────────────────────────
+    # Entries starting with "." match that suffix (".gov" matches "www.nasa.gov"
+    # and "nasa.gov"). Other entries match a hostname exactly. Enforced on every
+    # top-level navigation, including each redirect hop.
+    allowed_domains: list[str] = Field(default_factory=lambda: [".gov", ".mil"])
+    # file:// is allowed only when dev_mode is on (for local fixtures).
+    dev_mode: bool = False
+    max_redirects: int = Field(default=10, ge=0, le=50)
+
+    # ── Browser ───────────────────────────────────────────────────────────────
+    # "chrome" = installed Google Chrome. "chromium" = Playwright's bundled build
+    # (used in CI/containers where Chrome is not installed).
+    browser_channel: str = "chrome"
+    headless: bool = False
+    viewport_width: int = 1280
+    viewport_height: int = 900
+    navigation_timeout_ms: int = 30_000
+
+    # ── Evidence ──────────────────────────────────────────────────────────────
+    max_tab_presses: int = Field(default=150, ge=1, le=2000)
+    runs_dir: Path = REPO_ROOT / "runs"
+
+    # ── Vendored tools ────────────────────────────────────────────────────────
+    third_party_dir: Path = REPO_ROOT / "third_party"
+
+    # ── Versions recorded in every report ─────────────────────────────────────
+    # No rules spec exists yet, so no outcome logic runs. Set this when it does.
+    rules_spec_version: str = "none"
+    # Identifier of the model that answers judgment questions, if any.
+    judging_model: str = "none"
 
 
 settings = Settings()
