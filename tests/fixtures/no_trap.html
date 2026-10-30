@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Fixture: no keyboard trap</title></head>
+<body>
+  <h1>No trap</h1>
+  <a id="first-link" href="#section">Skip to section</a>
+  <button id="btn" type="button">Plain button</button>
+  <label for="email">Email</label> <input id="email" type="email">
+  <div id="custom" role="button" tabindex="0" aria-label="Custom control">Custom</div>
+  <span id="not-tabbable" tabindex="-1">Not in tab order</span>
+  <iframe id="inner" title="Inner frame"
+    srcdoc="<!doctype html><html lang=en><title>inner</title><button id=inner-btn>Inside frame</button></html>"></iframe>
+  <div id="host"></div>
+  <p id="section">Section</p>
+  <a id="last-link" href="#top">Back to top</a>
+  <script>
+    const root = document.getElementById("host").attachShadow({ mode: "open" });
+    root.innerHTML = '<button id="shadow-btn">Shadow button</button>';
+  </script>
+</body>
+</html>

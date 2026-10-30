@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Fixture: modal dialog</title></head>
+<body>
+  <h1>Modal dialog</h1>
+  <button id="open" type="button">Open dialog</button>
+  <a id="behind-link" href="#x">Link behind the dialog</a>
+  <dialog id="dlg" aria-labelledby="dlg-title">
+    <h2 id="dlg-title">Sign up</h2>
+    <label for="name">Name</label> <input id="name" type="text">
+    <button id="save" type="button">Save</button>
+    <button id="close" type="button">Close</button>
+  </dialog>
+  <script>
+    const dlg = document.getElementById("dlg");
+    document.getElementById("open").addEventListener("click", () => dlg.showModal());
+    document.getElementById("close").addEventListener("click", () => dlg.close());
+    // Open on load so a fresh page starts with the modal showing.
+    dlg.showModal();
+  </script>
+</body>
+</html>
