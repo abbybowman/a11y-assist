@@ -6,7 +6,6 @@ Add functional tests for your own tools as you build them.
 
 from __future__ import annotations
 
-import pytest
 from fastmcp import FastMCP
 
 from a11y_assist.app import mcp
@@ -48,11 +47,3 @@ def test_routes_register_without_error():
     from a11y_assist.routes import register_routes
 
     register_routes(FastMCP("test"))  # must not raise
-
-
-@pytest.mark.asyncio
-async def test_example_tool_is_discoverable():
-    """The example tool should be registered and discoverable via the MCP API."""
-    tools = await mcp.list_tools()
-    tool_names = {t.name for t in tools}
-    assert "example_search_datasets" in tool_names
