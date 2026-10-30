@@ -1,0 +1,2 @@
+# Vendored third-party files must stay byte-identical (hashes are checked in tests).
+third_party/** -text

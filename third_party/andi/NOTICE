@@ -1,0 +1,16 @@
+ANDI (Accessible Name & Description Inspector)
+Version 29.2.2
+Copyright Social Security Administration (SSA)
+https://github.com/SSAgov/ANDI
+
+ANDI was created by the U.S. Social Security Administration and is licensed
+under the Apache License, Version 2.0 (see LICENSE.md in this directory).
+
+The files in this directory are unmodified copies of the runtime files in the
+andi/ directory of the SSAgov/ANDI repository at commit
+e491d9553bf05f1df7402af3c65a75523449d3ff. The help/ documentation directory
+was not copied. This project serves these files locally in place of
+https://www.ssa.gov/accessibility/andi/ and does not load ANDI from ssa.gov.
+
+Use of ANDI in this project does not imply endorsement by the Social Security
+Administration.

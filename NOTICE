@@ -1,0 +1,11 @@
+a11y-assist
+Licensed under the MIT License (see LICENSE).
+
+This project includes third-party software:
+
+- ANDI 29.2.2, Copyright Social Security Administration, Apache License 2.0.
+  See third_party/andi/NOTICE and third_party/andi/LICENSE.md.
+- jQuery 3.7.1, Copyright OpenJS Foundation and other contributors, MIT License.
+  See third_party/jquery/LICENSE.txt.
+
+Provenance and SHA-256 hashes: third_party/PROVENANCE.json.
