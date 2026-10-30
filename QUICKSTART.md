@@ -39,7 +39,7 @@ to this repo:
   "mcpServers": {
     "example-mcp": {
       "command": "uv",
-      "args": ["run", "example-server"],
+      "args": ["run", "a11y-assist"],
       "cwd": "/absolute/path/to/mcp-hackathon-template"
     }
   }
@@ -84,7 +84,7 @@ curl http://localhost:8000/health      # {"status":"healthy",...}
 
 - **Add a real tool** — follow "The one-tool-per-file pattern" in the
   [README](README.md#the-one-tool-per-file-pattern).
-- **Rename the package** from `example_server` to your service — see the
+- **Rename the package** from `a11y_assist` to your service — see the
   [README](README.md#rename-the-package).
 - **Deploy it** — pick a kit in [deploy/README.md](deploy/README.md)
   (IBM watsonx Orchestrate or Databricks).

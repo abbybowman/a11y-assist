@@ -9,7 +9,7 @@ them into `register_resources(mcp)`.
 
 from __future__ import annotations
 
-from example_server.resources import example
+from a11y_assist.resources import example
 
 
 def register_resources(mcp) -> None:

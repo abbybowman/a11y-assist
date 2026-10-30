@@ -28,9 +28,9 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
 STAGE_DIR="${SCRIPT_DIR}/_stage"
 TOOLKIT_YAML="${SCRIPT_DIR}/_toolkit.generated.yaml"
 
-# The package to ship. If you renamed `example_server`, set PACKAGE_NAME to match
+# The package to ship. If you renamed `a11y_assist`, set PACKAGE_NAME to match
 # (or export it before running).
-PACKAGE_NAME="${PACKAGE_NAME:-example_server}"
+PACKAGE_NAME="${PACKAGE_NAME:-a11y_assist}"
 
 echo "=== Target ==="
 echo "  env name:      ${WXO_ENV_NAME}"

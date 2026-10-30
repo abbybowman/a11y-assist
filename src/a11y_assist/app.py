@@ -21,11 +21,11 @@ import os
 
 from fastmcp import FastMCP
 
-from example_server.config import settings
-from example_server.prompts import register_prompts
-from example_server.resources import register_resources
-from example_server.routes import register_routes
-from example_server.tools import register_tools
+from a11y_assist.config import settings
+from a11y_assist.prompts import register_prompts
+from a11y_assist.resources import register_resources
+from a11y_assist.routes import register_routes
+from a11y_assist.tools import register_tools
 
 # The server name is what MCP clients display. Rename it to your service.
 mcp = FastMCP(

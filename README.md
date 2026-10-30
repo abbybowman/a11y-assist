@@ -30,7 +30,7 @@ mcp-hackathon-template/
 ├── .github/workflows/ci.yml   # Lint + test on push/PR
 ├── docs/                      # Vendor-contributed reference materials
 ├── src/
-│   └── example_server/        # ← rename to your service
+│   └── a11y_assist/        # ← rename to your service
 │       ├── app.py             # Thin entry point: builds FastMCP, picks transport
 │       ├── config.py          # Settings from env vars / .env
 │       ├── models.py          # Pydantic models & enums for tool params
@@ -82,16 +82,16 @@ uv run ruff check .          # lint
 
 ## The one-tool-per-file pattern
 
-Each tool lives in its own file under `src/example_server/tools/` and exposes a `register(mcp)` function. `tools/__init__.py` calls each one from a single `register_tools(mcp)`. This keeps the tool list scannable and lets you add or remove an integration by touching two files.
+Each tool lives in its own file under `src/a11y_assist/tools/` and exposes a `register(mcp)` function. `tools/__init__.py` calls each one from a single `register_tools(mcp)`. This keeps the tool list scannable and lets you add or remove an integration by touching two files.
 
-**Step 1 — create `src/example_server/tools/my_tool.py`:**
+**Step 1 — create `src/a11y_assist/tools/my_tool.py`:**
 
 ```python
 from typing import Annotated
 from urllib.parse import quote
 from fastmcp import FastMCP
 
-from example_server.utils import fetch_json
+from a11y_assist.utils import fetch_json
 
 
 def register(mcp: FastMCP) -> None:
@@ -115,7 +115,7 @@ def register(mcp: FastMCP) -> None:
 **Step 2 — wire it up in `tools/__init__.py`:**
 
 ```python
-from example_server.tools import example_tool, my_tool
+from a11y_assist.tools import example_tool, my_tool
 
 def register_tools(mcp) -> None:
     example_tool.register(mcp)
@@ -130,11 +130,11 @@ Prompts (`prompts/`) and resources (`resources/`) follow the exact same `registe
 
 ## Rename the package
 
-Before publishing your server, rename `example_server` to your service (e.g. `census_mcp`):
+Before publishing your server, rename `a11y_assist` to your service (e.g. `census_mcp`):
 
-1. Rename the folder `src/example_server/` → `src/<your_name>/`.
+1. Rename the folder `src/a11y_assist/` → `src/<your_name>/`.
 2. Update `pyproject.toml`: the `[project].name`, `[project.scripts]`, and `[tool.hatch.build.targets.wheel].packages`.
-3. Find-and-replace `example_server` across `src/`, `tests/`, `main.py`, `Dockerfile`, and `manifest.yaml`.
+3. Find-and-replace `a11y_assist` across `src/`, `tests/`, `main.py`, `Dockerfile`, and `manifest.yaml`.
 
 ---
 
