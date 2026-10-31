@@ -1,6 +1,6 @@
 # Plan: refocus the codebase from one 4.C suite to many TT tests
 
-Status: **draft for Abby's review. Nothing here is built yet.**
+Status: **approved by Abby 2026-10-31, with the changes in "Decisions" below. In progress.**
 Branch: `ccr-9bc8f27b-l7ncp0` (same commit as `claude/wizardly-hawking-19pgnu`, 26d5d69).
 
 Inputs weighed: #1 scope review, #2 architecture review, #3 `docs/HANDOFF-4c-simplify.md`.
@@ -16,6 +16,22 @@ make the next piece easier. For this repo:
 - **Proportionate to the PDF.** A spec step must match something the PDF asks a human tester to do. Anything past that is NEEDS_REVIEW or a note for a human, not more code.
 - **Time budget.** Measure, then design toward a per-page budget for the whole 4.x group.
 - **Capture what we learn.** Write recipes and lessons down so 4.D–4.F reuse them instead of working them out again.
+
+## Decisions (Abby, 2026-10-31)
+
+These override anything below that disagrees.
+
+1. **No Phase 0.** No baseline re-run under 1.4.0. A little timing goes into `steps.jsonl` as part of the work, only so we can hold the time budget, not to report savings.
+2. **Spec 1.5.0 cuts:** approved as recommended in the Phase 1 table. The settle rule (left open there) is decided in D7.
+3. **Pages that can't be loaded** (blocked by the allowlist, unreachable, bad input) are tool errors, not findings.
+4. **Opinionated judgment calls.** Users are mostly not Trusted Testers, so the tool makes the judgment calls itself (through the calling agent, one answer each). It explains each call in plain language, with no jargon and no spec codes, so a person can override it. Principle 3 still holds: an opinion leads to PASS only when a key press confirms it; otherwise the finding stays NEEDS_REVIEW, with our recommendation in plain words.
+5. **Results belong to the user's codebase, not our server.** The server keeps a run's working files only until the run is finished (a time limit and a size cap), then deletes them. Every tool result carries the full plain-language report, for the client to save in its own repo. Later tools that compare runs take a saved report as input, not a server-side run ID.
+6. **Hosted is the target (GSA hackathon).** Ship local (stdio) now, but build nothing that wouldn't work hosted: no local file paths as the only way to reach evidence; run storage behind one interface so a hosted store can replace the local disk; tool calls short enough to survive HTTP proxy timeouts; progress notifications.
+7. **`read_report` stays in the plan**, with a new meaning: read an agency's existing ACR or SCRT report (passed in by the client) and recommend fixes and what to re-test. The formats to support get decided when we build it.
+
+**D7 (settle rule, decided without Phase 0):** 2 animation frames, then 150 ms with no DOM mutation, at most 1,500 ms. The separate 300 ms focus window goes. Any focus change between presses still marks the step unsettled and re-reads it with the 1,000 ms window, so delayed refocus is still caught. This takes ~450 ms → ~180 ms per press on a quiet page.
+
+**Time budget (from D6):** one `run_tt_tests` call per page aims for under 60 s for Test 4 on a typical page, with a hard limit of 120 s (config). If the limit is hit, the call returns what it has, with the unfinished tests marked NEEDS_REVIEW "could not be performed: the page is too large to finish within the time limit". Very large pages (600 links) will hit this; that's honest and bounded.
 
 ## Where the inputs agree, and what I'd adopt
 
@@ -46,16 +62,11 @@ make the next piece easier. For this repo:
 
 Each phase ends green (`uv run pytest`, ruff) and with a short "verified vs assumed" note.
 
-### Phase 0: Baseline and instrumentation (no outcome change)
+Phase 0 (baseline) was dropped (Decision 1).
 
-- Re-run the full outcome suite under spec 1.4.0. Per the handoff it hasn't been run since the rule change; record agreement with DHS and ACT.
-- Add per-phase timing to `steps.jsonl`: session open, prefix replay, probe keys, continuation, screenshots. Profile F04, F16, F32 and one ACT case.
-- Add `pytest-xdist` (dev dependency only, nothing system-wide) and measure the suite in parallel.
-- **Output:** a table of where the time goes, measured. Every later estimate is based on it.
+### Phase 1: Spec 4.C 1.5.0, back to PDF level (approved)
 
-### Phase 1: Spec 4.C 1.5.0, back to PDF level (needs your approval, row by row)
-
-I'll propose these as a diff to `4c-no-keyboard-trap.md`, each with the PDF cite, the expected time saved (from Phase 0) and any fixture or ACT expectation that changes:
+Written into `4c-no-keyboard-trap.md` 1.5.0, each with its PDF cite and any fixture or ACT expectation that changes:
 
 | Cut | Today | Proposed |
 | --- | --- | --- |
@@ -67,13 +78,13 @@ I'll propose these as a diff to `4c-no-keyboard-trap.md`, each with the PDF cite
 | J2 value entry | Agent gives values; tool reopens the browser and types them | J2 still asked; its values go to a human with NEEDS_REVIEW. Removes the fill-probe code |
 | Samples | 3 per question | 1 when the answer is checked by pressing keys (J1 "yes" → the keys are pressed). Wording stays narrow and plain for a non-tester operator |
 | Recording scroll | 5 passes; infinite-scroll signs | 1 pass; signs become a note only (never PASS, as today) |
-| Settle rule | 2 rAF + 300 ms DOM quiet + 300 ms focus window | **Decide after Phase 0.** Likely: shorter quiet window; keep the "focus changed between presses" rerun |
+| Settle rule | 2 rAF + 300 ms DOM quiet + 300 ms focus window | 2 rAF + 150 ms DOM quiet; the rerun on a between-press focus change stays (D7) |
 
 Outcome-neutral speedups (allowed without approval, but measured before and after): one replay context per run with a fresh page per load; replay key prefixes with a light settle and check that the final stop matches; no screenshots during replays.
 
 Then prune fixtures and tests to the rows that remain: retire F01, F02, F06, F07, F08 and old F35 (ACT covers them), plus the fixtures for cut passes (e.g. F22/F23 widget sweeps, F28 disclosure, F29 feed). Remove the duplicate behavior tests in `test_fixtures_4c.py`.
 
-**Targets (from #3, to confirm after Phase 0):** small fixture < 10 s, full suite < 5 min.
+**Targets:** small fixture < 10 s, full suite < 5 min, and the per-page budget in Decisions.
 
 ### Phase 2: Shared keyboard walk and generic test modules
 
@@ -124,6 +135,8 @@ Checked against the running server via an in-memory FastMCP client (FastMCP 4.0.
 | MCP-10 | Planned tools: `verify_fix`, `get_guidance`, `read_report` | Every tool costs context in every session; fewer, broader tools work better | `read_report` → resources (MCP-4). `get_guidance` → resources or a prompt (static TT text from the spec). `verify_fix` → a `compare_to: run_id` option on `run_tt_tests`. Add one prompt, "Test a page", that walks a non-tester through run → questions → summary, with the disclaimer |
 | MCP-11 | No agent-level evals: tests check the plumbing, not whether a model uses the tools well | Tool descriptions act as prompts; you only know they work by watching a model use them | Small eval set on fixtures: a model gets a task ("check this page for keyboard traps"). Graded on right calls, outcome relayed correctly, no "certified/compliant" wording, questions answered by rubric, tokens used. Each failure becomes a description fix plus a regression case (the compound loop) |
 
+**Changed by the decisions:** MCP-4 is now "evidence as resources only while the run's files are kept (Decision 5); the full report goes inline for the client to save". The planned `read_report` tool stays, with Decision 7's meaning. MCP-5 is now the bounded-call budget above, not a start/status split. MCP-8 is Decision 4. MCP-9: stdio now, nothing that breaks hosting (Decision 6).
+
 **Where this lands in the phases:** MCP-1 (text fix only) and MCP-6 are small and go first, alongside Phase 0. MCP-2, -3, -4, -7 and -9 belong in Phase 2, since the result models fall out of the generic test modules. MCP-5's budget comes from Phase 0/1. MCP-8 goes with decision 3. MCP-10 and MCP-11 go after 4.D.
 
 ## Capturing what we learn (the compound step)
@@ -133,7 +146,7 @@ Checked against the running server via an in-memory FastMCP client (FastMCP 4.0.
 - **`_template.md`:** add an "Evidence used from the shared walk" section and a "Time budget" line.
 - Retire `docs/HANDOFF-4c-simplify.md` and `4c-build-tasks.md` items as each is done.
 
-## Decisions I need from you
+## Questions put to Abby (answered: see "Decisions" at the top)
 
 1. **Phase order.** I recommend 0 → 1 → 2 → 3 → 4 (scanners after the walk refactor). #2 put scanners before the time budget; I'd rather they not block 4.D–4.F, since they add little to Test 4.
 2. **Spec 1.5.0 cuts.** OK to draft all rows in the Phase 1 table as one proposal, or do you want any kept as is (e.g. full J2 value entry)?
