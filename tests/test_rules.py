@@ -25,7 +25,11 @@ spec_version: 1.2.3
 
 def test_repo_specs_load_and_4c_version_comes_from_front_matter() -> None:
     specs = load_specs(RULES_DIR)
-    assert set(specs) == {TestId.T4C}
+    # 4.C is implemented; other specs are drafts (0.x) awaiting approval and
+    # produce no outcome until a check is registered (checks/REGISTRY).
+    assert TestId.T4C in specs
+    for t, spec in specs.items():
+        assert t is TestId.T4C or spec.spec_version.startswith("0."), t
     assert specs[TestId.T4C].spec_version == "1.5.0"
     assert specs[TestId.T4C].path.name == "4c-no-keyboard-trap.md"
 
