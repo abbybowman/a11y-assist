@@ -1,14 +1,51 @@
 # Build tasks: 4.C
 
-Work [4c-no-keyboard-trap.md](4c-no-keyboard-trap.md) needs done during the build. Delete each row once it exists in the repo: fixtures under `tests/fixtures/4c/`, browser checks under `tests/browser/`. Delete this file when both tables are empty.
+Work [4c-no-keyboard-trap.md](4c-no-keyboard-trap.md) (spec 1.2.0) needs done during the build. Delete each row once it exists in the repo: ACT fixtures under `tests/fixtures/act/`, custom fixtures under `tests/fixtures/4c/`, browser checks under `tests/browser/`. Delete this file when every table is empty.
 
 ## Fixtures to build
 
-All built: F01–F35 in `tests/fixtures/4c/`, expected outcomes in `tests/test_fixtures_4c.py`. F35 (aria-modal dialog that only Escape closes) was added to cover M4, because a native modal (F10) lets Tab leave the page.
+**ACT test cases come first.** W3C publishes every ACT test case in [testcases.json](https://www.w3.org/WAI/content-assets/wcag-act-rules/testcases.json), and DHS published its TT 5.1 results on them as [EARL JSON](https://raw.githubusercontent.com/Section508Coordinators/act-tt/main/act-trusted-tester.json). Rules a1b64e, ebe86a and 80af7b share 19 distinct cases; DHS scored 17 (not d26e3cbd or dcf917e0). Join DHS results on the testcase hash, not the URL: DHS filed some cases under a different rule's folder. None of these rules is approved by W3C (all are proposed), so scores are reported with that label rather than dropped. A custom fixture is built only for a rule no ACT case exercises. Expected outcomes live in a manifest outside the served pages, never in a page.
+
+**ACT cases (rules a1b64e, ebe86a, 80af7b).** IDs are the first 8 characters of `testcaseId`; the hash changes when W3C edits a case, so the manifest pins the full hash.
+
+| ID | ACT example | ACT expected | DHS TT 5.1 | 4.C expected | Proves |
+| --- | --- | --- | --- | --- | --- |
+| 96eb4b26 | a1b64e Passed 1: link and button | passed | PASS | PASS | G4 wrap |
+| d26e3cbd | a1b64e Passed 2: div role=button tabindex=1 | passed | not scored | PASS | Positive tabindex |
+| fb76f71a | 80af7b Passed 2: div tabindex=1 | passed | PASS | PASS | Positive tabindex |
+| 4b93a866 | a1b64e Passed 3: div tabindex=-1 only | passed | PASS | DNA | A1; OPEN O4 mismatch |
+| dcf917e0 | a1b64e Passed 4: aria-modal dialog with focus sentinels; Escape or Close dismisses | passed | not scored | PASS | M3, modal exception |
+| f5ea9fd3 | a1b64e Failed 1: button refocuses itself on blur | failed | FAIL | FAIL | M12, settle focus check |
+| d2f5325f | a1b64e Failed 2 = 80af7b Passed 7: two buttons pass focus back and forth | split | FAIL | FAIL | M14 loop in both directions (V15) |
+| 0ec0e93e | a1b64e Failed 3: two self-refocusing buttons around a third | failed | FAIL | FAIL | M12; V15 |
+| 16dddd8a | Inapplicable 1: heading only | inapplicable | DNA | DNA | A1 |
+| 6e3dcc2f | Inapplicable 2: disabled button | inapplicable | DNA | DNA | A1, disabled excluded |
+| 9d47dcc6 | Inapplicable 3: display:none button | inapplicable | DNA | DNA | A1, not rendered |
+| 30ffb299 | Inapplicable 4: visibility:hidden link and button | inapplicable | DNA | DNA | A1, visibility:hidden excluded |
+| ab24c77e | ebe86a Passed 1: 2-button trap; "Press Ctrl+M to Exit" before it; key works | passed | PASS | PASS | J1, M6 |
+| e3902f01 | ebe86a Passed 2: same, text inside the trap | passed | PASS | PASS | J1, M6 |
+| b92b5214 | ebe86a Passed 3: help link reveals the exit key in place | passed | PASS | PASS | J1 revealed text, M6 |
+| 7dcc4ae0 | ebe86a Failed 1: 2-button trap, no instructions | failed | FAIL | FAIL | M14 |
+| 8fba3918 | ebe86a Failed 2: "Go to the next element" only | failed | FAIL | FAIL | J1 rubric, M14 |
+| 62fd24e7 | ebe86a Failed 3: documented key doesn't work | failed | FAIL | FAIL | M7, M14 |
+| b20beca9 | ebe86a Inapplicable 1: no trap | inapplicable | PASS | PASS | G4 |
+
+**Custom fixtures (gaps no ACT case covers).** F01–F34 exist in `tests/fixtures/4c/`. Still to build:
+
+| ID | Page | Expected | Proves |
+| --- | --- | --- | --- |
+| F35 | Button that refocuses itself 600 ms after blur, with no DOM change | FAIL | Settle focus check (M1 rerun, then M12) |
+
+**Changes to fixtures that exist**, once the ACT cases run in CI:
+
+- Retire `f01-paragraphs-links` (→ 96eb4b26), `f02-text-only` (→ 16dddd8a), `f06-script-loop` (→ 7dcc4ae0), `f07-documented-exit-key` (→ ab24c77e), `f08-documented-key-broken` (→ 62fd24e7), and the current `f35-aria-modal-escape-closes` (→ dcf917e0, which covers M3). The new F35 above takes its number. Keep `no_trap.html`: it is the general evidence fixture, not F01.
+- Remove the expected outcome from every fixture's HTML comment; expectations stay in the manifest and `tests/test_fixtures_4c.py`.
+- F10 (`f10-native-dialog`) proves "native modal: Tab leaves through the browser UI, so P1 wraps (G4)", not M3.
+- Row references follow spec 1.2.0 numbering (M12 stuck FAIL, M13 small section, M14 loop FAIL).
 
 ## Browser behavior to verify in code
 
-Each needs a small test in headed Chrome on Windows through Playwright before the rule that depends on it ships.
+Each needs a small test in headed Chrome on Windows through Playwright before the rule that depends on it ships. V1–V13 pass on Linux (headless and headed under Xvfb) in `tests/browser/test_v_checks.py`; Windows is still to run.
 
 | ID | Verify | Rules that depend on it |
 | --- | --- | --- |
@@ -20,8 +57,10 @@ Each needs a small test in headed Chrome on Windows through Playwright before th
 | V6 | Resolving the focused node inside closed shadow roots through CDP | Stop identity, M1, F25 |
 | V7 | Where the next Tab goes after the focused element is removed and focus falls to the body | BODY rule, F26–F27 |
 | V8 | Whether a click on non-interactive text sets the starting point for the next Tab | P6, mouse bypass |
-| V9 | Whether elements inside a tabindex=-1 iframe are in the Tab sequence | F33 |
-| V10 | What the frozen-page replay does with scroll-triggered requests it never recorded | Infinite scroll rule, F29 |
-| V11 | Whether Chrome consumes Escape (stop loading, exit fullscreen) before the page sees it | M4 |
+| V9 | Whether elements inside a tabindex=-1 iframe are in the Tab sequence | Inventory, F33 |
+| V10 | What the frozen-page replay does with scroll-triggered requests it never recorded | Recording, infinite scroll rule, F29 |
+| V11 | Whether Chrome consumes Escape (stop loading, exit fullscreen) before the page sees it | M3 |
 | V12 | Tab sent by Playwright moves focus the same way in headed Chrome as the plan's headless sandbox showed | All passes |
 | V13 | Arrow keys on a native select on Windows: change value without opening, and fire change events | P4 |
+| V14 | Recording focus and blur events with targets and times across frames and shadow roots, injected before page scripts run | Settle rule, F35 |
+| V15 | Whether script focus() pulls keyboard focus back from the browser UI (toolbar) in headed Chrome. Probed on Linux: it does (d2f5325f cycles both ways); needs a test | OUT detection, d2f5325f, 0ec0e93e |
