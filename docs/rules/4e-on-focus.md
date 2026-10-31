@@ -1,7 +1,7 @@
 ---
 tt_test: 4.E
 tt_name: 3.2.1-on-focus
-spec_version: 0.2.0
+spec_version: 1.0.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -14,7 +14,7 @@ The tool gives each page one 4.E outcome: PASS, FAIL, DOES NOT APPLY or NEEDS RE
 
 **W3C sources.** [Understanding 3.2.1](https://www.w3.org/WAI/WCAG22/Understanding/on-focus.html) (its examples: a form submitted, a new window launched, or focus changed to another component when a component receives focus), the definition of *change of context* (changes of user agent, viewport, focus, or content that changes the meaning of the page; "a change of content is not always a change of context", e.g. an expanding outline, dynamic menu or tab control), technique G107, and failure [F55](https://www.w3.org/WAI/WCAG22/Techniques/failures/F55) (script removes focus when focus is received). No ACT rule covers 3.2.1, so fixtures are custom. These inform OPEN items and fixtures only; the PDF stays the authority.
 
-**Terms.** *Stop*, *OUT*, *BODY*, passes P1 and P2, stop identity and the settle rule are defined in [4c-no-keyboard-trap.md](4c-no-keyboard-trap.md) (Terms, section 2). The *target* of a step is the element that first receives focus after the key press (the first trusted focus-in in the step's focus log). A *context signal* is one of: the top URL changes (ignoring the fragment) or the page reloads; a new page or window opens; focus moves on its own (below); a dialog becomes visible.
+**Terms.** *Stop*, *OUT*, *BODY*, passes P1 and P2, stop identity and the settle rule are defined in [4c-no-keyboard-trap.md](4c-no-keyboard-trap.md) (Terms, section 2). The *target* of a step is the element that first receives focus after the key press: the first focus-in in the step's focus log or, if the element blurs inside its own focus handler (Chrome then fires no focus-in), the element the first focus-out says focus was going to. A *context signal* is one of: the top URL changes (ignoring the fragment) or the page reloads; a new page or window opens; focus moves on its own (below); a dialog becomes visible.
 
 ## 1. Applicability
 
@@ -47,14 +47,16 @@ Each step with a context signal is an *instance*. Focus *moves on its own* when,
 
 | # | Evidence pattern | Instance outcome | Source |
 | --- | --- | --- | --- |
-| M1 | The step is unsettled or unresolved, or a focus event in it is untrusted | NEEDS REVIEW | Spec rule |
+| M1 | The step is unsettled, unresolved or re-read (focus moved after the settle window), or a focus event in it is untrusted | NEEDS REVIEW | Spec rule |
 | M2 | The control replay shows the same navigation or new page without the key | No instance (caused by time, not focus); note for test 8.A | Spec rule |
 | M3 | The reproduce replay does not show the signal again | NEEDS REVIEW | Spec rule |
+| R? | No replay was run (more than 10 signals) | NEEDS REVIEW | Spec rule |
 | M4 | The top URL changes or the page reloads after a Tab or Shift+Tab | FAIL | p. 22 HtT 2; Understanding 3.2.1 (change of user agent / viewport) |
 | M5 | A new page or window opens after a Tab or Shift+Tab | FAIL | p. 22 HtT 2 ("a new window is launched") |
 | M6 | Focus moves on its own to another element | FAIL | p. 22 HtT 2 ("focus is moved to another interface component") |
 | M7 | Focus moves on its own to the page body (the target drops focus) | FAIL | p. 22 HtT 2; F55 |
-| M8 | Only a dialog becomes visible; focus stays on the target | Ask J1 (M9–M11) | Definition of change of context |
+| M8 | Only a dialog becomes visible; focus stays on the target | Ask J1 (J1?, M9–M11) | Definition of change of context |
+| J1? | J1 not answered yet | NEEDS REVIEW | Open question |
 | M9 | J1 = changes the context | FAIL | p. 22 ER 1; definition of change of context |
 | M10 | J1 = content only | No instance (a change of content, not of context) | Definition of change of context, Note |
 | M11 | J1 = unsure, or not answered yet | NEEDS REVIEW | Spec rule |

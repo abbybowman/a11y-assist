@@ -167,6 +167,16 @@ def _evaluate(run: RunRecorder, report: Report, states: dict[TestId, Any]) -> No
     ]
 
 
+def _walk_extras(checks) -> list:
+    """The union of the selected checks' walk extras, one per hook name."""
+    seen: dict[str, Any] = {}
+    for c in checks:
+        for factory in c.walk_extras():
+            name = factory("P1", None).name
+            seen.setdefault(name, factory)
+    return list(seen.values())
+
+
 def report_tests(report: Report) -> list[TestId]:
     return [TestId(t) for t in report.tests]
 
@@ -228,7 +238,12 @@ async def run_tt_tests(
             if any(c.uses_walk for c in checks):
                 await say(1, "Walking the page with Tab and Shift+Tab")
                 walk = await walk_page(
-                    ctx.new_page, ctx.quiet_ms, ctx.deadline, ctx.shots, ctx.rel
+                    ctx.new_page,
+                    ctx.quiet_ms,
+                    ctx.deadline,
+                    ctx.shots,
+                    ctx.rel,
+                    _walk_extras(checks),
                 )
                 run.write_json(run.evidence_dir / "walk.json", walk)
                 run.log("walk", **_walk_summary(walk))

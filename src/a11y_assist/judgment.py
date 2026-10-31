@@ -82,10 +82,15 @@ def record_answers(
         tag = answer.question_id
         if q is None:
             errors.append(f"{tag}: no question with this id in this run")
-        elif (q.kind == "J1") != (answer.j1 is not None) or (q.kind == "J2") != (
-            answer.j2 is not None
+        elif (
+            (q.kind == "J1") != (answer.j1 is not None)
+            or (q.kind == "J2") != (answer.j2 is not None)
+            or (q.kind == "choice") != (answer.choice is not None)
         ):
-            errors.append(f"{tag}: a {q.kind} question needs a {q.kind.lower()} answer")
+            field = {"J1": "j1", "J2": "j2", "choice": "choice"}[q.kind]
+            errors.append(f"{tag}: a {q.kind} question needs a `{field}` answer")
+        elif q.kind == "choice" and answer.choice.choice not in q.choices:
+            errors.append(f"{tag}: choice must be one of {', '.join(q.choices)}")
         else:
             report.answers.append(
                 RecordedAnswer(question=q, answer=answer, recorded_at=utcnow())

@@ -106,11 +106,15 @@ async def test_no_test_is_reported_not_tested(settings):
     assert out["errors"] == []
     by_id = {f["test_id"]: f for f in out["findings"]}
     assert set(by_id) == {t.value for t in TestId}
-    assert by_id["4.C"]["outcome"] == "PASS"
-    for f in [f for t, f in by_id.items() if t != "4.C"]:
+    from a11y_assist.checks import REGISTRY
+
+    built = {t.value for t in REGISTRY}
+    for t in built:
+        assert by_id[t]["outcome"] == "PASS", (t, by_id[t]["summary"])
+    for f in [f for t, f in by_id.items() if t not in built]:
         assert f["outcome"] == "NEEDS_REVIEW"
         assert f["note"] == "This test could not be performed"
-    for t in ["4.A", "4.B", "4.D", "4.E", "4.F"]:
+    for t in ["4.A", "4.B", "4.D", "4.F"]:
         assert "No rules exist" in by_id[t]["summary"]
     report = Report.model_validate(out["report"])
     assert all(f.outcome is not Outcome.NOT_TESTED for f in report.findings)

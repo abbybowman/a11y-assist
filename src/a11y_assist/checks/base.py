@@ -21,7 +21,7 @@ from pydantic import BaseModel
 
 from a11y_assist.models import Finding, OpenQuestion, Report, TestId
 from a11y_assist.traverse import NewPage
-from a11y_assist.walk import KeyboardWalk
+from a11y_assist.walk import ExtraFactory, KeyboardWalk
 
 
 @dataclass
@@ -42,6 +42,12 @@ class Check(Protocol):
     # Plain words for users: what the tool does for this test automatically,
     # and what it leaves to a person (explain.py shows it before a run).
     about: ClassVar[str]
+
+    def walk_extras(self) -> list[ExtraFactory]:
+        """Per-step evidence this check needs from the shared walk (empty for
+        most checks). The pipeline passes the union, deduplicated by hook
+        name, so running other checks alone collects none of it."""
+        ...
 
     async def collect(
         self, ctx: RunContext, walk: KeyboardWalk | None

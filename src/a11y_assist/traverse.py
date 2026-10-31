@@ -21,7 +21,7 @@ import time
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import Any, Protocol
 
 from playwright.async_api import BrowserContext, CDPSession, Page
 
@@ -49,10 +49,28 @@ INIT_JS = """(() => {
   const watchRoot = (root) => obs.observe(root, { subtree: true, childList: true, attributes: true, characterData: true });
   const attach = Element.prototype.attachShadow;
   Element.prototype.attachShadow = function (init) { const r = attach.call(this, init); watchRoot(r); return r; };
+  // A short CSS-like path, for describing elements in the log (not identity:
+  // stops are identified through CDP).
+  const path = (n) => {
+    const parts = [];
+    for (let c = n, k = 0; c && c.nodeType === 1 && k < 6; c = c.parentElement, k++) {
+      if (c.id) { parts.unshift('#' + c.id); break; }
+      const p = c.parentElement;
+      const same = p ? Array.from(p.children).filter((x) => x.tagName === c.tagName) : [];
+      parts.unshift(c.tagName.toLowerCase() + (same.length > 1 ? `:nth-of-type(${same.indexOf(c) + 1})` : ''));
+    }
+    return parts.join(' > ');
+  };
   for (const type of ["focusin", "focusout"]) {
     addEventListener(type, (e) => {
       const el = e.composedPath()[0];
-      log.f.push({ type, t: Math.round(performance.now()), tag: el && el.tagName || null, id: el && el.id || null });
+      const rel = e.relatedTarget;
+      log.f.push({
+        type, t: Math.round(performance.now()), tag: el && el.tagName || null, id: el && el.id || null,
+        trusted: e.isTrusted, css: el && el.nodeType === 1 ? path(el) : null,
+        rel: rel && rel.nodeType === 1 ? path(rel) : null,
+        rel_inside: !!(rel && el && el.contains && el.contains(rel)),
+      });
       log.lastF = performance.now();
     }, true);
   }
@@ -494,6 +512,7 @@ class Traversal:
     quiet_ms: int
     shots_dir: Path | None = None
     rel_base: Path | None = None
+    hooks: list[StepHook] = field(default_factory=list)
     reader: FocusReader = field(init=False)
     steps: list[Step] = field(default_factory=list)
     _seen_focus: dict[str, int] = field(default_factory=dict)
@@ -505,6 +524,9 @@ class Traversal:
 
     async def start(self) -> None:
         await settle(self.page, self.quiet_ms)
+        for hook in self.hooks:
+            if hasattr(hook, "on_start"):
+                await hook.on_start(self)
         m, f, _, _ = await _read_logs(self.page)
         self._last_mutations, self._last_focus_total = m, f
         await _focus_events(self.page, self._seen_focus)
@@ -545,6 +567,10 @@ class Traversal:
         )
         self._last_mutations, self._last_focus_total = m, f
         self.steps.append(step)
+        for hook in self.hooks:
+            value = await hook.on_step(self, step)
+            if value is not None:
+                step.extras[hook.name] = value
         return step
 
     async def shoot(self, label: str) -> str | None:
@@ -579,6 +605,18 @@ def detect_continuation(
 
 
 NewPage = Callable[[], Awaitable[tuple[BrowserContext, Page]]]
+
+
+class StepHook(Protocol):
+    """Extra evidence a check asks the walk to collect at every step (a walk
+    extra). Called after the step is settled and read; the return value is
+    stored in step.extras[name]. Collects facts only, never outcomes."""
+
+    name: str
+
+    async def on_step(self, t: Traversal, step: Step) -> Any: ...
+
+
 Detector = Callable[[list[Step], str | None], tuple[str, list[str]] | None]
 
 
@@ -607,10 +645,11 @@ async def open_session(
     quiet_ms: int,
     shots_dir: Path | None = None,
     rel_base: Path | None = None,
+    hooks: list[StepHook] | None = None,
 ) -> Session:
     context, page = await new_page()
     inv = await dom_inventory(page)
-    t = Traversal(context, page, quiet_ms, shots_dir, rel_base)
+    t = Traversal(context, page, quiet_ms, shots_dir, rel_base, list(hooks or []))
     await t.start()
     s = Session(t, inv, page.url, len(context.pages))
     # Requests the recorded page cannot answer (infinite-scroll sign, V10).
@@ -653,12 +692,20 @@ async def run_pass(
     shots_dir: Path | None = None,
     rel_base: Path | None = None,
     cap: int | None = None,
+    hooks: list[StepHook] | None = None,
 ) -> PassResult:
     """Fresh load, then press `key` until a wrap, a trap event, navigation, the
     cap or the deadline. A trap event gets one screenshot."""
-    s = await open_session(new_page, quiet_ms, shots_dir, rel_base)
+    s = await open_session(new_page, quiet_ms, shots_dir, rel_base, hooks)
     cap = cap if cap is not None else tab_press_cap(s.inventory.candidates)
-    base = dict(name=name, keys=[], cap=cap, inventory=s.inventory.candidates)
+    base = dict(
+        name=name,
+        keys=[],
+        cap=cap,
+        inventory=s.inventory.candidates,
+        start_url=s.start_url,
+        start_pages=s.start_pages,
+    )
     try:
         end, trap, _ = await drive(s, key, cap, detect_p1_end, deadline)
         if end in ("stuck", "loop"):
