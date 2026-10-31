@@ -1,7 +1,7 @@
 ---
 tt_test: 4.C
 tt_name: 2.1.2-no-keyboard-trap
-spec_version: 1.2.0
+spec_version: 1.3.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -14,7 +14,7 @@ The tool gives each page one 4.C outcome: PASS, FAIL, DOES NOT APPLY or NEEDS RE
 
 **W3C sources.** [Understanding 2.1.2](https://www.w3.org/TR/UNDERSTANDING-WCAG20/keyboard-operation-trapping.html), technique [G21](https://www.w3.org/TR/2016/NOTE-WCAG20-TECHS-20161007/G21), and ACT rules [a1b64e](https://www.w3.org/WAI/standards-guidelines/act/rules/a1b64e/proposed/) (standard navigation), [ebe86a](https://www.w3.org/WAI/standards-guidelines/act/rules/ebe86a/) (non-standard navigation) and their composite 80af7b. DHS scored those rules' test cases with TT 5.1 ([report](https://www.w3.org/WAI/standards-guidelines/act/implementations/trusted-tester/), [data](https://raw.githubusercontent.com/Section508Coordinators/act-tt/main/act-trusted-tester.json)). They inform OPEN items and fixtures only; the PDF stays the authority.
 
-**Terms.** A *stop* is the element holding focus after a key press. *OUT* means focus has left the page for browser controls. *BODY* means focus fell to the document body. A *loop* is a repeating cycle of stops that never reaches OUT.
+**Terms.** A *stop* is the element holding focus after a key press. *OUT* means focus has left the page for browser controls. *BODY* means focus fell to the document body. A *loop* is a repeating cycle of stops that never reaches OUT. The *same URL* ignores the fragment: a change to only the part after `#` is not a navigation.
 
 ## 1. Applicability
 
@@ -39,7 +39,7 @@ The tool runs six passes, each from a fresh load of the frozen page, and records
 
 **Setup.** Fresh profile, frozen page, fixed viewport, window brought to front. Wait for load, then for the page to settle (below). Build the DOM inventory: every element that is natively focusable or has tabindex ≥ 0, not disabled, not inert, and rendered (not display:none and not visibility:hidden), in the top document, every frame the tool can reach, and every open shadow root. Content inside an iframe with tabindex=-1 is left out: Tab cannot reach it (V9). It is listed in a coverage note for 4.A instead. The inventory is used only for DNA cross-checks (A2), loop detection ("elements outside the loop") and coverage notes. It never produces a PASS by itself.
 
-**Stop identity.** A stop is identified by (frame ID, CDP backend node ID) of the deepest focused element, following focus through frames and shadow roots. Two stops are the same only if both parts match. BODY and OUT are pseudo-stops. If the deepest element cannot be resolved (closed shadow root, unreachable frame), the stop is flagged *unresolved*.
+**Stop identity.** A stop is identified by (frame ID, CDP backend node ID) of the deepest focused element, following focus through frames and shadow roots. Two stops are the same only if both parts match. BODY and OUT are pseudo-stops. If the deepest element cannot be resolved (closed shadow root, unreachable frame), the stop is flagged *unresolved*. Node IDs change on every load, so across loads (instances found by different passes, and the stops "reached in P1 and P2 combined" in M11 and M13) stops match by frame chain plus CSS path.
 
 **Settle rule.** After each key press: wait 2 animation frames, then until no DOM mutation for 300 ms and no focus change for `focus_stable_ms`, at most 1,500 ms. If the limit is hit, flag the step *unsettled*. Any focus change between key presses that the window missed (seen in the focus-event log at the next press) also flags the step unsettled, and the step is rerun with a 1,000 ms window. 4.D and 4.E use this rule by reference.
 
@@ -53,14 +53,14 @@ The tool runs six passes, each from a fresh load of the frozen page, and records
 | P2 Backward | Shift+Tab | Same as P1, mirrored | Same as P1 |
 | P3 Exit probes | Per trap event, from a fresh replay of the steps that reached it: Tab ×3, Shift+Tab ×3, each arrow ×3, Escape then Tab, Escape then Shift+Tab; Enter (then Space) on each trapped control, one control per replay; then any key found by J1; then values from J2. Text these presses reveal is kept for J1 | Focus reaches a stop outside the trap on the same URL, or every probe is spent | 25 controls per loop |
 | P4 Widget probes | At each composite widget stop: each arrow key, then Tab and Shift+Tab from every inner stop reached | Each arrow direction stops producing new stops | 25 presses per direction |
-| P5 Hidden content | Per trigger (every keyboard-reachable element with aria-expanded, aria-haspopup or aria-controls, every summary element, and every button or script link that does not navigate): reach it by replaying keys, press Enter (Space if nothing changed), then Tab through the revealed content with P1's trap detection. Revealed text is kept for J1 | Revealed content wraps or ends in a trap event | 40 triggers per page |
-| P6 Continuation | After each trap: bypass it (section 6), then resume Tab with P1's rules | As P1 | As P1 |
+| P5 Hidden content | Per trigger (every keyboard-reachable element with aria-expanded, aria-haspopup or aria-controls, every summary element, every button, and every link with a click listener on the link itself, that does not navigate): reach it by replaying keys, press Enter (Space if nothing changed), then Tab through the revealed content with P1's trap detection. Revealed text is kept for J1 | Revealed content wraps or ends in a trap event | 40 triggers per page |
+| P6 Continuation | After a PASS instance: continue from the exit stop P3 found. After a FAIL or NEEDS REVIEW instance: bypass the trap (section 6), then resume Tab with P1's rules | As P1 | As P1 |
 
 **Run limits.** 15 minutes wall clock per page. The setting `small_section_max_fraction` (default 0.5) is the largest share of a page's stops a loop can hold and still count as a "small section" (p. 21 HtT 2.b); `focus_stable_ms` (default 300) is the settle rule's focus window; `record_scroll_passes` (default 5) is the recorder's scroll count. All three live in server config and every report records their values. Ctrl+Tab is sent only if V4 shows the page receives it. A pass that hits a cap or the run limit is *incomplete*.
 
 ## 3. Mechanical checks
 
-Each trap event is an *instance* judged by the first matching row of table 3a. The page outcome then comes from table 3b. "Outside the trap" means a stop not in the stuck element or loop, on the same top URL, from which traversal continues without a new trap event. OUT alone is not outside the trap.
+Each trap event is an *instance* judged by the first matching row of table 3a. The page outcome then comes from table 3b. "Outside the trap" means a stop not in the stuck element or loop, on the same top URL, from which traversal, continued in the same direction with P1's end conditions up to the cap, ends in a wrap or in a different trap event (which becomes its own instance). Returning to the same trap is not an exit. OUT alone is not outside the trap.
 
 **3a. Instance rules (first match wins)**
 
@@ -92,7 +92,7 @@ Each trap event is an *instance* judged by the first matching row of table 3a. T
 | G1 | Section 1 gives DOES NOT APPLY or NEEDS REVIEW | That outcome |
 | G2 | Any instance is FAIL | FAIL, listing every instance |
 | G3 | Any instance is NEEDS REVIEW; or any pass is incomplete; or P5 found more triggers than its cap | NEEDS REVIEW, with the note "This test could not be performed" and the reason (p. 5). Never NOT TESTED (p. 6) |
-| G4 | P1 and P2 both ended in a wrap; P4, P5 and P6 completed; every instance is PASS | PASS |
+| G4 | P1 and P2 each ended in a wrap, or in a trap event whose instance is PASS and whose continuation (P6) ended in a wrap; P4, P5 and P6 completed; every instance is PASS | PASS |
 | G5 | Anything else | NEEDS REVIEW |
 
 A page with a confirmed FAIL stays FAIL even when other instances need review: one confirmed trap fails the condition (p. 21 ER: "ALL of the following").
