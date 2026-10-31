@@ -34,10 +34,9 @@ run).
   effect with the timed press's (a mechanical check on J2, like 4.C's
   documented keys).
 - **Starter-template leftovers.** `pyproject.toml` still says "Starter MCP
-  server for the GSA MCP hackathon". `app.main` binds HTTP to `0.0.0.0`
-  whenever `PORT` or `DATABRICKS_APP_PORT` is set, with no auth: make HTTP an
-  explicit opt-in with auth before any hosted deployment (CLAUDE.md: hosted is
-  the target).
+  server for the GSA MCP hackathon". (The 0.0.0.0 HTTP branch is gone; HTTP
+  is loopback-only with Host/Origin checks. Authentication is still needed
+  before any hosted deployment.)
 - **"Test a page" prompt** for operators who are not Trusted Testers: run,
   answer questions (one subagent for all of them), summarize, read
   `report_uri` and offer to save it.

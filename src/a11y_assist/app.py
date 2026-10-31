@@ -3,7 +3,7 @@
 Keep this file THIN. It only:
   1. creates the FastMCP instance,
   2. registers tools / prompts / resources / routes from the submodules, and
-  3. decides which transport to run (stdio locally vs. HTTP when deployed).
+  3. decides which transport to run (stdio, or HTTP on loopback only).
 
 All real logic lives in the submodules:
   - tools/      one file per tool (each exposes `register(mcp)`)
@@ -15,8 +15,6 @@ All real logic lives in the submodules:
 """
 
 from __future__ import annotations
-
-import os
 
 from fastmcp import FastMCP
 
@@ -69,29 +67,46 @@ register_resources(mcp)
 register_routes(mcp)
 
 
+# Host and Origin headers are checked on every HTTP request (FastMCP's guard,
+# which is off by default). This blocks DNS rebinding from a web page in the
+# user's browser: only localhost names and same-origin or loopback origins pass.
+HTTP_SECURITY = {"host_origin_protection": True}
+
+LOOPBACK_HOSTS = ("127.0.0.1", "::1")
+
+
 def main() -> None:
-    """Start the server, choosing a transport based on the environment.
+    """Start the server: stdio by default, or HTTP on loopback only.
 
-    Precedence:
-      1. A platform-injected port (Databricks `DATABRICKS_APP_PORT` or a generic
-         `PORT`) → run HTTP on that port. Cloud hosts set this for you.
-      2. `MCP_TRANSPORT=streamable-http` in the environment → run HTTP on
-         `MCP_HOST`:`MCP_PORT` (see config.py / .env).
-      3. Otherwise → stdio, which is how local clients (Claude Desktop, Claude
-         Code, Zed) launch the server as a subprocess.
+    There is no authentication yet, and this server drives a real browser, so
+    it never listens on a public interface. The template's platform branch
+    (`PORT` / `DATABRICKS_APP_PORT` -> HTTP on 0.0.0.0) is removed until
+    authentication exists; those variables are ignored.
+
+      * `MCP_TRANSPORT=stdio` (default): how local clients (Claude Code,
+        Claude Desktop) launch the server as a subprocess.
+      * `MCP_TRANSPORT=streamable-http`: HTTP on `MCP_HOST`:`MCP_PORT`, where
+        `MCP_HOST` must be 127.0.0.1 or ::1, with Host/Origin checks.
     """
-    platform_port = os.getenv("DATABRICKS_APP_PORT") or os.getenv("PORT")
-
-    if platform_port:
-        mcp.run(transport="http", host="0.0.0.0", port=int(platform_port))
+    if settings.mcp_transport == "stdio":
+        mcp.run(transport="stdio")
     elif settings.mcp_transport == "streamable-http":
+        if settings.mcp_host not in LOOPBACK_HOSTS:
+            raise SystemExit(
+                f"MCP_HOST must be one of {', '.join(LOOPBACK_HOSTS)}: the HTTP "
+                "transport has no authentication, so it listens on loopback only."
+            )
         mcp.run(
             transport="streamable-http",
             host=settings.mcp_host,
             port=settings.mcp_port,
+            **HTTP_SECURITY,
         )
     else:
-        mcp.run(transport="stdio")
+        raise SystemExit(
+            f"Unknown MCP_TRANSPORT {settings.mcp_transport!r}: "
+            "use stdio or streamable-http."
+        )
 
 
 if __name__ == "__main__":
