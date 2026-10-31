@@ -39,6 +39,17 @@ run).
 
 ## Later
 
+- **Section 508 Baseline Alignment cases for the next tests.** The
+  framework (baselinealignment.section508.gov, 148 cases) has pages with
+  expected results for images and CAPTCHAs (1.1.1), images of text, sensory
+  characteristics, contrast (including on hover and focus), form names, on
+  input (3.2.2: form submitted, new window, focus moved), error
+  identification and prevention, labels, page titles, data tables,
+  headings, lists, link purpose, language of page and parts, audio-only,
+  media player controls, captions and audio description. Vendor each with
+  `tests/fixtures/baseline/sync_baseline.py` when its TT test is built, and
+  load it in Chrome first (TC01.A-2's behaviour is broken there).
+
 - **Scanners** (axe-core, HTML_CodeSniffer) vendored with hashes and run on
   their own fresh load after the walk ([solutions/scanners-after-the-walk.md](solutions/scanners-after-the-walk.md)).
   Licenses: axe-core MPL 2.0 (unmodified files, keep notice), HTML_CodeSniffer

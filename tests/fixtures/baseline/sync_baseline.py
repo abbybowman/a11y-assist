@@ -37,6 +37,20 @@ CASES = {
         "script and holding Space does nothing; the documented timing cannot be "
         "confirmed (verified against the cdnjs file, 2026-10-31).",
     ),
+    # Every control is disabled: no focus, no functionality. Baseline judges
+    # only 4.C and 4.D here; 4.A, 4.B, 4.E and 4.F follow from the same fact.
+    "TC01.B-ic-dna-1": (
+        "/testfiles/TF01/01.B-ic-dna-1.html",
+        "DNA",
+        {t: "DNA" for t in ("4.A", "4.B", "4.C", "4.D", "4.E", "4.F")},
+        "",
+    ),
+    "TC02.A-ic-dna-1": (
+        "/testfiles/TF02/02.A-ic-dna-1.html",
+        "DNA",
+        {t: "DNA" for t in ("4.A", "4.B", "4.C", "4.D", "4.E", "4.F")},
+        "",
+    ),
 }
 
 

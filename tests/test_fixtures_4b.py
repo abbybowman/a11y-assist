@@ -1,11 +1,10 @@
-"""4.B (2.1.1-no-keystroke-timing) on custom fixtures and the Section 508
-Baseline Alignment cases (no ACT rule covers keystroke timing), plus rules
-unit tests on recorded evidence. Expected outcomes and scripted answers live
-here and in the manifest, never in a page."""
+"""4.B (2.1.1-no-keystroke-timing) on custom fixtures (no ACT rule covers
+keystroke timing), plus rules unit tests on recorded evidence. Section 508
+Baseline cases are in test_baseline_cases.py. Expected outcomes and scripted
+answers live here, never in a page."""
 
 from __future__ import annotations
 
-import json
 import re
 
 import pytest
@@ -13,7 +12,7 @@ import pytest
 from a11y_assist.checks import t4a, t4b
 from a11y_assist.models import TestId
 
-from .conftest import BASELINE_ROOT, FIXTURES
+from .conftest import FIXTURES
 from .harness import instance_rows, run_check
 
 HOLD = {"choice": "timing_required", "element": 1, "key": "Space", "duration_ms": 3000}
@@ -37,13 +36,6 @@ EXPECTED: dict[str, dict] = {
 }
 REUSED = {"../no_trap.html": {"outcome": "PASS", "rows": ["M1"]}}
 
-BASELINE = {
-    c["id"]: c
-    for c in json.loads((BASELINE_ROOT / "manifest.json").read_text())["cases"]
-}
-# Stops on TC01.A-2: user name, password, Log in, Request Password Reset.
-ANSWERS = {"TC01.A-2-fail-1": {"J1": {**HOLD, "element": 4}}}
-
 
 def test_every_fixture_is_listed():
     names = {p.stem for p in (FIXTURES / "4b").glob("*.html")}
@@ -64,20 +56,6 @@ async def test_outcome(name, settings, server):
         f.rationale,
         f.summary,
     )
-
-
-@pytest.mark.parametrize("case_id", sorted(BASELINE))
-async def test_baseline_case(case_id, settings, baseline_server):
-    case = BASELINE[case_id]
-    got = await run_check(
-        settings,
-        f"{baseline_server}/{case['path']}",
-        TestId.T4B,
-        ANSWERS.get(case_id),
-    )
-    assert got["finding"].outcome.value == case["expected"]["4.B"], got[
-        "finding"
-    ].rationale
 
 
 # ── Rules on recorded evidence ───────────────────────────────────────────────
