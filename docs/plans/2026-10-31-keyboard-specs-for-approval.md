@@ -6,9 +6,9 @@ until a check is registered.
 
 | Spec | Version | Written by |
 | --- | --- | --- |
-| [4d-focus-visible.md](../rules/4d-focus-visible.md) | 0.3.0 | 4.D thread (0.2.0), reviewed and edited here |
+| [4d-focus-visible.md](../rules/4d-focus-visible.md) | 0.4.0 | 4.D thread (0.2.0), reviewed and edited here |
 | [4e-on-focus.md](../rules/4e-on-focus.md) | 0.1.0 | this thread |
-| [4f-focus-order-meaning.md](../rules/4f-focus-order-meaning.md) | 0.1.0 | this thread |
+| [4f-focus-order-meaning.md](../rules/4f-focus-order-meaning.md) | 0.2.0 | this thread |
 
 Checked against: TT 5.1.3 text (`tt://5.1.3/tests/4.D`, `4.E`, `4.F`), W3C
 Understanding 2.4.7, 3.2.1 and 2.4.3, failures F55, F44 and F85, and W3C's
@@ -38,23 +38,27 @@ table matches W3C and DHS exactly. Changes made:
    outside TT 5.1.3.
 6. **O7 cross-referenced to 4.E**, which fails F55 under its own PDF step.
 
+## Decided (Abby, 2026-10-31)
+
+- **4.D O7 / F55:** an element that drops focus as soon as it gets it fails in
+  4.D (new row M3, later rows renumbered; 4.D 0.4.0) and in 4.E (M7).
+- **4.F J1:** the agent decides whether a signalled order makes sense; only
+  "unsure" goes to a person. Its "preserves" gives PASS and "does not matter"
+  gives DOES NOT APPLY, explained and overridable (4.F 0.2.0). Principle 8 now
+  allows this for spec-designated look-and-decide questions, with "unsure"
+  required whenever the evidence does not settle it.
+- **4.F triggers:** the first 6 in forward order.
+
 ## Decisions needed
 
 | # | Spec | Question | Recommendation |
 | --- | --- | --- | --- |
 | 1 | 4.D O5 | aria-activedescendant widgets: note only, or arrow through them? | Note only |
-| 2 | 4.D O7 | Element that drops focus on focus (F55): FAIL in 4.D too, or only in 4.E? | Both (F55 counts it against both) |
 | 3 | 4.D O8 | Indicator that disappears after a few seconds: not tested, or a late image? | Not tested, listed as a known limit |
 | 4 | 4.E O1 | Is a change of context on focus ever "expected" (e.g. warned about)? | No exception (WCAG 3.2.1 has none) |
 | 5 | 4.E O2 | Focus pulled back by the element just left: 4.E instance or not? | Not 4.E (the target did not initiate it; 4.C judges it) |
 | 6 | 4.E M8 | A dialog that appears on focus without taking focus: NEEDS REVIEW for a person, or ignore? | NEEDS REVIEW (false PASS is the worst error) |
-| 7 | 4.F O1 | The agent says the order "preserves meaning" despite a signal: PASS, or NEEDS REVIEW until a person confirms? | NEEDS REVIEW with the agent's recommendation; a person's answer gives PASS |
-| 8 | 4.F O2 | DNA from p. 23 Note 2: only for a page with one stop? | Yes, only one stop |
-| 9 | 4.F O3 | Opening triggers (HtT 2.b, "may be necessary"): first 6, dialogs and menus only, or none? | First 6, revisit after real pages |
-
-Decision 7 is the one that most affects users: with it, multi-column pages
-will often end NEEDS REVIEW with "we think it still makes sense; please
-confirm", which a person can settle in one answer.
+| 8 | 4.F O1 | DNA from p. 23 Note 2: only for a page with one stop? | Yes, only one stop |
 
 ## Shared build work these specs need
 

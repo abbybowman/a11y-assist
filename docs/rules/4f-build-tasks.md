@@ -1,6 +1,6 @@
 # Build tasks: 4.F
 
-Work [4f-focus-order-meaning.md](4f-focus-order-meaning.md) (spec 0.1.0) needs done during the build, once Abby approves the spec. Delete each row once it exists in the repo. Delete this file when every table is empty.
+Work [4f-focus-order-meaning.md](4f-focus-order-meaning.md) (spec 0.2.0) needs done during the build, once Abby approves the spec. Delete each row once it exists in the repo. Delete this file when every table is empty.
 
 ## Walk changes
 
@@ -17,9 +17,10 @@ No ACT rule covers 2.4.3 and DHS published no 4.F results, so all pages are cust
 | F01 | Header, nav, main, footer in DOM and visual order | PASS | M4, no signal |
 | F02 | Address form whose tab order interleaves the newsletter checkboxes (Understanding failure example), scripted J1: does_not_preserve | FAIL | S5, M6 |
 | F03 | tabindex=1 on a footer link (F44), scripted J1: does_not_preserve | FAIL | S1, S2, M6 |
-| F04 | Two independent columns, CSS places the second first; scripted J1 by the agent: preserves | NEEDS REVIEW; with a person's answer: PASS | S3, M7 both ways |
-| F05 | Left navigation after main in the DOM, shown on the left (Understanding passing example) | NEEDS REVIEW (agent) / PASS (person) | S3 from layout, M7 |
-| F06 | Row of social icons reordered visually; scripted J1: does_not_matter | NEEDS REVIEW (agent) / DNA (person) | M8, G4 |
+| F04 | Two independent columns, CSS places the second first; scripted J1: preserves | PASS | S3, M7 |
+| F05 | Left navigation after main in the DOM, shown on the left (Understanding passing example); scripted J1: preserves | PASS | S3 from layout, M7 |
+| F06 | Row of social icons reordered visually; scripted J1: does_not_matter | DNA | M8, G4 |
+| F15 | Two columns whose order looks arbitrary; scripted J1: unsure | NEEDS REVIEW | M9 goes to a person |
 | F07 | Page with one link | DNA | A3 |
 | F08 | Menu button whose menu is appended at the end of the body (F85) | FAIL with scripted J1 does_not_preserve | S6 |
 | F09 | Disclosure that inserts its content right after the trigger (SCR26) | PASS | R, M4 |
