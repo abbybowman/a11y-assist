@@ -55,7 +55,6 @@ class Settings(BaseSettings):
     # The Tab press cap is not a setting: it comes from the 4.C spec
     # (3 x DOM inventory + 50, max 3,000; see traverse.tab_press_cap).
     # 4.C spec run limits; every report records them.
-    small_section_max_fraction: float = Field(default=0.5, gt=0, le=1)
     focus_stable_ms: int = Field(default=300, ge=0, le=1500)
     record_scroll_passes: int = Field(default=5, ge=0, le=50)
     run_limit_s: int = Field(default=900, ge=10)

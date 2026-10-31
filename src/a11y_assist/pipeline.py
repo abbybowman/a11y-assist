@@ -132,9 +132,7 @@ async def resume_4c(settings: Settings, run: RunRecorder, report: Report) -> lis
         if q.question_id not in answered
     ] + [q for q in report.open_questions if q.test_id is not TestId.T4C]
     report.findings = [
-        t4c.evaluate(state, settings.small_section_max_fraction, refs)
-        if f.test_id is TestId.T4C
-        else f
+        t4c.evaluate(state, refs) if f.test_id is TestId.T4C else f
         for f in report.findings
     ]
     return errors
@@ -251,9 +249,7 @@ async def run_tt_tests(
         if t is TestId.T4C and state is not None:
             run.write_json(evidence_path, state)
             report.open_questions = t4c.questions_for(state, [str(evidence_path)])
-            report.findings.append(
-                t4c.evaluate(state, settings.small_section_max_fraction, refs)
-            )
+            report.findings.append(t4c.evaluate(state, refs))
         else:
             report.findings.append(_not_performed(settings, [t], None, refs)[0])
     result = await get_judge(settings.judge_backend).judge(report.open_questions)

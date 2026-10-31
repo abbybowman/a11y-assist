@@ -1,6 +1,6 @@
 # Build tasks: 4.C
 
-Work [4c-no-keyboard-trap.md](4c-no-keyboard-trap.md) (spec 1.3.0) needs done during the build. Delete each row once it exists in the repo: ACT fixtures under `tests/fixtures/act/`, custom fixtures under `tests/fixtures/4c/`, browser checks under `tests/browser/`. Delete this file when every table is empty.
+Work [4c-no-keyboard-trap.md](4c-no-keyboard-trap.md) (spec 1.4.0) needs done during the build. Delete each row once it exists in the repo: ACT fixtures under `tests/fixtures/act/`, custom fixtures under `tests/fixtures/4c/`, browser checks under `tests/browser/`. Delete this file when every table is empty.
 
 ## Fixtures to build
 
@@ -16,7 +16,7 @@ Work [4c-no-keyboard-trap.md](4c-no-keyboard-trap.md) (spec 1.3.0) needs done du
 | 4b93a866 | a1b64e Passed 3: div tabindex=-1 only | passed | PASS | DNA | A1; OPEN O4 mismatch |
 | dcf917e0 | a1b64e Passed 4: aria-modal dialog with focus sentinels; Escape or Close dismisses | passed | not scored | PASS | M3, modal exception |
 | f5ea9fd3 | a1b64e Failed 1: button refocuses itself on blur | failed | FAIL | FAIL | M12, settle focus check |
-| d2f5325f | a1b64e Failed 2 = 80af7b Passed 7: two buttons pass focus back and forth | split | FAIL | FAIL | M14 loop in both directions (V15) |
+| d2f5325f | a1b64e Failed 2 = 80af7b Passed 7: two buttons pass focus back and forth | split | FAIL | FAIL | M13 loop in both directions (V15) |
 | 0ec0e93e | a1b64e Failed 3: two self-refocusing buttons around a third | failed | FAIL | FAIL | M12; V15 |
 | 16dddd8a | Inapplicable 1: heading only | inapplicable | DNA | DNA | A1 |
 | 6e3dcc2f | Inapplicable 2: disabled button | inapplicable | DNA | DNA | A1, disabled excluded |
@@ -25,23 +25,23 @@ Work [4c-no-keyboard-trap.md](4c-no-keyboard-trap.md) (spec 1.3.0) needs done du
 | ab24c77e | ebe86a Passed 1: 2-button trap; "Press Ctrl+M to Exit" before it; key works | passed | PASS | PASS | J1, M6 |
 | e3902f01 | ebe86a Passed 2: same, text inside the trap | passed | PASS | PASS | J1, M6 |
 | b92b5214 | ebe86a Passed 3: help link reveals the exit key in place | passed | PASS | PASS | J1 revealed text, M6 |
-| 7dcc4ae0 | ebe86a Failed 1: 2-button trap, no instructions | failed | FAIL | FAIL | M14 |
-| 8fba3918 | ebe86a Failed 2: "Go to the next element" only | failed | FAIL | FAIL | J1 rubric, M14 |
-| 62fd24e7 | ebe86a Failed 3: documented key doesn't work | failed | FAIL | FAIL | M7, M14 |
+| 7dcc4ae0 | ebe86a Failed 1: 2-button trap, no instructions | failed | FAIL | FAIL | M13 |
+| 8fba3918 | ebe86a Failed 2: "Go to the next element" only | failed | FAIL | FAIL | J1 rubric, M13 |
+| 62fd24e7 | ebe86a Failed 3: documented key doesn't work | failed | FAIL | FAIL | M7, M13 |
 | b20beca9 | ebe86a Inapplicable 1: no trap | inapplicable | PASS | PASS | G4 |
 
 **Custom fixtures (gaps no ACT case covers).** F01–F34 exist in `tests/fixtures/4c/`. Still to build:
 
 | ID | Page | Expected | Proves |
 | --- | --- | --- | --- |
-| F35 | Button that refocuses itself 600 ms after blur, with no DOM change | FAIL | Settle focus check. The refocus lands after the next press, so it reads as a 2-stop loop: M14 (M12 if read as stuck) |
+| F35 | Button that refocuses itself 600 ms after blur, with no DOM change | FAIL | Settle focus check. The refocus lands after the next press, so it reads as a 2-stop loop: M13 (M12 if read as stuck) |
 
 **Changes to fixtures that exist**, once the ACT cases run in CI:
 
 - Retire `f01-paragraphs-links` (→ 96eb4b26), `f02-text-only` (→ 16dddd8a), `f06-script-loop` (→ 7dcc4ae0), `f07-documented-exit-key` (→ ab24c77e), `f08-documented-key-broken` (→ 62fd24e7), and the current `f35-aria-modal-escape-closes` (→ dcf917e0, which covers M3). The new F35 above takes its number. Keep `no_trap.html`: it is the general evidence fixture, not F01.
 - Remove the expected outcome from every fixture's HTML comment; expectations stay in the manifest and `tests/test_fixtures_4c.py`.
 - F10 (`f10-native-dialog`) proves "native modal: Tab leaves through the browser UI, so P1 wraps (G4)", not M3.
-- Row references follow spec 1.2.0 numbering (M12 stuck FAIL, M13 small section, M14 loop FAIL).
+- Row references follow spec 1.2.0 numbering (M12 stuck FAIL, M13 loop FAIL; no small-section row).
 
 ## Browser behavior to verify in code
 
