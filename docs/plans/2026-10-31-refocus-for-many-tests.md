@@ -106,6 +106,26 @@ The core of the refocus. Today `pipeline.py` special-cases T4C, `resume_4c` dupl
 
 Multi-page (9.B, 9.C), the visual vs code cluster, Tier 3 judgment tests, alternate versions and media. The registry and catalog leave room for them.
 
+## MCP design review
+
+Checked against the running server via an in-memory FastMCP client (FastMCP 4.0.11, mcp 2.3.0, from `uv.lock`). What's already good: two broad, outcome-based tools rather than one per step; Pydantic-validated inputs with precise descriptions; tool annotations set; server `instructions` carry the disclaimer and the untrusted-content warning; in-memory client tests in `tests/test_tools.py`.
+
+| # | Issue (verified unless marked) | Why it matters for an MCP | Proposal |
+| --- | --- | --- | --- |
+| MCP-1 | `run_tt_tests`'s description is stale: "No test rules are implemented yet, so every finding is NEEDS_REVIEW"; it names a `keyboard.json` that no longer exists and the old walk end rule | The description is the agent's only manual. An agent reading this can tell users 4.C isn't implemented | Fix now. Build the "which tests are implemented, at which spec version" part from the test registry (Phase 2), so it can't drift. Add a test for that |
+| MCP-2 | Errors come back as success. A blocked URL (`example.com`) returns `isError: false`, creates a run folder and a 4.C NEEDS_REVIEW finding; an unknown `run_id` returns `{"error": ...}` with `isError: false` | Agents branch on `isError`. A "finding" for a page that was never loaded invites "example.com: 4.C needs review" | Bad input and policy blocks raise `ToolError` (`isError: true`) with a message saying what to do, and no run or findings. Failures *after* the page loads stay NEEDS_REVIEW findings with the reason, as today. **Needs your OK**: it narrows how principle 2's "could not be performed" applies |
+| MCP-3 | Both tools return `dict[str, Any]`, so `outputSchema` is just `{"type": "object"}` | No typed contract: clients can't validate results and agents guess field names | Return Pydantic result models: real `outputSchema` plus structured content, and the disclaimer as a required field |
+| MCP-4 | Evidence goes out only as absolute paths on the server's disk (run, evidence, report, steps log, question evidence) | Works only when the agent shares the server's file system. Over HTTP, or from another machine, the agent can't read the evidence it's asked to judge | Expose runs as MCP resources (`run://{run_id}/report`, `run://{run_id}/evidence/{name}`, screenshots as images); return resource links in results; keep paths as an extra for local use. Claude Code gives the model resource-reading tools (seen in this session). This replaces the planned `read_report` tool |
+| MCP-5 | A call can run up to 15 minutes (`run_limit_s` = 900) with no progress notifications | Many clients time out long calls, and the user sees nothing meanwhile | Send progress (`ctx.report_progress`) per pass and phase; set a tool `timeout`. Keep one synchronous call if the Phase 0/1 budget brings a page to about a minute. Otherwise split into start + status. FastMCP 4 also offers `task=` (MCP tasks, experimental); client support unchecked, so don't depend on it |
+| MCP-6 | The page's accessible names are inserted into the server's own question text (`J1_QUESTION.format(target=...)`, `t4c.questions_for`) | Prompt injection: a page can write text that appears as the server's instruction to the agent (principle 5) | Server text stays fixed and refers to an ID ("instance i1"); page strings appear only in a clearly labelled untrusted `input` field |
+| MCP-7 | Every J1 question carries all frames' page text again (`input.text = st.texts`) | Token bloat that grows with page size × number of questions | Put page text in one resource per run and send each question only the relevant excerpt plus a link |
+| MCP-8 | The answer protocol asks the *same* agent for 3 "independent" samples | Samples from one context aren't independent. This is ceremony that costs a round trip and tokens | Fold into decision 3: one sample when a key press checks the answer. For human-only questions, use MCP **elicitation** (`ctx.elicit`): the server asks the person a plain form question in the client UI, and falls back to returning the question if the client lacks elicitation (client support unchecked) |
+| MCP-9 | Template leftovers: pyproject says "Starter MCP server for the GSA MCP hackathon"; empty `prompts/` and `resources/`; `app.main` binds HTTP to `0.0.0.0` whenever `PORT` or `DATABRICKS_APP_PORT` is set, with no auth | An unauthenticated HTTP server that drives a browser and serves run folders shouldn't start just because an environment variable happens to be set | Stdio only until auth is designed; HTTP behind an explicit flag plus auth. Fix the description. Fill `resources/` (MCP-4) and add one prompt (MCP-10) |
+| MCP-10 | Planned tools: `verify_fix`, `get_guidance`, `read_report` | Every tool costs context in every session; fewer, broader tools work better | `read_report` → resources (MCP-4). `get_guidance` → resources or a prompt (static TT text from the spec). `verify_fix` → a `compare_to: run_id` option on `run_tt_tests`. Add one prompt, "Test a page", that walks a non-tester through run → questions → summary, with the disclaimer |
+| MCP-11 | No agent-level evals: tests check the plumbing, not whether a model uses the tools well | Tool descriptions act as prompts; you only know they work by watching a model use them | Small eval set on fixtures: a model gets a task ("check this page for keyboard traps"). Graded on right calls, outcome relayed correctly, no "certified/compliant" wording, questions answered by rubric, tokens used. Each failure becomes a description fix plus a regression case (the compound loop) |
+
+**Where this lands in the phases:** MCP-1 (text fix only) and MCP-6 are small and go first, alongside Phase 0. MCP-2, -3, -4, -7 and -9 belong in Phase 2, since the result models fall out of the generic test modules. MCP-5's budget comes from Phase 0/1. MCP-8 goes with decision 3. MCP-10 and MCP-11 go after 4.D.
+
 ## Capturing what we learn (the compound step)
 
 - **CLAUDE.md:** add the proportionality rule ("a spec step must cite a PDF step a human performs; anything else is NEEDS_REVIEW or a note") and a short "add a TT test" recipe (spec → fixtures/ACT manifest → module → registry → scoring).
@@ -120,6 +140,8 @@ Multi-page (9.B, 9.C), the visual vs code cluster, Tier 3 judgment tests, altern
 3. **Who answers open questions.** Proposal: the calling agent answers when a key press checks the answer (J1). A human gets anything only a person can confirm (J2 values, unclear focus indicators). One sample instead of three where an answer is checked mechanically.
 4. **Time budget.** Set it after Phase 0, or do you already have a target per page (e.g. "4.A–4.F under 2 minutes for a typical .gov page")?
 5. **Module folder name** for TT test modules (`tests_tt/` collides visually with `tests/`; alternatives: `checks/`, `tt/`).
+6. **Blocked URLs (MCP-2).** Should a URL that's never loaded be a tool error with no findings, instead of a NEEDS_REVIEW finding?
+7. **HTTP transport (MCP-9).** Is a hosted deployment (Databricks or another host) a near-term goal? If not, I'd make the server stdio-only for now.
 
 ## Verified vs assumed (this planning session)
 
@@ -128,6 +150,10 @@ Multi-page (9.B, 9.C), the visual vs code cluster, Tier 3 judgment tests, altern
 - PDF text of pp. 19–23 (pdftotext): 4.D, 4.E and 4.F chain from 4.C; 4.F HtT 2.b asks for revealing hidden content; 4.F's note says to use real keyboard order over ANDI's.
 - ANDI is vendored and routed but no run turns it on (grep: `with_andi` is never true).
 - `pipeline.py` special-cases T4C and `resume_4c` duplicates the run path (read).
+- MCP via an in-memory client: both tools' `outputSchema` is `{"type": "object", "additionalProperties": true}`; no resources or prompts are listed; a blocked URL and an unknown `run_id` both return `isError: false`. The test run folder this created was deleted.
+- `t4c.questions_for` puts accessible names into the question text and full page text into every J1 question (read).
+
+**Assumed (MCP):** which clients support elicitation, MCP tasks and resource links, and their tool-call timeouts. Each is checked before we rely on it.
 
 **Assumed (not verified):**
 - All timings and the cost breakdown; those are the handoff's, profiled in Phase 0.
