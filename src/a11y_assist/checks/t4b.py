@@ -34,7 +34,7 @@ TIMING = re.compile(
 
 J1_QUESTION = (
     "input.matches lists sentences from the page that mention holding keys, "
-    "pressing quickly or similar; input.stops lists, numbered, the elements "
+    "pressing quickly or similar; shared_inputs.stops lists, numbered, the elements "
     "keyboard focus reaches. Does any sentence say a keyboard user must hold a "
     "key for a time, or press a key several times quickly, to make something "
     "work? Answer timing_required (with element: the stop's number, key: the "
@@ -52,7 +52,7 @@ J1_CHOICES = ["timing_required", "no_timing", "unsure"]
 
 J2_QUESTION = (
     "input.timed is an element that works only with the timed key press in "
-    "input.timing (confirmed by pressing the keys). input.stops lists, numbered, "
+    "input.timing (confirmed by pressing the keys). shared_inputs.stops lists, numbered, "
     "every element keyboard focus reaches. Is there an element that does the "
     "same thing with a normal key press? Answer alternative (with element: its "
     "number), no_alternative or unsure, with reasons in a few plain words."
@@ -212,7 +212,6 @@ def _confirmed(st: State4B) -> bool:
 
 
 def questions_for(st: State4B, evidence_refs: list[str]) -> list[OpenQuestion]:
-    stops = t4a._stops_input(st)  # type: ignore[arg-type]
     if st.matches and st.j1 is None:
         return [
             OpenQuestion(
@@ -223,7 +222,8 @@ def questions_for(st: State4B, evidence_refs: list[str]) -> list[OpenQuestion]:
                 instance="p",
                 question=J1_QUESTION,
                 rubric=J1_RUBRIC,
-                input={"matches": st.matches, "stops": stops},
+                input={"matches": st.matches},
+                shared=["stops"],
                 evidence_paths=evidence_refs,
             )
         ]
@@ -249,8 +249,8 @@ def questions_for(st: State4B, evidence_refs: list[str]) -> list[OpenQuestion]:
                         and (st.proof or {})[k].get("kinds")
                         for k in ("normal", "timed")
                     },
-                    "stops": stops,
                 },
+                shared=["stops"],
                 evidence_paths=evidence_refs,
             )
         ]
@@ -423,6 +423,9 @@ class Check4B:
 
     def page_text(self, state: State4B) -> list[dict[str, str]]:
         return state.texts
+
+    def shared_inputs(self, state: State4B) -> dict[str, Any]:
+        return {"stops": t4a._stops_input(state)}  # type: ignore[arg-type]
 
     async def collect(self, ctx: RunContext, walk: KeyboardWalk | None) -> State4B:
         assert walk is not None

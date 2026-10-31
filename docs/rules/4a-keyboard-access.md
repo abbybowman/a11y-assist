@@ -1,7 +1,7 @@
 ---
 tt_test: 4.A
 tt_name: 2.1.1-keyboard-access
-spec_version: 1.1.0
+spec_version: 1.1.1
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -130,7 +130,7 @@ The calling agent answers each once, by the rubric; a person's answer overrides 
 
 ### J1. Is there another keyboard way to do the same thing?
 
-**Question:** "input.candidate is something a mouse can use (with what clicking it did) that keyboard focus never reaches. input.stops lists, numbered, every element keyboard focus does reach, with role and name. Image A shows the page. Is there an element in input.stops that does the same thing, so a keyboard user loses nothing? Answer alternative (with element: its number), no_alternative or unsure, with your reasons in a few plain words."
+**Question:** "input.candidate is something a mouse can use (with what clicking it did) that keyboard focus never reaches. shared_inputs.stops lists, numbered, every element keyboard focus does reach, with role and name. Image A shows the page. Is there an element in shared_inputs.stops that does the same thing, so a keyboard user loses nothing? Answer alternative (with element: its number), no_alternative or unsure, with your reasons in a few plain words."
 
 **Rubric.** alternative: a reached element plainly does the same job (a second print button, a text link with the same purpose, a field where Enter submits the same search). Only elements on this page count: a link to another page that might offer the same thing is not an alternative (p. 19 HtT 2.b, "available on the page"). no_alternative: nothing reached does that job. unsure: whenever the evidence does not settle it. The named number must be a stop (mechanical guard; otherwise the answer is treated as unsure).
 

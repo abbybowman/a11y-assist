@@ -72,9 +72,9 @@ def register(mcp: FastMCP) -> None:
 
         Returns accepted ids, rejected answers with reasons, questions still
         open (answering can raise a follow-up: repeat until none are open),
-        the updated findings with plain-language summaries, and the full
-        report to save. Results are agent-assisted and NOT a certified Trusted
-        Tester result.
+        the updated findings with plain-language summaries, shared evidence
+        for the open questions, and `report_uri` (the full report, to save).
+        Results are agent-assisted and NOT a certified Trusted Tester result.
         """
         try:
             return await answer_pipeline(config.settings, run_id, answers)

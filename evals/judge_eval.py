@@ -184,6 +184,7 @@ def _write_packet(out: Path, case: dict, run_id: str, rnd: int, res) -> None:
                 "each one by its rubric, using only the files in this folder.",
                 "questions": qs,
                 "page_text": res.page_text,
+                "shared_inputs": rewrite(res.shared_inputs),
                 "answer_format": _ANSWER_FORMAT,
                 "write_answers_to": "answers.json (a JSON list of answer objects)",
             },

@@ -44,9 +44,11 @@ directly is cheapest. Answering can raise a follow-up question (4.B
 asks about alternatives after confirming key timing): repeat until none are open.
 
 Relay each finding's plain-language `summary` in its own words; the explain
-prompt and tt://5.1.3/tests/{{id}} give the TT text. `report` is the full record:
-offer to save it in the user's repository; the server keeps the run only
-until `expires_at`.
+prompt and tt://5.1.3/tests/{{id}} give the TT text. Evidence several questions
+share (the numbered stops) is in `shared_inputs`, once, and each question names
+the keys it uses. The full record is the resource at `report_uri`, not inline:
+if the user wants to keep it, read it and save it in their repository before
+`expires_at`, when the server drops the run.
 
 Errors (isError): a URL outside the allowlist (default *.gov, *.mil), a
 redirect out of it, or a page that cannot be loaded; nothing is tested then.

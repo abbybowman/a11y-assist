@@ -1,7 +1,7 @@
 ---
 tt_test: 4.B
 tt_name: 2.1.1-no-keystroke-timing
-spec_version: 1.1.0
+spec_version: 1.1.1
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -80,13 +80,13 @@ J1 and J2 are look-and-decide questions (CLAUDE.md principle 8): the agent answe
 
 ### J1. Does the page require timed keystrokes?
 
-**Question:** "input.matches lists sentences from the page that mention holding keys, pressing quickly or similar; input.stops lists, numbered, the elements keyboard focus reaches. Does any sentence say a keyboard user must hold a key for a time, or press a key several times quickly, to make something work? Answer timing_required (with element: the stop's number, key: the key, and duration_ms for holding or presses for repeating), no_timing, or unsure, with reasons in a few plain words."
+**Question:** "input.matches lists sentences from the page that mention holding keys, pressing quickly or similar; shared_inputs.stops lists, numbered, the elements keyboard focus reaches. Does any sentence say a keyboard user must hold a key for a time, or press a key several times quickly, to make something work? Answer timing_required (with element: the stop's number, key: the key, and duration_ms for holding or presses for repeating), no_timing, or unsure, with reasons in a few plain words."
 
 **Rubric.** timing_required: "press and hold Space for 3 seconds to confirm", "double-press Enter to submit". no_timing: the words are not about keys ("hold your card up to the camera", "apply quickly", "within 30 days"). unsure: whenever the sentences do not settle it, including timing that is about typing speed or rhythm (the proof cannot reproduce it).
 
 ### J2. Is there a way without timing?
 
-**Question:** "input.timed is an element that works only with the timed key press in input.timing (confirmed by pressing the keys). input.stops lists, numbered, every element keyboard focus reaches. Is there an element that does the same thing with a normal key press? Answer alternative (with element: its number), no_alternative or unsure, with reasons."
+**Question:** "input.timed is an element that works only with the timed key press in input.timing (confirmed by pressing the keys). shared_inputs.stops lists, numbered, every element keyboard focus reaches. Is there an element that does the same thing with a normal key press? Answer alternative (with element: its number), no_alternative or unsure, with reasons."
 
 **Input:** the timed element, the timing, the matched sentences, what the normal and the timed press each changed, the numbered stops, and the page text (judge eval, 2026-10-31: names alone left the agent unsure).
 

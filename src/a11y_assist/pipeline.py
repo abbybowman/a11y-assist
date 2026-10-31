@@ -122,6 +122,20 @@ def _evidence_uris(run: RunRecorder) -> list[str]:
     return [run_uri(run.run_id, run.rel(f)) for f in files if f.exists()]
 
 
+def _shared_inputs(report: Report, states: dict[TestId, Any]) -> dict[str, Any]:
+    """Evidence the open questions share, once per result (a check's optional
+    `shared_inputs(state)`), limited to the keys an open question names."""
+    wanted = {k for q in report.open_questions for k in q.shared}
+    out: dict[str, Any] = {}
+    for t in {q.test_id for q in report.open_questions}:
+        check = REGISTRY.get(t)
+        if check is not None and t in states and hasattr(check, "shared_inputs"):
+            out.update(
+                {k: v for k, v in check.shared_inputs(states[t]).items() if k in wanted}
+            )
+    return out
+
+
 def _page_text(report: Report, states: dict[TestId, Any]) -> list[dict[str, str]]:
     asking = {q.test_id for q in report.open_questions}
     out: list[dict[str, str]] = []
@@ -294,10 +308,12 @@ async def run_tt_tests(
         findings=[FindingView.of(f) for f in report.findings],
         open_questions=report.open_questions,
         page_text=_page_text(report, states),
+        shared_inputs=_shared_inputs(report, states),
         walk=_walk_summary(walk) if walk else {},
         evidence=_evidence_uris(run),
         expires_at=expires_at(run.dir, settings.run_ttl_hours),
         report=report,
+        report_uri=run_uri(run.run_id, run.rel(run.report_path)),
         errors=report.errors,
     )
 
@@ -342,6 +358,8 @@ async def answer_questions(
         findings=[FindingView.of(f) for f in report.findings],
         open_questions=report.open_questions,
         page_text=_page_text(report, states),
+        shared_inputs=_shared_inputs(report, states),
         report=report,
+        report_uri=run_uri(run.run_id, run.rel(run.report_path)),
         errors=errors,
     )
