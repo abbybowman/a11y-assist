@@ -17,6 +17,7 @@ from pydantic import BaseModel, Field
 from a11y_assist.checks.base import RunContext
 from a11y_assist.engine import Row, first_match
 from a11y_assist.models import (
+    REVIEW_HEAD,
     DecidedBy,
     Finding,
     Instance,
@@ -671,11 +672,15 @@ def evaluate(st: State4F, evidence_refs: list[str]) -> Finding:
     head = {
         Outcome.PASS: "Keyboard focus moves through the page in an order that follows how it reads, forward and backward.",
         Outcome.FAIL: "Keyboard focus moves through parts of the page in an order that doesn't make sense, which can confuse keyboard and screen reader users.",
-        Outcome.NEEDS_REVIEW: "We could not finish this test, so a person needs to check it.",
+        Outcome.NEEDS_REVIEW: REVIEW_HEAD,
         Outcome.DNA: "The order of the elements on this page can't change what it means, so this test does not apply.",
     }[page.outcome]
     order = {Outcome.FAIL: 0, Outcome.NEEDS_REVIEW: 1, Outcome.PASS: 2, Outcome.DNA: 3}
     body = [t for o, t in sorted(sentences, key=lambda x: order[x[0]])]
+    if page.outcome is Outcome.PASS:  # the headline already says it
+        body = [
+            t for t in body if t != _sentence(Inst4F(id="", kind="O", label=""), "M4")
+        ]
     parts = (
         [head, *body]
         + (st.incomplete if page.outcome is not Outcome.PASS else [])

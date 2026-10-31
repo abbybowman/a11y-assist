@@ -20,6 +20,7 @@ from pydantic import BaseModel, Field
 from a11y_assist.checks.base import RunContext
 from a11y_assist.engine import Row, first_match
 from a11y_assist.models import (
+    REVIEW_HEAD,
     DecidedBy,
     Finding,
     Instance,
@@ -1107,10 +1108,21 @@ _SIGNALS = {
 }
 
 
+_TAG_ROLE = {
+    "a": "link",
+    "button": "button",
+    "input": "field",
+    "select": "list",
+    "textarea": "text box",
+    "img": "image",
+    "summary": "button",
+}
+
+
 def _label(t: dict[str, Any]) -> str:
     name = (t.get("name") or "").strip() or t.get("css_path") or "an element"
     name = name if len(name) <= 60 else name[:57] + "..."
-    role = (t.get("role") or t.get("tag") or "").strip()
+    role = (t.get("role") or _TAG_ROLE.get(t.get("tag") or "", "")).strip()
     return f'"{name}"' + (
         f" ({role})" if role and role not in ("generic", "none") else ""
     )
@@ -1227,7 +1239,7 @@ def evaluate(st: State4A, evidence_refs: list[str]) -> Finding:
             "so keyboard users cannot use them."
         )
     else:
-        head = "We could not finish this test, so a person needs to check it."
+        head = REVIEW_HEAD
     browser = (
         f"the browser used (version {st.browser})"
         if st.browser

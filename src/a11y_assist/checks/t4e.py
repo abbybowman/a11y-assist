@@ -16,6 +16,7 @@ from pydantic import BaseModel, Field
 from a11y_assist.checks.base import RunContext
 from a11y_assist.engine import Row, first_match
 from a11y_assist.models import (
+    REVIEW_HEAD,
     DecidedBy,
     Finding,
     Instance,
@@ -580,7 +581,7 @@ def evaluate(st: State4E, evidence_refs: list[str]) -> Finding:
             "without their asking, which can disorient keyboard and screen reader users."
         )
     else:
-        head = "We could not finish this test, so a person needs to check it."
+        head = REVIEW_HEAD
     parts = [head, *body]
     if page.outcome is not Outcome.PASS:
         parts += incomplete

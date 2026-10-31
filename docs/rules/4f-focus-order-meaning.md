@@ -1,7 +1,7 @@
 ---
 tt_test: 4.F
 tt_name: 2.4.3-focus-order-meaning
-spec_version: 1.0.0
+spec_version: 1.0.1
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -98,7 +98,7 @@ The tool gives each page one 4.F outcome: PASS, FAIL, DOES NOT APPLY or NEEDS RE
 | A3 | "The page has only one element that takes keyboard focus, so there is no order to check." |
 | M2 | "When the <element> dialog is open, pressing Tab or Shift+Tab moves focus out of it onto the page behind it, before the dialog is closed. To see it, load the page and press <keys>." |
 | M3 | "Keyboard focus stays inside the <element> dialog until it is closed." |
-| M4 (O) | "Focus follows the page's reading order, forward and backward." |
+| M4 (O) | "Focus follows the page's reading order, forward and backward." Left out when the page passes: the headline already says it. |
 | M4 (R) | "After opening <element>, the next Tab moves into what it revealed." |
 | M6 | "The focus order doesn't make sense here: <signals>. <J1 reasons>. If you disagree, tell your assistant." |
 | M7 | "The focus order departs from the reading order (<signals>), but it still makes sense: <J1 reasons>. If you disagree, tell your assistant." |

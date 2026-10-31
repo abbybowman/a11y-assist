@@ -43,17 +43,18 @@ async def test_tools_are_listed():
 
 
 async def test_run_tt_tests_on_http_page(settings, server):
-    out = await _call("run_tt_tests", {"url": f"{server.base}/no_trap.html"})
+    out = await _call(
+        "run_tt_tests", {"url": f"{server.base}/no_trap.html", "tests": ["4.C"]}
+    )
     assert out["errors"] == []
     assert "NOT a certified" in out["disclaimer"]
     assert out["walk"]["P1"]["end"] == "wrap"
     assert out["walk"]["P2"]["end"] == "wrap"
-    assert out["tests"] == ["4.C"]  # default selection
     [finding] = out["findings"]
     assert (finding["test_id"], finding["outcome"]) == ("4.C", "PASS")
     assert finding["rows"] == ["A3", "G4"]
     assert "never got trapped" in finding["summary"]
-    assert out["open_questions"] == [] and out["page_text"] == []
+    assert out["open_questions"] == []
     assert out["report"]["certified"] is False  # the full report, to save
     assert f"run://{out['run_id']}/report.json" in out["evidence"]
     assert f"run://{out['run_id']}/evidence/walk.json" in out["evidence"]
@@ -317,7 +318,9 @@ async def test_explain_finds_tests_by_words_criterion_or_name(settings):
 
 
 async def test_explain_after_a_run(settings, server):
-    out = await _call("run_tt_tests", {"url": f"{server.base}/no_trap.html"})
+    out = await _call(
+        "run_tt_tests", {"url": f"{server.base}/no_trap.html", "tests": ["4.C"]}
+    )
     [f] = out["findings"]
     assert f["reference"] == "tt://5.1.3/tests/4.C"
     assert f["understanding"] == [
@@ -327,3 +330,32 @@ async def test_explain_after_a_run(settings, server):
     assert "Explain these results" in text and "Result for 4.C: PASS" in text
     gone = await _prompt({"about": "4.C", "run_id": "20000101T000000Z-000000"})
     assert "no longer on the server" in gone and "saved its report" in gone
+
+
+async def test_tool_descriptions_follow_the_registry():
+    # The implemented-test list and the default come from checks.REGISTRY, so
+    # they cannot go stale when a check is added.
+    from a11y_assist.checks import REGISTRY
+
+    async with Client(mcp) as client:
+        tools = {t.name: t for t in await client.list_tools()}
+    run = tools["run_tt_tests"]
+    built = [t.value for t in TestId if t in REGISTRY]
+    assert run.inputSchema["properties"]["tests"]["default"] == built
+    for t in REGISTRY:
+        assert f"{t.value} ({t.tt_name})" in run.description
+    assert "subagent" in run.description and "certified" in run.description
+    answer = tools["answer_questions"].inputSchema
+    assert "duration_ms" in str(answer)
+
+
+async def test_open_questions_are_named_in_the_summary(settings, server):
+    # While a question is open the summary says so, instead of "a person needs
+    # to check it" (the agent answers it next). Wording only.
+    url = f"{server.base}/4a/f01-click-only-text.html"
+    out = await _call("run_tt_tests", {"url": url, "tests": ["4.A"]})
+    [f] = out["findings"]
+    assert f["outcome"] == "NEEDS_REVIEW"
+    assert f["summary"].startswith("This test is not finished yet: 1 question about")
+    assert "a person needs to check it" not in f["summary"]
+    assert '"Show delivery times"' in f["summary"]

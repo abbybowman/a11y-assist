@@ -19,6 +19,7 @@ from a11y_assist.checks import t4e
 from a11y_assist.checks.base import RunContext
 from a11y_assist.engine import Row, first_match
 from a11y_assist.models import (
+    REVIEW_HEAD,
     DecidedBy,
     Finding,
     Instance,
@@ -940,7 +941,7 @@ def evaluate(st: State4D, evidence_refs: list[str]) -> Finding:
     head = {
         Outcome.PASS: f"We moved keyboard focus to each of the {n_pass} elements we could reach, and every one showed where focus was.",
         Outcome.FAIL: "Some elements don't show when they have keyboard focus, so keyboard users can lose track of where they are.",
-        Outcome.NEEDS_REVIEW: "We could not finish this test, so a person needs to check it.",
+        Outcome.NEEDS_REVIEW: REVIEW_HEAD,
     }[page.outcome]
     body = [t for o, t in sentences if o is not Outcome.PASS]
     if page.outcome is not Outcome.PASS and n_pass:
