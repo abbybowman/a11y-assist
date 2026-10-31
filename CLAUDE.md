@@ -38,6 +38,17 @@ by TT test ID. Package: `a11y_assist` (name is provisional).
    "assumed". If something cannot be verified in the current environment
    (e.g. Windows headed Chrome from a Linux container), say so.
 
+7. **Proportionate to the PDF.** A spec step must match something the TT
+   PDF asks a human tester to do. Anything past that is NEEDS_REVIEW or a
+   note for a person, not more code. The aim is consistency with a careful
+   human tester, not exceeding one.
+8. **Opinionated, explained, overridable.** Users are mostly not Trusted
+   Testers. The tool makes judgment calls itself (the calling agent answers
+   open questions once, by rubric) and explains each one in plain language
+   with no jargon or spec codes (row IDs stay in the evidence trace). A
+   person's answer overrides the agent's. An opinion leads to PASS only when a
+   key press or another mechanical check confirms it.
+
 ## Other rules
 
 - Navigation allowlist (default `.gov`, `.mil`) is enforced on every top-level
@@ -54,6 +65,15 @@ by TT test ID. Package: `a11y_assist` (name is provisional).
   read as certification). Say "open questions" to users, not "judgments". Tool inputs are Pydantic-validated with precise
   descriptions.
 - Test runs analyze a HAR replay, never the live page, so runs are repeatable.
+- A page that is never tested (not allowed, cannot load, bad input) is a tool
+  error (`ToolError`, isError), not a finding, and leaves no run folder.
+- Hosted deployment is the target; stdio is fine for now. Build nothing that
+  only works locally: evidence must be reachable without the server's file
+  paths, run state is short-lived (results belong in the user's codebase,
+  returned in tool output), and one tool call stays within `RUN_LIMIT_S`
+  (default 120 s) so it survives HTTP proxy timeouts.
+- Plans live in `docs/plans/`; lessons that save the next test time go in
+  `docs/solutions/`.
 - Fixtures: use a vendored W3C ACT test case when one covers the rule; write a
   custom page only for a gap. Never edit an ACT page. Expected outcomes live in
   `tests/fixtures/act/manifest.json` or the test files, never in a page (pages

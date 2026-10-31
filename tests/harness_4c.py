@@ -31,16 +31,14 @@ async def run_4c(
                 assert j2 is not None, (
                     f"{url}: J2 asked but the test gives no J2 answer"
                 )
-            for n in (1, 2, 3):
-                answers.append(
-                    Answer(
-                        question_id=q.question_id,
-                        sample=n,
-                        j1=J1Answer(**(j1 or NO_DOCS)) if q.kind == "J1" else None,
-                        j2=J2Answer(**j2) if q.kind == "J2" else None,
-                        rationale="scripted test answer",
-                    )
+            answers.append(
+                Answer(
+                    question_id=q.question_id,
+                    j1=J1Answer(**(j1 or NO_DOCS)) if q.kind == "J1" else None,
+                    j2=J2Answer(**j2) if q.kind == "J2" else None,
+                    rationale="scripted test answer",
                 )
+            )
         _, errors = record_answers(report, answers)
         errors += await resume_4c(settings, run, report)
         assert errors == [], errors

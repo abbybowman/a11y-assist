@@ -54,10 +54,13 @@ class Settings(BaseSettings):
     # ── Evidence ──────────────────────────────────────────────────────────────
     # The Tab press cap is not a setting: it comes from the 4.C spec
     # (3 x DOM inventory + 50, max 3,000; see traverse.tab_press_cap).
-    # 4.C spec run limits; every report records them.
-    focus_stable_ms: int = Field(default=300, ge=0, le=1500)
-    record_scroll_passes: int = Field(default=5, ge=0, le=50)
-    run_limit_s: int = Field(default=900, ge=10)
+    # 4.C spec run limits; every report records them (Versions.run_settings).
+    # settle_quiet_ms: the settle rule's DOM-quiet window after each key press.
+    settle_quiet_ms: int = Field(default=150, ge=50, le=1000)
+    record_scroll_passes: int = Field(default=1, ge=0, le=50)
+    # Wall clock for one run_tt_tests call: short enough for HTTP proxies when
+    # hosted. Tests not finished in time are NEEDS_REVIEW with the reason.
+    run_limit_s: int = Field(default=120, ge=10)
     runs_dir: Path = REPO_ROOT / "runs"
 
     # ── Vendored tools ────────────────────────────────────────────────────────

@@ -219,9 +219,9 @@ async def test_traversal_records_focus_events(browser, settings):
     ctx, page = await _opener(browser, settings, _fixture("no_trap.html"))()
     t = Traversal(ctx, page, 50)
     await t.start()
-    step = await t.press("Tab", "x")
+    step = await t.press("Tab")
     assert [e["type"] for e in step.focus_events] == ["focusin"]
-    step = await t.press("Tab", "x")
+    step = await t.press("Tab")
     assert [(e["type"], e["id"]) for e in step.focus_events] == [
         ("focusout", "first-link"),
         ("focusin", "btn"),

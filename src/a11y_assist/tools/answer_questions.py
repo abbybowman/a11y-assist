@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Annotated, Any
 
 from fastmcp import FastMCP
+from fastmcp.exceptions import ToolError
 from pydantic import Field
 
 from a11y_assist import config
@@ -42,9 +43,11 @@ def register(mcp: FastMCP) -> None:
             Field(
                 min_length=1,
                 description=(
-                    "Answers to open questions. Each question needs 3 independent "
-                    "samples (sample 1, 2, 3); answer each without looking at the "
-                    "others. Give question_id, sample, a j1 object for J1 questions "
+                    "One answer per open question. A later answer to the same "
+                    "question replaces the earlier one, and an answer with "
+                    "decided_by 'human' wins over a model's (use it to record a "
+                    "person's override). Give question_id, a j1 object for J1 "
+                    "questions "
                     "({documented: yes|no, keys, quote, source_url}) or a j2 object "
                     "for J2 questions ({gate: yes|no|unsure, fields: [{locator, "
                     "value, basis_quote}]}), a rationale, and decided_by ('model' "
@@ -56,13 +59,14 @@ def register(mcp: FastMCP) -> None:
     ) -> dict[str, Any]:
         """Answer open questions from a run_tt_tests run, then re-evaluate.
 
-        Each question names a Trusted Tester test ID, a rubric and evidence file
-        paths. Inspect the evidence, apply the rubric, and answer. Answers are
-        validated (unknown ids, repeated samples and the wrong answer type are
-        rejected) and recorded in report.json with who decided. Answers are facts
-        (keys, values), never outcomes: once a question has its 3 samples, the
-        server checks they agree, presses any documented keys or enters the
-        values in the recorded page, and applies the rules spec again.
+        Each question names a Trusted Tester test ID, a rubric and its evidence.
+        Inspect the evidence, apply the rubric, and answer it yourself; ask the
+        user only if you cannot tell. Answers are validated (unknown ids and the
+        wrong answer type are rejected) and recorded in report.json with who
+        decided. Answers are facts (keys, values), never outcomes: the server
+        presses any documented keys in the recorded page and applies the rules
+        spec again. Suggested input values are never typed in; they go to a
+        person to try.
 
         Returns accepted question ids, rejected answers with reasons, and the
         questions still open. Results are agent-assisted and NOT a certified
@@ -72,7 +76,7 @@ def register(mcp: FastMCP) -> None:
         try:
             run = RunRecorder.open(settings.runs_dir, run_id)
         except FileNotFoundError as exc:
-            return {"error": str(exc)}
+            raise ToolError(str(exc)) from exc
         report = Report.model_validate_json(run.report_path.read_text("utf-8"))
         accepted, errors = record_answers(report, answers)
         errors += await resume_4c(settings, run, report)
