@@ -4,12 +4,7 @@ Work [4c-no-keyboard-trap.md](4c-no-keyboard-trap.md) needs done during the buil
 
 ## Fixtures to build
 
-34 pages, each proving one rule; 16 should PASS or get DNA, so the tool can't score well by failing everything. Serve cross-origin fixtures from a second local host. F29 and F33 wait on the V10 and V9 decisions; the other 32 are in `tests/fixtures/4c/`.
-
-| ID | Page | Expected | Proves |
-| --- | --- | --- | --- |
-| F29 | Infinite feed with footer reachable by Shift+Tab | PASS + note | Infinite scroll rule |
-| F33 | tabindex=-1 iframe containing a loop | FAIL | Iframe tabindex=-1 rule |
+All built: F01–F35 in `tests/fixtures/4c/`, expected outcomes in `tests/test_fixtures_4c.py`. F35 (aria-modal dialog that only Escape closes) was added to cover M4, because a native modal (F10) lets Tab leave the page.
 
 ## Browser behavior to verify in code
 

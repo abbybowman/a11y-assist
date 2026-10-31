@@ -86,8 +86,9 @@ class _Handler(http.server.BaseHTTPRequestHandler):
                 ".then(j=>{xhr.textContent=j.n})</script>"
             )
             return self._send(200, body.encode())
-        fixture = FIXTURES / self.path.lstrip("/")
-        if self.path.endswith(".html") and fixture.is_file():
+        path = self.path.split("?")[0]  # fixtures may add a query (F29 paging)
+        fixture = FIXTURES / path.lstrip("/")
+        if path.endswith(".html") and fixture.is_file():
             return self._send(200, fixture.read_bytes())
         self._send(404, b"not found")
 
