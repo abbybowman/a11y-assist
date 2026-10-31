@@ -8,23 +8,44 @@ mismatch is a finding to write up, never a reason to change rule code.
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
 from .conftest import ACT_ROOT
 
-RESULTS_FILE = Path(__file__).parent / ".act_scores.json"
+RESULTS_DIR = Path(__file__).parent / ".act_scores"
+
+
+def _mine() -> Path:
+    # One file per pytest-xdist worker ("gw0", ...; "main" when serial), so
+    # parallel workers never write the same file.
+    return RESULTS_DIR / f"{os.environ.get('PYTEST_XDIST_WORKER', 'main')}.json"
+
+
+def clear_scores() -> None:
+    for f in RESULTS_DIR.glob("*.json"):
+        f.unlink()
 
 
 def write_score(case_id: str, outcome: str, rows: list[str]) -> None:
-    data = json.loads(RESULTS_FILE.read_text()) if RESULTS_FILE.exists() else {}
+    RESULTS_DIR.mkdir(exist_ok=True)
+    f = _mine()
+    data = json.loads(f.read_text()) if f.exists() else {}
     data[case_id] = {"outcome": outcome, "rows": rows}
-    RESULTS_FILE.write_text(json.dumps(data, indent=1))
+    f.write_text(json.dumps(data, indent=1))
+
+
+def _all_scores() -> dict:
+    out: dict = {}
+    for f in sorted(RESULTS_DIR.glob("*.json")):
+        out.update(json.loads(f.read_text()))
+    return out
 
 
 def report_lines() -> list[str]:
-    if not RESULTS_FILE.exists():
+    ours = _all_scores()
+    if not ours:
         return []
-    ours = json.loads(RESULTS_FILE.read_text())
     cases = {
         c["id"]: c
         for c in json.loads((ACT_ROOT / "manifest.json").read_text())["cases"]
