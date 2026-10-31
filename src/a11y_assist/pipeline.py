@@ -36,7 +36,6 @@ from a11y_assist.models import (
 from a11y_assist.policy import check_url
 from a11y_assist.rules import load_specs
 from a11y_assist.runlog import RunRecorder
-from a11y_assist.traverse import run_pass
 from a11y_assist.versions import collect_versions
 
 UNTRUSTED_NOTICE = (
@@ -81,6 +80,64 @@ def _finding_view(f: Finding) -> dict[str, Any]:
         "rationale": f.rationale,
         "rows": f.rows,
     }
+
+
+def _opener(browser, settings: Settings, har, final_url: str, run: RunRecorder):
+    """Fresh replay context and page for every pass and probe."""
+
+    async def new_page():
+        replay = await replay_context(browser, settings, har, run.log)
+        page = await replay.context.new_page()
+        await replay.guard.goto(page, final_url)
+        return replay.context, page
+
+    return new_page
+
+
+async def resume_4c(settings: Settings, run: RunRecorder, report: Report) -> list[str]:
+    """After answers arrive: press J1's keys and enter J2's values in the
+    recorded page, then re-evaluate 4.C. Returns errors."""
+    evidence_path = run.evidence_dir / "4c.json"
+    if not evidence_path.exists() or report.final_url is None:
+        return []
+    state = t4c.State4C.model_validate_json(evidence_path.read_text("utf-8"))
+    todo = t4c.apply_answers(state, report)
+    errors: list[str] = []
+    if todo:
+        async with async_playwright() as pw:
+            browser = await launch_browser(pw, settings)
+            try:
+                har = run.evidence_dir / "page.har.zip"
+                c = t4c.Collector(
+                    _opener(browser, settings, har, report.final_url, run),
+                    settings.focus_stable_ms,
+                    float("inf"),
+                    run.evidence_dir / "shots",
+                    run.dir,
+                )
+                c.state = state
+                c.cap = max(state.p1.get("cap") or 50, state.p2.get("cap") or 50)
+                for inst in todo:
+                    await t4c.probe_answers(c, inst)
+            except Exception as exc:
+                errors.append(f"{type(exc).__name__}: {exc}")
+            finally:
+                await browser.close()
+    run.write_json(evidence_path, state)
+    refs = [run.rel(evidence_path)]
+    answered = {r.answer.question_id for r in report.answers}
+    report.open_questions = [
+        q
+        for q in t4c.questions_for(state, [str(evidence_path)])
+        if q.question_id not in answered
+    ] + [q for q in report.open_questions if q.test_id is not TestId.T4C]
+    report.findings = [
+        t4c.evaluate(state, settings.small_section_max_fraction, refs)
+        if f.test_id is TestId.T4C
+        else f
+        for f in report.findings
+    ]
+    return errors
 
 
 def _pass_summary(p: PassResult) -> dict[str, Any]:
@@ -162,23 +219,21 @@ async def run_tt_tests(
                 redirects=cap.redirects,
             )
 
-            async def new_page():
-                replay = await replay_context(browser, settings, har, run.log)
-                page = await replay.context.new_page()
-                await replay.guard.goto(page, cap.final_url)
-                return replay.context, page
-
-            passes = {}
-            for name, key in (("P1", "Tab"), ("P2", "Shift+Tab")):
-                passes[name] = await run_pass(
-                    name,
-                    new_page,
-                    key,
+            state = None
+            if TestId.T4C in selected:
+                state = await t4c.collect(
+                    _opener(browser, settings, har, cap.final_url, run),
                     settings.focus_stable_ms,
-                    shots_dir=run.evidence_dir / "shots",
-                    rel_base=run.dir,
+                    settings.run_limit_s,
+                    shots=run.evidence_dir / "shots",
+                    rel=run.dir,
                 )
-                run.log("pass", name=name, **_pass_summary(passes[name]))
+                run.log(
+                    "4c_collected",
+                    p1=state.p1,
+                    p2=state.p2,
+                    instances=len(state.instances),
+                )
         except NavigationBlocked as exc:
             report.errors.append(str(exc))
             return finish({})
@@ -189,19 +244,19 @@ async def run_tt_tests(
         finally:
             await browser.close()
 
-    evidence_path = run.write_json(
-        run.evidence_dir / "passes.json",
-        {name: p.model_dump(mode="json") for name, p in passes.items()},
-    )
+    evidence_path = run.evidence_dir / "4c.json"
     refs = [run.rel(evidence_path)]
-    report.findings = [
-        t4c.evaluate(t4c.Evidence4C(passes["P1"], passes["P2"]), refs)
-        if t is TestId.T4C
-        else _not_performed(settings, [t], None, refs)[0]
-        for t in selected
-    ]
-    questions: list[OpenQuestion] = []  # created by the rules spec, later
-    result = await get_judge(settings.judge_backend).judge(questions)
+    report.findings = []
+    for t in selected:
+        if t is TestId.T4C and state is not None:
+            run.write_json(evidence_path, state)
+            report.open_questions = t4c.questions_for(state, [str(evidence_path)])
+            report.findings.append(
+                t4c.evaluate(state, settings.small_section_max_fraction, refs)
+            )
+        else:
+            report.findings.append(_not_performed(settings, [t], None, refs)[0])
+    result = await get_judge(settings.judge_backend).judge(report.open_questions)
     report.open_questions = result.pending
 
     return finish(
@@ -209,7 +264,7 @@ async def run_tt_tests(
             "final_url": cap.final_url,
             "redirects": cap.redirects,
             "evidence": str(evidence_path),
-            "passes": {n: _pass_summary(p) for n, p in passes.items()},
+            "passes": {"P1": state.p1, "P2": state.p2} if state else {},
             "open_questions": [_question_view(q) for q in report.open_questions],
         }
     )

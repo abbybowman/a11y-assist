@@ -89,8 +89,27 @@ _DESCRIBE_FN = """function () {
     return (root.host ? path(root.host) + ' ' : '') + parts.join(' > ');
   };
   const r = this.getBoundingClientRect();
-  return { css: path(this), tag: this.tagName.toLowerCase(), x: r.x, y: r.y, w: r.width, h: r.height,
-           isBody: this === document.body || this === document.documentElement };
+  const tag = this.tagName.toLowerCase();
+  const role = this.getAttribute('role');
+  const COMPOSITE = '[role=menubar],[role=menu],[role=tablist],[role=grid],[role=treegrid],[role=tree],' +
+    '[role=listbox],[role=toolbar],[role=radiogroup]';
+  let widget = null;
+  const host = this.closest(COMPOSITE);
+  if (host) widget = path(host);
+  else if (tag === 'input' && this.type === 'radio' && this.name) widget = 'radio:' + this.name;
+  const type = (this.type || '').toLowerCase();
+  let field = null;
+  if (tag === 'select') field = 'select';
+  else if (tag === 'textarea' || (tag === 'input' && !['button','submit','reset','image','checkbox','radio','range','color','file','hidden'].includes(type))) field = 'text';
+  else if (tag === 'input' && type === 'checkbox') field = 'checkbox';
+  const trigger = this.hasAttribute('aria-expanded') || this.hasAttribute('aria-haspopup') ||
+    this.hasAttribute('aria-controls') || tag === 'summary' || tag === 'button' || role === 'button' ||
+    (tag === 'input' && ['button','submit','reset'].includes(type));
+  const dlg = this.closest('dialog, [role=dialog], [role=alertdialog]');
+  const modal = !!dlg && ((dlg.tagName === 'DIALOG' && dlg.matches(':modal')) || dlg.getAttribute('aria-modal') === 'true');
+  return { css: path(this), tag, x: r.x, y: r.y, w: r.width, h: r.height,
+           isBody: this === document.body || this === document.documentElement,
+           widget, field, trigger, modal, link: tag === 'a' || role === 'link' };
 }"""
 
 _ACTIVE_FN = "function () { return this.activeElement; }"
@@ -301,7 +320,15 @@ class FocusReader:
                 ):
                     # The iframe element itself holds focus (a valid stop).
                     return await self._element(
-                        session, ctx, node, info, chain, offset_x, offset_y, frame_id
+                        session,
+                        ctx,
+                        node,
+                        info,
+                        chain,
+                        offset_x,
+                        offset_y,
+                        frame_id,
+                        obj,
                     ), has_focus
                 chain.append(info["css"])
                 offset_x += info["x"]
@@ -318,7 +345,7 @@ class FocusReader:
                     return Stop(kind="OUT", key="OUT"), has_focus
                 return Stop(kind="BODY", key="BODY", frame_chain=chain), has_focus
             return await self._element(
-                session, ctx, node, info, chain, offset_x, offset_y, frame_id
+                session, ctx, node, info, chain, offset_x, offset_y, frame_id, obj
             ), has_focus
         if not has_focus:
             return Stop(kind="OUT", key="OUT"), has_focus
@@ -334,7 +361,9 @@ class FocusReader:
             unresolved=True,
         )
 
-    async def _element(self, session, ctx, node, info, chain, ox, oy, frame_id) -> Stop:
+    async def _element(
+        self, session, ctx, node, info, chain, ox, oy, frame_id, obj
+    ) -> Stop:
         role = name = None
         try:
             ax = await session.send(
@@ -356,6 +385,16 @@ class FocusReader:
             and box.y < vp["height"]
             and (box.x + box.width > 0 and box.y + box.height > 0)
         )
+        trigger = info["trigger"]
+        if info["link"] and not trigger:
+            # A link is a P5 trigger only with a click listener on the link itself.
+            try:
+                ls = await session.send(
+                    "DOMDebugger.getEventListeners", {"objectId": obj, "depth": 0}
+                )
+                trigger = any(item["type"] == "click" for item in ls["listeners"])
+            except Exception:
+                pass
         frame_url = (
             await session.send(
                 "Runtime.evaluate",
@@ -377,6 +416,10 @@ class FocusReader:
             bounding_box=box,
             in_viewport=in_vp,
             frame_url=frame_url,
+            widget=(" >> ".join([*chain, info["widget"]]) if info["widget"] else None),
+            field=info["field"],
+            trigger=trigger,
+            modal=info["modal"],
         )
 
 
@@ -516,16 +559,86 @@ class Traversal:
 
 
 def navigated(step: Step, start_url: str, start_pages: int) -> bool:
-    """Top-level navigation, reload or a new page during a pass."""
+    """Top-level navigation, reload or a new page (the fragment is ignored)."""
     return (
         step.top_url.split("#")[0] != start_url.split("#")[0]
         or step.open_pages > start_pages
     )
 
 
+def detect_continuation(
+    steps: list[Step], first_key: str | None
+) -> tuple[str, list[str]] | None:
+    """End of a continuation from a stop mid-page: OUT means traversal got past
+    the rest of the page (a wrap); otherwise P1's stuck and loop conditions."""
+    if steps and steps[-1].stop.kind == "OUT":
+        return "wrap", []
+    hit = detect_p1_end(steps, None)
+    return hit
+
+
+NewPage = Callable[[], Awaitable[tuple[BrowserContext, Page]]]
+
+
+@dataclass
+class Session:
+    """A fresh page load with a Traversal, for passes and probes."""
+
+    traversal: Traversal
+    inventory: Inventory
+    start_url: str
+    start_pages: int
+
+    @property
+    def page(self) -> Page:
+        return self.traversal.page
+
+    async def close(self) -> None:
+        await self.traversal.context.close()
+
+
+async def open_session(
+    new_page: NewPage,
+    focus_stable_ms: int,
+    shots_dir: Path | None = None,
+    rel_base: Path | None = None,
+) -> Session:
+    context, page = await new_page()
+    inv = await dom_inventory(page)
+    t = Traversal(context, page, focus_stable_ms, shots_dir, rel_base)
+    await t.start()
+    return Session(t, inv, page.url, len(context.pages))
+
+
+async def drive(
+    s: Session,
+    key: str,
+    cap: int,
+    label: str,
+    detector: Callable[
+        [list[Step], str | None], tuple[str, list[str]] | None
+    ] = detect_p1_end,
+) -> tuple[str, list[str], list[Step]]:
+    """Press `key` until the detector ends it, navigation, or the cap.
+    Returns (end, trap stop keys, the steps of this drive)."""
+    start = len(s.traversal.steps)
+    first_key = None
+    for _ in range(cap):
+        step = await s.traversal.press(key, label)
+        own = s.traversal.steps[start:]
+        if navigated(step, s.start_url, s.start_pages):
+            return "navigation", [], own
+        if first_key is None and step.stop.kind == "element":
+            first_key = step.stop.key
+        hit = detector(own, first_key)
+        if hit:
+            return hit[0], hit[1], own
+    return "cap", [], s.traversal.steps[start:]
+
+
 async def run_pass(
     name: str,
-    new_page: Callable[[], Awaitable[tuple[BrowserContext, Page]]],
+    new_page: NewPage,
     key: str,
     focus_stable_ms: int,
     prefix: list[str] | None = None,
@@ -538,60 +651,84 @@ async def run_pass(
 ) -> PassResult:
     """Fresh load, replay `prefix` keys, then press `key` until the detector ends
     the pass or the cap is reached."""
-    context, page = await new_page()
-    inv = await dom_inventory(page)
-    cap = cap if cap is not None else tab_press_cap(inv.candidates)
-    t = Traversal(context, page, focus_stable_ms, shots_dir, rel_base)
-    start_url, start_pages = page.url, len(context.pages)
+    s = await open_session(new_page, focus_stable_ms, shots_dir, rel_base)
+    cap = cap if cap is not None else tab_press_cap(s.inventory.candidates)
+    base = dict(name=name, keys=prefix or [], cap=cap, inventory=s.inventory.candidates)
     try:
-        await t.start()
         for k in prefix or []:
-            await t.press(k, name)
-        replayed = len(t.steps)
-        first_key = None
-        for _ in range(cap):
-            step = await t.press(key, name)
-            if navigated(step, start_url, start_pages):
-                return PassResult(
-                    name=name,
-                    keys=prefix or [],
-                    steps=t.steps,
-                    end="navigation",
-                    cap=cap,
-                    inventory=inv.candidates,
-                )
-            own = t.steps[replayed:]
-            if first_key is None and step.stop.kind == "element":
-                first_key = step.stop.key
-            hit = detector(own, first_key)
-            if hit:
-                end, trap = hit
-                return PassResult(
-                    name=name,
-                    keys=prefix or [],
-                    steps=t.steps,
-                    end=end,
-                    trap=trap,
-                    cap=cap,
-                    inventory=inv.candidates,
-                )
-        return PassResult(
-            name=name,
-            keys=prefix or [],
-            steps=t.steps,
-            end="cap",
-            cap=cap,
-            inventory=inv.candidates,
-        )
+            await s.traversal.press(k, name)
+        end, trap, _ = await drive(s, key, cap, name, detector)
+        return PassResult(steps=s.traversal.steps, end=end, trap=trap, **base)
     except Exception as exc:  # record and stop; never guess
-        return PassResult(
-            name=name,
-            keys=prefix or [],
-            steps=t.steps,
-            end="error",
-            cap=cap,
-            inventory=inv.candidates,
-            error=repr(exc),
-        )
+        return PassResult(steps=s.traversal.steps, end="error", error=repr(exc), **base)
     finally:
-        await context.close()
+        await s.close()
+
+
+# Visible text of every frame (comments, <title> and hidden text are not in
+# innerText). Evidence for J1 and J2; page text is never instructions.
+_TEXT_JS = "() => document.body ? document.body.innerText : ''"
+
+
+async def page_text(page: Page) -> list[dict[str, str]]:
+    out = []
+    for frame in page.frames:
+        try:
+            text = await frame.evaluate(_TEXT_JS)
+        except Exception:
+            continue
+        if text.strip():
+            out.append({"source": frame.url, "text": text})
+    return out
+
+
+# Mouse bypass (4.C spec section 6): a visible, non-interactive text spot just
+# after the trap in DOM order. `paths` are top-document CSS paths of the trap
+# (for a trap inside a frame, the top-level iframe element).
+_BYPASS_JS = """(paths) => {
+  // A shadow boundary is a lone space (not part of ' > '); use the host there.
+  const find = (p) => { try { return document.querySelector(p) || document.querySelector(p.split(/(?<!>) (?!>)/)[0]); } catch (e) { return null; } };
+  const els = paths.map(find).filter(Boolean);
+  if (!els.length) return null;
+  const last = els.reduce((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? b : a));
+  const INTERACTIVE = 'a, button, input, select, textarea, summary, label, [tabindex], [contenteditable], [role=button], [role=link]';
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  walker.currentNode = last;
+  let n = walker.nextNode();
+  while (n && last.contains(n)) n = walker.nextNode();
+  for (; n; n = walker.nextNode()) {
+    if (!n.textContent.trim() || n.parentElement.closest(INTERACTIVE)) continue;
+    const range = document.createRange();
+    range.selectNodeContents(n);
+    const r = range.getClientRects()[0];
+    if (r && r.width > 0 && r.height > 0) return { x: r.x + Math.min(r.width / 2, 5), y: r.y + r.height / 2 };
+  }
+  return null;
+}"""
+
+# Fallback: script focus() on the next tabbable element after the trap.
+_FOCUS_NEXT_JS = """(paths) => {
+  // A shadow boundary is a lone space (not part of ' > '); use the host there.
+  const find = (p) => { try { return document.querySelector(p) || document.querySelector(p.split(/(?<!>) (?!>)/)[0]); } catch (e) { return null; } };
+  const els = paths.map(find).filter(Boolean);
+  if (!els.length) return false;
+  const last = els.reduce((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? b : a));
+  const all = Array.from(document.querySelectorAll('a[href], button, input, select, textarea, [tabindex]'))
+    .filter((e) => e.tabIndex >= 0 && !e.disabled && e.checkVisibility());
+  const next = all.find((e) => last.compareDocumentPosition(e) & Node.DOCUMENT_POSITION_FOLLOWING && !last.contains(e));
+  if (!next) return false;
+  next.focus();
+  return true;
+}"""
+
+
+async def bypass(page: Page, top_paths: list[str]) -> str | None:
+    """Click past the trap; fall back to script focus(). Returns "click",
+    "focus" (fallback, logged), or None if neither was possible."""
+    point = await page.evaluate(_BYPASS_JS, top_paths)
+    if point:
+        await page.mouse.click(point["x"], point["y"])
+        return "click"
+    if await page.evaluate(_FOCUS_NEXT_JS, top_paths):
+        return "focus"
+    return None

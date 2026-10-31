@@ -46,7 +46,12 @@ select = ["E", "F", "I"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
+# F34 (600 links) takes ~10 minutes under the settle rule: run it with -m slow.
+markers = ["slow: long-running fixture, excluded by default"]
+addopts = "-m 'not slow'"
 
 [tool.ruff.lint.per-file-ignores]
 # Embedded JavaScript strings are kept readable rather than wrapped.
 "src/a11y_assist/traverse.py" = ["E501"]
+# Spec row tables and question wording stay on one line each.
+"src/a11y_assist/t4c.py" = ["E501"]

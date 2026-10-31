@@ -71,29 +71,38 @@ def get_judge(backend: str) -> Judge:
 def record_answers(
     report: Report, answers: list[Answer]
 ) -> tuple[list[str], list[str]]:
-    """Move answered questions from report.open_questions to report.answers.
-
-    Returns (accepted question ids, error messages). An answer is rejected if
-    its question is not pending or its outcome is not allowed for it.
-    """
-    pending = {q.question_id: q for q in report.open_questions}
+    """Record answers to open questions. A question stays open until it has all
+    its samples. Returns (accepted "question_id#sample", error messages)."""
+    open_ = {q.question_id: q for q in report.open_questions}
+    have = {(r.answer.question_id, r.answer.sample) for r in report.answers}
     accepted, errors = [], []
     for answer in answers:
-        question = pending.get(answer.question_id)
-        if question is None:
-            errors.append(f"{answer.question_id}: no pending question with this id")
-            continue
-        if answer.outcome not in question.allowed_outcomes:
-            allowed = ", ".join(o.value for o in question.allowed_outcomes)
-            errors.append(
-                f"{answer.question_id}: outcome {answer.outcome.value} not allowed "
-                f"(allowed: {allowed})"
+        q = open_.get(answer.question_id)
+        tag = f"{answer.question_id}#{answer.sample}"
+        if q is None:
+            errors.append(f"{tag}: no open question with this id")
+        elif (answer.question_id, answer.sample) in have:
+            errors.append(f"{tag}: this sample is already recorded")
+        elif (q.kind == "J1") != (answer.j1 is not None) or (q.kind == "J2") != (
+            answer.j2 is not None
+        ):
+            errors.append(f"{tag}: a {q.kind} question needs a {q.kind.lower()} answer")
+        else:
+            report.answers.append(
+                RecordedAnswer(question=q, answer=answer, recorded_at=utcnow())
             )
-            continue
-        report.answers.append(
-            RecordedAnswer(question=question, answer=answer, recorded_at=utcnow())
-        )
-        del pending[answer.question_id]
-        accepted.append(answer.question_id)
-    report.open_questions = list(pending.values())
+            have.add((answer.question_id, answer.sample))
+            accepted.append(tag)
+    done = {
+        qid
+        for qid, q in open_.items()
+        if sum(1 for a, _ in have if a == qid) >= q.samples_required
+    }
+    report.open_questions = [
+        q for q in report.open_questions if q.question_id not in done
+    ]
     return accepted, errors
+
+
+def samples(report: Report, question_id: str) -> list[Answer]:
+    return [r.answer for r in report.answers if r.answer.question_id == question_id]
