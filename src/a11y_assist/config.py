@@ -48,7 +48,8 @@ class Settings(BaseSettings):
     navigation_timeout_ms: int = 30_000
 
     # ── Evidence ──────────────────────────────────────────────────────────────
-    max_tab_presses: int = Field(default=150, ge=1, le=2000)
+    # The Tab press cap is not a setting: it comes from the 4.C spec
+    # (3 x DOM inventory + 50, max 3,000; see evidence.tab_press_cap).
     runs_dir: Path = REPO_ROOT / "runs"
 
     # ── Vendored tools ────────────────────────────────────────────────────────

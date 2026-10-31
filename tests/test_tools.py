@@ -50,7 +50,11 @@ async def test_run_tt_tests_on_http_page(settings, server):
     assert out["backward"]["stops"] > 0
     assert out["tests"] == ["4.C"]  # default selection
     assert [f["test_id"] for f in out["findings"]] == ["4.C"]
-    assert [f["outcome"] for f in out["findings"]] == ["NOT_TESTED"]
+    [finding] = out["findings"]
+    assert finding["outcome"] == "NEEDS_REVIEW"
+    assert finding["note"] == "This test could not be performed"
+    assert finding["rationale"].startswith("Spec G3.")
+    assert "not implemented" in finding["rationale"]
     assert out["open_questions"] == []
 
     run_dir = Path(out["run_dir"])
@@ -74,20 +78,38 @@ async def test_run_tt_tests_on_http_page(settings, server):
 
 async def test_collect_on_file_fixture_in_dev_mode(settings):
     url = (FIXTURES / "simple_trap.html").as_uri()
-    out = await _call("run_tt_tests", {"url": url, "max_presses": 6})
+    out = await _call("run_tt_tests", {"url": url})
     assert out["errors"] == []
-    assert out["forward"]["presses"] == 6
-    assert out["forward"]["stopped_because"] == "max_presses"
+    # 3 tabbable candidates -> spec cap 3 x 3 + 50 = 59 presses.
+    assert out["forward"]["presses"] == 59
+    assert out["forward"]["stopped_because"] == "cap"
+    evidence = json.loads(Path(out["keyboard_evidence"]).read_text())
+    assert evidence["forward"]["inventory_size"] == 3
+    assert evidence["forward"]["max_presses"] == 59
 
 
 async def test_selected_tests_are_deduplicated_and_ordered(settings):
     url = (FIXTURES / "no_trap.html").as_uri()
-    out = await _call(
-        "run_tt_tests", {"url": url, "tests": ["4.E", "4.A", "4.E"], "max_presses": 3}
-    )
+    out = await _call("run_tt_tests", {"url": url, "tests": ["4.E", "4.A", "4.E"]})
     assert out["errors"] == []
     assert out["tests"] == ["4.A", "4.E"]
     assert [f["test_id"] for f in out["findings"]] == ["4.A", "4.E"]
+
+
+async def test_no_test_is_reported_not_tested(settings):
+    url = (FIXTURES / "no_trap.html").as_uri()
+    out = await _call("run_tt_tests", {"url": url, "tests": [t.value for t in TestId]})
+    assert out["errors"] == []
+    by_id = {f["test_id"]: f for f in out["findings"]}
+    assert set(by_id) == {t.value for t in TestId}
+    for f in by_id.values():
+        assert f["outcome"] == "NEEDS_REVIEW"
+        assert f["note"] == "This test could not be performed"
+    for t in ["4.A", "4.B", "4.D", "4.E", "4.F"]:
+        assert "No rules spec exists" in by_id[t]["rationale"]
+    assert by_id["4.C"]["rationale"].startswith("Spec G3.")
+    report = Report.model_validate_json(Path(out["report_path"]).read_text())
+    assert all(f.outcome is not Outcome.NOT_TESTED for f in report.findings)
 
 
 @pytest.mark.parametrize("tests", [[], ["4.G"], ["4.H"], ["2.1.2"]])
@@ -106,6 +128,10 @@ async def test_disallowed_url_is_refused_without_browsing(settings, server):
     assert out["errors"] and "not allowed" in out["errors"][0]
     assert server.hits[("localhost", "/dyn")] == 0
     assert "forward" not in out
+    [finding] = out["findings"]
+    assert finding["outcome"] == "NEEDS_REVIEW"
+    assert finding["note"] == "This test could not be performed"
+    assert "did not complete" in finding["rationale"]
 
 
 async def test_redirect_out_of_allowlist_is_reported(settings, server):

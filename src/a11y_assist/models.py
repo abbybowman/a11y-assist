@@ -19,6 +19,12 @@ NOT_CERTIFIED_DISCLAIMER = (
 )
 
 
+# The note a finding carries when its test was not performed (TT 5.1.3 p. 5).
+# The PDF allows NOT TESTED only where a test names it (p. 6), so a test the
+# tool could not perform is NEEDS_REVIEW with this note and a reason.
+TEST_NOT_PERFORMED_NOTE = "This test could not be performed"
+
+
 def utcnow() -> datetime:
     return datetime.now(timezone.utc)
 
@@ -27,15 +33,16 @@ class Outcome(str, Enum):
     PASS = "PASS"
     FAIL = "FAIL"
     DNA = "DNA"  # Does Not Apply
+    # Only for tests whose TT text names NOT TESTED (p. 6); none in scope do.
     NOT_TESTED = "NOT_TESTED"
     NEEDS_REVIEW = "NEEDS_REVIEW"
 
 
 class TestId(str, Enum):
-    """Trusted Tester 5.x test IDs in scope (Test 4: Keyboard Access and Focus).
+    """Trusted Tester 5.1.3 test IDs in scope (Test 4: Keyboard Access and Focus).
 
-    Names are from https://section508coordinators.github.io/TrustedTester/
-    keyboard.html. TT 5 also defines 4.G and 4.H, which are not in scope yet.
+    Test 4 has six tests, 4.A to 4.F. Names are checked against the TT 5.1.3
+    PDF, pp. 19-23.
     """
 
     __test__ = False  # not a pytest test class
@@ -118,11 +125,17 @@ class FocusStop(BaseModel):
 
 class FocusWalk(BaseModel):
     direction: str = Field(description='"forward" (Tab) or "backward" (Shift+Tab).')
-    max_presses: int
+    max_presses: int = Field(
+        description="Press cap for this walk: 3 x inventory_size + 50, at most "
+        "3,000 (4.C spec section 2)."
+    )
+    inventory_size: int = Field(
+        description="Tabbable candidates in the DOM inventory taken before the walk."
+    )
     presses: int
     stops: list[FocusStop]
     stopped_because: str = Field(
-        description="Why the walk ended: max_presses, returned_to_start, "
+        description="Why the walk ended: cap, returned_to_start, "
         "navigation, or error. Descriptive only; not an outcome."
     )
 
@@ -156,6 +169,11 @@ class Finding(BaseModel):
         default_factory=list, description="Paths relative to the run folder."
     )
     rationale: str = ""
+    note: str | None = Field(
+        default=None,
+        description=f'"{TEST_NOT_PERFORMED_NOTE}" when the test was not performed; '
+        "the rationale then gives the reason.",
+    )
     decided_by: DecidedBy | None = None
     confidence: float | None = Field(default=None, ge=0.0, le=1.0)
 
@@ -166,6 +184,24 @@ class Finding(BaseModel):
             test_name=test_id.tt_name,
             outcome=Outcome.NEEDS_REVIEW,
             rationale=rationale,
+        )
+
+    @classmethod
+    def not_performed(
+        cls,
+        test_id: TestId,
+        reason: str,
+        decided_by: DecidedBy | None = None,
+        evidence_refs: list[str] | None = None,
+    ) -> Finding:
+        return cls(
+            test_id=test_id,
+            test_name=test_id.tt_name,
+            outcome=Outcome.NEEDS_REVIEW,
+            note=TEST_NOT_PERFORMED_NOTE,
+            rationale=reason,
+            decided_by=decided_by,
+            evidence_refs=evidence_refs or [],
         )
 
 

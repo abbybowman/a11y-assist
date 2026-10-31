@@ -24,7 +24,7 @@ What works today:
 | HAR record + replay | Page is recorded once, both walks run against the replay |
 | Navigation allowlist | `.gov` and `.mil` by default, enforced on every top-level navigation and redirect hop; `file://` only in dev mode |
 | ANDI 29.2.2 | Vendored, injectable from local files, never loaded from ssa.gov. Not used by any test yet |
-| Findings for TT 4.A–4.F | Always `NOT_TESTED` (no rules implemented yet) |
+| Findings for TT 4.A–4.F | `NEEDS_REVIEW` with the note "This test could not be performed" and the reason. 4.C follows its spec's G3; the others have no spec yet and are not run. Never `NOT_TESTED`: the PDF allows it only where a test names it (p. 6) |
 | `answer_questions(run_id, answers)` | Records the calling agent's answers to a run's open questions; does not set outcomes |
 | ApiJudge | Stub (`NotImplementedError`) |
 
@@ -43,9 +43,8 @@ Known limits:
 
 ## TT tests in scope
 
-Test names come from
-[section508coordinators.github.io/TrustedTester/keyboard.html](https://section508coordinators.github.io/TrustedTester/keyboard.html).
-They have not yet been checked against the official TT 5.1.3 PDF.
+TT 5.1.3 Test 4 has six tests, 4.A to 4.F. Names are checked against the TT
+5.1.3 PDF, pp. 19–23.
 
 | ID | TT test name | WCAG SC |
 | --- | --- | --- |
@@ -55,8 +54,6 @@ They have not yet been checked against the official TT 5.1.3 PDF.
 | 4.D | 2.4.7-focus-visible | 2.4.7 |
 | 4.E | 3.2.1-on-focus | 3.2.1 |
 | 4.F | 2.4.3-focus-order-meaning | 2.4.3 |
-
-TT 5 also defines 4.G and 4.H (focus order reveal/return), not yet in scope.
 
 ## Setup (Windows, Git Bash)
 
@@ -116,7 +113,7 @@ report.json                 findings, open questions, answers, versions, disclai
 
 See `.env.example` and `src/a11y_assist/config.py`. Main settings:
 `ALLOWED_DOMAINS`, `DEV_MODE`, `BROWSER_CHANNEL`, `HEADLESS`,
-`MAX_TAB_PRESSES`, `JUDGE_BACKEND`, `JUDGING_MODEL`. Rules spec versions are
+`JUDGE_BACKEND`, `JUDGING_MODEL`. Rules spec versions are
 read from each spec's front matter (`spec_version`) and recorded in every report.
 
 ## Contributing

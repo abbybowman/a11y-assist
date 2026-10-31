@@ -33,7 +33,6 @@ def settings(tmp_path: Path) -> Settings:
         dev_mode=True,
         browser_channel=os.getenv("TEST_BROWSER_CHANNEL", "chromium"),
         headless=os.getenv("TEST_HEADED") != "1",
-        max_tab_presses=25,
         runs_dir=tmp_path / "runs",
     )
 
