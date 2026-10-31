@@ -1,0 +1,30 @@
+<!doctype html>
+<!-- F27. Expected 4.C: FAIL. Proves the BODY rule (BODY leading back into earlier stops is a loop). -->
+<html lang="en">
+<head><meta charset="utf-8"><title>F27: focus drops to BODY, then cycles back to the top</title></head>
+<body>
+<h1>Focus reset</h1>
+<a id="a1" href="#">Link 1</a>
+<a id="a2" href="#">Link 2</a>
+<button id="reset" type="button">Refresh list</button>
+<a id="after" href="#">After (never reached by Tab)</a>
+<script>
+  document.addEventListener("click", (e) => {
+    const a = e.target.closest && e.target.closest('a[href="#"]');
+    if (a) e.preventDefault();
+  });
+  // The button drops focus to BODY shortly after it gets focus. The next Tab
+  // from BODY is sent to the first link, so Tab never gets past the button.
+  const first = document.getElementById("a1");
+  let dropped = false;
+  document.getElementById("reset").addEventListener("focus", (e) => {
+    setTimeout(() => { e.target.blur(); dropped = true; }, 50);
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Tab" && !e.shiftKey && dropped && document.activeElement === document.body) {
+      e.preventDefault(); dropped = false; first.focus();
+    }
+  }, true);
+</script>
+</body>
+</html>

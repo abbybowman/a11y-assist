@@ -1,0 +1,33 @@
+<!doctype html>
+<!-- F22. Expected 4.C: PASS. Proves P4 (arrow cycling in a widget is not a loop). -->
+<html lang="en">
+<head><meta charset="utf-8"><title>F22: menubar with roving tabindex</title></head>
+<body>
+<h1>Menubar</h1>
+<a id="before" href="#">Before</a>
+<ul id="menu" role="menubar" aria-label="Main" style="list-style:none;display:flex;gap:1em">
+  <li role="menuitem" id="m1" tabindex="0">Home</li>
+  <li role="menuitem" id="m2" tabindex="-1">Benefits</li>
+  <li role="menuitem" id="m3" tabindex="-1">Forms</li>
+  <li role="menuitem" id="m4" tabindex="-1">Contact</li>
+</ul>
+<a id="after" href="#">After</a>
+<script>
+  document.addEventListener("click", (e) => {
+    const a = e.target.closest && e.target.closest('a[href="#"]');
+    if (a) e.preventDefault();
+  });
+  // Left/Right move between items and wrap. Tab leaves the menubar.
+  const items = Array.from(document.querySelectorAll('[role="menuitem"]'));
+  items.forEach((item, i) => item.addEventListener("keydown", (e) => {
+    const step = { ArrowRight: 1, ArrowLeft: -1 }[e.key];
+    if (!step) return;
+    e.preventDefault();
+    const next = items[(i + step + items.length) % items.length];
+    items.forEach((it) => it.setAttribute("tabindex", "-1"));
+    next.setAttribute("tabindex", "0");
+    next.focus();
+  }));
+</script>
+</body>
+</html>

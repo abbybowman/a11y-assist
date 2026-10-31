@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from .conftest import active, deep_active, press_and_read
+from ..focus import active, deep_active, press_and_read
 
 THREE_LINKS = """<!doctype html><html lang=en><title>three</title><p>Text</p>
 <a id=a1 href=#>one</a> <a id=a2 href=#>two</a> <a id=a3 href=#>three</a>"""

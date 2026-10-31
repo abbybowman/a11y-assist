@@ -1,0 +1,18 @@
+<!doctype html>
+<!-- F05. Expected 4.C: PASS, logged for 4.F (Shift+Tab is the only exit). Proves M2. -->
+<html lang="en">
+<head><meta charset="utf-8"><title>F05: field swallows Tab only</title></head>
+<body>
+<h1>Field that swallows Tab</h1>
+<button id="before" type="button">Before</button>
+<label for="trap">Code</label> <input id="trap" type="text">
+<button id="after" type="button">After</button>
+<script>
+  // Tab is swallowed; Shift+Tab works normally.
+  const trap = document.getElementById("trap");
+  trap.addEventListener("keydown", (e) => {
+    if (e.key === "Tab" && !e.shiftKey) { e.preventDefault(); trap.focus(); }
+  });
+</script>
+</body>
+</html>

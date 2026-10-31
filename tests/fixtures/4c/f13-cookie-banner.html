@@ -1,0 +1,36 @@
+<!doctype html>
+<!-- F13. Expected 4.C: PASS. Interaction exception through M5 (Enter on Accept). -->
+<html lang="en">
+<head><meta charset="utf-8"><title>F13: cookie banner loop until Accept</title></head>
+<body>
+<div id="banner" role="region" aria-label="Cookie consent" style="border:2px solid #000;padding:1em">
+  <p>This site uses cookies to remember your settings.</p>
+  <p id="cookie-info" hidden>We use one cookie for language.</p>
+  <button id="settings" type="button">Cookie details</button>
+  <button id="accept" type="button">Accept</button>
+</div>
+<h1>Benefits</h1>
+<a id="p1" href="#">Apply for benefits</a>
+<a id="p2" href="#">Check your status</a>
+<a id="p3" href="#">Contact us</a>
+<script>
+  // Tab on the last element goes to the first; Shift+Tab on the first goes to
+  // the last. Focus never leaves the list by Tab or Shift+Tab.
+  function loop(els) {
+    els.forEach((el, i) => el.addEventListener("keydown", (e) => {
+      if (e.key !== "Tab") return;
+      if (!e.shiftKey && i === els.length - 1) { e.preventDefault(); els[0].focus(); }
+      else if (e.shiftKey && i === 0) { e.preventDefault(); els[els.length - 1].focus(); }
+    }));
+  }
+  const $ = (id) => document.getElementById(id);
+  document.addEventListener("click", (e) => {
+    const a = e.target.closest && e.target.closest('a[href="#"]');
+    if (a) e.preventDefault();
+  });
+  loop([$("settings"), $("accept")]);
+  $("settings").addEventListener("click", () => { $("cookie-info").hidden = false; });
+  $("accept").addEventListener("click", () => { $("banner").remove(); });
+</script>
+</body>
+</html>

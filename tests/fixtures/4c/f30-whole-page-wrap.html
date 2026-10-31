@@ -1,0 +1,30 @@
+<!doctype html>
+<!-- F30. Expected 4.C: PASS with a note for tester review. Proves M12. -->
+<html lang="en">
+<head><meta charset="utf-8"><title>F30: script wraps the whole page</title></head>
+<body>
+<h1>Whole-page wrap</h1>
+  <a id="w1" href="#">Link 1</a>
+  <a id="w2" href="#">Link 2</a>
+  <a id="w3" href="#">Link 3</a>
+  <a id="w4" href="#">Link 4</a>
+  <a id="w5" href="#">Link 5</a>
+<script>
+  // Tab on the last element goes to the first; Shift+Tab on the first goes to
+  // the last. Focus never leaves the list by Tab or Shift+Tab.
+  function loop(els) {
+    els.forEach((el, i) => el.addEventListener("keydown", (e) => {
+      if (e.key !== "Tab") return;
+      if (!e.shiftKey && i === els.length - 1) { e.preventDefault(); els[0].focus(); }
+      else if (e.shiftKey && i === 0) { e.preventDefault(); els[els.length - 1].focus(); }
+    }));
+  }
+  const $ = (id) => document.getElementById(id);
+  document.addEventListener("click", (e) => {
+    const a = e.target.closest && e.target.closest('a[href="#"]');
+    if (a) e.preventDefault();
+  });
+  loop(["w1", "w2", "w3", "w4", "w5"].map($));
+</script>
+</body>
+</html>
