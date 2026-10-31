@@ -584,6 +584,14 @@ def questions_for(st: State4C, evidence_paths: list[str]) -> list[OpenQuestion]:
     """J1 (and J2 for loops with fields) for every instance whose mechanical
     exits failed and that has no answer yet."""
     out = []
+    # Screenshots are stored relative to the run folder; clients can only open
+    # run:// resources (found by the judge eval, 2026-10-31).
+    base = evidence_paths[0].rsplit("/evidence/", 1)[0] if evidence_paths else ""
+
+    def link(info: dict) -> dict:
+        shot = info.get("screenshot")
+        return {**info, "screenshot": f"{base}/{shot}"} if shot and base else info
+
     for inst in st.instances:
         if any(p.exit for p in inst.probes) or inst.unresolved or inst.unsettled:
             continue
@@ -597,7 +605,7 @@ def questions_for(st: State4C, evidence_paths: list[str]) -> list[OpenQuestion]:
                     instance=inst.id,
                     question=J1_QUESTION.format(what=what),
                     rubric=J1_RUBRIC,
-                    input={"trapped": list(inst.member_info.values())},
+                    input={"trapped": [link(i) for i in inst.member_info.values()]},
                     evidence_paths=evidence_paths,
                 )
             )
@@ -620,7 +628,7 @@ def questions_for(st: State4C, evidence_paths: list[str]) -> list[OpenQuestion]:
                     question=J2_QUESTION,
                     rubric=J2_RUBRIC,
                     input={"members": members},
-                    evidence_paths=evidence_paths + shots[:1],
+                    evidence_paths=evidence_paths + [f"{base}/{s}" for s in shots[:1]],
                 )
             )
     return out

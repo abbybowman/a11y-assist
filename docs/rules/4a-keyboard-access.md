@@ -1,7 +1,7 @@
 ---
 tt_test: 4.A
 tt_name: 2.1.1-keyboard-access
-spec_version: 1.0.0
+spec_version: 1.1.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -70,6 +70,7 @@ Instances: *K*, each unreached candidate; *X*, each custom control executed; *T*
 | M2 | K: a non-native candidate whose click has no effect | No instance (nothing for a mouse to operate) | p. 19 HtT 1 |
 | M3 | K: a link, or a click that navigates, whose address is the address of a reached link | PASS (another keyboard method with the same function) | p. 19 HtT 2.b |
 | M4 | K: otherwise | Ask J1 (M5–M7) | p. 19 HtT 2.b |
+| M4n | K, and keyboard focus reaches nothing on the page (no stops) | FAIL: no keyboard alternative can exist, so J1 is not asked (judge eval, 2026-10-31) | p. 19 ER 1; HtT 2.b |
 | J1? | J1 not answered yet | NEEDS REVIEW | Open question |
 | M5 | J1 = alternative, naming a stop by its number | PASS | p. 19 HtT 2.b |
 | M6 | J1 = no other keyboard way | FAIL | p. 19 ER 1; F54, F42 |
@@ -95,8 +96,8 @@ Instances: *K*, each unreached candidate; *X*, each custom control executed; *T*
 | --- | --- | --- |
 | G1 | Section 1 gives DOES NOT APPLY or NEEDS REVIEW | That outcome |
 | G2 | Any instance is FAIL | FAIL, listing every instance |
-| G3 | Any instance is NEEDS REVIEW; or P1 did not wrap (cap, time, error, navigation or a trap: stops past it are unknown); or a scan, check or cap was not finished | NEEDS REVIEW, with the note "This test could not be performed" and the reason (p. 5) |
-| G4 | P1 wrapped, every scan finished, every instance is PASS | PASS, with the list of what was and was not looked for |
+| G3 | Any instance is NEEDS REVIEW; or P1 did not wrap while the page has stops (cap, time, error, navigation or a trap: stops past it are unknown); or a scan, check or cap was not finished | NEEDS REVIEW, with the note "This test could not be performed" and the reason (p. 5) |
+| G4 | P1 wrapped (or the page has no stops), every scan finished, every instance is PASS | PASS, with the list of what was and was not looked for |
 | G5 | Anything else | NEEDS REVIEW |
 
 **Plain-language sentences.** Row IDs stay in the evidence trace. A menu item shown by hover adds "(it appears when the mouse rests on <stop>)" after <element>.
@@ -111,6 +112,7 @@ Instances: *K*, each unreached candidate; *X*, each custom control executed; *T*
 | C? | "We did not get to check <element>; please check it works with the keyboard." |
 | M1 | "Something about <element> could not be read reliably (the page kept changing on its own); please check it works with the keyboard." |
 | J1? / J2? | "<element> works with a mouse but can't be reached with the keyboard; a question about it is still open." / "<element> has information that shows only when the mouse rests on it; a question about it is still open." |
+| M4n | "<element> works with a mouse, but nothing on this page can be reached with the keyboard, so keyboard users cannot use it." |
 | M3 | "<element> can't be reached with the keyboard, but <other> goes to the same place and can." |
 | M5 | "<element> can't be reached with the keyboard, but <other> does the same thing (<J1 reasons>). If you disagree, tell your assistant." |
 | M6 | "<element> works with a mouse but can't be reached with the keyboard, and nothing else on the page does the same thing (<J1 reasons>). If you disagree, tell your assistant." |
@@ -130,7 +132,7 @@ The calling agent answers each once, by the rubric; a person's answer overrides 
 
 **Question:** "input.candidate is something a mouse can use (with what clicking it did) that keyboard focus never reaches. input.stops lists, numbered, every element keyboard focus does reach, with role and name. Image A shows the page. Is there an element in input.stops that does the same thing, so a keyboard user loses nothing? Answer alternative (with element: its number), no_alternative or unsure, with your reasons in a few plain words."
 
-**Rubric.** alternative: a reached element plainly does the same job (a second print button, a text link with the same purpose, a field where Enter submits the same search). no_alternative: nothing reached does that job. unsure: whenever the evidence does not settle it. The named number must be a stop (mechanical guard; otherwise the answer is treated as unsure).
+**Rubric.** alternative: a reached element plainly does the same job (a second print button, a text link with the same purpose, a field where Enter submits the same search). Only elements on this page count: a link to another page that might offer the same thing is not an alternative (p. 19 HtT 2.b, "available on the page"). no_alternative: nothing reached does that job. unsure: whenever the evidence does not settle it. The named number must be a stop (mechanical guard; otherwise the answer is treated as unsure).
 
 ### J2. Is this title information essential?
 

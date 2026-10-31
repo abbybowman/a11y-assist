@@ -50,9 +50,11 @@ EXPECTED: dict[str, dict] = {
         "choice": "does_not_preserve",
         "signals": {"S4"},
     },
+    # Focus reads "Step 3, Step 4, Step 1, Step 2": numbered steps out of
+    # sequence (was "unsure"; the judge eval's agent was right, Abby 2026-10-31).
     "f15-columns-arbitrary": {
-        "outcome": "NEEDS_REVIEW",
-        "choice": "unsure",
+        "outcome": "FAIL",
+        "choice": "does_not_preserve",
         "signals": {"S3"},
     },
 }
@@ -84,3 +86,25 @@ async def test_fixture(name, settings, server):
             for c in r.split("[")[1].rstrip("]").split(",")
         }
         assert e["signals"] <= found, (f.rows, f.summary)
+
+
+async def test_unsure_goes_to_a_person(settings, server):
+    # M9: an unsure answer is NEEDS REVIEW (f15 is the page; its right answer
+    # is does_not_preserve, but any page asking J1 would do).
+    got = await run_check(
+        settings, f"{server.base}/4f/f15-columns-arbitrary.html", TestId.T4F, "unsure"
+    )
+    assert got["finding"].outcome.value == "NEEDS_REVIEW"
+
+
+async def test_backward_order_is_in_the_question(settings, server):
+    # Judge eval 2026-10-31: without the Shift+Tab order the agent judged only
+    # the forward order on f14 and answered "preserves" (a false PASS).
+    from a11y_assist.pipeline import run_tt_tests
+
+    out = await run_tt_tests(
+        settings, f"{server.base}/4f/f14-backward-order-differs.html", [TestId.T4F]
+    )
+    [q] = out.open_questions
+    assert [s["name"] for s in q.input["backward"]] == ["Four", "Two", "Three", "One"]
+    assert "Shift+Tab" in q.question

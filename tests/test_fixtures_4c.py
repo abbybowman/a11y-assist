@@ -460,3 +460,23 @@ async def test_f33_tab_skips_the_iframe_and_its_loop(open_fixture):
     # A mouse user can still click into the loop and be trapped there.
     await page.frame_locator("#frame").locator("#b1").click()
     assert await keys(page, "Tab", 3) == ["frame>b2", "frame>b1", "frame>b2"]
+
+
+async def test_question_screenshots_are_run_resources(settings, server):
+    # Judge eval 2026-10-31: screenshots went out as run-folder paths
+    # ("evidence/shots/P1-0004.png") that no client can open.
+    from a11y_assist.models import TestId
+    from a11y_assist.pipeline import run_tt_tests
+
+    out = await run_tt_tests(
+        settings, f"{server.base}/4c/f14-zip-gate.html", [TestId.T4C]
+    )
+    shots = [
+        p for q in out.open_questions for p in q.evidence_paths if p.endswith(".png")
+    ] + [
+        m["screenshot"]
+        for q in out.open_questions
+        for m in q.input.get("trapped", [])
+        if m.get("screenshot")
+    ]
+    assert shots and all(s.startswith("run://") for s in shots), shots

@@ -63,7 +63,8 @@ def register(mcp: FastMCP) -> None:
         """Answer open questions from a run_tt_tests run, then re-evaluate.
 
         Inspect each question's evidence, apply its rubric and answer it
-        yourself (or through a subagent, keeping only its answer object); ask
+        yourself (or through one subagent for all of them, keeping only the answer
+        objects); ask
         the user only if you cannot tell. Answers are facts, never outcomes:
         the server checks them (unknown ids, wrong answer types and choices
         outside the list are rejected), presses any keys they name in the
