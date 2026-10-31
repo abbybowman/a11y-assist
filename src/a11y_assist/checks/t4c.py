@@ -19,6 +19,7 @@ from pydantic import BaseModel, Field
 from a11y_assist.checks.base import RunContext
 from a11y_assist.engine import PageEvidence, Row, first_match, page_outcome
 from a11y_assist.models import (
+    REVIEW_HEAD,
     Answer,
     DecidedBy,
     Finding,
@@ -1052,7 +1053,7 @@ def plain_summary(
         Outcome.PASS: "We moved through the whole page with Tab and with Shift+Tab, and "
         "keyboard focus never got trapped.",
         Outcome.FAIL: "Keyboard focus gets trapped on this page.",
-        Outcome.NEEDS_REVIEW: "We could not finish this test, so a person needs to check it.",
+        Outcome.NEEDS_REVIEW: REVIEW_HEAD,
     }[outcome]
     parts = [head]
     order = {Outcome.FAIL: 0, Outcome.NEEDS_REVIEW: 1, Outcome.PASS: 2}

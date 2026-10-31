@@ -26,6 +26,16 @@ NOT_CERTIFIED_DISCLAIMER = (
 # tool could not perform is NEEDS_REVIEW with this note and a reason.
 TEST_NOT_PERFORMED_NOTE = "This test could not be performed"
 
+# The NEEDS REVIEW headline every check uses, and the one that replaces it
+# while the finding still has open questions (wording only; outcomes come from
+# the rules specs). See docs/rules/_template.md, "Plain-language sentences".
+REVIEW_HEAD = "We could not finish this test, so a person needs to check it."
+
+
+def waiting_head(n: int) -> str:
+    q = "question about it is" if n == 1 else "questions about it are"
+    return f"This test is not finished yet: {n} {q} still open."
+
 
 def utcnow() -> datetime:
     return datetime.now(timezone.utc)

@@ -41,6 +41,10 @@ Rules for every spec:
 - Reuse shared definitions (stops, passes, settle rule) by reference to the
   spec that defines them instead of copying them.
 - Keep it tight: no WCAG background, no prose a capable engineer would infer.
+- Page NEEDS REVIEW headline: "We could not finish this test, so a person needs
+  to check it." While the finding still has open questions the pipeline
+  replaces it with "This test is not finished yet: N question(s) about it
+  are still open." (wording only; `models.waiting_head`).
 -->
 
 # Rules spec: Test X.Y (<tt_name>)

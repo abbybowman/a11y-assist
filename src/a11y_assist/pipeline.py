@@ -31,14 +31,17 @@ from a11y_assist.checks import REGISTRY, RunContext
 from a11y_assist.config import Settings
 from a11y_assist.judgment import get_judge, record_answers
 from a11y_assist.models import (
+    REVIEW_HEAD,
     Answer,
     AnswerResult,
     Finding,
     FindingView,
+    Outcome,
     Report,
     RunResult,
     TestId,
     utcnow,
+    waiting_head,
 )
 from a11y_assist.policy import check_url
 from a11y_assist.resources.runs import run_uri
@@ -165,6 +168,16 @@ def _evaluate(run: RunRecorder, report: Report, states: dict[TestId, Any]) -> No
     report.open_questions = [
         q for q in report.questions if q.question_id not in answered
     ]
+    # Wording only: while questions are open, say so instead of "a person
+    # needs to check it" (the agent usually answers them next).
+    for f in report.findings:
+        n = sum(q.test_id is f.test_id for q in report.open_questions)
+        if (
+            n
+            and f.outcome is Outcome.NEEDS_REVIEW
+            and f.summary.startswith(REVIEW_HEAD)
+        ):
+            f.summary = waiting_head(n) + f.summary[len(REVIEW_HEAD) :]
 
 
 def _walk_extras(checks) -> list:
