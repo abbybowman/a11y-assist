@@ -17,3 +17,5 @@ took more than an hour to understand; update it when the answer changes.
 | [unique-paths-and-frame-coordinates.md](unique-paths-and-frame-coordinates.md) | Paths need `:nth-of-type`; positions must be top-level, not frame-relative |
 | [testing-what-no-page-can-trigger.md](testing-what-no-page-can-trigger.md) | Test timing-dependent rows on hand-built evidence |
 | [editing-formatted-code.md](editing-formatted-code.md) | Agents: format first, then edit against the formatted text |
+| [shadow-paths-and-contains.md](shadow-paths-and-contains.md) | `contains()` and `querySelector` stop at shadow roots; resolve walk paths part by part |
+| [browser-specific-results.md](browser-specific-results.md) | Chrome tabs to scrollers (ACT 0ssw9k); a Baseline test page broken by its SRI hash; results are per browser |

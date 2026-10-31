@@ -89,8 +89,8 @@ by TT test ID. Package: `a11y_assist` (name is provisional).
 - Compound the work: each test should leave the next one easier. Reuse the
   walk, its extras and existing collectors; put shared logic where the next
   check can call it; write down what cost time.
-- Fixtures: use a vendored W3C ACT test case when one covers the rule; write a
-  custom page only for a gap. Never edit an ACT page. Expected outcomes live in
+- Fixtures: use a vendored W3C ACT test case (or a Section 508 Baseline
+  Alignment case) when one covers the rule; write a custom page only for a gap. Never edit an ACT page. Expected outcomes live in
   `tests/fixtures/act/manifest.json` or the test files, never in a page (pages
   are evidence an agent may read). Tests never fetch from the network.
 
@@ -109,6 +109,8 @@ src/a11y_assist/
   engine.py     shared first-match tables and page rows G1-G5
   checks/       one module per TT test, registered in checks/__init__.py;
                 base.py has the interface and the "add a check" steps
+    t4a.py      4.A keyboard access: pointer and hover scans, clicks, Enter/Space
+    t4b.py      4.B keystroke timing: timing words, key-press proof
     t4c.py      4.C no keyboard trap: exit probes, rows, plain summary
     t4d.py      4.D focus visible: on/off images and styles, widget items
     t4e.py      4.E on focus: context signals, confirmation replays
@@ -133,9 +135,10 @@ docs/solutions/ lessons that save the next test time
 docs/sources/   TT 5.1.3 PDF (the authority), SHA-256 in its README;
                 tt-5.1.3/ its Markdown + tt.json copy (made once; see README)
 third_party/    ANDI 29.2.2, jQuery 3.7.1, PROVENANCE.json
-tests/fixtures/ no_trap.html (general evidence); 4c/, 4d/, 4e/, 4f/ fNN-short-name.html
+tests/fixtures/ no_trap.html (general evidence); 4a/ … 4f/ fNN-short-name.html
                 (custom fixtures per test); act/ (vendored W3C ACT cases,
-                manifest.json, sync_act.py)
+                manifest.json, sync_act.py); baseline/ (vendored Section 508
+                Baseline Alignment cases, manifest.json, sync_baseline.py)
 tests/harness.py     end-to-end runs of any check with scripted answers (test data);
                      harness_4c.py does the same for 4.C's j1/j2 questions
 tests/scoring.py     DHS / ACT agreement printed after every test run
