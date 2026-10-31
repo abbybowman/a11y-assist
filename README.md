@@ -20,13 +20,16 @@ What works today:
 
 | Area | State |
 | --- | --- |
-| `collect_keyboard_evidence(url)` | Tab and Shift+Tab walks with a record per focus stop (selector, tag, role, accessible name, tabindex, bounding box, iframe path, page focus, screenshot) |
+| `run_tt_tests(url, tests=["4.C"])` | Runs the selected TT tests (4.A–4.F) and returns findings plus open questions. Today: Tab and Shift+Tab walks with a record per focus stop (selector, tag, role, accessible name, tabindex, bounding box, iframe path, page focus, screenshot) |
 | HAR record + replay | Page is recorded once, both walks run against the replay |
 | Navigation allowlist | `.gov` and `.mil` by default, enforced on every top-level navigation and redirect hop; `file://` only in dev mode |
 | ANDI 29.2.2 | Vendored, injectable from local files, never loaded from ssa.gov. Not used by any test yet |
 | Findings for TT 4.A–4.F | Always `NOT_TESTED` (no rules implemented yet) |
-| `submit_judgments` | Records answers from the calling agent; does not set outcomes |
+| `answer_questions(run_id, answers)` | Records the calling agent's answers to a run's open questions; does not set outcomes |
 | ApiJudge | Stub (`NotImplementedError`) |
+
+Planned tools: `verify_fix`, `get_guidance`, `read_report`. Tools are broad and
+outcome-based, not one per test step.
 
 Known limits:
 
@@ -92,7 +95,7 @@ Add to `.mcp.json` in your project (use the absolute path to this repo):
 }
 ```
 
-Then ask, for example: "Collect keyboard evidence for https://www.section508.gov/".
+Then ask, for example: "Run TT test 4.C on https://www.section508.gov/".
 
 ## Output
 
@@ -104,7 +107,7 @@ evidence/forward/NNN.png    screenshot after each Tab
 evidence/backward/NNN.png   screenshot after each Shift+Tab
 evidence/keyboard.json      all focus stops
 steps.jsonl                 step log
-report.json                 findings, pending questions, versions, disclaimer
+report.json                 findings, open questions, answers, versions, disclaimer
 ```
 
 `runs/` is git-ignored. Evidence holds page content; treat it as untrusted.
