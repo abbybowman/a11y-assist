@@ -21,6 +21,7 @@ from pydantic import BaseModel, Field
 
 from a11y_assist.models import (
     Answer,
+    DecidedBy,
     OpenQuestion,
     RecordedAnswer,
     Report,
@@ -71,18 +72,16 @@ def get_judge(backend: str) -> Judge:
 def record_answers(
     report: Report, answers: list[Answer]
 ) -> tuple[list[str], list[str]]:
-    """Record answers to open questions. A question stays open until it has all
-    its samples. Returns (accepted "question_id#sample", error messages)."""
-    open_ = {q.question_id: q for q in report.open_questions}
-    have = {(r.answer.question_id, r.answer.sample) for r in report.answers}
+    """Record answers to questions asked in this run. One answer closes a
+    question; a later answer replaces it (a person's answer beats a model's).
+    Returns (accepted question ids, error messages)."""
+    asked = {q.question_id: q for q in report.questions or report.open_questions}
     accepted, errors = [], []
     for answer in answers:
-        q = open_.get(answer.question_id)
-        tag = f"{answer.question_id}#{answer.sample}"
+        q = asked.get(answer.question_id)
+        tag = answer.question_id
         if q is None:
-            errors.append(f"{tag}: no open question with this id")
-        elif (answer.question_id, answer.sample) in have:
-            errors.append(f"{tag}: this sample is already recorded")
+            errors.append(f"{tag}: no question with this id in this run")
         elif (q.kind == "J1") != (answer.j1 is not None) or (q.kind == "J2") != (
             answer.j2 is not None
         ):
@@ -91,18 +90,16 @@ def record_answers(
             report.answers.append(
                 RecordedAnswer(question=q, answer=answer, recorded_at=utcnow())
             )
-            have.add((answer.question_id, answer.sample))
             accepted.append(tag)
-    done = {
-        qid
-        for qid, q in open_.items()
-        if sum(1 for a, _ in have if a == qid) >= q.samples_required
-    }
+    done = {r.answer.question_id for r in report.answers}
     report.open_questions = [
         q for q in report.open_questions if q.question_id not in done
     ]
     return accepted, errors
 
 
-def samples(report: Report, question_id: str) -> list[Answer]:
-    return [r.answer for r in report.answers if r.answer.question_id == question_id]
+def current_answer(report: Report, question_id: str) -> Answer | None:
+    """The answer in force: the latest from a person, else the latest."""
+    got = [r.answer for r in report.answers if r.answer.question_id == question_id]
+    human = [a for a in got if a.decided_by is DecidedBy.HUMAN]
+    return (human or got or [None])[-1]

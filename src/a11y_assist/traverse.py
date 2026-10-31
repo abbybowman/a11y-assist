@@ -17,6 +17,7 @@ unsettled; it never decides where focus is.
 
 from __future__ import annotations
 
+import time
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -31,8 +32,7 @@ CAP_PER_CANDIDATE = 3
 CAP_BASE = 50
 CAP_MAX = 3000
 
-# Settle rule (4.C spec section 2).
-MUTATION_QUIET_MS = 300
+# Settle rule (4.C spec section 2). The quiet window is settings.settle_quiet_ms.
 SETTLE_MAX_MS = 1500
 RERUN_WINDOW_MS = 1000
 POLL_MS = 50
@@ -102,14 +102,13 @@ _DESCRIBE_FN = """function () {
   if (tag === 'select') field = 'select';
   else if (tag === 'textarea' || (tag === 'input' && !['button','submit','reset','image','checkbox','radio','range','color','file','hidden'].includes(type))) field = 'text';
   else if (tag === 'input' && type === 'checkbox') field = 'checkbox';
-  const trigger = this.hasAttribute('aria-expanded') || this.hasAttribute('aria-haspopup') ||
-    this.hasAttribute('aria-controls') || tag === 'summary' || tag === 'button' || role === 'button' ||
-    (tag === 'input' && ['button','submit','reset'].includes(type));
+  const collapsed = this.getAttribute('aria-expanded') === 'false' ||
+    (tag === 'summary' && !!this.parentElement && this.parentElement.tagName === 'DETAILS' && !this.parentElement.open);
   const dlg = this.closest('dialog, [role=dialog], [role=alertdialog]');
   const modal = !!dlg && ((dlg.tagName === 'DIALOG' && dlg.matches(':modal')) || dlg.getAttribute('aria-modal') === 'true');
   return { css: path(this), tag, x: r.x, y: r.y, w: r.width, h: r.height,
            isBody: this === document.body || this === document.documentElement,
-           widget, field, trigger, modal, link: tag === 'a' || role === 'link' };
+           widget, field, collapsed, modal };
 }"""
 
 _ACTIVE_FN = "function () { return this.activeElement; }"
@@ -394,16 +393,6 @@ class FocusReader:
             and box.y < vp["height"]
             and (box.x + box.width > 0 and box.y + box.height > 0)
         )
-        trigger = info["trigger"]
-        if info["link"] and not trigger:
-            # A link is a P5 trigger only with a click listener on the link itself.
-            try:
-                ls = await session.send(
-                    "DOMDebugger.getEventListeners", {"objectId": obj, "depth": 0}
-                )
-                trigger = any(item["type"] == "click" for item in ls["listeners"])
-            except Exception:
-                pass
         frame_url = (
             await session.send(
                 "Runtime.evaluate",
@@ -427,7 +416,7 @@ class FocusReader:
             frame_url=frame_url,
             widget=(" >> ".join([*chain, info["widget"]]) if info["widget"] else None),
             field=info["field"],
-            trigger=trigger,
+            collapsed=info["collapsed"],
             modal=info["modal"],
         )
 
@@ -461,10 +450,9 @@ async def _focus_events(page: Page, before: dict[str, int]) -> list[dict[str, An
     return sorted(out, key=lambda e: e["t"])
 
 
-async def settle(
-    page: Page, focus_stable_ms: int, window_ms: int = SETTLE_MAX_MS
-) -> bool:
-    """Wait per the settle rule. Returns False if the limit was hit (unsettled)."""
+async def settle(page: Page, quiet_ms: int, window_ms: int = SETTLE_MAX_MS) -> bool:
+    """Wait per the settle rule: 2 animation frames, then until the DOM has been
+    quiet for `quiet_ms`. Returns False if the limit was hit (unsettled)."""
     try:
         await page.evaluate(
             "() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))"
@@ -474,7 +462,7 @@ async def settle(
     waited = 0
     while waited < window_ms:
         _, _, since_m, since_f = await _read_logs(page)
-        if since_m >= MUTATION_QUIET_MS and since_f >= focus_stable_ms:
+        if since_m >= quiet_ms and since_f >= quiet_ms:
             return True
         await page.wait_for_timeout(POLL_MS)
         waited += POLL_MS
@@ -503,7 +491,7 @@ class Traversal:
 
     context: BrowserContext
     page: Page
-    focus_stable_ms: int
+    quiet_ms: int
     shots_dir: Path | None = None
     rel_base: Path | None = None
     reader: FocusReader = field(init=False)
@@ -516,14 +504,14 @@ class Traversal:
         self.reader = FocusReader(self.context, self.page)
 
     async def start(self) -> None:
-        await settle(self.page, self.focus_stable_ms)
+        await settle(self.page, self.quiet_ms)
         m, f, _, _ = await _read_logs(self.page)
         self._last_mutations, self._last_focus_total = m, f
         await _focus_events(self.page, self._seen_focus)
 
-    async def press(self, key: str, label: str) -> Step:
-        # A focus change after the last step's window: re-read that step (rule:
-        # rerun with the 1,000 ms window).
+    async def press(self, key: str) -> Step:
+        # A focus change after the last step was read: re-read that step after
+        # the 1,000 ms window (settle rule).
         _, f, _, _ = await _read_logs(self.page)
         if self.steps and f != self._last_focus_total:
             prev = self.steps[-1]
@@ -541,15 +529,9 @@ class Traversal:
             )
             _, self._last_focus_total, _, _ = await _read_logs(self.page)
         await self.page.keyboard.press(key)
-        settled = await settle(self.page, self.focus_stable_ms)
+        settled = await settle(self.page, self.quiet_ms)
         stop, has_focus = await self.reader.read()
         m, f, _, _ = await _read_logs(self.page)
-        shot = None
-        if self.shots_dir is not None:
-            self.shots_dir.mkdir(parents=True, exist_ok=True)
-            path = self.shots_dir / f"{label}-{len(self.steps) + 1:04d}.png"
-            await self.page.screenshot(path=str(path), animations="disabled")
-            shot = path.resolve().relative_to(self.rel_base.resolve()).as_posix()
         step = Step(
             n=len(self.steps) + 1,
             key=key,
@@ -559,12 +541,23 @@ class Traversal:
             open_pages=len(self.context.pages),
             mutations=m - self._last_mutations,
             focus_events=await _focus_events(self.page, self._seen_focus),
-            screenshot=shot,
             unsettled=not settled,
         )
         self._last_mutations, self._last_focus_total = m, f
         self.steps.append(step)
         return step
+
+    async def shoot(self, label: str) -> str | None:
+        """Viewport screenshot of the current state, attached to the last step.
+        Taken only where the spec asks (a trap event), not on every press."""
+        if self.shots_dir is None or not self.steps:
+            return None
+        self.shots_dir.mkdir(parents=True, exist_ok=True)
+        path = self.shots_dir / f"{label}-{len(self.steps):04d}.png"
+        await self.page.screenshot(path=str(path), animations="disabled")
+        rel = path.resolve().relative_to(self.rel_base.resolve()).as_posix()
+        self.steps[-1] = self.steps[-1].model_copy(update={"screenshot": rel})
+        return rel
 
 
 def navigated(step: Step, start_url: str, start_pages: int) -> bool:
@@ -582,11 +575,11 @@ def detect_continuation(
     the rest of the page (a wrap); otherwise P1's stuck and loop conditions."""
     if steps and steps[-1].stop.kind == "OUT":
         return "wrap", []
-    hit = detect_p1_end(steps, None)
-    return hit
+    return detect_p1_end(steps, None)
 
 
 NewPage = Callable[[], Awaitable[tuple[BrowserContext, Page]]]
+Detector = Callable[[list[Step], str | None], tuple[str, list[str]] | None]
 
 
 @dataclass
@@ -604,18 +597,20 @@ class Session:
         return self.traversal.page
 
     async def close(self) -> None:
+        # A fresh context per load: pages can keep state (localStorage, cookies)
+        # that would make the next "fresh" load differ.
         await self.traversal.context.close()
 
 
 async def open_session(
     new_page: NewPage,
-    focus_stable_ms: int,
+    quiet_ms: int,
     shots_dir: Path | None = None,
     rel_base: Path | None = None,
 ) -> Session:
     context, page = await new_page()
     inv = await dom_inventory(page)
-    t = Traversal(context, page, focus_stable_ms, shots_dir, rel_base)
+    t = Traversal(context, page, quiet_ms, shots_dir, rel_base)
     await t.start()
     s = Session(t, inv, page.url, len(context.pages))
     # Requests the recorded page cannot answer (infinite-scroll sign, V10).
@@ -627,17 +622,17 @@ async def drive(
     s: Session,
     key: str,
     cap: int,
-    label: str,
-    detector: Callable[
-        [list[Step], str | None], tuple[str, list[str]] | None
-    ] = detect_p1_end,
+    detector: Detector = detect_p1_end,
+    deadline: float | None = None,
 ) -> tuple[str, list[str], list[Step]]:
-    """Press `key` until the detector ends it, navigation, or the cap.
-    Returns (end, trap stop keys, the steps of this drive)."""
+    """Press `key` until the detector ends it, navigation, the cap or the
+    deadline (time.monotonic()). Returns (end, trap stop keys, own steps)."""
     start = len(s.traversal.steps)
     first_key = None
     for _ in range(cap):
-        step = await s.traversal.press(key, label)
+        if deadline is not None and time.monotonic() > deadline:
+            return "time", [], s.traversal.steps[start:]
+        step = await s.traversal.press(key)
         own = s.traversal.steps[start:]
         if navigated(step, s.start_url, s.start_pages):
             return "navigation", [], own
@@ -653,24 +648,21 @@ async def run_pass(
     name: str,
     new_page: NewPage,
     key: str,
-    focus_stable_ms: int,
-    prefix: list[str] | None = None,
-    detector: Callable[
-        [list[Step], str | None], tuple[str, list[str]] | None
-    ] = detect_p1_end,
-    cap: int | None = None,
+    quiet_ms: int,
+    deadline: float | None = None,
     shots_dir: Path | None = None,
     rel_base: Path | None = None,
+    cap: int | None = None,
 ) -> PassResult:
-    """Fresh load, replay `prefix` keys, then press `key` until the detector ends
-    the pass or the cap is reached."""
-    s = await open_session(new_page, focus_stable_ms, shots_dir, rel_base)
+    """Fresh load, then press `key` until a wrap, a trap event, navigation, the
+    cap or the deadline. A trap event gets one screenshot."""
+    s = await open_session(new_page, quiet_ms, shots_dir, rel_base)
     cap = cap if cap is not None else tab_press_cap(s.inventory.candidates)
-    base = dict(name=name, keys=prefix or [], cap=cap, inventory=s.inventory.candidates)
+    base = dict(name=name, keys=[], cap=cap, inventory=s.inventory.candidates)
     try:
-        for k in prefix or []:
-            await s.traversal.press(k, name)
-        end, trap, _ = await drive(s, key, cap, name, detector)
+        end, trap, _ = await drive(s, key, cap, detect_p1_end, deadline)
+        if end in ("stuck", "loop"):
+            await s.traversal.shoot(name)
         end_inv = (await dom_inventory(s.page)).candidates
         return PassResult(
             steps=s.traversal.steps,

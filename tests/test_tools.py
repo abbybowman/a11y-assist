@@ -49,32 +49,32 @@ async def test_run_tt_tests_on_http_page(settings, server):
     assert out["passes"]["P1"]["end"] == "wrap"
     assert out["passes"]["P2"]["end"] == "wrap"
     assert out["tests"] == ["4.C"]  # default selection
-    assert [f["test_id"] for f in out["findings"]] == ["4.C"]
     [finding] = out["findings"]
-    assert finding["outcome"] == "NEEDS_REVIEW"
-    assert finding["note"] == "This test could not be performed"
-    assert finding["rationale"].startswith("Spec G3.")
-    assert "not implemented" in finding["rationale"]
-    assert finding["rows"] == ["A3", "G3"]
+    assert (finding["test_id"], finding["outcome"]) == ("4.C", "PASS")
+    assert finding["rows"] == ["A3", "G4"]
     assert out["open_questions"] == []
 
     run_dir = Path(out["run_dir"])
     assert run_dir.parent == settings.runs_dir.resolve()
     assert (run_dir / "evidence" / "page.har.zip").is_file()
-    evidence = json.loads(Path(out["evidence"]).read_text())
-    for step in evidence["P1"]["steps"] + evidence["P2"]["steps"]:
-        assert (run_dir / step["screenshot"]).is_file()
+    # Screenshots only at trap events (spec 1.5.0); this page has none.
+    assert not (run_dir / "evidence" / "shots").exists()
 
     report = Report.model_validate_json((run_dir / "report.json").read_text())
     assert report.certified is False
     assert report.versions.playwright == "1.63.0"
     assert report.versions.andi.startswith("29.2.2")
     assert report.versions.browser
+    assert report.versions.run_settings == {
+        "settle_quiet_ms": settings.settle_quiet_ms,
+        "record_scroll_passes": settings.record_scroll_passes,
+        "run_limit_s": settings.run_limit_s,
+    }
 
     steps = [json.loads(line) for line in (run_dir / "steps.jsonl").open()]
     names = [s["step"] for s in steps]
     assert names[0] == "run_start" and names[-1] == "run_end"
-    assert "captured" in names and names.count("pass") == 2
+    assert "captured" in names and "4c_collected" in names
 
 
 async def test_collect_on_file_fixture_in_dev_mode(settings):
@@ -102,12 +102,12 @@ async def test_no_test_is_reported_not_tested(settings):
     assert out["errors"] == []
     by_id = {f["test_id"]: f for f in out["findings"]}
     assert set(by_id) == {t.value for t in TestId}
-    for f in by_id.values():
+    assert by_id["4.C"]["outcome"] == "PASS"
+    for f in [f for t, f in by_id.items() if t != "4.C"]:
         assert f["outcome"] == "NEEDS_REVIEW"
         assert f["note"] == "This test could not be performed"
     for t in ["4.A", "4.B", "4.D", "4.E", "4.F"]:
         assert "No rules spec exists" in by_id[t]["rationale"]
-    assert by_id["4.C"]["rationale"].startswith("Spec G3.")
     report = Report.model_validate_json(Path(out["report_path"]).read_text())
     assert all(f.outcome is not Outcome.NOT_TESTED for f in report.findings)
 
@@ -123,21 +123,27 @@ async def test_invalid_test_selection_is_rejected_by_schema(settings, tests):
     assert result.is_error
 
 
-async def test_disallowed_url_is_refused_without_browsing(settings, server):
-    out = await _call("run_tt_tests", {"url": f"http://localhost:{server.port}/dyn"})
-    assert out["errors"] and "not allowed" in out["errors"][0]
+async def _call_error(name: str, args: dict) -> str:
+    async with Client(mcp) as client:
+        result = await client.call_tool(name, args, raise_on_error=False)
+    assert result.is_error
+    return result.content[0].text
+
+
+async def test_disallowed_url_is_a_tool_error_without_browsing(settings, server):
+    msg = await _call_error(
+        "run_tt_tests", {"url": f"http://localhost:{server.port}/dyn"}
+    )
+    assert "not allowed" in msg
     assert server.hits[("localhost", "/dyn")] == 0
-    assert "forward" not in out
-    [finding] = out["findings"]
-    assert finding["outcome"] == "NEEDS_REVIEW"
-    assert finding["note"] == "This test could not be performed"
-    assert "did not complete" in finding["rationale"]
+    assert not settings.runs_dir.exists() or not any(settings.runs_dir.iterdir())
 
 
-async def test_redirect_out_of_allowlist_is_reported(settings, server):
-    out = await _call("run_tt_tests", {"url": f"{server.base}/redir-bad"})
-    assert out["errors"] and "blocked" in out["errors"][0]
+async def test_redirect_out_of_allowlist_is_a_tool_error(settings, server):
+    msg = await _call_error("run_tt_tests", {"url": f"{server.base}/redir-bad"})
+    assert "blocked" in msg.lower()
     assert server.hits[("localhost", "/landed")] == 0
+    assert not any(settings.runs_dir.iterdir())  # nothing kept for an untested page
 
 
 def _seed_run_with_question(settings) -> tuple[str, str]:
@@ -159,6 +165,7 @@ def _seed_run_with_question(settings) -> tuple[str, str]:
         target="https://x.gov",
         started_at=utcnow(),
         versions=collect_versions(settings, None),
+        questions=[q],
         open_questions=[q],
         evidence_dir=str(run.evidence_dir),
     )
@@ -166,7 +173,7 @@ def _seed_run_with_question(settings) -> tuple[str, str]:
     return run.run_id, str(run.report_path)
 
 
-async def test_answer_questions_records_samples_and_rejects_invalid(settings):
+async def test_answer_questions_records_and_rejects_invalid(settings):
     run_id, report_path = _seed_run_with_question(settings)
     j1 = {"documented": "no"}
     out = await _call(
@@ -174,46 +181,39 @@ async def test_answer_questions_records_samples_and_rejects_invalid(settings):
         {
             "run_id": run_id,
             "answers": [
-                {
-                    "question_id": "q1",
-                    "sample": 1,
-                    "rationale": "r",
-                    "j2": {"gate": "no"},
-                },  # wrong answer type for a J1 question
-                {"question_id": "nope", "sample": 1, "rationale": "r", "j1": j1},
-                {"question_id": "q1", "sample": 1, "rationale": "r", "j1": j1},
-                {
-                    "question_id": "q1",
-                    "sample": 1,
-                    "rationale": "r",
-                    "j1": j1,
-                },  # repeat
+                {"question_id": "q1", "rationale": "r", "j2": {"gate": "no"}},
+                {"question_id": "nope", "rationale": "r", "j1": j1},
+                {"question_id": "q1", "rationale": "r", "j1": j1},
             ],
         },
     )
-    assert out["accepted"] == ["q1#1"] and len(out["rejected"]) == 3
-    assert out["still_open"] == ["q1"]  # needs 3 samples
+    assert out["accepted"] == ["q1"] and len(out["rejected"]) == 2
+    assert out["still_open"] == []  # one answer closes a question
 
+    # A person's answer overrides the model's.
+    yes = {"documented": "yes", "keys": ["Escape"], "quote": "Press Esc"}
     out = await _call(
         "answer_questions",
         {
             "run_id": run_id,
             "answers": [
-                {"question_id": "q1", "sample": n, "rationale": "r", "j1": j1}
-                for n in (2, 3)
+                {
+                    "question_id": "q1",
+                    "rationale": "r",
+                    "j1": yes,
+                    "decided_by": "human",
+                }
             ],
         },
     )
-    assert out["accepted"] == ["q1#2", "q1#3"] and out["still_open"] == []
+    assert out["accepted"] == ["q1"]
     report = Report.model_validate_json(Path(report_path).read_text())
-    assert [a.answer.j1.documented for a in report.answers] == ["no"] * 3
-    assert report.answers[0].answer.decided_by.value == "model"
+    assert [a.answer.decided_by.value for a in report.answers] == ["model", "human"]
     assert report.findings == []  # recording an answer never sets an outcome
 
 
 _ANSWER = {
     "question_id": "q",
-    "sample": 1,
     "rationale": "r",
     "j1": {"documented": "no"},
 }
@@ -229,8 +229,8 @@ async def test_answer_questions_rejects_path_like_run_id_by_schema(settings):
     assert result.is_error
 
 
-async def test_answer_questions_unknown_run_id(settings):
-    out = await _call(
+async def test_answer_questions_unknown_run_id_is_a_tool_error(settings):
+    msg = await _call_error(
         "answer_questions", {"run_id": "missing-run", "answers": [_ANSWER]}
     )
-    assert "No run named" in out["error"]
+    assert "No run named" in msg

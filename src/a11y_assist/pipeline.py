@@ -15,6 +15,8 @@ performed" (never NOT_TESTED; PDF p. 6). No open questions are generated yet.
 
 from __future__ import annotations
 
+import shutil
+import time
 from typing import Any
 
 from playwright.async_api import async_playwright
@@ -45,6 +47,12 @@ UNTRUSTED_NOTICE = (
 )
 
 NO_SPEC_REASON = "No rules spec exists for this test yet, so it was not run."
+
+
+class RunRefused(Exception):
+    """The page was never tested: not allowed, or it could not be loaded.
+    A tool error, not a finding (no page was tested, so nothing is reported
+    about it)."""
 
 
 def _not_performed(
@@ -110,8 +118,8 @@ async def resume_4c(settings: Settings, run: RunRecorder, report: Report) -> lis
                 har = run.evidence_dir / "page.har.zip"
                 c = t4c.Collector(
                     _opener(browser, settings, har, report.final_url, run),
-                    settings.focus_stable_ms,
-                    float("inf"),
+                    settings.settle_quiet_ms,
+                    time.monotonic() + settings.run_limit_s,
                     run.evidence_dir / "shots",
                     run.dir,
                 )
@@ -126,11 +134,16 @@ async def resume_4c(settings: Settings, run: RunRecorder, report: Report) -> lis
     run.write_json(evidence_path, state)
     refs = [run.rel(evidence_path)]
     answered = {r.answer.question_id for r in report.answers}
-    report.open_questions = [
+    asked = {q.question_id for q in report.questions}
+    new = [
         q
         for q in t4c.questions_for(state, [str(evidence_path)])
-        if q.question_id not in answered
-    ] + [q for q in report.open_questions if q.test_id is not TestId.T4C]
+        if q.question_id not in asked
+    ]
+    report.questions += new
+    report.open_questions = [
+        q for q in report.questions if q.question_id not in answered
+    ]
     report.findings = [
         t4c.evaluate(state, refs) if f.test_id is TestId.T4C else f
         for f in report.findings
@@ -160,6 +173,9 @@ async def run_tt_tests(
     url: str,
     tests: list[TestId],
 ) -> dict[str, Any]:
+    decision = check_url(url, settings.allowed_domains, settings.dev_mode)
+    if not decision.allowed:
+        raise RunRefused(f"URL not allowed: {decision.reason}")
     run = RunRecorder(settings.runs_dir)
     selected = [t for t in TestId if t in set(tests)]
     started = utcnow()
@@ -196,19 +212,23 @@ async def run_tt_tests(
             "untrusted_content_notice": UNTRUSTED_NOTICE,
         }
 
-    decision = check_url(url, settings.allowed_domains, settings.dev_mode)
-    if not decision.allowed:
-        run.log("navigation_blocked", "blocked", url=url, reason=decision.reason)
-        report.errors.append(f"URL not allowed: {decision.reason}")
-        return finish({})
-
     async with async_playwright() as pw:
         browser = await launch_browser(pw, settings)
         report.versions = collect_versions(settings, browser)
         run.log("browser_launched", version=browser.version, headless=settings.headless)
+        har = run.evidence_dir / "page.har.zip"
         try:
-            har = run.evidence_dir / "page.har.zip"
             cap = await record(browser, settings, url, har, run.log)
+        except Exception as exc:
+            # The page never loaded: a tool error, and nothing is kept.
+            await browser.close()
+            shutil.rmtree(run.dir, ignore_errors=True)
+            if isinstance(exc, NavigationBlocked):
+                raise RunRefused(str(exc)) from exc
+            raise RunRefused(
+                f"The page could not be loaded: {type(exc).__name__}: {exc}"
+            ) from exc
+        try:
             report.final_url = cap.final_url
             run.log(
                 "captured",
@@ -221,7 +241,7 @@ async def run_tt_tests(
             if TestId.T4C in selected:
                 state = await t4c.collect(
                     _opener(browser, settings, har, cap.final_url, run),
-                    settings.focus_stable_ms,
+                    settings.settle_quiet_ms,
                     settings.run_limit_s,
                     shots=run.evidence_dir / "shots",
                     rel=run.dir,
@@ -232,9 +252,6 @@ async def run_tt_tests(
                     p2=state.p2,
                     instances=len(state.instances),
                 )
-        except NavigationBlocked as exc:
-            report.errors.append(str(exc))
-            return finish({})
         except Exception as exc:
             run.log("run_error", "error", error=repr(exc))
             report.errors.append(f"{type(exc).__name__}: {exc}")
@@ -248,7 +265,8 @@ async def run_tt_tests(
     for t in selected:
         if t is TestId.T4C and state is not None:
             run.write_json(evidence_path, state)
-            report.open_questions = t4c.questions_for(state, [str(evidence_path)])
+            report.questions = t4c.questions_for(state, [str(evidence_path)])
+            report.open_questions = list(report.questions)
             report.findings.append(t4c.evaluate(state, refs))
         else:
             report.findings.append(_not_performed(settings, [t], None, refs)[0])

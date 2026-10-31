@@ -25,7 +25,7 @@ What works today:
 | Navigation allowlist | `.gov` and `.mil` by default, enforced on every top-level navigation and redirect hop; `file://` only in dev mode |
 | ANDI 29.2.2 | Vendored, injectable from local files, never loaded from ssa.gov. Not used by any test yet |
 | Findings for TT 4.A–4.F | 4.C: PASS, FAIL, DOES NOT APPLY or NEEDS REVIEW per its spec, with the spec rows that produced it. 4.A, 4.B, 4.D–4.F: `NEEDS_REVIEW` with the note "This test could not be performed" (no spec yet). Never `NOT_TESTED`: the PDF allows it only where a test names it (p. 6) |
-| `answer_questions(run_id, answers)` | Records the calling agent's answers (3 samples per question) to J1/J2; then presses documented keys or enters values in the recorded page and re-applies the spec. Answers are facts, never outcomes |
+| `answer_questions(run_id, answers)` | Records one answer per question (the calling agent's, or a person's override, which wins); presses documented keys in the recorded page and re-applies the spec. Suggested input values go to a person to try. Answers are facts, never outcomes |
 | ApiJudge | Stub (`NotImplementedError`) |
 
 Planned tools: `verify_fix`, `get_guidance`, `read_report`. Tools are broad and
@@ -34,8 +34,10 @@ outcome-based, not one per test step.
 Known limits:
 
 - 4.C: help pages linked from the page are not followed for J1 (only text on
-  the page, including text revealed by key presses). A run can take minutes:
-  every key press waits for the page to settle (at least 300 ms).
+  the page, including text revealed by Enter in a trap). Content behind
+  collapsed controls (menus, accordions) is not opened; the finding says how
+  many. A run stops at `RUN_LIMIT_S` (default 120 s); tests not finished are
+  NEEDS_REVIEW with the reason.
 - HAR replay freezes network responses, not client-side randomness or time.
 - A page Content-Security-Policy that forbids inline scripts will block ANDI
   injection. No CSP bypass is enabled.

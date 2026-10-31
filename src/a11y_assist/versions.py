@@ -27,4 +27,9 @@ def collect_versions(settings: Settings, browser: Browser | None) -> Versions:
         python=platform.python_version(),
         rules_spec=spec_versions(settings.rules_dir),
         judging_model=settings.judging_model,
+        run_settings={
+            "settle_quiet_ms": settings.settle_quiet_ms,
+            "record_scroll_passes": settings.record_scroll_passes,
+            "run_limit_s": settings.run_limit_s,
+        },
     )
