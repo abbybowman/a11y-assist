@@ -104,7 +104,10 @@ src/a11y_assist/
   engine.py     shared first-match tables and page rows G1-G5
   checks/       one module per TT test, registered in checks/__init__.py;
                 base.py has the interface and the "add a check" steps
-    t4c.py      4.C: extra probes, rows from its spec, plain-language summary
+    t4c.py      4.C no keyboard trap: exit probes, rows, plain summary
+    t4d.py      4.D focus visible: on/off images and styles, widget items
+    t4e.py      4.E on focus: context signals, confirmation replays
+    t4f.py      4.F focus order: order signals, opening triggers, dialogs
   judgment.py   Judge interface: ClientJudge, ApiJudge (stub); answer recording
   pipeline.py   run_tt_tests / answer_questions orchestration (generic)
   runlog.py     runs/<run_id>/ folder, steps.jsonl
@@ -125,9 +128,11 @@ docs/solutions/ lessons that save the next test time
 docs/sources/   TT 5.1.3 PDF (the authority), SHA-256 in its README;
                 tt-5.1.3/ its Markdown + tt.json copy (made once; see README)
 third_party/    ANDI 29.2.2, jQuery 3.7.1, PROVENANCE.json
-tests/fixtures/ no_trap.html (general evidence); 4c/fNN-short-name.html (custom 4.C
-                fixtures); act/ (vendored W3C ACT cases, manifest.json, sync_act.py)
-tests/harness_4c.py  end-to-end 4.C runs with scripted judge answers (test data)
+tests/fixtures/ no_trap.html (general evidence); 4c/, 4d/, 4e/, 4f/ fNN-short-name.html
+                (custom fixtures per test); act/ (vendored W3C ACT cases,
+                manifest.json, sync_act.py)
+tests/harness.py     end-to-end runs of any check with scripted answers (test data);
+                     harness_4c.py does the same for 4.C's j1/j2 questions
 tests/scoring.py     DHS / ACT agreement printed after every test run
 runs/           output (git-ignored)
 ```
