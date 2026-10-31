@@ -1,7 +1,7 @@
 ---
 tt_test: 4.A
 tt_name: 2.1.1-keyboard-access
-spec_version: 0.1.0
+spec_version: 1.0.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -14,7 +14,7 @@ The tool gives each page one 4.A outcome: PASS, FAIL, DOES NOT APPLY or NEEDS RE
 
 **W3C sources.** [Understanding 2.1.1](https://www.w3.org/WAI/WCAG22/Understanding/keyboard.html): not every visible control must itself be focusable when the function is available by keyboard another way (its search form example: Enter in the field submits); a custom control that reacts only to Enter still satisfies the criterion. Failures [F54](https://www.w3.org/WAI/WCAG22/Techniques/failures/F54) (only pointing-device event handlers for a function), [F42](https://www.w3.org/WAI/WCAG22/Techniques/failures/F42) (emulated links not operable by keyboard), F55 (focus removed on focus; 4.E's evidence). ACT rules [akn7bn](https://www.w3.org/WAI/standards-guidelines/act/rules/akn7bn/) (iframe with interactive content excluded from the tab order) and [0ssw9k](https://www.w3.org/WAI/standards-guidelines/act/rules/0ssw9k/) (scrollable content reachable by keyboard). DHS publishes no TT results for either rule. These informed the decisions and fixtures only; the PDF stays the authority.
 
-**Terms.** *Stop*, *OUT*, *BODY*, passes P1 and P2, stop identity and the settle rule are defined in [4c-no-keyboard-trap.md](4c-no-keyboard-trap.md). A *native control* is `a[href]`, `area[href]`, `button`, `input` (not hidden), `select`, `textarea`, `summary`, `[contenteditable]`, `audio[controls]`, `video[controls]`. A *pointer target* is a visible element a mouse can hit (the element or a descendant is what `elementFromPoint` returns at its centre, followed through frames, so hidden, inert, covered and clipped elements are not targets) that is a native control; or has an interactive ARIA role; or has its own click, mousedown, mouseup, dblclick or pointerdown listener or `on…` attribute; or whose computed cursor is `pointer` when its parent's is not. A `<label>` for a control, `html` and `body` are never targets. A *custom control* is a stop that is a pointer target but not a native control. The *effect* of an action is any of: the top or a frame URL changes, a new page opens, a dialog becomes visible, focus moves, `aria-expanded` or `aria-checked` or `aria-pressed` or `aria-selected` changes, or the DOM changes, measured after the settle rule, with the page's own background changes over the same window subtracted.
+**Terms.** *Stop*, *OUT*, *BODY*, passes P1 and P2, stop identity and the settle rule are defined in [4c-no-keyboard-trap.md](4c-no-keyboard-trap.md). A *native control* is `a[href]`, `area[href]`, `button`, `input` (not hidden), `select`, `textarea`, `summary`, `[contenteditable]`, `audio[controls]`, `video[controls]`. A *pointer target* is a visible element a mouse can hit (the element or a descendant is what `elementFromPoint` returns at its centre, followed through frames, so hidden, inert, covered and clipped elements are not targets) that is a native control; or has an interactive ARIA role; or has its own click, mousedown, mouseup, dblclick or pointerdown listener or `on…` attribute; or whose computed cursor is `pointer` when its parent's is not. A `<label>` for a control, `html` and `body` are never targets. A *custom control* is a stop that is a pointer target but not a native control. The *effect* of an action is any of: the top or a frame URL changes, a new page opens, a dialog becomes visible, focus moves, `aria-expanded` or `aria-checked` or `aria-pressed` or `aria-selected` changes, or the DOM changes, measured after the settle rule. Focus moving onto the element acted on (a click focusing it) is not an effect. The page's own changes are measured over `NOISE_MS` before the action; an effect that is only DOM changes on a page that changes on its own is unreliable (M1).
 
 ## 1. Applicability
 
@@ -32,9 +32,9 @@ A page with zero stops and only pointer targets applies: everything on it is mou
 
 **Walk extra** (cheap, no images): per stop, its `title` attribute, whether it is a native control, its own click-type listeners (CDP `DOMDebugger.getEventListeners`, own node only: listeners on ancestors such as `document` are delegation and are not counted) and its cursor.
 
-**Pointer scan** (HtT 1.a; one fresh load after the walk). Every pointer target in the top document, every frame the tool can read and every open shadow root. A target is *reached* when it is a stop, is inside a stop, contains a stop, or is an item of a composite widget (menu, menubar, tablist, listbox, grid, tree, treegrid, radiogroup, toolbar) that an arrow probe reaches from that widget's stop. The *arrow probe*: fresh replay to the widget's stop, then ArrowDown (or ArrowRight if focus did not move) up to 20 times, as 4.D pass W. Unreached targets are candidates.
+**Pointer scan** (HtT 1.a; one fresh load after the walk). Every pointer target in the top document, every frame the tool can read and every open shadow root. A target is *reached* when it is a stop of P1 or P2, is inside a stop, contains a stop, or is an item of a composite widget (menu, menubar, tablist, listbox, grid, tree, treegrid, radiogroup, toolbar) that an arrow probe reaches from that widget's stop. The *arrow probe*: fresh replay to the widget's stop, then ArrowDown (or ArrowRight if focus did not move) up to 20 times, as 4.D pass W, then the opposite arrow; at most `ARROW_MAX` widgets. Unreached targets are candidates.
 
-**Hover scan** (HtT 1.a, mouse; ER Note 1; same load as the pointer scan). Move the mouse onto each stop, at most `HOVER_MAX`, settle, and record pointer targets that became visible; move the mouse away. A revealed target is reached when the walk reached it (a menu that also opens on keyboard focus) or when pressing Enter on the hovered stop reveals it too (one fresh replay per hovered stop that revealed something). Otherwise it is a candidate, recorded with the stop that reveals it.
+**Hover scan** (HtT 1.a, mouse; ER Note 1; same load as the pointer scan). Move the mouse onto each stop, at most `HOVER_MAX`, settle, and record pointer targets that became visible; move the mouse away. A revealed target is reached when the walk reached it (a menu that also opens on keyboard focus) or when pressing Enter on the hovered stop reveals it too (one fresh replay per hovered stop that revealed something, at most `REVEAL_REPLAYS`). Otherwise it is a candidate, recorded with the stop that reveals it.
 
 **Click check** (for each candidate that is not a native control, at most `CLICK_MAX`). Fresh load; hover its revealing stop if it has one; move the mouse onto the candidate; settle; click; record the effect. A native control is functional by definition (a link goes to its address) and needs no click.
 
@@ -51,6 +51,9 @@ A page with zero stops and only pointer targets applies: everything on it is mou
 | `HOVER_MAX` | 40 stops | Hover scan |
 | `CLICK_MAX` | 10 candidates | Click check |
 | `EXECUTE_MAX` | 10 custom controls | Execute check |
+| `REVEAL_REPLAYS` | 10 hovered stops | Hover scan, keyboard reveal |
+| `ARROW_MAX` | 5 widgets, 20 presses per arrow | Arrow probe |
+| `NOISE_MS` | 300 ms | Effect |
 
 **Time budget:** the pointer and hover scans are one load plus about 0.1 s per hovered stop; each click, execute or arrow probe is one fresh replay (about 2–5 s on a fixture page). Typical government pages with native controls only cost under 10 s. The whole run stays within `run_limit_s`; work not done in time is G3.
 
@@ -62,21 +65,24 @@ Instances: *K*, each unreached candidate; *X*, each custom control executed; *T*
 
 | # | Evidence pattern | Instance outcome | Source |
 | --- | --- | --- | --- |
-| M1 | The evidence for the instance is unsettled, unresolved, or the page changes on its own during the check | NEEDS REVIEW | Spec rule |
+| C? | A cap or the time limit left the instance unchecked | NEEDS REVIEW | Spec rule |
+| M1 | The element could not be found again or focused, or an effect is unreliable (section 2, effect) | NEEDS REVIEW | Spec rule |
 | M2 | K: a non-native candidate whose click has no effect | No instance (nothing for a mouse to operate) | p. 19 HtT 1 |
 | M3 | K: a link, or a click that navigates, whose address is the address of a reached link | PASS (another keyboard method with the same function) | p. 19 HtT 2.b |
 | M4 | K: otherwise | Ask J1 (M5–M7) | p. 19 HtT 2.b |
-| M5 | J1 = another keyboard way, naming a reached stop | PASS | p. 19 HtT 2.b |
+| J1? | J1 not answered yet | NEEDS REVIEW | Open question |
+| M5 | J1 = alternative, naming a stop by its number | PASS | p. 19 HtT 2.b |
 | M6 | J1 = no other keyboard way | FAIL | p. 19 ER 1; F54, F42 |
-| M7 | J1 = unsure, or not answered yet | NEEDS REVIEW | Spec rule |
+| M7 | J1 = unsure, or an alternative that names no stop | NEEDS REVIEW | Spec rule |
 | M8 | X: Enter or Space has an effect | PASS | p. 19 HtT 2 |
 | M9 | X: neither key has an effect, and the click has none either | No instance | p. 19 HtT 1 |
 | M10 | X: the click has an effect and neither key does | FAIL | p. 19 ER 1; F42 |
 | M11 | T: the title is available elsewhere | PASS | p. 19 HtT 2.c |
 | M12 | T: otherwise | Ask J2 (M13–M15) | p. 19 HtT 2.a; ER Note 2–3 |
+| J2? | J2 not answered yet | NEEDS REVIEW | Open question |
 | M13 | J2 = not essential | PASS | p. 19 ER Note 3 |
 | M14 | J2 = essential | FAIL | p. 19 ER 2 |
-| M15 | J2 = unsure, or not answered yet | NEEDS REVIEW | Spec rule |
+| M15 | J2 = unsure | NEEDS REVIEW | Spec rule |
 | M16 | U | NEEDS REVIEW | Spec rule |
 
 **Scrollable regions (ACT 0ssw9k).** Chrome 130 and later put a scroll container with no focusable content in the Tab order (verified in Chromium 153 on the ACT cases: Tab reaches the `<section>`). A reached scroller is a stop like any other, so ACT's two failed examples PASS here. Results are for the browser the report records and are not claimed for other browsers (Abby, 2026-10-31).
@@ -93,14 +99,18 @@ Instances: *K*, each unreached candidate; *X*, each custom control executed; *T*
 | G4 | P1 wrapped, every scan finished, every instance is PASS | PASS, with the list of what was and was not looked for |
 | G5 | Anything else | NEEDS REVIEW |
 
-**Plain-language sentences.** Row IDs stay in the evidence trace.
+**Plain-language sentences.** Row IDs stay in the evidence trace. A menu item shown by hover adds "(it appears when the mouse rests on <stop>)" after <element>.
 
 | Row | Sentence |
 | --- | --- |
+| Every page | Ends with: "We looked for: things a mouse can click that the keyboard never reaches, including inside frames; menus that open when the mouse rests on them; custom controls that ignore Enter and Space; and tooltips with information found nowhere else. Results are for the browser used (version <v>)." |
 | Page PASS | "We tabbed to every element, pressed Enter or Space on each custom control, and looked for anything a mouse can use that the keyboard cannot; we found nothing a keyboard user would miss." |
 | Page FAIL | "Some things on this page work with a mouse but not with the keyboard, so keyboard users cannot use them." |
 | Page NEEDS REVIEW | "We could not finish this test, so a person needs to check it." |
 | A1 | "Nothing on this page can be used with a mouse or keyboard, so this test does not apply." |
+| C? | "We did not get to check <element>; please check it works with the keyboard." |
+| M1 | "Something about <element> could not be read reliably (the page kept changing on its own); please check it works with the keyboard." |
+| J1? / J2? | "<element> works with a mouse but can't be reached with the keyboard; a question about it is still open." / "<element> has information that shows only when the mouse rests on it; a question about it is still open." |
 | M3 | "<element> can't be reached with the keyboard, but <other> goes to the same place and can." |
 | M5 | "<element> can't be reached with the keyboard, but <other> does the same thing (<J1 reasons>). If you disagree, tell your assistant." |
 | M6 | "<element> works with a mouse but can't be reached with the keyboard, and nothing else on the page does the same thing (<J1 reasons>). If you disagree, tell your assistant." |
@@ -140,3 +150,7 @@ V-numbers are browser checks in [4a-build-tasks.md](4a-build-tasks.md).
 | Event delegation (`document` listener, frameworks) | Not counted on the element; the cursor rule finds most such controls | V3 |
 | Native control whose keydown is cancelled by script | Not executed (section 2); missed | — |
 | Content shown on focus that also shows on hover | Reached by the walk | — |
+
+## 6. What a FAIL records
+
+Each FAIL instance records, to meet p. 5: the matching row (in the evidence trace only); location (frame chain, CSS path, role, name, link address); for K, what clicking it did, the stop whose hover reveals it, and J1's answer and reasons; for X, the effects of Enter, Space and the click, and the keys to reach it from a fresh load; for T, the title text and J2's answer; the page screenshot; and the tool versions the plan requires. Every instance is checked (up to the caps); a FAIL does not stop the scans.

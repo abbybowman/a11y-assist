@@ -85,8 +85,9 @@ _LOG_JS = """() => {
 
 _EVENTS_JS = "(from) => (window.__a11yLog ? window.__a11yLog.f.slice(from) : [])"
 
-# A11y-world helpers. `this` is the element.
-_DESCRIBE_FN = """function () {
+# Element paths, shared by the walk and the scans (4.A) so their paths match.
+# Defines seg(n) and path(n); a shadow boundary is a lone space.
+PATH_JS = """
   const seg = (n) => {
     const root = n.getRootNode();
     if (n.id && root.querySelectorAll('#' + CSS.escape(n.id)).length === 1) return { s: '#' + CSS.escape(n.id), unique: true };
@@ -106,6 +107,13 @@ _DESCRIBE_FN = """function () {
     const root = n.getRootNode();
     return (root.host ? path(root.host) + ' ' : '') + parts.join(' > ');
   };
+"""
+
+# A11y-world helpers. `this` is the element.
+_DESCRIBE_FN = (
+    "function () {"
+    + PATH_JS
+    + """
   const r = this.getBoundingClientRect();
   const tag = this.tagName.toLowerCase();
   const role = this.getAttribute('role');
@@ -128,6 +136,7 @@ _DESCRIBE_FN = """function () {
            isBody: this === document.body || this === document.documentElement,
            widget, field, collapsed, modal };
 }"""
+)
 
 _ACTIVE_FN = "function () { return this.activeElement; }"
 
@@ -264,6 +273,76 @@ class FocusReader:
             return res["result"].get("value")
         except Exception:
             return None
+
+    async def frames(self) -> list[tuple[str, CDPSession, int]]:
+        """(CDP frame ID, session, isolated world) for every frame CDP can
+        reach, top first. Frames missing here could not be read."""
+        top = await self._top_frame_id()
+        tree = (await self._top.send("Page.getFrameTree"))["frameTree"]
+        ids: list[str] = []
+
+        def visit(node: dict) -> None:
+            ids.append(node["frame"]["id"])
+            for c in node.get("childFrames", []):
+                visit(c)
+
+        visit(tree)
+        out = []
+        for fid in [top, *[i for i in ids if i != top]]:
+            try:
+                s, ctx = await self._session_for(fid)
+            except LookupError:
+                continue
+            out.append((fid, s, ctx))
+        return out
+
+    async def call_in(
+        self, session: CDPSession, ctx: int, fn: str, args: list[Any] | None = None
+    ) -> Any:
+        """Run a JS function in a frame's isolated world; returns its value."""
+        res = await session.send(
+            "Runtime.callFunctionOn",
+            {
+                "executionContextId": ctx,
+                "functionDeclaration": fn,
+                "arguments": [{"value": a} for a in (args or [])],
+                "returnByValue": True,
+                "awaitPromise": True,
+            },
+        )
+        if "exceptionDetails" in res:
+            raise RuntimeError(str(res["exceptionDetails"].get("text")))
+        return res["result"].get("value")
+
+    async def listeners(self, session: CDPSession, ctx: int) -> list[dict[str, Any]]:
+        """Event listeners on the nodes of a frame's document (own listeners
+        only, by backend node ID; `window` listeners are not included)."""
+        doc = await session.send(
+            "Runtime.evaluate", {"expression": "document", "contextId": ctx}
+        )
+        res = await session.send(
+            "DOMDebugger.getEventListeners",
+            {"objectId": doc["result"]["objectId"], "depth": -1, "pierce": False},
+        )
+        return res.get("listeners", [])
+
+    async def mark(
+        self, session: CDPSession, ctx: int, backend_ids: list[int], fn: str
+    ) -> None:
+        """Call `fn` (this = the node) on each backend node in the isolated
+        world, e.g. to remember it in a set the world's own scripts can read."""
+        for b in backend_ids:
+            try:
+                obj = await session.send(
+                    "DOM.resolveNode",
+                    {"backendNodeId": b, "executionContextId": ctx},
+                )
+                await session.send(
+                    "Runtime.callFunctionOn",
+                    {"objectId": obj["object"]["objectId"], "functionDeclaration": fn},
+                )
+            except Exception:
+                continue
 
     async def evaluate_top(self, expression: str) -> Any:
         """Evaluate in the top frame's isolated world."""

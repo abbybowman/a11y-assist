@@ -33,9 +33,24 @@ DHS_URL = (
 ALLOWED_HOST = "www.w3.org"
 
 # TT test -> ACT rule IDs.
-RULES = {"4.C": ["a1b64e", "ebe86a", "80af7b"], "4.D": ["oj04fd"]}
+RULES = {
+    "4.C": ["a1b64e", "ebe86a", "80af7b"],
+    "4.D": ["oj04fd"],
+    "4.A": ["akn7bn", "0ssw9k"],
+}
 # Unapproved near-copies of approved cases (docs/rules/4d-build-tasks.md).
-SKIP = {"8f296b7a", "eb4f387b"}
+SKIP = {
+    "8f296b7a",
+    "eb4f387b",
+    # 4.A: unapproved near-copies of approved cases (WCAG 2.2 link targets).
+    "a13349ef",
+    "270a22a8",
+    "a7da5f9d",
+    "345fec9a",
+    "349a8b4b",
+    # 4.A: embeds a live w3.org page; tests never use the network.
+    "dd5ca525",
+}
 
 # Our expected outcome per case (first 8 hex of testcaseId), from the build
 # tasks table. A case missing here stops the sync.
@@ -70,6 +85,28 @@ EXPECTED = {
         "f1c9efb4": "FAIL",
         "90789ad8": "DNA",
         "b12f1f45": "DNA",
+    },
+    # docs/rules/4a-keyboard-access.md (Chromium; DHS publishes no 4.A results).
+    "4.A": {
+        "1e3939d9": "PASS",
+        "a16be608": "PASS",
+        "62673162": "FAIL",
+        "c90de666": "DNA",
+        "033e04cc": "DNA",
+        "63cd20ec": "DNA",
+        "aa153f67": "FAIL",  # ACT inapplicable: a link only a mouse can use
+        "17a371c4": "DNA",
+        "c88fcaf4": "PASS",  # ACT inapplicable: the open dialog works by keyboard
+        "89302c4f": "PASS",
+        "305891f1": "PASS",
+        "5fa34d0a": "PASS",  # ACT failed: Chrome 130+ tabs to scroll containers
+        "731acbc2": "PASS",  # ACT failed: as above
+        "bb9ee4cc": "DNA",
+        "997b49af": "PASS",  # ACT inapplicable: the page has a working link
+        "d7f9b0ca": "PASS",  # as above
+        "5d06e083": "PASS",  # ACT inapplicable: Chrome tabs to the scroller
+        "8f9b5bf5": "DNA",
+        "fa27b588": "PASS",
     },
 }
 

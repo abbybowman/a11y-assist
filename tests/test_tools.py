@@ -304,7 +304,7 @@ async def test_explain_before_a_run(settings):
     assert "tries the keys a person would" in text  # what this tool does
     assert "NOT a certified" in text
     # Untested tests say so plainly.
-    assert "cannot run this test yet" in await _prompt({"about": "4.A"})
+    assert "cannot run this test yet" in await _prompt({"about": "5.A"})
 
 
 async def test_explain_finds_tests_by_words_criterion_or_name(settings):

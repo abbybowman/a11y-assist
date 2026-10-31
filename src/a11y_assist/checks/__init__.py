@@ -4,6 +4,8 @@ docs/rules/. See checks/base.py for the interface and how to add one."""
 from __future__ import annotations
 
 from a11y_assist.checks.base import Check, RunContext
+from a11y_assist.checks.t4a import Check4A
+from a11y_assist.checks.t4b import Check4B
 from a11y_assist.checks.t4c import Check4C
 from a11y_assist.checks.t4d import Check4D
 from a11y_assist.checks.t4e import Check4E
@@ -11,7 +13,8 @@ from a11y_assist.checks.t4f import Check4F
 from a11y_assist.models import TestId
 
 REGISTRY: dict[TestId, Check] = {
-    c.test_id: c for c in (Check4C(), Check4D(), Check4E(), Check4F())
+    c.test_id: c
+    for c in (Check4A(), Check4B(), Check4C(), Check4D(), Check4E(), Check4F())
 }
 
 __all__ = ["REGISTRY", "Check", "RunContext"]

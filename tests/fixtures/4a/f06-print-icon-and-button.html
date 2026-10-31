@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="en">
+<head><title>Your receipt</title>
+<style>.icon { display: inline-block; width: 24px; height: 24px; background: #333; cursor: pointer; }</style></head>
+<body>
+<h1>Your receipt</h1>
+<p>Payment received: $25.00</p>
+<span class="icon" title="Print receipt" onclick="document.getElementById('st').textContent = 'Printing...'"></span>
+<button type="button" onclick="document.getElementById('st').textContent = 'Printing...'">Print receipt</button>
+<p id="st"></p>
+</body>
+</html>

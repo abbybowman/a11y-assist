@@ -59,3 +59,5 @@ addopts = "-m 'not slow'"
 "src/a11y_assist/checks/t4e.py" = ["E501"]
 "src/a11y_assist/checks/t4d.py" = ["E501"]
 "src/a11y_assist/checks/t4f.py" = ["E501"]
+"src/a11y_assist/checks/t4a.py" = ["E501"]
+"src/a11y_assist/checks/t4b.py" = ["E501"]
