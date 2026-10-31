@@ -22,11 +22,13 @@ What works today:
 | --- | --- |
 | `run_tt_tests(url, tests=["4.C"])` | Runs the selected TT tests (4.A–4.F) and returns a typed result: findings with plain-language summaries, open questions (with the page text once), evidence as `run://` resources, and the full report for the user to save. One shared keyboard walk (Tab, Shift+Tab) per page feeds every keyboard check; 4.C adds its exit probes. A record per key press (stop identity, role and name from Chrome's accessibility tree, frames, shadow roots, focus events); screenshots at traps. Progress notifications while it runs; at most `RUN_LIMIT_S` (120 s) per call |
 | Tool errors | A URL outside the allowlist, a redirect out of it, a page that cannot load, or an unknown or expired run id is a tool error (isError) with no findings |
+| TT 5.1.3 as data | The whole PDF as Markdown plus `tt.json` (all 63 conditions with requirements and WCAG links), checked word for word against the PDF. Served as `tt://5.1.3/index`, `tt://5.1.3/tests/{id}` and `tt://5.1.3/parts/{part}`; every finding links its test (`reference`) and Understanding pages. See `docs/sources/README.md` |
+| `explain_result(test_id, run_id?)` prompt | A command that explains a test, or a run's result for it, in plain language from the TT text and WCAG guidance |
 | `run://{run_id}/{path}` resources | `report.json`, `evidence/*.json` and screenshots of a run, while it is kept (`RUN_TTL_HOURS`, default 24). Durable results belong in the user's repository |
 | HAR record + replay | Page is recorded once (scrolled to load lazy content); every pass and probe runs against the replay |
 | Navigation allowlist | `.gov` and `.mil` by default, enforced on every top-level navigation and redirect hop; `file://` only in dev mode |
 | ANDI 29.2.2 | Vendored, injectable from local files, never loaded from ssa.gov. Not used by any test yet |
-| Findings for TT 4.A–4.F | 4.C: PASS, FAIL, DOES NOT APPLY or NEEDS REVIEW per its spec, with the spec rows that produced it. 4.A, 4.B, 4.D–4.F: `NEEDS_REVIEW` with the note "This test could not be performed" (no spec yet). Never `NOT_TESTED`: the PDF allows it only where a test names it (p. 6) |
+| Findings for any active TT test | 4.C: PASS, FAIL, DOES NOT APPLY or NEEDS REVIEW per its spec, with the spec rows that produced it. Every other active TT 5.1.3 test: `NEEDS_REVIEW` with the note "This test could not be performed" (no spec yet). Never `NOT_TESTED`: the PDF allows it only where a test names it (p. 6) |
 | `answer_questions(run_id, answers)` | Records one answer per question (the calling agent's, or a person's override, which wins); presses documented keys in the recorded page and re-applies the spec. Suggested input values go to a person to try. Answers are facts, never outcomes |
 | ApiJudge | Stub (`NotImplementedError`) |
 

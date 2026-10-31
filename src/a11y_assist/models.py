@@ -13,6 +13,8 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
+from a11y_assist import catalog as _catalog
+
 NOT_CERTIFIED_DISCLAIMER = (
     "Agent-assisted findings only. This is NOT a certified DHS Trusted Tester "
     "result and must not be reported as one."
@@ -38,48 +40,27 @@ class Outcome(str, Enum):
     NEEDS_REVIEW = "NEEDS_REVIEW"
 
 
-class TestId(str, Enum):
-    """Trusted Tester 5.1.3 test IDs in scope (Test 4: Keyboard Access and Focus).
-
-    Test 4 has six tests, 4.A to 4.F. Names are checked against the TT 5.1.3
-    PDF, pp. 19-23.
-    """
+class _TestIdBase(str, Enum):
+    """Trusted Tester 5.1.3 test IDs: every active test condition in the
+    machine-readable copy of the PDF (docs/sources/tt-5.1.3/tt.json). Names and
+    requirements come from there, never retyped here. Members are named by ID
+    without the dot: TestId.T4C is "4.C"."""
 
     __test__ = False  # not a pytest test class
 
-    T4A = "4.A"
-    T4B = "4.B"
-    T4C = "4.C"
-    T4D = "4.D"
-    T4E = "4.E"
-    T4F = "4.F"
-
     @property
     def tt_name(self) -> str:
-        return TT_TEST_NAMES[self]
+        return _catalog.tests()[self.value]["name"]
 
     @property
     def wcag_sc(self) -> str:
-        return TT_WCAG_SC[self]
+        """Section 508 / WCAG requirements (TT Appendix A)."""
+        return _catalog.wcag_label(self.value)
 
 
-TT_TEST_NAMES: dict[TestId, str] = {
-    TestId.T4A: "2.1.1-keyboard-access",
-    TestId.T4B: "2.1.1-no-keystroke-timing",
-    TestId.T4C: "2.1.2-no-keyboard-trap",
-    TestId.T4D: "2.4.7-focus-visible",
-    TestId.T4E: "3.2.1-on-focus",
-    TestId.T4F: "2.4.3-focus-order-meaning",
-}
-
-TT_WCAG_SC: dict[TestId, str] = {
-    TestId.T4A: "2.1.1 Keyboard",
-    TestId.T4B: "2.1.1 Keyboard",
-    TestId.T4C: "2.1.2 No Keyboard Trap",
-    TestId.T4D: "2.4.7 Focus Visible",
-    TestId.T4E: "3.2.1 On Focus",
-    TestId.T4F: "2.4.3 Focus Order",
-}
+TestId = _TestIdBase(
+    "TestId", {"T" + i.replace(".", ""): i for i in _catalog.active_ids()}
+)
 
 
 class DecidedBy(str, Enum):
@@ -368,6 +349,12 @@ class FindingView(BaseModel):
     rows: list[str] = Field(
         default_factory=list, description="Spec rows behind the outcome (audit)."
     )
+    reference: str = Field(
+        description="MCP resource with the TT test text (tt://5.1.3/tests/<id>)."
+    )
+    understanding: list[str] = Field(
+        default_factory=list, description="W3C Understanding pages for the WCAG SCs."
+    )
 
     @classmethod
     def of(cls, f: Finding) -> FindingView:
@@ -379,6 +366,8 @@ class FindingView(BaseModel):
             summary=f.summary,
             note=f.note,
             rows=f.rows,
+            reference=f"tt://{_catalog.TT_VERSION}/tests/{f.test_id.value}",
+            understanding=_catalog.understanding_urls(f.test_id.value),
         )
 
 
