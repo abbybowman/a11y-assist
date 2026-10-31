@@ -45,6 +45,10 @@ Rules for every spec:
   to check it." While the finding still has open questions the pipeline
   replaces it with "This test is not finished yet: N question(s) about it
   are still open." (wording only; `models.waiting_head`).
+- Evidence several questions use (a numbered stop list) goes once per result
+  in `shared_inputs`, and each question names its keys in `shared`; it is not
+  repeated in every question's input. The full report is a `run://` resource
+  (`report_uri`), never inline.
 -->
 
 # Rules spec: Test X.Y (<tt_name>)

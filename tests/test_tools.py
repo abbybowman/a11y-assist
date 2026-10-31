@@ -55,7 +55,9 @@ async def test_run_tt_tests_on_http_page(settings, server):
     assert finding["rows"] == ["A3", "G4"]
     assert "never got trapped" in finding["summary"]
     assert out["open_questions"] == []
-    assert out["report"]["certified"] is False  # the full report, to save
+    # The full report is a resource, not inline (it was ~60% of the result).
+    assert "report" not in out
+    assert out["report_uri"] == f"run://{out['run_id']}/report.json"
     assert f"run://{out['run_id']}/report.json" in out["evidence"]
     assert f"run://{out['run_id']}/evidence/walk.json" in out["evidence"]
     assert not any("/home/" in u or "\\" in u for u in out["evidence"])
@@ -118,7 +120,10 @@ async def test_no_test_is_reported_not_tested(settings):
     for t in by_id:
         if t not in built:
             assert "No rules exist" in by_id[t]["summary"], t
-    report = Report.model_validate(out["report"])
+    async with Client(mcp) as client:
+        [content] = await client.read_resource(out["report_uri"])
+    report = Report.model_validate_json(content.text)
+    assert report.certified is False
     assert all(f.outcome is not Outcome.NOT_TESTED for f in report.findings)
 
 
@@ -359,3 +364,15 @@ async def test_open_questions_are_named_in_the_summary(settings, server):
     assert f["summary"].startswith("This test is not finished yet: 1 question about")
     assert "a person needs to check it" not in f["summary"]
     assert '"Show delivery times"' in f["summary"]
+
+
+async def test_shared_evidence_is_sent_once(settings, server):
+    # Judge eval 2026-10-31: every 4.A question repeated the whole stop list.
+    # It now goes once per result, and questions name it.
+    url = f"{server.base}/4a/f04-hover-only-menu.html"
+    out = await _call("run_tt_tests", {"url": url, "tests": ["4.A"]})
+    assert len(out["open_questions"]) == 2
+    for q in out["open_questions"]:
+        assert q["shared"] == ["stops"] and "stops" not in q["input"]
+    names = [s["name"] for s in out["shared_inputs"]["stops"]]
+    assert names == ["Home", "Services"]

@@ -207,9 +207,9 @@ _MARK_ODD = "function () { (window.__a4u = window.__a4u || new Set()).add(this);
 
 J1_QUESTION = (
     "input.candidate is something a mouse can use (input.candidate.click says "
-    "what clicking it did) that keyboard focus never reaches. input.stops lists, "
+    "what clicking it did) that keyboard focus never reaches. shared_inputs.stops lists, "
     "numbered, every element keyboard focus does reach, with role, name and link "
-    "address. Image A shows the page. Is there an element in input.stops that "
+    "address. Image A shows the page. Is there an element in shared_inputs.stops that "
     "does the same thing, so a keyboard user loses nothing? Answer alternative "
     "(with element: its number), no_alternative or unsure, with your reasons in "
     "a few plain words."
@@ -217,7 +217,7 @@ J1_QUESTION = (
 J1_RUBRIC = (
     "alternative: a reached element plainly does the same job (a second print "
     "button, a text link with the same purpose, a field where Enter submits the "
-    "same search). Only elements in input.stops count: a link to another page "
+    "same search). Only elements in shared_inputs.stops count: a link to another page "
     "that might offer the same thing is not an alternative (the method must be "
     "available on this page). no_alternative: nothing reached does that job. unsure: "
     "whenever the evidence does not settle it. Answer alternative or "
@@ -931,9 +931,9 @@ def questions_for(st: State4A, evidence_refs: list[str]) -> list[OpenQuestion]:
                             if inst.click
                             else ["native control"],
                         },
-                        "stops": _stops_input(st),
                         "image_a": images[0] if images else None,
                     },
+                    shared=["stops"],
                     evidence_paths=evidence_refs + images,
                 )
             )
@@ -1287,6 +1287,11 @@ def evaluate(st: State4A, evidence_refs: list[str]) -> Finding:
     return f
 
 
+def shared_inputs(st: State4A) -> dict[str, Any]:
+    """Given once per result: the numbered stops that J1 refers to."""
+    return {"stops": _stops_input(st)}
+
+
 class Check4A:
     """4.A as a registered check (checks/base.py)."""
 
@@ -1307,6 +1312,9 @@ class Check4A:
 
     def walk_extras(self) -> list:
         return [stop_hook]
+
+    def shared_inputs(self, state: State4A) -> dict[str, Any]:
+        return shared_inputs(state)
 
     async def collect(self, ctx: RunContext, walk: KeyboardWalk | None) -> State4A:
         assert walk is not None
