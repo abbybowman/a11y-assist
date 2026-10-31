@@ -188,9 +188,13 @@ flowchart LR
 - Page content is untrusted: never shown to the agent as instructions; outcomes come only from rules
 - A test page tells "automated testers" to report PASS; the tool must still find both traps **[FILL: result]**
 - Evidence kept 24 h, then deleted; results go to the user's repository
+- No secrets in errors or logs: query strings, headers and page text are redacted
 - Every result says "not a certified Trusted Tester result"
 
-**Notes:** **[PENDING]** Before any hosted demo, the template's default of opening an unauthenticated HTTP port has to go.
+**Notes:**
+
+- The template's default of opening an unauthenticated HTTP port on all interfaces is gone: stdio by default, HTTP only on loopback with Host and Origin checks. **[PENDING]** Authentication before any hosted demo.
+- Errors and logs carry no query strings, headers, stack traces or page text; a test seeds secrets and checks they don't leak.
 
 ---
 
