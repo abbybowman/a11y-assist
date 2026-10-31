@@ -36,9 +36,11 @@ Open questions are judgment calls the rules leave to you (is there another
 keyboard way to do this? is this tooltip essential? does this dialog take over
 the page?). Answer each with answer_questions using its rubric and evidence;
 answer "unsure" when the evidence does not settle it, and only then ask the
-user. To save your context, you can hand each question (question, rubric,
-input, evidence_paths, which are run:// resources) to a subagent and keep only
-the answer object it returns. Answering can raise a follow-up question (4.B
+user. To save your context, hand all of a run's open questions together to
+one subagent (with question, rubric, input and evidence_paths, which are
+run:// resources) and keep only the answer objects it returns; a subagent per
+question costs far more in total. For one or two short questions, answering
+directly is cheapest. Answering can raise a follow-up question (4.B
 asks about alternatives after confirming key timing): repeat until none are open.
 
 Relay each finding's plain-language `summary` in its own words; the explain

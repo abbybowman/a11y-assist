@@ -71,6 +71,7 @@ class State4B(BaseModel):
     inventory: int
     stop_list: list[t4a.StopRef] = Field(default_factory=list)
     text_read: bool = False
+    texts: list[dict[str, str]] = Field(default_factory=list)  # page_text, for J1/J2
     matches: list[str] = Field(default_factory=list)
     j1: dict[str, Any] | None = None
     proof: dict[str, Any] | None = None  # normal / timed / timed2 effects
@@ -78,7 +79,10 @@ class State4B(BaseModel):
 
 
 def _sentences(text: str) -> list[str]:
-    return [s.strip() for s in re.split(r"(?<=[.!?])\s+|\n+", text) if s.strip()]
+    """Split at sentence ends and blank lines only: a <br> inside a sentence is
+    a single line break (judge eval: Baseline TC01.A-2's instruction was cut)."""
+    parts = re.split(r"(?<=[.!?])\s+|\n\s*\n", text)
+    return [re.sub(r"\s+", " ", s).strip() for s in parts if s.strip()]
 
 
 async def collect(ctx: RunContext, walk: KeyboardWalk) -> State4B:
@@ -94,7 +98,8 @@ async def collect(ctx: RunContext, walk: KeyboardWalk) -> State4B:
     found: list[str] = []
     s = await open_session(ctx.new_page, ctx.quiet_ms)
     try:
-        for part in await page_text(s.page):
+        st.texts = await page_text(s.page)
+        for part in st.texts:
             found += [x for x in _sentences(part["text"]) if TIMING.search(x)]
         st.text_read = True
     except Exception:
@@ -238,6 +243,12 @@ def questions_for(st: State4B, evidence_refs: list[str]) -> list[OpenQuestion]:
                     if sr
                     else None,
                     "timing": _timing_words(st.j1 or {}),
+                    "matches": st.matches,
+                    "what_the_presses_changed": {
+                        k: (st.proof or {}).get(k, {})
+                        and (st.proof or {})[k].get("kinds")
+                        for k in ("normal", "timed")
+                    },
                     "stops": stops,
                 },
                 evidence_paths=evidence_refs,
@@ -409,6 +420,9 @@ class Check4B:
 
     def walk_extras(self) -> list:
         return [t4a.stop_hook]
+
+    def page_text(self, state: State4B) -> list[dict[str, str]]:
+        return state.texts
 
     async def collect(self, ctx: RunContext, walk: KeyboardWalk | None) -> State4B:
         assert walk is not None

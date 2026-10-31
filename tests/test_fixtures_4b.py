@@ -114,3 +114,19 @@ def test_rows_on_recorded_evidence(kw, outcome, row):
 def test_unread_text_is_never_pass():
     f = t4b.evaluate(_state(matches=[], text_read=False), [])
     assert f.outcome.value == "NEEDS_REVIEW"
+
+
+async def test_page_text_goes_out_and_sentences_stay_whole(settings, server):
+    # Judge eval 2026-10-31: page_text was empty for 4.B and the instruction
+    # was cut at its line break.
+    from a11y_assist.pipeline import run_tt_tests
+
+    out = await run_tt_tests(
+        settings, f"{server.base}/4b/f01-hold-space-to-switch.html", [TestId.T4B]
+    )
+    assert out.page_text and "press and hold" in out.page_text[0]["text"]
+    [q] = out.open_questions
+    assert any(
+        m.startswith("To change the button") and m.endswith("release the spacebar.")
+        for m in q.input["matches"]
+    ), q.input["matches"]

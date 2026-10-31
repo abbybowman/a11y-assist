@@ -1,7 +1,7 @@
 ---
 tt_test: 4.F
 tt_name: 2.4.3-focus-order-meaning
-spec_version: 1.0.1
+spec_version: 1.1.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -109,13 +109,13 @@ The tool gives each page one 4.F outcome: PASS, FAIL, DOES NOT APPLY or NEEDS RE
 
 ### J1. Does this focus order preserve the meaning and operability of the page?
 
-**Question:** "Image A numbers the elements in the order keyboard focus reaches them (1 first); input.order lists the same elements with role, name, position and form group, and input.signals lists where the order departs from the reading order. Would a keyboard user meet these elements in an order that makes sense for reading and using this part of the page? Answer preserves, does_not_preserve, does_not_matter (order cannot affect meaning here), or unsure, and give your reasons in a few plain words."
+**Question:** "Image A numbers the elements in the order keyboard focus reaches them (1 first); input.order lists the same elements with role, name, position and form group, and input.signals lists where the order departs from the reading order. When input.backward is given, the Shift+Tab order differs from the reverse of the forward order: judge it too (it need not mirror the forward order, but it must also make sense). When input.opened is given, it lists what a menu or disclosure revealed and where the next Tab went. Would a keyboard user meet these elements in an order that makes sense for reading and using this part of the page? Answer preserves, does_not_preserve, does_not_matter (order cannot affect meaning here), or unsure, and give your reasons in a few plain words."
 
-**Input:** the order image(s); the forward order (and backward, if S4) with role, name, box and form group per stop, labelled as untrusted page data; the signals; for R, the trigger and the revealed stops.
+**Input:** the order image(s); the forward order and, when S4 holds, the backward order (judge eval, 2026-10-31: without it the agent judged only the forward order, a false PASS) with role, name, box and form group per stop, labelled as untrusted page data; the signals; for R, `opened`: the trigger, the names of the stops it revealed, whether focus moved into them, and where the next Tab went.
 
 **Output:** `{order: preserves|does_not_preserve|does_not_matter|unsure, reasons: "<a few plain words>"}`.
 
-**Rubric.** does_not_preserve: related fields split apart (the address fields interleaved with other fields); focus jumping back and forth between unrelated areas; a menu's or dialog's content reached far from its trigger (F85); a positive tabindex sending focus to an unrelated place first (F44). preserves: columns read one after another; header, navigation, main, footer; a skip link first; independent sidebars in either order (Understanding 2.4.3). does_not_matter: independent items whose order cannot change meaning, such as a row of social media icons (p. 23 Note 2). unsure: whenever the evidence does not settle it, for example: the image does not show every numbered stop clearly; the grouping that matters is not visible (which fields belong together); the content is in a language you cannot read; or the order would make sense only under an assumption you cannot check. Answer preserves or does_not_preserve only when you are sure; unsure answers go to a person.
+**Rubric.** does_not_preserve: related fields split apart (the address fields interleaved with other fields); numbered steps reached out of sequence; a Shift+Tab order that jumps around so going back makes no sense; focus jumping back and forth between unrelated areas; a menu's or dialog's content reached far from its trigger (F85); a positive tabindex sending focus to an unrelated place first (F44). preserves: columns read one after another; header, navigation, main, footer; a skip link first; independent sidebars in either order (Understanding 2.4.3). does_not_matter: independent items whose order cannot change meaning, such as a row of social media icons (p. 23 Note 2). unsure: whenever the evidence does not settle it, for example: the image does not show every numbered stop clearly; the grouping that matters is not visible (which fields belong together); the content is in a language you cannot read; or the order would make sense only under an assumption you cannot check. Answer preserves or does_not_preserve only when you are sure; unsure answers go to a person.
 
 | Example | Answer |
 | --- | --- |

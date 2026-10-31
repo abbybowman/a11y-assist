@@ -1,7 +1,7 @@
 ---
 tt_test: 4.C
 tt_name: 2.1.2-no-keyboard-trap
-spec_version: 1.5.0
+spec_version: 1.5.1
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -132,7 +132,7 @@ Modal status is not a model question. The spec labels a loop "modal" from markup
 
 **Question:** "Does this section ask the user to enter or choose something before they can continue? If yes, what values satisfy it, using only the instructions on the page?"
 
-**Input:** screenshot of the loop region; loop members with roles, names, labels and descriptions; visible text in the region.
+**Input:** screenshot of the loop region; loop members with roles, names, labels and descriptions; visible text in the region. Screenshots go out as `run://` resources, never as run-folder paths, so a client can open them (1.5.1; judge eval, 2026-10-31).
 
 **Output:** `{gate: yes|no|unsure, fields: [{locator, value, basis_quote}]}`.
 

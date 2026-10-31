@@ -48,7 +48,9 @@ ACT = {
     for c in json.loads((ACT_ROOT / "manifest.json").read_text())["cases"]
     if c["tt_test"] == "4.A"
 }
-ANSWERS = {"62673162": NO_ALT, "aa153f67": NO_ALT}
+# 62673162 and aa153f67 need no answer: keyboard focus reaches nothing, so
+# no alternative can exist (M4n, mechanical).
+ANSWERS: dict[str, dict] = {}
 
 
 def test_every_fixture_is_listed():
@@ -190,3 +192,13 @@ async def test_shadow_and_frame_stops_are_reached(settings, server):
     got = await run_check(settings, f"{server.base}/no_trap.html", TestId.T4A)
     f = got["finding"]
     assert (f.outcome.value, instance_rows(f)) == ("PASS", ["M9"]), f.rationale
+
+
+async def test_no_stops_fails_without_a_question(settings, act_server):
+    # ACT akn7bn Failed Example 1: a link only in a tabindex=-1 frame, nothing
+    # else on the page. No keyboard alternative can exist, so no question.
+    case = ACT["62673162"]
+    got = await run_check(settings, f"{act_server}/{case['path']}", TestId.T4A)
+    f = got["finding"]
+    assert (f.outcome.value, instance_rows(f)) == ("FAIL", ["M4n"]), f.rationale
+    assert "did not get through the whole page" not in f.summary

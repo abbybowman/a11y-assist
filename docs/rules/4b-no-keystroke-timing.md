@@ -1,7 +1,7 @@
 ---
 tt_test: 4.B
 tt_name: 2.1.1-no-keystroke-timing
-spec_version: 1.0.0
+spec_version: 1.1.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -28,7 +28,7 @@ The tool gives each page one 4.B outcome: PASS, FAIL, DOES NOT APPLY or NEEDS RE
 
 **From the shared walk:** stops, with accessible name and title (4.A's walk extra), and pass ends. **Page text:** the visible text of every readable frame (`traverse.page_text`, one fresh load). Keystroke timing cannot be seen in the DOM; a tester finds it from what the page says and from using it (HtT 1–2).
 
-**Timing words** (case-insensitive, whole words, English only): hold, holding, held down, press and hold, long press, double-press, double press, press twice, twice quickly, quickly, rapidly, in quick succession, within N second(s), for N second(s), typing speed, keystroke rhythm. Each sentence of the page text, a stop's name or a stop's title that contains one is a *match*.
+**Timing words** (case-insensitive, whole words, English only): hold, holding, held down, press and hold, long press, double-press, double press, press twice, twice quickly, quickly, rapidly, in quick succession, within N second(s), for N second(s), typing speed, keystroke rhythm. Sentences end at . ! ? or a blank line; a single line break (a `<br>`) does not end one. Each sentence of the page text, a stop's name or a stop's title that contains a timing word is a *match*. The page text goes out with the questions (`page_text` in the tool result).
 
 **Timing proof** (only after J1 = timing_required). For the stop J1 names, three fresh replays to it: (a) one normal press of the key; (b) the timed press J1 describes: the key held down for its duration plus `HOLD_EXTRA_MS` (300 ms), or pressed its number of times `REPEAT_GAP_MS` (50 ms) apart; (c) only when (b) has an effect and (a) has none, a second (b), to confirm. Each records the effect.
 
@@ -87,6 +87,8 @@ J1 and J2 are look-and-decide questions (CLAUDE.md principle 8): the agent answe
 ### J2. Is there a way without timing?
 
 **Question:** "input.timed is an element that works only with the timed key press in input.timing (confirmed by pressing the keys). input.stops lists, numbered, every element keyboard focus reaches. Is there an element that does the same thing with a normal key press? Answer alternative (with element: its number), no_alternative or unsure, with reasons."
+
+**Input:** the timed element, the timing, the matched sentences, what the normal and the timed press each changed, the numbered stops, and the page text (judge eval, 2026-10-31: names alone left the agent unsure).
 
 **Rubric.** As 4.A J1. The named number must be a stop other than the timed element (mechanical guard; otherwise unsure).
 

@@ -66,21 +66,29 @@ CONTAINS_FN = """function (sel) {
   if (!c) return null;
   const sels = 'a[href],button,input:not([type=hidden]),select,textarea,summary,[tabindex]:not([tabindex="-1"])';
   const visible = (n) => n.checkVisibility ? n.checkVisibility({ visibilityProperty: true }) : n.getClientRects().length > 0;
-  return { inside: c.contains(this), has_stops: Array.from(c.querySelectorAll(sels)).some(visible) };
+  const shown = Array.from(c.querySelectorAll(sels)).filter(visible);
+  const nm = (n) => ((n.getAttribute('aria-label') || n.innerText || n.value || '') + '').trim().replace(/\s+/g, ' ').slice(0, 60);
+  return { inside: c.contains(this), has_stops: shown.length > 0, names: shown.slice(0, 10).map(nm) };
 }"""
 
 J1_QUESTION = (
     "Image A numbers the elements in the order keyboard focus reaches them (1 "
     "first); input.order lists the same elements with role, name, position and "
     "form group, and input.signals lists where the order departs from the "
-    "reading order. Would a keyboard user meet these elements in an order that "
-    "makes sense for reading and using this part of the page? Answer preserves, "
+    "reading order. When input.backward is given, the Shift+Tab order differs from "
+    "the reverse of the forward order: judge it too (it need not mirror the "
+    "forward order, but it must also make sense). When input.opened is given, it "
+    "lists what a menu or disclosure revealed and where the next Tab went. Would "
+    "a keyboard user meet these elements in an order that makes sense for "
+    "reading and using this part of the page? Answer preserves, "
     "does_not_preserve, does_not_matter (order cannot affect meaning here), or "
     "unsure, and give your reasons in a few plain words."
 )
 J1_RUBRIC = (
     "does_not_preserve: related fields split apart (the address fields "
-    "interleaved with other fields); focus jumping back and forth between "
+    "interleaved with other fields); numbered steps reached out of sequence; a "
+    "Shift+Tab order that jumps around so going back makes no sense; focus "
+    "jumping back and forth between "
     "unrelated areas; a menu's or dialog's content reached far from its trigger; "
     "a positive tabindex sending focus to an unrelated place first. preserves: "
     "columns read one after another; header, navigation, main, footer; a skip "
@@ -156,6 +164,7 @@ class State4F(BaseModel):
     distinct: int = 0
     triggers: int = 0
     forward: list[StopInfo] = Field(default_factory=list)
+    backward: list[StopInfo] | None = None
     order_image: str | None = None
     instances: list[Inst4F] = Field(default_factory=list)
     incomplete: list[str] = Field(default_factory=list)
@@ -321,6 +330,17 @@ async def _reveal(
                 label=_plain(trig),
                 keys=keys + ["Tab"],
                 unreliable=step.stop.unresolved or nxt.stop.unresolved,
+                # What the agent needs to judge it (judge eval: without the
+                # opened content it could only answer unsure).
+                detail={
+                    "opened_by": _plain(trig),
+                    "opened_content": c.get("names", []),
+                    "focus_moved_into_it": moved_in,
+                    "next_tab_reaches": nxt.stop.name
+                    or nxt.stop.css_path
+                    or nxt.stop.kind,
+                    "next_tab_is_inside": bool((c2 or {}).get("inside")),
+                },
             )
             if nxt.stop.modal:
                 st.instances.append(await _dialog_check(ctx, keys + ["Tab"], trig, n))
@@ -413,6 +433,7 @@ async def collect(ctx: RunContext, walk: KeyboardWalk) -> State4F:
     fwd = [_info(s) for _, s in fwd_steps]
     bwd = [_info(s) for _, s in _distinct(p2)] if p2.end == "wrap" else None
     st.forward = fwd
+    st.backward = bwd
     st.distinct = len({s.path_key for s in fwd} | {s.path_key for s in (bwd or [])})
     if p1.end != "wrap":
         st.incomplete.append(
@@ -484,6 +505,16 @@ def questions_for(st: State4F, evidence_refs: list[str]) -> list[OpenQuestion]:
             for n, si in enumerate(st.forward[:BADGE_MAX], start=1)
         ]
         image = f"{base}/{st.order_image}" if st.order_image else None
+        extra: dict[str, Any] = {}
+        if any(s["code"] == "S4" for s in inst.signals) and st.backward:
+            # The backward order is judged too (p. 23 HtT 2.d); without it the
+            # agent judged only the forward order (judge eval, f14).
+            extra["backward"] = [
+                {"n": n, "role": si.role, "name": si.name}
+                for n, si in enumerate(st.backward[:BADGE_MAX], start=1)
+            ]
+        if inst.kind == "R":
+            extra["opened"] = inst.detail
         out.append(
             OpenQuestion(
                 question_id=f"4.F-{inst.id}-J1",
@@ -500,6 +531,7 @@ def questions_for(st: State4F, evidence_refs: list[str]) -> list[OpenQuestion]:
                     "order": order,
                     "signals": [s["words"] for s in inst.signals],
                     "image_a_order": image,
+                    **extra,
                 },
                 evidence_paths=evidence_refs + ([image] if image else []),
             )
