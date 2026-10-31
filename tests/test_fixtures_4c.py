@@ -60,14 +60,18 @@ EXPECTED: dict[str, dict] = {
     "f25-closed-shadow-loop": {"outcome": "FAIL", "rows": ["M12"]},
     "f26-element-removes-itself": {"outcome": "PASS", "rows": []},
     "f27-focus-drops-to-body-cycles": {"outcome": "FAIL", "rows": ["M12"]},
-    "f29-infinite-feed": {"outcome": "PASS", "rows": [], "note": "Feed growth"},
+    "f29-infinite-feed": {
+        "outcome": "PASS",
+        "rows": [],
+        "note": "more content as you scroll",
+    },
     "f30-whole-page-wrap": {"outcome": "PASS", "rows": ["M10"], "note": "whole-page"},
     "f31-loop-exit-is-link": {"outcome": "FAIL", "rows": ["M12"]},
     "f32-two-traps-injection": {"outcome": "FAIL", "rows": ["M12", "M12"]},
     "f33-negative-tabindex-iframe-loop": {
         "outcome": "PASS",
         "rows": [],
-        "note": "cannot reach",
+        "note": "cannot be reached with the keyboard",
     },
     "f34-600-links": {"outcome": "PASS", "rows": [], "slow": True},
 }
@@ -109,7 +113,7 @@ async def test_fixture_outcome(name, settings, server):
         f.rationale
     )
     if e.get("note"):
-        assert e["note"] in f.rationale
+        assert e["note"] in f.rationale or e["note"] in f.summary
 
 
 # ── Behavior ─────────────────────────────────────────────────────────────────
@@ -456,5 +460,3 @@ async def test_f33_tab_skips_the_iframe_and_its_loop(open_fixture):
     # A mouse user can still click into the loop and be trapped there.
     await page.frame_locator("#frame").locator("#b1").click()
     assert await keys(page, "Tab", 3) == ["frame>b2", "frame>b1", "frame>b2"]
-
-

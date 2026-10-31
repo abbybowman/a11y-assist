@@ -54,4 +54,4 @@ addopts = "-m 'not slow'"
 # Embedded JavaScript strings are kept readable rather than wrapped.
 "src/a11y_assist/traverse.py" = ["E501"]
 # Spec row tables and question wording stay on one line each.
-"src/a11y_assist/t4c.py" = ["E501"]
+"src/a11y_assist/checks/t4c.py" = ["E501"]

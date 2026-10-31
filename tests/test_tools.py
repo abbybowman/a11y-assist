@@ -46,16 +46,20 @@ async def test_run_tt_tests_on_http_page(settings, server):
     out = await _call("run_tt_tests", {"url": f"{server.base}/no_trap.html"})
     assert out["errors"] == []
     assert "NOT a certified" in out["disclaimer"]
-    assert out["passes"]["P1"]["end"] == "wrap"
-    assert out["passes"]["P2"]["end"] == "wrap"
+    assert out["walk"]["P1"]["end"] == "wrap"
+    assert out["walk"]["P2"]["end"] == "wrap"
     assert out["tests"] == ["4.C"]  # default selection
     [finding] = out["findings"]
     assert (finding["test_id"], finding["outcome"]) == ("4.C", "PASS")
     assert finding["rows"] == ["A3", "G4"]
-    assert out["open_questions"] == []
+    assert "never got trapped" in finding["summary"]
+    assert out["open_questions"] == [] and out["page_text"] == []
+    assert out["report"]["certified"] is False  # the full report, to save
+    assert f"run://{out['run_id']}/report.json" in out["evidence"]
+    assert f"run://{out['run_id']}/evidence/walk.json" in out["evidence"]
+    assert not any("/home/" in u or "\\" in u for u in out["evidence"])
 
-    run_dir = Path(out["run_dir"])
-    assert run_dir.parent == settings.runs_dir.resolve()
+    run_dir = settings.runs_dir / out["run_id"]
     assert (run_dir / "evidence" / "page.har.zip").is_file()
     # Screenshots only at trap events (spec 1.5.0); this page has none.
     assert not (run_dir / "evidence" / "shots").exists()
@@ -74,7 +78,7 @@ async def test_run_tt_tests_on_http_page(settings, server):
     steps = [json.loads(line) for line in (run_dir / "steps.jsonl").open()]
     names = [s["step"] for s in steps]
     assert names[0] == "run_start" and names[-1] == "run_end"
-    assert "captured" in names and "4c_collected" in names
+    assert "captured" in names and "walk" in names and "collected" in names
 
 
 async def test_collect_on_file_fixture_in_dev_mode(settings):
@@ -82,10 +86,10 @@ async def test_collect_on_file_fixture_in_dev_mode(settings):
     out = await _call("run_tt_tests", {"url": url})
     assert out["errors"] == []
     # The field swallows Tab: P1 ends as soon as it is stuck for 3 presses.
-    assert out["passes"]["P1"]["end"] == "stuck"
-    assert out["passes"]["P1"]["presses"] == 4
+    assert out["walk"]["P1"]["end"] == "stuck"
+    assert out["walk"]["P1"]["presses"] == 4
     # 3 tabbable candidates -> spec cap 3 x 3 + 50 = 59 presses.
-    assert out["passes"]["P1"]["cap"] == 59
+    assert out["walk"]["P1"]["cap"] == 59
 
 
 async def test_selected_tests_are_deduplicated_and_ordered(settings):
@@ -107,8 +111,8 @@ async def test_no_test_is_reported_not_tested(settings):
         assert f["outcome"] == "NEEDS_REVIEW"
         assert f["note"] == "This test could not be performed"
     for t in ["4.A", "4.B", "4.D", "4.E", "4.F"]:
-        assert "No rules spec exists" in by_id[t]["rationale"]
-    report = Report.model_validate_json(Path(out["report_path"]).read_text())
+        assert "No rules exist" in by_id[t]["summary"]
+    report = Report.model_validate(out["report"])
     assert all(f.outcome is not Outcome.NOT_TESTED for f in report.findings)
 
 
@@ -188,7 +192,7 @@ async def test_answer_questions_records_and_rejects_invalid(settings):
         },
     )
     assert out["accepted"] == ["q1"] and len(out["rejected"]) == 2
-    assert out["still_open"] == []  # one answer closes a question
+    assert out["open_questions"] == []  # one answer closes a question
 
     # A person's answer overrides the model's.
     yes = {"documented": "yes", "keys": ["Escape"], "quote": "Press Esc"}
@@ -234,3 +238,33 @@ async def test_answer_questions_unknown_run_id_is_a_tool_error(settings):
         "answer_questions", {"run_id": "missing-run", "answers": [_ANSWER]}
     )
     assert "No run named" in msg
+
+
+async def test_evidence_is_readable_as_resources_and_confined(settings, server):
+    out = await _call("run_tt_tests", {"url": f"{server.base}/no_trap.html"})
+    async with Client(mcp) as client:
+        [content] = await client.read_resource(f"run://{out['run_id']}/report.json")
+        assert json.loads(content.text)["run_id"] == out["run_id"]
+        for bad in (
+            f"run://{out['run_id']}/../../etc/passwd",
+            f"run://{out['run_id']}/evidence/nope.json",
+        ):
+            with pytest.raises(Exception):
+                await client.read_resource(bad)
+
+
+async def test_old_runs_expire(settings, server):
+    import os
+    import time
+
+    from a11y_assist.runlog import prune_runs
+
+    out = await _call("run_tt_tests", {"url": f"{server.base}/no_trap.html"})
+    run_dir = settings.runs_dir / out["run_id"]
+    old = time.time() - 25 * 3600
+    os.utime(run_dir / "report.json", (old, old))
+    assert prune_runs(settings.runs_dir, 24) == 1 and not run_dir.exists()
+    msg = await _call_error(
+        "answer_questions", {"run_id": out["run_id"], "answers": [_ANSWER]}
+    )
+    assert "may have expired" in msg and "/" not in msg.split("(")[0]

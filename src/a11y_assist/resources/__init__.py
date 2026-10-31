@@ -1,14 +1,17 @@
-"""Resources submodule — static/semi-static data the client can read directly.
+"""Resources submodule: data the client can read directly.
 
 Each resource module exposes a `register(mcp)` function; this file aggregates
-them into `register_resources(mcp)`. None are defined yet.
+them into `register_resources(mcp)`.
 """
 
 from __future__ import annotations
 
+from a11y_assist.resources import runs
+
 
 def register_resources(mcp) -> None:
     """Register all resources with the MCP server."""
+    runs.register(mcp)
 
 
 __all__ = ["register_resources"]

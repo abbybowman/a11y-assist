@@ -20,7 +20,9 @@ What works today:
 
 | Area | State |
 | --- | --- |
-| `run_tt_tests(url, tests=["4.C"])` | Runs the selected TT tests (4.A–4.F) and returns findings plus open questions. 4.C runs passes P1–P6 of its spec and applies its tables, with a record per key press (stop identity, role and name from Chrome's accessibility tree, frames, shadow roots, focus events, screenshot) |
+| `run_tt_tests(url, tests=["4.C"])` | Runs the selected TT tests (4.A–4.F) and returns a typed result: findings with plain-language summaries, open questions (with the page text once), evidence as `run://` resources, and the full report for the user to save. One shared keyboard walk (Tab, Shift+Tab) per page feeds every keyboard check; 4.C adds its exit probes. A record per key press (stop identity, role and name from Chrome's accessibility tree, frames, shadow roots, focus events); screenshots at traps. Progress notifications while it runs; at most `RUN_LIMIT_S` (120 s) per call |
+| Tool errors | A URL outside the allowlist, a redirect out of it, a page that cannot load, or an unknown or expired run id is a tool error (isError) with no findings |
+| `run://{run_id}/{path}` resources | `report.json`, `evidence/*.json` and screenshots of a run, while it is kept (`RUN_TTL_HOURS`, default 24). Durable results belong in the user's repository |
 | HAR record + replay | Page is recorded once (scrolled to load lazy content); every pass and probe runs against the replay |
 | Navigation allowlist | `.gov` and `.mil` by default, enforced on every top-level navigation and redirect hop; `file://` only in dev mode |
 | ANDI 29.2.2 | Vendored, injectable from local files, never loaded from ssa.gov. Not used by any test yet |
@@ -28,8 +30,10 @@ What works today:
 | `answer_questions(run_id, answers)` | Records one answer per question (the calling agent's, or a person's override, which wins); presses documented keys in the recorded page and re-applies the spec. Suggested input values go to a person to try. Answers are facts, never outcomes |
 | ApiJudge | Stub (`NotImplementedError`) |
 
-Planned tools: `verify_fix`, `get_guidance`, `read_report`. Tools are broad and
-outcome-based, not one per test step.
+Planned: `read_report` (read an agency's existing ACR or SCRT report and
+recommend fixes and re-tests) and a `compare_to` option on `run_tt_tests` that
+takes a saved report (verify a fix). Guidance goes in resources or a prompt.
+Tools are broad and outcome-based, not one per test step.
 
 Known limits:
 

@@ -62,6 +62,9 @@ class Settings(BaseSettings):
     # hosted. Tests not finished in time are NEEDS_REVIEW with the reason.
     run_limit_s: int = Field(default=120, ge=10)
     runs_dir: Path = REPO_ROOT / "runs"
+    # Runs are working files, not an archive: deleted after this many hours.
+    # Durable results belong in the user's codebase (saved from tool output).
+    run_ttl_hours: float = Field(default=24, gt=0)
 
     # ── Vendored tools ────────────────────────────────────────────────────────
     third_party_dir: Path = REPO_ROOT / "third_party"

@@ -60,8 +60,10 @@ by TT test ID. Package: `a11y_assist` (name is provisional).
 - Ask before installing anything system-wide.
 - One tool per file in `src/a11y_assist/tools/`, registered in
   `tools/__init__.py`. Tools are broad and outcome-based, not one per step:
-  `run_tt_tests` and `answer_questions` now; `verify_fix`, `get_guidance` and
-  `read_report` planned. Never put "trusted_tester" in a tool name (it could
+  `run_tt_tests` and `answer_questions` now; `verify_fix` (an option on
+  run_tt_tests that takes a saved report), `read_report` (an agency's existing
+  ACR or SCRT report → recommended fixes) planned; guidance goes in resources
+  or a prompt, not a tool. Never put "trusted_tester" in a tool name (it could
   read as certification). Say "open questions" to users, not "judgments". Tool inputs are Pydantic-validated with precise
   descriptions.
 - Test runs analyze a HAR replay, never the live page, so runs are repeatable.
@@ -90,17 +92,23 @@ src/a11y_assist/
   capture.py    HAR record + replay
   andi.py       local ANDI injection
   traverse.py   key passes, CDP focus reading, settle rule, inventory (no outcomes)
+  walk.py       the shared keyboard walk (P1 Tab, P2 Shift+Tab), once per page
   engine.py     shared first-match tables and page rows G1-G5
-  t4c.py        4.C rows from its spec (one module per TT test)
-  judgment.py   Judge interface: ClientJudge, ApiJudge (stub)
-  pipeline.py   run_tt_tests orchestration
+  checks/       one module per TT test, registered in checks/__init__.py;
+                base.py has the interface and the "add a check" steps
+    t4c.py      4.C: extra probes, rows from its spec, plain-language summary
+  judgment.py   Judge interface: ClientJudge, ApiJudge (stub); answer recording
+  pipeline.py   run_tt_tests / answer_questions orchestration (generic)
   runlog.py     runs/<run_id>/ folder, steps.jsonl
   versions.py   version collection
   rules.py      loads docs/rules/ specs and their front matter versions
   models.py     Pydantic models
-  tools/        one MCP tool per file
+  tools/        one MCP tool per file (typed results: RunResult, AnswerResult)
+  resources/    run://{run_id}/{path} evidence while a run is kept
 docs/rules/     rules specs (one per TT test), <id>-build-tasks.md checklists,
                 _template.md (start new specs from it)
+docs/plans/     plans, newest first by date
+docs/solutions/ lessons that save the next test time
 docs/sources/   TT 5.1.3 PDF (the authority), SHA-256 in its README
 third_party/    ANDI 29.2.2, jQuery 3.7.1, PROVENANCE.json
 tests/fixtures/ no_trap.html (general evidence); 4c/fNN-short-name.html (custom 4.C
@@ -114,7 +122,7 @@ runs/           output (git-ignored)
 
 ```bash
 uv sync --group dev
-uv run pytest                    # Playwright Chromium, headless
+uv run pytest                    # Playwright Chromium, headless (~10 min)
 uv run pytest -m slow            # long fixtures (F34, ~10 min)
 TEST_BROWSER_CHANNEL=chrome TEST_HEADED=1 uv run pytest   # installed Chrome, visible
 uv run ruff check . && uv run ruff format --check .
