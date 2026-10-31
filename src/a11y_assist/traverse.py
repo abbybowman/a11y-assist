@@ -239,6 +239,41 @@ class FocusReader:
             return self._worlds[frame_id]
         raise LookupError(f"no CDP session reaches frame {frame_id}")
 
+    async def call(self, stop: Stop, fn: str, args: list[Any] | None = None) -> Any:
+        """Run `fn` (a JS function declaration; `this` is the element) on the
+        stop's element in the isolated world, where page script cannot change
+        what it sees. Returns its value, or None if the stop cannot be reached."""
+        if stop.kind != "element" or stop.unresolved:
+            return None
+        frame_id, _, backend = stop.key.rpartition(":")
+        try:
+            session, ctx = await self._session_for(frame_id)
+            obj = await session.send(
+                "DOM.resolveNode",
+                {"backendNodeId": int(backend), "executionContextId": ctx},
+            )
+            res = await session.send(
+                "Runtime.callFunctionOn",
+                {
+                    "objectId": obj["object"]["objectId"],
+                    "functionDeclaration": fn,
+                    "arguments": [{"value": a} for a in (args or [])],
+                    "returnByValue": True,
+                },
+            )
+            return res["result"].get("value")
+        except Exception:
+            return None
+
+    async def evaluate_top(self, expression: str) -> Any:
+        """Evaluate in the top frame's isolated world."""
+        session, ctx = await self._session_for(await self._top_frame_id())
+        res = await session.send(
+            "Runtime.evaluate",
+            {"expression": expression, "contextId": ctx, "returnByValue": True},
+        )
+        return res["result"].get("value")
+
     async def _top_frame_id(self) -> str:
         if self._top is None:
             self._top = await self.context.new_cdp_session(self.page)

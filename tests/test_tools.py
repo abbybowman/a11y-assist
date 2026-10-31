@@ -114,8 +114,9 @@ async def test_no_test_is_reported_not_tested(settings):
     for f in [f for t, f in by_id.items() if t not in built]:
         assert f["outcome"] == "NEEDS_REVIEW"
         assert f["note"] == "This test could not be performed"
-    for t in ["4.A", "4.B", "4.D", "4.F"]:
-        assert "No rules exist" in by_id[t]["summary"]
+    for t in by_id:
+        if t not in built:
+            assert "No rules exist" in by_id[t]["summary"], t
     report = Report.model_validate(out["report"])
     assert all(f.outcome is not Outcome.NOT_TESTED for f in report.findings)
 
@@ -303,7 +304,7 @@ async def test_explain_before_a_run(settings):
     assert "tries the keys a person would" in text  # what this tool does
     assert "NOT a certified" in text
     # Untested tests say so plainly.
-    assert "cannot run this test yet" in await _prompt({"about": "4.D"})
+    assert "cannot run this test yet" in await _prompt({"about": "4.A"})
 
 
 async def test_explain_finds_tests_by_words_criterion_or_name(settings):

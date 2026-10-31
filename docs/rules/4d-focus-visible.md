@@ -1,7 +1,7 @@
 ---
 tt_test: 4.D
 tt_name: 2.4.7-focus-visible
-spec_version: 0.5.0
+spec_version: 1.0.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -14,7 +14,7 @@ The tool gives each page one 4.D outcome: PASS, FAIL, DOES NOT APPLY or NEEDS RE
 
 **W3C sources.** [Understanding 2.4.7](https://www.w3.org/WAI/WCAG22/Understanding/focus-visible), techniques [G149](https://www.w3.org/TR/2016/NOTE-WCAG20-TECHS-20161007/G149) and [C15](https://www.w3.org/TR/2016/NOTE-WCAG20-TECHS-20161007/C15), failure [F55](https://www.w3.org/TR/2016/NOTE-WCAG20-TECHS-20161007/F55), and ACT rule [oj04fd](https://www.w3.org/WAI/standards-guidelines/act/rules/oj04fd/), on whose 7 approved test cases DHS reports TT 5.1 fully consistent. They inform OPEN items and fixtures only; the PDF stays the authority.
 
-**Terms.** *Stop*, *OUT*, *BODY*, passes P1 and P2, stop identity and the settle rule are defined in [4c-no-keyboard-trap.md](4c-no-keyboard-trap.md) (Terms, section 2). The *region* of a stop is its border box plus `INDICATOR_MARGIN_PX` on every side, joined with the boxes of its associated labels and of any ancestor whose style changes between the two reads (an indicator on a wrapper or card, as in oj04fd Passed Example 3 and C15 Example 2), clipped to the viewport, in page coordinates. The *on image* is a clip of the region at the step where the stop gains focus; the *off image* is a clip of the same page region at the next step of the same pass, after focus has moved on. A *frame stop* is a stop that is a frame or iframe element itself.
+**Terms.** *Stop*, *OUT*, *BODY*, passes P1 and P2, stop identity and the settle rule are defined in [4c-no-keyboard-trap.md](4c-no-keyboard-trap.md) (Terms, section 2). The *region* of a stop is its border box plus `INDICATOR_MARGIN_PX` on every side, joined with the boxes of its associated labels and of any ancestor (up to its nearest block container) whose style changes between the two reads and whose area is at most `ANCESTOR_MAX_FACTOR` times the stop's own region or `ANCESTOR_MAX_AREA` (an indicator on a wrapper or card, as in oj04fd Passed Example 3 and C15 Example 2), clipped to the viewport, in page coordinates. The *on image* is a clip of the region at the step where the stop gains focus; the *off image* is a clip of the same page region at the next step of the same pass, after focus has moved on. A *frame stop* is a stop that is a frame or iframe element itself.
 
 ## 1. Applicability
 
@@ -35,16 +35,17 @@ The p. 22 Identify Content block says "4.A to 4.H"; as in 4.C, the spec reads it
 **Extra evidence this test collects** (walk extras, collected only when 4.D is selected). Looking at each element as focus lands on it is what p. 22 HtT 2 asks a tester to do; the images and style reads are how the tool looks. At each step where a stop gains focus, after the settle rule:
 
 1. **On image:** a clip of the stop's region, with animations disabled and the caret hidden. Disabling animations finishes CSS transitions, so a ring that fades in is captured in its final state (V1).
-2. **Focus styles,** read through CDP after the on image (read before it, a transition still shows its start state): the whole computed style of the stop, its ancestors up to the nearest block container, its associated labels, and their ::before and ::after, compared as a whole between the two reads rather than property by property. Also the stop's box, the page's scroll offsets, and for text fields whether they are editable and their caret-color (V7).
-3. **At the next step of the same pass,** after the settle rule: the off image of the previous stop's region, captured only if that region is fully inside the viewport, and the previous stop's focus styles again. Pixels inside the new stop's region are masked out of the comparison.
+2. **Noise read,** only when the page is changing (the step did not settle, the DOM changed during it, or CSS animations are running): a second on image and style read `NOISE_WAIT_MS` later, while focus stays. Pixels and style properties that differ between the two are animation, not a focus indicator, and are left out of the comparison (a slideshow behind a link cannot count as its indicator).
+3. **Focus styles,** read through CDP after the on image (read before it, a transition still shows its start state): the whole computed style of the stop, its ancestors up to the nearest block container, its associated labels, and their ::before and ::after, compared as a whole between the two reads rather than property by property. Also the stop's box, the page's scroll offsets, and for text fields whether they are editable and their caret-color (V7).
+4. **At the next step of the same pass,** after the settle rule, once the focus subject has changed: the off image of the previous stop's region, captured only if that region is fully inside the viewport, and the previous stop's focus styles again. Pixels inside the next subject's box (the next stop, or the next active item of a widget) are masked out of the comparison.
 
-**Widget pass W** (one fresh replay per composite widget the walk reached: menubar, menu, tablist, grid, treegrid, tree, listbox, toolbar, radio group, and any element with aria-activedescendant). Items inside a widget get focus only from arrow keys, which 4.C's How to Test uses ("arrow keys", p. 21 HtT 1) and 4.D continues from. Replay to the widget's stop, then press its arrow key (ArrowRight in a menubar, tablist or toolbar; ArrowDown otherwise) up to `WIDGET_ITEMS_MAX` times, collecting the same on and off images and style reads at each press. The *item* at each press is the element with DOM focus (roving tabindex), or the element its aria-activedescendant names (WAI-ARIA 1.2: the active descendant "is treated as having keyboard focus in the user interface", and the author styles it). Items of one widget share their styling, so the first `WIDGET_ITEMS_MAX` stand for the rest; a page with more than `WIDGET_MAX` widgets is G3. This shares its replay with 4.C's widget check (P4), which presses one arrow and then Tab at the same stops.
+**Widget pass W** (one fresh replay per composite widget the walk reached: menubar, menu, tablist, grid, treegrid, tree, listbox, toolbar, radio group, and any element with aria-activedescendant). Items inside a widget get focus only from arrow keys, which 4.C's How to Test uses ("arrow keys", p. 21 HtT 1) and 4.D continues from. Replay to the widget's stop, then press ArrowDown (or ArrowRight, if ArrowDown moves nothing) up to `WIDGET_ITEMS_MAX` times, collecting the same on and off images and style reads at each press; at the end of the widget, the opposite arrow once, so the last item gets its off read. The *item* at each press is the element with DOM focus (roving tabindex), or the element its aria-activedescendant names (WAI-ARIA 1.2: the active descendant "is treated as having keyboard focus in the user interface", and the author styles it). Items of one widget share their styling, so the first `WIDGET_ITEMS_MAX` stand for the rest; a page with more than `WIDGET_MAX` widgets is G3. (4.C's widget check, P4, presses one arrow and then Tab at the same stops; the two could share one replay.)
 
 P1 collects at every stop. P2 collects only at stops (matched by frame chain plus CSS path) that P1 left without complete evidence. Stops reached only by 4.C's own follow-ups (P3, P4, P6) get no extras.
 
 **Images:** PNG, about 1.5 KB each for a link-sized region (measured), two per stop, saved as `evidence/shots/4d/<pass>-<step>-on.png` and `-off.png` and served as run resources while the run is kept.
 
-**Time budget:** widget pass W adds one replay per widget (about 2–3 s, shared with 4.C's P4) plus about 100 ms per item. Measured on Linux (Chromium headless shell, Playwright 1.63): a clip screenshot takes about 27 ms (median) and a CDP style read about 10 ms, so about 100 ms per stop. On a typical page of 100 stops that is about 10 s for P1 plus a few P2 top-ups, on top of the walk itself. Windows headed Chrome is not yet measured (V8). The whole run stays within `run_limit_s`; when the walk stops at the limit, stops without complete evidence go to M4 and G3 gives the reason "the page is too large to finish within the time limit".
+**Time budget:** measured with the build on Linux (Chromium headless shell): a 100-link page takes 53 s for the walk and 4.D together, of which the walk is about 36 s. Widget pass W adds one replay per widget (about 2–3 s). Earlier estimate, measured on Linux (Chromium headless shell, Playwright 1.63): a clip screenshot takes about 27 ms (median) and a CDP style read about 10 ms, so about 100 ms per stop. On a typical page of 100 stops that is about 10 s for P1 plus a few P2 top-ups, on top of the walk itself. Windows headed Chrome is not yet measured (V8). The whole run stays within `run_limit_s`; when the walk stops at the limit, stops without complete evidence go to M4 and G3 gives the reason "the page is too large to finish within the time limit".
 
 **Constants.** These decide outcomes, so they live in this spec, not in server config (CLAUDE.md principle 2): changing one is a spec version change. Provisional until the V-checks and fixtures calibrate them.
 
@@ -56,17 +57,19 @@ P1 collects at every stop. P2 collects only at stops (matched by frame chain plu
 | `MIN_CHANGED_PX` | 12 CSS px² | M6, M7, M8 |
 | `MASK_MAX_FRACTION` | 0.5 | Complete evidence |
 | `WIDGET_ITEMS_MAX` | 5 items per widget | Widget pass W |
+| `ANCESTOR_MAX_FACTOR`, `ANCESTOR_MAX_AREA` | 4, 40,000 CSS px² | Region |
+| `NOISE_WAIT_MS` | 150 ms | Noise read |
 | `WIDGET_MAX` | 10 widgets per page | Widget pass W, G3 |
 
 ## 3. Mechanical checks
 
-Each distinct stop (frame chain plus CSS path; not BODY or OUT), and each widget item from pass W, is an *instance*, evaluated on its first step with complete evidence, P1 before P2. *Complete evidence* is a settled, resolved step with an on image, an off image whose mask covers at most `MASK_MAX_FRACTION` of the region, and focus styles in both states. A pixel is *changed* when it differs between the on and off images by at least `PIXEL_DELTA_VISIBLE`, outside the mask; *strongly changed* at `PIXEL_DELTA_STRONG`. A *style signal* is any computed-style difference between the two reads on the stop, an ancestor up to its block container, a label or their pseudo-elements, or the stop's box moving between them.
+Each distinct stop (frame chain plus CSS path; not BODY or OUT), and each widget item from pass W, is an *instance*, evaluated on its first step with complete evidence, P1 before P2. *Complete evidence* is a resolved step, not re-read, with an on image, an off image whose mask covers at most `MASK_MAX_FRACTION` of the region, and focus styles in both states. A pixel is *changed* when it differs between the on and off images by at least `PIXEL_DELTA_VISIBLE`, outside the mask and outside the noise read's changed pixels; *strongly changed* at `PIXEL_DELTA_STRONG`. A *style signal* is any computed-style difference between the two reads on the stop, an ancestor up to its block container, a label or their pseudo-elements, or the stop's box moving between them.
 
 **3a. Instance rules (first match wins)**
 
 | # | Evidence pattern | Instance outcome | Source |
 | --- | --- | --- | --- |
-| M1 | Every step that reached the stop is unsettled or unresolved | NEEDS REVIEW | Spec rule |
+| M1 | Every step that reached the stop is unresolved, or was re-read because focus moved after the settle window | NEEDS REVIEW | Spec rule |
 | M2 | Frame stop, and the next stop in the same pass is inside that frame | PASS (frame exempt) | p. 22 HtT 2.a; Note |
 | M3 | The focus log shows the stop gaining focus from the key press and losing it again before the step settles, with no further key (focus dropped on focus) | FAIL | F55 (Abby, 2026-10-31: fail in 4.D and in 4.E) |
 | M4 | No complete evidence. Reasons: reached only after a 4.C bypass; never fully in view; scrolled out of view before the next step; the next stop covers the region; focus never moved on (the pass ended on this stop); the run hit its time limit | NEEDS REVIEW, with the reason | Spec rule; p. 5 |
