@@ -45,6 +45,7 @@ from a11y_assist.models import (
     waiting_head,
 )
 from a11y_assist.policy import check_url
+from a11y_assist.redact import safe_error
 from a11y_assist.resources.runs import run_uri
 from a11y_assist.runlog import RunRecorder, expires_at, prune_runs
 from a11y_assist.versions import collect_versions
@@ -258,8 +259,8 @@ async def run_tt_tests(
                 if isinstance(exc, NavigationBlocked):
                     raise RunRefused(str(exc)) from exc
                 raise RunRefused(
-                    f"The page could not be loaded: {type(exc).__name__}: {exc}"
-                ) from exc
+                    f"The page could not be loaded: {safe_error(exc)}"
+                ) from None
             report.final_url = cap.final_url
             run.log("captured", final_url=cap.final_url, redirects=cap.redirects)
             ctx = _context(settings, run, get_browser, cap.final_url)
@@ -280,12 +281,9 @@ async def run_tt_tests(
                 try:
                     state = await c.collect(ctx, walk)
                 except Exception as exc:
-                    run.log(
-                        "check_error", "error", test=c.test_id.value, error=repr(exc)
-                    )
-                    report.errors.append(
-                        f"{c.test_id.value}: {type(exc).__name__}: {exc}"
-                    )
+                    err = safe_error(exc)
+                    run.log("check_error", "error", test=c.test_id.value, error=err)
+                    report.errors.append(f"{c.test_id.value}: {err}")
                     continue
                 states[c.test_id] = state
                 run.write_json(run.evidence_dir / evidence_name(c.test_id), state)
@@ -339,7 +337,7 @@ async def answer_questions(
             try:
                 errors += await REGISTRY[t].resume(ctx, state, report)
             except Exception as exc:
-                errors.append(f"{t.value}: {type(exc).__name__}: {exc}")
+                errors.append(f"{t.value}: {safe_error(exc)}")
             run.write_json(run.evidence_dir / evidence_name(t), state)
     finally:
         await browser.close()

@@ -20,6 +20,7 @@ from playwright.async_api import Browser, BrowserContext, Page, Playwright, Rout
 
 from a11y_assist.config import Settings
 from a11y_assist.policy import check_url
+from a11y_assist.redact import safe_error, safe_url
 
 REDIRECT_STUB = (
     "<!doctype html><title>a11y-assist redirect hold</title>"
@@ -108,7 +109,14 @@ class NavigationGuard:
         if not self.live:
             return await route.fallback()
 
-        response = await route.fetch(max_redirects=0)
+        try:
+            response = await route.fetch(max_redirects=0)
+        except Exception as exc:
+            # An exception escaping a route handler is printed to stderr with
+            # Playwright's call log (full URL and headers). Log one redacted
+            # line instead and fail the navigation.
+            self._log("navigation_fetch_failed", "error", error=safe_error(exc))
+            return await route.abort("failed")
         location = response.headers.get("location")
         if 300 <= response.status < 400 and location:
             target = urljoin(url, location)
@@ -127,14 +135,17 @@ class NavigationGuard:
         for _ in range(self.settings.max_redirects + 1):
             if not self._check(url):
                 raise NavigationBlocked(
-                    f"Navigation to {url} blocked: {self.blocked[-1]['reason']}"
+                    f"Navigation to {safe_url(url)} blocked: "
+                    f"{self.blocked[-1]['reason']}"
                 )
             self._pending_redirect = None
             try:
                 await page.goto(url, wait_until="load")
             except Exception:
                 if self.blocked and self.blocked[-1]["url"] == url:
-                    raise NavigationBlocked(f"Navigation to {url} blocked") from None
+                    raise NavigationBlocked(
+                        f"Navigation to {safe_url(url)} blocked"
+                    ) from None
                 raise
             if self._pending_redirect is None:
                 return page.url

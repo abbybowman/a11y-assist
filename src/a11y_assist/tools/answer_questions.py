@@ -12,6 +12,7 @@ from a11y_assist import config
 from a11y_assist.models import Answer, AnswerResult
 from a11y_assist.pipeline import RunRefused
 from a11y_assist.pipeline import answer_questions as answer_pipeline
+from a11y_assist.redact import safe_error
 
 
 def register(mcp: FastMCP) -> None:
@@ -79,4 +80,7 @@ def register(mcp: FastMCP) -> None:
         try:
             return await answer_pipeline(config.settings, run_id, answers)
         except RunRefused as exc:
-            raise ToolError(str(exc)) from exc
+            raise ToolError(str(exc)) from None
+        except Exception as exc:
+            # One redacted line, no stack trace or call log (redact.py).
+            raise ToolError(safe_error(exc)) from None
