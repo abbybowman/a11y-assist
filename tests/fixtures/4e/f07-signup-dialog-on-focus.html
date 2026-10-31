@@ -1,0 +1,9 @@
+<!doctype html><html lang="en"><head><title>F07 sign-up dialog on focus</title>
+<style>#dlg{position:fixed;inset:10% 10%;background:#fff;border:3px solid #333;padding:2em;box-shadow:0 0 0 9999px rgba(0,0,0,.5)}</style></head><body>
+<h1>News</h1>
+<a href="#a" id="before">Before</a>
+<label>Search <input id="search"></label>
+<div id="dlg" role="dialog" aria-label="Sign up" hidden><h2>Sign up for our newsletter</h2><p>Get updates every week.</p></div>
+<a href="#c" id="after">After</a>
+<script>search.addEventListener('focus', () => { dlg.hidden = false; });</script>
+</body></html>

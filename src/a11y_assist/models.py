@@ -134,6 +134,10 @@ class Step(BaseModel):
         description="A focus change after the settle window was seen, so the step "
         "was re-read with the 1,000 ms window.",
     )
+    extras: dict[str, Any] = Field(
+        default_factory=dict,
+        description="Walk extras a check asked for (e.g. images, styles), by name.",
+    )
 
 
 class PassResult(BaseModel):
@@ -150,6 +154,8 @@ class PassResult(BaseModel):
     failed_requests: int = Field(
         default=0, description="Requests the recorded page could not answer."
     )
+    start_url: str | None = Field(default=None, description="Top URL at load.")
+    start_pages: int = Field(default=1, description="Open pages at load.")
     error: str | None = None
 
     @property
@@ -232,7 +238,13 @@ class OpenQuestion(BaseModel):
 
     question_id: str
     test_id: TestId
-    kind: Literal["J1", "J2"]
+    kind: Literal["J1", "J2", "choice"] = Field(
+        description='"J1"/"J2": 4.C\'s questions (j1/j2 answers). "choice": answer '
+        "with `choice` (one of `choices`) and reasons."
+    )
+    choices: list[str] = Field(
+        default_factory=list, description='For kind "choice": the allowed answers.'
+    )
     instance: str = Field(description="The trap instance the question is about.")
     question: str
     rubric: str
@@ -263,10 +275,20 @@ class J2Answer(BaseModel):
     fields: list[J2Field] = Field(default_factory=list)
 
 
+class ChoiceAnswer(BaseModel):
+    choice: str = Field(description="One of the question's `choices`.")
+    reasons: str = Field(
+        default="", max_length=500, description="A few plain words: why."
+    )
+
+
 class Answer(BaseModel):
     question_id: str
     j1: J1Answer | None = None
     j2: J2Answer | None = None
+    choice: ChoiceAnswer | None = Field(
+        default=None, description='For questions of kind "choice".'
+    )
     rationale: str = Field(min_length=1)
     decided_by: DecidedBy = DecidedBy.MODEL
 

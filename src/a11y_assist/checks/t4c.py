@@ -1117,6 +1117,9 @@ class Check4C:
         "try. One run takes up to about two minutes."
     )
 
+    def walk_extras(self) -> list:
+        return []
+
     async def collect(self, ctx: RunContext, walk: KeyboardWalk | None) -> State4C:
         assert walk is not None
         return await collect(ctx, walk)

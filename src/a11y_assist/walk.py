@@ -13,12 +13,13 @@ spec (section 2), which the other keyboard specs use by reference.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from pathlib import Path
 
 from pydantic import BaseModel
 
 from a11y_assist.models import PassResult
-from a11y_assist.traverse import NewPage, run_pass
+from a11y_assist.traverse import NewPage, StepHook, run_pass
 
 
 class KeyboardWalk(BaseModel):
@@ -36,13 +37,41 @@ class KeyboardWalk(BaseModel):
         return max(self.p1.inventory, self.p2.inventory)
 
 
+# A check's walk extras: called once per pass with the pass name ("P1" or
+# "P2") and P1's result when making P2's hooks (so P2 can top up only what P1
+# missed). Returns a fresh hook for that pass.
+ExtraFactory = Callable[[str, "PassResult | None"], StepHook]
+
+
 async def walk_page(
     new_page: NewPage,
     quiet_ms: int,
     deadline: float | None,
     shots: Path | None = None,
     rel: Path | None = None,
+    extras: list[ExtraFactory] | None = None,
 ) -> KeyboardWalk:
-    p1 = await run_pass("P1", new_page, "Tab", quiet_ms, deadline, shots, rel)
-    p2 = await run_pass("P2", new_page, "Shift+Tab", quiet_ms, deadline, shots, rel)
+    """P1 then P2. `extras` are the union of the selected checks' walk extras;
+    running 4.C alone passes none."""
+    extras = extras or []
+    p1 = await run_pass(
+        "P1",
+        new_page,
+        "Tab",
+        quiet_ms,
+        deadline,
+        shots,
+        rel,
+        hooks=[f("P1", None) for f in extras],
+    )
+    p2 = await run_pass(
+        "P2",
+        new_page,
+        "Shift+Tab",
+        quiet_ms,
+        deadline,
+        shots,
+        rel,
+        hooks=[f("P2", p1) for f in extras],
+    )
     return KeyboardWalk(p1=p1, p2=p2)
