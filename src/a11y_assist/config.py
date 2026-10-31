@@ -2,7 +2,8 @@
 
 Every field can be overridden by an environment variable of the same name,
 prefixed with nothing (e.g. `HEADLESS=true`, `DEV_MODE=true`). Copy
-`.env.example` to `.env` for local development.
+`.env.example` to `.env` in the repository root for local development; it is
+read from there whatever the working directory.
 """
 
 from __future__ import annotations
@@ -13,13 +14,17 @@ from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+# The server's own .env, wherever the client launches it from. Never the
+# working directory's: an MCP client may start the server in another project,
+# whose .env could change ALLOWED_DOMAINS or DEV_MODE.
+ENV_FILE = REPO_ROOT / ".env"
 
 
 class Settings(BaseSettings):
     """MCP server settings. Override any field via environment variables."""
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=ENV_FILE,
         env_file_encoding="utf-8",
         extra="ignore",
     )
