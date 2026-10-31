@@ -8,7 +8,8 @@ Two kinds of test per fixture:
   4.C rules are implemented (step 6); the expectation lives in EXPECTED so it
   cannot drift from the build-tasks table.
 
-F29 and F33 are not built yet: they wait on decisions about V10 and V9.
+F29 and F33 follow the V10 and V9 decisions (both PASS with a note). F35 was
+added to cover M4, which F10 cannot: a native modal lets Tab leave the page.
 """
 
 from __future__ import annotations
@@ -54,15 +55,19 @@ EXPECTED: dict[str, tuple[str, str]] = {
     "f26-element-removes-itself": ("PASS", ""),
     "f27-focus-drops-to-body-cycles": ("FAIL", ""),
     "f28-disclosure-reveals-loop": ("FAIL", ""),
+    "f29-infinite-feed": ("PASS", "note: feed growth not observed in replay"),
     "f30-whole-page-wrap": ("PASS", "note"),
     "f31-loop-exit-is-link": ("FAIL", ""),
     "f32-two-traps-injection": ("FAIL", "2 instances"),
+    "f33-negative-tabindex-iframe-loop": ("PASS", "coverage note for 4.A"),
     "f34-600-links": ("PASS", "within caps"),
+    "f35-aria-modal-escape-closes": ("PASS", "modal exception via M4"),
 }
 
 # Pages other fixtures load (iframe content, navigation targets).
 HELPERS = {
     "f18-frame-loop",
+    "f29-feed-page",
     "f20-player-frame-trap",
     "f21-player-frame-ok",
     "f31-other-page",
@@ -75,7 +80,7 @@ def test_every_fixture_file_is_listed_and_named_by_convention():
     for name in names:
         assert re.fullmatch(r"f\d{2}-[a-z0-9-]+", name), name
     # PASS or DNA rows keep the tool from scoring well by failing everything.
-    assert sum(o in ("PASS", "DNA") for o, _ in EXPECTED.values()) >= 15
+    assert sum(o in ("PASS", "DNA") for o, _ in EXPECTED.values()) >= 16
 
 
 @pytest.mark.skip(reason="4.C rules are not implemented yet (step 6)")
@@ -425,3 +430,61 @@ async def test_f34_600_links(open_fixture):
     assert await dom_inventory(page) == (600, 0)
     assert await keys(page, "Shift+Tab", 2) == ["d600", "d599"]
     assert (await active(page))["hasFocus"]
+
+
+async def test_f29_feed_grows_live_and_footer_is_reachable_backward(open_fixture):
+    page = await open_fixture("f29-infinite-feed")
+    start, _ = await dom_inventory(page)
+    seq = await keys(page, "Tab", start + 10, wait_ms=20)
+    await page.wait_for_timeout(300)
+    grown, _ = await dom_inventory(page)
+    assert grown > start  # live, Tab keeps loading more stories
+    assert "f1" not in seq
+    page = await open_fixture("f29-infinite-feed")
+    assert await keys(page, "Shift+Tab", 2) == ["f2", "f1"]
+
+
+async def test_f29_replay_cannot_grow_past_the_recording(
+    open_fixture, browser, server, tmp_path
+):
+    url = f"{server.base}/4c/f29-infinite-feed.html"
+    har = tmp_path / "f29.har.zip"
+    rec = await browser.new_context(record_har_path=str(har), record_har_mode="full")
+    page = await rec.new_page()
+    await page.goto(url)
+    await page.wait_for_load_state("networkidle")
+    recorded = await page.locator("article").count()
+    await rec.close()
+    ctx = await browser.new_context()
+    await ctx.route_from_har(str(har), not_found="abort")
+    page = await ctx.new_page()
+    await page.goto(url)
+    await page.wait_for_function(
+        f"document.querySelectorAll('article').length === {recorded}"
+    )
+    await page.mouse.wheel(0, 5000)
+    await page.wait_for_function("document.getElementById('feed').dataset.error")
+    assert await page.locator("article").count() == recorded
+    await ctx.close()
+
+
+async def test_f33_tab_skips_the_iframe_and_its_loop(open_fixture):
+    page = await open_fixture("f33-negative-tabindex-iframe-loop")
+    await page.frame_locator("#frame").locator("#b1").wait_for()
+    assert await keys(page, "Tab", 4) == ["before", "after", "OUT", "before"]
+    page = await open_fixture("f33-negative-tabindex-iframe-loop")
+    assert await keys(page, "Shift+Tab", 3) == ["after", "before", "OUT"]
+    # A mouse user can still click into the loop and be trapped there.
+    await page.frame_locator("#frame").locator("#b1").click()
+    assert await keys(page, "Tab", 3) == ["frame>b2", "frame>b1", "frame>b2"]
+
+
+async def test_f35_only_escape_closes_the_dialog(open_fixture):
+    page = await open_fixture("f35-aria-modal-escape-closes")
+    assert await keys(page, "Tab", 4) == ["details", "print", "details", "print"]
+    for key in ("Enter", "Space"):
+        await page.keyboard.press(key)
+        assert await page.is_visible("#dlg")
+    await page.keyboard.press("Escape")
+    assert await page.is_hidden("#dlg")
+    assert await keys(page, "Tab", 1) == ["behind2"]
