@@ -69,7 +69,9 @@ src/a11y_assist/
   browser.py    Chrome launch, fresh contexts, NavigationGuard
   capture.py    HAR record + replay
   andi.py       local ANDI injection
-  evidence.py   Tab / Shift+Tab focus walks (no outcome logic)
+  traverse.py   key passes, CDP focus reading, settle rule, inventory (no outcomes)
+  engine.py     shared first-match tables and page rows G1-G5
+  t4c.py        4.C rows from its spec (one module per TT test)
   judgment.py   Judge interface: ClientJudge, ApiJudge (stub)
   pipeline.py   run_tt_tests orchestration
   runlog.py     runs/<run_id>/ folder, steps.jsonl

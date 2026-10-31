@@ -1,7 +1,7 @@
 """Vendored W3C ACT test cases: integrity, serving, and expected 4.C outcomes.
 
-Expected outcomes come from manifest.json (never from the pages). The outcome
-test is skipped until the 4.C rules are implemented.
+Expected outcomes come from manifest.json (never from the pages). Outcome tests run
+for cases the implemented rows decide (DNA so far).
 """
 
 from __future__ import annotations
@@ -42,13 +42,14 @@ async def test_case_loads_with_every_asset(case_id, browser, act_server):
     assert failed == []
 
 
-@pytest.mark.skip(reason="4.C rules are not implemented yet")
 @pytest.mark.parametrize("case_id", sorted(CASES))
 async def test_case_outcome(case_id, settings, act_server):
     from a11y_assist.models import TestId
     from a11y_assist.pipeline import run_tt_tests
 
     case = CASES[case_id]
+    if case["expected"] != "DNA":
+        pytest.skip("4.C instance rules (M1-M14) are not implemented yet")
     out = await run_tt_tests(settings, f"{act_server}/{case['path']}", [TestId.T4C])
     [finding] = out["findings"]
     assert finding["outcome"] == case["expected"]

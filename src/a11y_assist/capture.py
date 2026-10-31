@@ -16,6 +16,7 @@ from playwright.async_api import Browser, BrowserContext
 from a11y_assist.andi import install_andi_routes
 from a11y_assist.browser import LogFn, NavigationGuard, new_context
 from a11y_assist.config import Settings
+from a11y_assist.traverse import INIT_JS
 
 
 @dataclass
@@ -38,13 +39,28 @@ async def record(
     try:
         page = await ctx.new_page()
         final_url = await guard.goto(page, url)
-        try:
-            await page.wait_for_load_state("networkidle", timeout=10_000)
-        except Exception:
-            log("capture_networkidle_timeout", "info")
+        await _idle(page, log, 10_000)
+        # Scroll to the bottom so content loaded on scroll is recorded (4.C spec
+        # section 2, Recording).
+        for i in range(settings.record_scroll_passes):
+            height = await page.evaluate("document.documentElement.scrollHeight")
+            await page.evaluate(
+                "window.scrollTo(0, document.documentElement.scrollHeight)"
+            )
+            await page.mouse.wheel(0, 400)
+            await _idle(page, log, 3_000)
+            grew = await page.evaluate("document.documentElement.scrollHeight") > height
+            log("capture_scroll", pass_=i + 1, page_grew=grew)
     finally:
         await ctx.close()  # writes the HAR
     return Capture(url, final_url, har_path, guard.redirects)
+
+
+async def _idle(page, log: LogFn, timeout_ms: int) -> None:
+    try:
+        await page.wait_for_load_state("networkidle", timeout=timeout_ms)
+    except Exception:
+        log("capture_networkidle_timeout", "info", timeout_ms=timeout_ms)
 
 
 @dataclass
@@ -63,6 +79,7 @@ async def replay_context(
 ) -> Replay:
     """A fresh context that answers only from the HAR (unknown URLs abort)."""
     ctx = await new_context(browser, settings)
+    await ctx.add_init_script(INIT_JS)  # focus and mutation log (settle rule)
     await ctx.route_from_har(str(har_path), not_found="abort")
     andi_aborted = None
     if with_andi:

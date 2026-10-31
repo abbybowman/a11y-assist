@@ -98,54 +98,70 @@ class BoundingBox(BaseModel):
     height: float
 
 
-class FocusStop(BaseModel):
-    """One element that held focus after a Tab or Shift+Tab press.
+class Stop(BaseModel):
+    """Where focus is after a key press.
 
-    `frame_path` lists the iframe chain from the top document, e.g.
-    ["iframe#login"] for an element inside that iframe; empty for the top frame.
+    kind "element": the deepest focused element, followed through frames and
+    open and closed shadow roots. "BODY": focus fell to the document body while
+    the page kept focus. "OUT": focus left the page for the browser UI.
     """
 
-    index: int = Field(description="0-based press number in this walk.")
-    key: str = Field(description='"Tab" or "Shift+Tab".')
-    selector: str | None
-    tag: str | None
-    role: str | None
-    accessible_name: str | None
-    tabindex: str | None = Field(description="Raw tabindex attribute, if any.")
-    bounding_box: BoundingBox | None
-    frame_path: list[str] = Field(default_factory=list)
-    url: str
-    screenshot: str | None = Field(description="Path relative to the run folder.")
-    is_body: bool = Field(description="Focus is on <body>/document, not an element.")
-    page_has_focus: bool = Field(
-        description="document.hasFocus() in the focused frame. False when focus "
-        "has left the page, e.g. to the browser UI after the last element."
+    kind: Literal["element", "BODY", "OUT"]
+    key: str = Field(
+        description="Identity within one page load: '<CDP frame ID>:<backend node "
+        "ID>', or 'BODY' / 'OUT'."
+    )
+    frame_chain: list[str] = Field(
+        default_factory=list, description="CSS paths of the iframes, top first."
+    )
+    css_path: str | None = None
+    tag: str | None = None
+    role: str | None = None
+    name: str | None = None
+    bounding_box: BoundingBox | None = None
+    in_viewport: bool | None = None
+    frame_url: str | None = None
+    unresolved: bool = False
+
+    @property
+    def path_key(self) -> str:
+        """Identity that survives a reload: frame chain plus CSS path."""
+        return " >> ".join([*self.frame_chain, self.css_path or self.kind])
+
+
+class Step(BaseModel):
+    n: int = Field(description="1-based press number within the pass.")
+    key: str
+    stop: Stop
+    top_url: str
+    top_has_focus: bool
+    open_pages: int
+    mutations: int = Field(description="DOM mutations since the previous step.")
+    focus_events: list[dict[str, Any]] = Field(default_factory=list)
+    screenshot: str | None = Field(default=None, description="Relative to the run.")
+    unsettled: bool = False
+    rerun: bool = Field(
+        default=False,
+        description="A focus change after the settle window was seen, so the step "
+        "was re-read with the 1,000 ms window.",
     )
 
 
-class FocusWalk(BaseModel):
-    direction: str = Field(description='"forward" (Tab) or "backward" (Shift+Tab).')
-    max_presses: int = Field(
-        description="Press cap for this walk: 3 x inventory_size + 50, at most "
-        "3,000 (4.C spec section 2)."
+class PassResult(BaseModel):
+    name: str = Field(description='e.g. "P1", "P2", "P3 #2 Escape+Tab".')
+    keys: list[str] = Field(default_factory=list, description="Prefix keys replayed.")
+    steps: list[Step] = Field(default_factory=list)
+    end: Literal["wrap", "stuck", "loop", "navigation", "cap", "error", "done"]
+    trap: list[str] = Field(
+        default_factory=list, description="Stop keys of the stuck element or loop."
     )
-    inventory_size: int = Field(
-        description="Tabbable candidates in the DOM inventory taken before the walk."
-    )
-    presses: int
-    stops: list[FocusStop]
-    stopped_because: str = Field(
-        description="Why the walk ended: cap, returned_to_start, "
-        "navigation, or error. Descriptive only; not an outcome."
-    )
+    cap: int
+    inventory: int
+    error: str | None = None
 
-
-class KeyboardEvidence(BaseModel):
-    target_url: str
-    final_url: str
-    har_path: str | None
-    forward: FocusWalk
-    backward: FocusWalk
+    @property
+    def complete(self) -> bool:
+        return self.end not in ("cap", "error")
 
 
 # ── Findings and open questions ──────────────────────────────────────────────
@@ -175,6 +191,9 @@ class Finding(BaseModel):
         "the rationale then gives the reason.",
     )
     decided_by: DecidedBy | None = None
+    rows: list[str] = Field(
+        default_factory=list, description="Spec rows that produced the outcome."
+    )
     confidence: float | None = Field(default=None, ge=0.0, le=1.0)
 
     @classmethod

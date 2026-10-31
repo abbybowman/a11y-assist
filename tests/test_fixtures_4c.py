@@ -4,9 +4,9 @@ Two kinds of test per fixture:
 
 * Behavior: the page does what its row says (where Tab goes, which key frees
   focus). These record facts and run now.
-* Outcome: run_tt_tests gives the row's expected 4.C outcome. Skipped until the
-  4.C rules are implemented (step 6); the expectation lives in EXPECTED so it
-  cannot drift from the build-tasks table.
+* Outcome: run_tt_tests gives the row's expected 4.C outcome. Runs for the
+  outcomes the implemented rows decide (DNA so far); the expectation lives in
+  EXPECTED, never in a page.
 
 F29 and F33 follow the V10 and V9 decisions (both PASS with a note). F35 was
 added to cover M4, which F10 cannot: a native modal lets Tab leave the page.
@@ -18,7 +18,7 @@ import re
 
 import pytest
 
-from a11y_assist.evidence import dom_inventory
+from a11y_assist.traverse import dom_inventory
 
 from .conftest import FIXTURES
 from .focus import active, deep_active
@@ -83,12 +83,13 @@ def test_every_fixture_file_is_listed_and_named_by_convention():
     assert sum(o in ("PASS", "DNA") for o, _ in EXPECTED.values()) >= 16
 
 
-@pytest.mark.skip(reason="4.C rules are not implemented yet (step 6)")
 @pytest.mark.parametrize("name", sorted(EXPECTED))
 async def test_fixture_outcome(name, settings, server, monkeypatch):
     from a11y_assist.models import TestId
     from a11y_assist.pipeline import run_tt_tests
 
+    if EXPECTED[name][0] != "DNA":
+        pytest.skip("4.C instance rules (M1-M14) are not implemented yet")
     out = await run_tt_tests(settings, f"{server.base}/4c/{name}.html", [TestId.T4C])
     [finding] = out["findings"]
     assert finding["outcome"] == EXPECTED[name][0]
@@ -149,7 +150,7 @@ async def test_f01_wraps_both_directions(open_fixture):
 @pytest.mark.parametrize("name", ["f02-text-only", "f03-clickable-div"])
 async def test_f02_f03_nothing_focusable(open_fixture, name):
     page = await open_fixture(name)
-    assert await dom_inventory(page) == (0, 0)
+    assert (await dom_inventory(page)).candidates == 0
     assert set(await keys(page, "Tab", 3)) <= {"OUT", "BODY"}
     assert set(await keys(page, "Shift+Tab", 3)) <= {"OUT", "BODY"}
 
@@ -427,17 +428,17 @@ async def test_f32_two_separate_traps(open_fixture):
 
 async def test_f34_600_links(open_fixture):
     page = await open_fixture("f34-600-links")
-    assert await dom_inventory(page) == (600, 0)
+    assert (await dom_inventory(page)).candidates == 600
     assert await keys(page, "Shift+Tab", 2) == ["d600", "d599"]
     assert (await active(page))["hasFocus"]
 
 
 async def test_f29_feed_grows_live_and_footer_is_reachable_backward(open_fixture):
     page = await open_fixture("f29-infinite-feed")
-    start, _ = await dom_inventory(page)
+    start = (await dom_inventory(page)).candidates
     seq = await keys(page, "Tab", start + 10, wait_ms=20)
     await page.wait_for_timeout(300)
-    grown, _ = await dom_inventory(page)
+    grown = (await dom_inventory(page)).candidates
     assert grown > start  # live, Tab keeps loading more stories
     assert "f1" not in seq
     page = await open_fixture("f29-infinite-feed")

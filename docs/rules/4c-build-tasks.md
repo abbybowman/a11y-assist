@@ -62,5 +62,5 @@ Each needs a small test in headed Chrome on Windows through Playwright before th
 | V11 | Whether Chrome consumes Escape (stop loading, exit fullscreen) before the page sees it | M3 |
 | V12 | Tab sent by Playwright moves focus the same way in headed Chrome as the plan's headless sandbox showed | All passes |
 | V13 | Arrow keys on a native select on Windows: change value without opening, and fire change events | P4 |
-| V14 | Recording focus and blur events with targets and times across frames and shadow roots, injected before page scripts run | Settle rule, F35 |
-| V15 | Whether script focus() pulls keyboard focus back from the browser UI (toolbar) in headed Chrome. Probed on Linux: it does (d2f5325f cycles both ways); needs a test | OUT detection, d2f5325f, 0ec0e93e |
+| V14 | Recording focus and blur events with targets and times across frames and shadow roots, injected before page scripts run. Top-frame log tested (`tests/test_traverse.py`); frames and shadow roots still to test | Settle rule, F35 |
+| V15 | Whether script focus() pulls keyboard focus back from the browser UI (toolbar) in headed Chrome. Linux test passes: it does, so d2f5325f cycles both ways | OUT detection, d2f5325f, 0ec0e93e |

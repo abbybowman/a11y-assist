@@ -1,20 +1,16 @@
-"""run_tt_tests orchestration: record, replay, walk, write report.
+"""run_tt_tests orchestration: record, replay, traverse, evaluate, report.
 
 1. Check the URL against the allowlist before launching anything.
 2. Record the page live to evidence/page.har.zip (allowlist enforced on every
    top-level navigation and redirect hop).
-3. Replay the HAR in a fresh context and run the Tab walk, then the Shift+Tab
-   walk, each on a freshly loaded page. Each walk's press cap comes from the
-   DOM inventory of that load (4.C spec section 2).
-4. Write evidence/keyboard.json and report.json.
+3. Replay the HAR: pass P1 (Tab) and P2 (Shift+Tab), each from a fresh load,
+   with the press cap from that load's DOM inventory (4.C spec section 2).
+4. Evaluate each selected test with its rules module; write
+   evidence/passes.json and report.json.
 
-No rules are implemented yet. The PDF allows NOT TESTED only where a test names
-it (p. 6), so no test is reported NOT_TESTED:
-- 4.C follows its spec's G3: NEEDS_REVIEW, note "This test could not be
-  performed", and the reason.
-- 4.A, 4.B, 4.D, 4.E and 4.F have no rules spec yet. They are reported not run
-  with the same note and reason (project decision, not spec logic).
-No open questions are generated yet.
+4.C is evaluated by t4c.py (applicability so far). 4.A, 4.B, 4.D, 4.E and 4.F
+have no rules spec yet: NEEDS_REVIEW with the note "This test could not be
+performed" (never NOT_TESTED; PDF p. 6). No open questions are generated yet.
 """
 
 from __future__ import annotations
@@ -23,17 +19,16 @@ from typing import Any
 
 from playwright.async_api import async_playwright
 
+from a11y_assist import t4c
 from a11y_assist.browser import NavigationBlocked, launch_browser
 from a11y_assist.capture import record, replay_context
 from a11y_assist.config import Settings
-from a11y_assist.evidence import dom_inventory, focus_walk, tab_press_cap
 from a11y_assist.judgment import get_judge
 from a11y_assist.models import (
     DecidedBy,
     Finding,
-    FocusWalk,
-    KeyboardEvidence,
     OpenQuestion,
+    PassResult,
     Report,
     TestId,
     utcnow,
@@ -41,6 +36,7 @@ from a11y_assist.models import (
 from a11y_assist.policy import check_url
 from a11y_assist.rules import load_specs
 from a11y_assist.runlog import RunRecorder
+from a11y_assist.traverse import run_pass
 from a11y_assist.versions import collect_versions
 
 UNTRUSTED_NOTICE = (
@@ -83,16 +79,20 @@ def _finding_view(f: Finding) -> dict[str, Any]:
         "outcome": f.outcome.value,
         "note": f.note,
         "rationale": f.rationale,
+        "rows": f.rows,
     }
 
 
-def _walk_summary(walk: FocusWalk) -> dict[str, Any]:
-    distinct = {(s.selector, tuple(s.frame_path), s.is_body) for s in walk.stops}
+def _pass_summary(p: PassResult) -> dict[str, Any]:
     return {
-        "presses": walk.presses,
-        "stops": len(walk.stops),
-        "distinct_stops": len(distinct),
-        "stopped_because": walk.stopped_because,
+        "presses": len(p.steps),
+        "stops": sum(s.stop.kind == "element" for s in p.steps),
+        "distinct_stops": len(
+            {s.stop.key for s in p.steps if s.stop.kind == "element"}
+        ),
+        "end": p.end,
+        "cap": p.cap,
+        "inventory": p.inventory,
     }
 
 
@@ -162,31 +162,23 @@ async def run_tt_tests(
                 redirects=cap.redirects,
             )
 
-            walks = {}
-            for forward in (True, False):
+            async def new_page():
                 replay = await replay_context(browser, settings, har, run.log)
-                try:
-                    page = await replay.context.new_page()
-                    await replay.guard.goto(page, cap.final_url)
-                    name = "forward" if forward else "backward"
-                    inventory, unreachable = await dom_inventory(page)
-                    run.log(
-                        "dom_inventory",
-                        direction=name,
-                        candidates=inventory,
-                        unreachable_frames=unreachable,
-                    )
-                    walks[name] = await focus_walk(
-                        page,
-                        forward,
-                        tab_press_cap(inventory),
-                        inventory,
-                        run.evidence_dir / name,
-                        run.dir,
-                        run.log,
-                    )
-                finally:
-                    await replay.context.close()
+                page = await replay.context.new_page()
+                await replay.guard.goto(page, cap.final_url)
+                return replay.context, page
+
+            passes = {}
+            for name, key in (("P1", "Tab"), ("P2", "Shift+Tab")):
+                passes[name] = await run_pass(
+                    name,
+                    new_page,
+                    key,
+                    settings.focus_stable_ms,
+                    shots_dir=run.evidence_dir / "shots",
+                    rel_base=run.dir,
+                )
+                run.log("pass", name=name, **_pass_summary(passes[name]))
         except NavigationBlocked as exc:
             report.errors.append(str(exc))
             return finish({})
@@ -197,16 +189,17 @@ async def run_tt_tests(
         finally:
             await browser.close()
 
-    evidence = KeyboardEvidence(
-        target_url=url,
-        final_url=cap.final_url,
-        har_path=run.rel(har),
-        forward=walks["forward"],
-        backward=walks["backward"],
+    evidence_path = run.write_json(
+        run.evidence_dir / "passes.json",
+        {name: p.model_dump(mode="json") for name, p in passes.items()},
     )
-    evidence_path = run.write_json(run.evidence_dir / "keyboard.json", evidence)
-
-    report.findings = _not_performed(settings, selected, None, [run.rel(evidence_path)])
+    refs = [run.rel(evidence_path)]
+    report.findings = [
+        t4c.evaluate(t4c.Evidence4C(passes["P1"], passes["P2"]), refs)
+        if t is TestId.T4C
+        else _not_performed(settings, [t], None, refs)[0]
+        for t in selected
+    ]
     questions: list[OpenQuestion] = []  # created by the rules spec, later
     result = await get_judge(settings.judge_backend).judge(questions)
     report.open_questions = result.pending
@@ -215,9 +208,8 @@ async def run_tt_tests(
         {
             "final_url": cap.final_url,
             "redirects": cap.redirects,
-            "keyboard_evidence": str(evidence_path),
-            "forward": _walk_summary(evidence.forward),
-            "backward": _walk_summary(evidence.backward),
+            "evidence": str(evidence_path),
+            "passes": {n: _pass_summary(p) for n, p in passes.items()},
             "open_questions": [_question_view(q) for q in report.open_questions],
         }
     )
