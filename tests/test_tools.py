@@ -147,11 +147,12 @@ def _seed_run_with_question(settings) -> tuple[str, str]:
 
     q = OpenQuestion(
         question_id="q1",
-        test_id=TestId.T4D,
-        question="Is a focus indicator visible in the screenshot?",
+        test_id=TestId.T4C,
+        kind="J1",
+        instance="i1",
+        question="Does this text document an exit key?",
         rubric="test rubric",
-        allowed_outcomes=[Outcome.FAIL, Outcome.NEEDS_REVIEW],
-        evidence_paths=[str(run.evidence_dir / "x.png")],
+        input={"text": []},
     )
     report = Report(
         run_id=run.run_id,
@@ -165,34 +166,57 @@ def _seed_run_with_question(settings) -> tuple[str, str]:
     return run.run_id, str(run.report_path)
 
 
-async def test_answer_questions_records_valid_and_rejects_invalid(settings):
+async def test_answer_questions_records_samples_and_rejects_invalid(settings):
     run_id, report_path = _seed_run_with_question(settings)
-    answer = {"question_id": "q1", "rationale": "r", "confidence": 0.4}
+    j1 = {"documented": "no"}
     out = await _call(
         "answer_questions",
         {
             "run_id": run_id,
             "answers": [
-                {**answer, "outcome": "PASS"},  # not allowed for this question
-                {**answer, "question_id": "nope", "outcome": "FAIL"},
+                {
+                    "question_id": "q1",
+                    "sample": 1,
+                    "rationale": "r",
+                    "j2": {"gate": "no"},
+                },  # wrong answer type for a J1 question
+                {"question_id": "nope", "sample": 1, "rationale": "r", "j1": j1},
+                {"question_id": "q1", "sample": 1, "rationale": "r", "j1": j1},
+                {
+                    "question_id": "q1",
+                    "sample": 1,
+                    "rationale": "r",
+                    "j1": j1,
+                },  # repeat
             ],
         },
     )
-    assert out["accepted"] == [] and len(out["rejected"]) == 2
-    assert out["still_open"] == ["q1"]
+    assert out["accepted"] == ["q1#1"] and len(out["rejected"]) == 3
+    assert out["still_open"] == ["q1"]  # needs 3 samples
 
     out = await _call(
         "answer_questions",
-        {"run_id": run_id, "answers": [{**answer, "outcome": "NEEDS_REVIEW"}]},
+        {
+            "run_id": run_id,
+            "answers": [
+                {"question_id": "q1", "sample": n, "rationale": "r", "j1": j1}
+                for n in (2, 3)
+            ],
+        },
     )
-    assert out["accepted"] == ["q1"] and out["still_open"] == []
+    assert out["accepted"] == ["q1#2", "q1#3"] and out["still_open"] == []
     report = Report.model_validate_json(Path(report_path).read_text())
-    assert report.answers[0].answer.outcome is Outcome.NEEDS_REVIEW
+    assert [a.answer.j1.documented for a in report.answers] == ["no"] * 3
     assert report.answers[0].answer.decided_by.value == "model"
     assert report.findings == []  # recording an answer never sets an outcome
 
 
-_ANSWER = {"question_id": "q", "outcome": "FAIL", "rationale": "r", "confidence": 1}
+_ANSWER = {
+    "question_id": "q",
+    "sample": 1,
+    "rationale": "r",
+    "j1": {"documented": "no"},
+}
 
 
 async def test_answer_questions_rejects_path_like_run_id_by_schema(settings):

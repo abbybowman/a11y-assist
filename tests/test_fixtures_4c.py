@@ -22,46 +22,66 @@ from a11y_assist.traverse import dom_inventory
 
 from .conftest import FIXTURES
 from .focus import active, deep_active
+from .harness_4c import instance_rows, run_4c
 
 FIX = FIXTURES / "4c"
 
-# Fixture -> (expected 4.C outcome, extra expectation from the row, if any).
-EXPECTED: dict[str, tuple[str, str]] = {
-    "f01-paragraphs-links": ("PASS", ""),
-    "f02-text-only": ("DNA", ""),
-    "f03-clickable-div": ("DNA", ""),
-    "f04-field-swallows-tab": ("FAIL", ""),
-    "f05-field-swallows-tab-only": ("PASS", "4.F log"),
-    "f06-script-loop": ("FAIL", ""),
-    "f07-documented-exit-key": ("PASS", ""),
-    "f08-documented-key-broken": ("FAIL", ""),
-    "f09-key-in-comment-only": ("FAIL", ""),
-    "f10-native-dialog": ("PASS", ""),
-    "f11-aria-modal-close-button": ("PASS", ""),
-    "f12-aria-modal-div-close": ("FAIL", ""),
-    "f13-cookie-banner": ("PASS", ""),
-    "f14-zip-gate": ("PASS", ""),
-    "f15-account-number-gate": ("NEEDS_REVIEW", ""),
-    "f16-textarea-tab-escape": ("PASS", ""),
-    "f17-editor-captures-tab-escape": ("FAIL", ""),
-    "f18-same-origin-iframe-loop": ("FAIL", ""),
-    "f19-cross-origin-iframe-loop": ("FAIL", ""),
-    "f20-cross-origin-player-trap": ("FAIL", ""),
-    "f21-cross-origin-player-ok": ("PASS", ""),
-    "f22-menubar-roving": ("PASS", ""),
-    "f23-grid-captures-tab": ("FAIL", ""),
-    "f24-open-shadow-loop": ("FAIL", ""),
-    "f25-closed-shadow-loop": ("FAIL", "NEEDS_REVIEW only if V6 fails"),
-    "f26-element-removes-itself": ("PASS", ""),
-    "f27-focus-drops-to-body-cycles": ("FAIL", ""),
-    "f28-disclosure-reveals-loop": ("FAIL", ""),
-    "f29-infinite-feed": ("PASS", "note: feed growth not observed in replay"),
-    "f30-whole-page-wrap": ("PASS", "note"),
-    "f31-loop-exit-is-link": ("FAIL", ""),
-    "f32-two-traps-injection": ("FAIL", "2 instances"),
-    "f33-negative-tabindex-iframe-loop": ("PASS", "coverage note for 4.A"),
-    "f34-600-links": ("PASS", "within caps"),
-    "f35-aria-modal-escape-closes": ("PASS", "modal exception via M4"),
+# Fixture -> expected 4.C outcome, the instance rows it should go through (row
+# trace, custom fixtures only) and the answers a correct judge gives (J1
+# defaults to "no documented key"). Expectations live here, never in a page.
+J1_ALTX = {
+    "documented": "yes",
+    "keys": ["Ctrl+Alt+X"],
+    "quote": "press Ctrl+Alt+X to leave the loop links",
+}
+EXPECTED: dict[str, dict] = {
+    "f01-paragraphs-links": {"outcome": "PASS", "rows": []},
+    "f02-text-only": {"outcome": "DNA", "rows": []},
+    "f03-clickable-div": {"outcome": "DNA", "rows": []},
+    "f04-field-swallows-tab": {"outcome": "FAIL", "rows": ["M12"]},
+    "f05-field-swallows-tab-only": {"outcome": "PASS", "rows": ["M2"], "note": "4.F"},
+    "f06-script-loop": {"outcome": "FAIL", "rows": ["M14"]},
+    "f07-documented-exit-key": {"outcome": "PASS", "rows": ["M6"], "j1": J1_ALTX},
+    "f08-documented-key-broken": {"outcome": "FAIL", "rows": ["M14"], "j1": J1_ALTX},
+    "f09-key-in-comment-only": {"outcome": "FAIL", "rows": ["M14"]},
+    "f10-native-dialog": {"outcome": "PASS", "rows": []},
+    "f11-aria-modal-close-button": {"outcome": "PASS", "rows": ["M4"]},
+    "f12-aria-modal-div-close": {"outcome": "FAIL", "rows": ["M14"]},
+    "f13-cookie-banner": {"outcome": "PASS", "rows": ["M4"]},
+    "f14-zip-gate": {
+        "outcome": "PASS",
+        "rows": ["M8"],
+        "j2": {"gate": "yes", "fields": [{"locator": "m1", "value": "12345"}]},
+    },
+    "f15-account-number-gate": {
+        "outcome": "NEEDS_REVIEW",
+        "rows": ["M9"],
+        "j2": {"gate": "yes", "fields": []},
+    },
+    "f16-textarea-tab-escape": {"outcome": "PASS", "rows": ["M2"]},
+    "f17-editor-captures-tab-escape": {"outcome": "FAIL", "rows": ["M12"]},
+    "f18-same-origin-iframe-loop": {"outcome": "FAIL", "rows": ["M14"]},
+    "f19-cross-origin-iframe-loop": {"outcome": "FAIL", "rows": ["M14"]},
+    "f20-cross-origin-player-trap": {"outcome": "FAIL", "rows": ["M14"]},
+    "f21-cross-origin-player-ok": {"outcome": "PASS", "rows": []},
+    "f22-menubar-roving": {"outcome": "PASS", "rows": []},
+    "f23-grid-captures-tab": {"outcome": "FAIL", "rows": ["M14"]},
+    "f24-open-shadow-loop": {"outcome": "FAIL", "rows": ["M14"]},
+    "f25-closed-shadow-loop": {"outcome": "FAIL", "rows": ["M14"]},
+    "f26-element-removes-itself": {"outcome": "PASS", "rows": []},
+    "f27-focus-drops-to-body-cycles": {"outcome": "FAIL", "rows": ["M14"]},
+    "f28-disclosure-reveals-loop": {"outcome": "FAIL", "rows": ["M14"]},
+    "f29-infinite-feed": {"outcome": "PASS", "rows": [], "note": "Feed growth"},
+    "f30-whole-page-wrap": {"outcome": "PASS", "rows": ["M11"], "note": "whole-page"},
+    "f31-loop-exit-is-link": {"outcome": "FAIL", "rows": ["M14"]},
+    "f32-two-traps-injection": {"outcome": "FAIL", "rows": ["M14", "M14"]},
+    "f33-negative-tabindex-iframe-loop": {
+        "outcome": "PASS",
+        "rows": [],
+        "note": "cannot reach",
+    },
+    "f34-600-links": {"outcome": "PASS", "rows": [], "slow": True},
+    "f35-aria-modal-escape-closes": {"outcome": "PASS", "rows": ["M3"]},
 }
 
 # Pages other fixtures load (iframe content, navigation targets).
@@ -80,19 +100,27 @@ def test_every_fixture_file_is_listed_and_named_by_convention():
     for name in names:
         assert re.fullmatch(r"f\d{2}-[a-z0-9-]+", name), name
     # PASS or DNA rows keep the tool from scoring well by failing everything.
-    assert sum(o in ("PASS", "DNA") for o, _ in EXPECTED.values()) >= 16
+    assert sum(e["outcome"] in ("PASS", "DNA") for e in EXPECTED.values()) >= 16
 
 
-@pytest.mark.parametrize("name", sorted(EXPECTED))
-async def test_fixture_outcome(name, settings, server, monkeypatch):
-    from a11y_assist.models import TestId
-    from a11y_assist.pipeline import run_tt_tests
-
-    if EXPECTED[name][0] != "DNA":
-        pytest.skip("4.C instance rules (M1-M14) are not implemented yet")
-    out = await run_tt_tests(settings, f"{server.base}/4c/{name}.html", [TestId.T4C])
-    [finding] = out["findings"]
-    assert finding["outcome"] == EXPECTED[name][0]
+@pytest.mark.parametrize(
+    "name",
+    [
+        pytest.param(n, marks=pytest.mark.slow) if e.get("slow") else n
+        for n, e in sorted(EXPECTED.items())
+    ],
+)
+async def test_fixture_outcome(name, settings, server):
+    e = EXPECTED[name]
+    got = await run_4c(
+        settings, f"{server.base}/4c/{name}.html", e.get("j1"), e.get("j2")
+    )
+    f = got["finding"]
+    assert (f.outcome.value, instance_rows(f)) == (e["outcome"], sorted(e["rows"])), (
+        f.rationale
+    )
+    if e.get("note"):
+        assert e["note"] in f.rationale
 
 
 # ── Behavior ─────────────────────────────────────────────────────────────────

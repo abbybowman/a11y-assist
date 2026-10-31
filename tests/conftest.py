@@ -138,3 +138,16 @@ def act_server():
     yield f"http://127.0.0.1:{httpd.server_address[1]}"
     httpd.shutdown()
     httpd.server_close()
+
+
+def pytest_sessionstart(session):
+    from .scoring import RESULTS_FILE
+
+    RESULTS_FILE.unlink(missing_ok=True)
+
+
+def pytest_terminal_summary(terminalreporter):
+    from .scoring import report_lines
+
+    for line in report_lines():
+        terminalreporter.write_line(line)

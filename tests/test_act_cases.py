@@ -12,6 +12,8 @@ import json
 import pytest
 
 from .conftest import ACT_ROOT
+from .harness_4c import run_4c
+from .scoring import write_score
 
 MANIFEST = json.loads((ACT_ROOT / "manifest.json").read_text())
 CASES = {c["id"]: c for c in MANIFEST["cases"]}
@@ -42,14 +44,24 @@ async def test_case_loads_with_every_asset(case_id, browser, act_server):
     assert failed == []
 
 
-@pytest.mark.parametrize("case_id", sorted(CASES))
-async def test_case_outcome(case_id, settings, act_server):
-    from a11y_assist.models import TestId
-    from a11y_assist.pipeline import run_tt_tests
+CTRL_M = {"documented": "yes", "keys": ["Ctrl+M"], "quote": "Press Ctrl+M to Exit"}
+# What a correct judge answers on each case (test data; J1 defaults to "no").
+ANSWERS = {
+    "ab24c77e": CTRL_M,
+    "e3902f01": CTRL_M,
+    "b92b5214": CTRL_M,
+    "62fd24e7": CTRL_M,
+}
 
+RESULTS: dict[str, str] = {}
+
+
+@pytest.mark.parametrize("case_id", sorted(CASES))
+async def test_case_outcome(case_id, settings, act_server, record_property):
     case = CASES[case_id]
-    if case["expected"] != "DNA":
-        pytest.skip("4.C instance rules (M1-M14) are not implemented yet")
-    out = await run_tt_tests(settings, f"{act_server}/{case['path']}", [TestId.T4C])
-    [finding] = out["findings"]
-    assert finding["outcome"] == case["expected"]
+    got = await run_4c(settings, f"{act_server}/{case['path']}", ANSWERS.get(case_id))
+    outcome = got["finding"].outcome.value
+    RESULTS[case_id] = outcome
+    record_property("act_outcome", outcome)
+    write_score(case_id, outcome, got["finding"].rows)
+    assert outcome == case["expected"], got["finding"].rationale

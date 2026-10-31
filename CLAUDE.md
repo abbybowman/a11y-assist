@@ -85,6 +85,8 @@ docs/sources/   TT 5.1.3 PDF (the authority), SHA-256 in its README
 third_party/    ANDI 29.2.2, jQuery 3.7.1, PROVENANCE.json
 tests/fixtures/ no_trap.html (general evidence); 4c/fNN-short-name.html (custom 4.C
                 fixtures); act/ (vendored W3C ACT cases, manifest.json, sync_act.py)
+tests/harness_4c.py  end-to-end 4.C runs with scripted judge answers (test data)
+tests/scoring.py     DHS / ACT agreement printed after every test run
 runs/           output (git-ignored)
 ```
 
@@ -93,6 +95,7 @@ runs/           output (git-ignored)
 ```bash
 uv sync --group dev
 uv run pytest                    # Playwright Chromium, headless
+uv run pytest -m slow            # long fixtures (F34, ~10 min)
 TEST_BROWSER_CHANNEL=chrome TEST_HEADED=1 uv run pytest   # installed Chrome, visible
 uv run ruff check . && uv run ruff format --check .
 uv run a11y-assist               # stdio MCP server
