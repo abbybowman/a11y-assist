@@ -11,7 +11,12 @@ from pathlib import Path
 import pytest
 
 from a11y_assist.browser import NavigationGuard, new_context
-from a11y_assist.evidence import focus_walk, parse_aria_line
+from a11y_assist.evidence import (
+    dom_inventory,
+    focus_walk,
+    parse_aria_line,
+    tab_press_cap,
+)
 
 from .conftest import FIXTURES, noop_log
 
@@ -22,7 +27,7 @@ async def _walk(browser, settings, fixture: str, forward: bool, tmp_path: Path, 
     await guard.install(ctx)
     page = await ctx.new_page()
     await guard.goto(page, (FIXTURES / fixture).as_uri())
-    walk = await focus_walk(page, forward, n, tmp_path / "shots", tmp_path, noop_log)
+    walk = await focus_walk(page, forward, n, 0, tmp_path / "shots", tmp_path, noop_log)
     await ctx.close()
     return walk
 
@@ -92,7 +97,7 @@ async def test_walk_on_simple_trap_records_repeated_stops(
 ):
     walk = await _walk(browser, settings, "simple_trap.html", forward, tmp_path, 8)
     assert walk.presses == 8
-    assert walk.stopped_because == "max_presses"
+    assert walk.stopped_because == "cap"
     ids = _ids(walk)
     first_trap = ids.index("#trap")
     assert set(ids[first_trap:]) == {"#trap"}
@@ -113,7 +118,35 @@ async def test_walk_on_modal_dialog_stays_in_dialog_or_leaves_page(
 async def test_max_presses_is_respected(browser, settings, tmp_path):
     walk = await _walk(browser, settings, "no_trap.html", True, tmp_path, 3)
     assert walk.presses == 3 and len(walk.stops) == 3
-    assert walk.stopped_because == "max_presses"
+    assert walk.stopped_because == "cap"
+
+
+@pytest.mark.parametrize(
+    ("inventory", "cap"), [(0, 50), (1, 53), (8, 74), (983, 2999), (984, 3000)]
+)
+def test_tab_press_cap_follows_spec(inventory, cap):
+    # 4.C spec section 2: 3 x inventory + 50 presses, max 3,000.
+    assert tab_press_cap(inventory) == cap
+    assert tab_press_cap(10_000) == 3000
+
+
+async def test_dom_inventory_counts_frames_and_open_shadow_roots(browser, settings):
+    ctx = await new_context(browser, settings)
+    guard = NavigationGuard(settings, live=False, log=noop_log)
+    await guard.install(ctx)
+    page = await ctx.new_page()
+    await guard.goto(page, (FIXTURES / "no_trap.html").as_uri())
+    # Top: first-link, btn, email, custom, iframe, shadow-btn, last-link.
+    # Inner frame: inner-btn. Not counted: span tabindex=-1, the <p>.
+    assert await dom_inventory(page) == (8, 0)
+    await page.set_content(
+        "<button disabled>d</button><button hidden>h</button>"
+        "<div inert><a href='#'>i</a></div><span tabindex='-1'>n</span>"
+        "<input type='hidden'><div style='display:none'><button>x</button></div>"
+        "<details><summary>s</summary></details><div tabindex='0'>t</div>"
+    )
+    assert await dom_inventory(page) == (2, 0)  # summary and tabindex=0 div
+    await ctx.close()
 
 
 @pytest.mark.parametrize(

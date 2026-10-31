@@ -67,6 +67,75 @@ _DESCRIBE_JS = """(el) => {
 
 MAX_FRAME_DEPTH = 10
 
+# Tab press cap per pass, from the 4.C spec (section 2, P1): 3 x inventory + 50,
+# at most 3,000.
+CAP_PER_CANDIDATE = 3
+CAP_BASE = 50
+CAP_MAX = 3000
+
+# Tabbable candidates in one frame's document and its open shadow roots: every
+# element that is natively focusable or has tabindex >= 0, not disabled, not
+# inert and rendered (4.C spec section 2, Setup). Used for the press cap, DNA
+# cross-checks and coverage notes only; it never decides an outcome.
+_INVENTORY_JS = """() => {
+  const NATIVE = 'a[href], area[href], button, input:not([type="hidden"]), ' +
+    'select, textarea, iframe, frame, summary, audio[controls], ' +
+    'video[controls], [contenteditable]:not([contenteditable="false"])';
+  const inert = (el) => {
+    for (let n = el; n; ) {
+      if (n.nodeType === 1 && n.hasAttribute('inert')) return true;
+      n = n.parentNode || (n.host ? n.host : null);
+    }
+    return false;
+  };
+  const rendered = (el) => el.checkVisibility
+    ? el.checkVisibility({ visibilityProperty: true })
+    : el.getClientRects().length > 0;
+  const candidate = (el) => {
+    const ti = el.getAttribute('tabindex');
+    if (ti !== null && ti.trim() !== '' && !isNaN(ti) && parseInt(ti, 10) < 0) {
+      return false;
+    }
+    const focusable = el.matches(NATIVE) ||
+      (ti !== null && ti.trim() !== '' && !isNaN(ti));
+    if (!focusable) return false;
+    if (el.tagName === 'SUMMARY' &&
+        !(el.parentElement && el.parentElement.tagName === 'DETAILS' &&
+          el.parentElement.querySelector(':scope > summary') === el)) {
+      return false;
+    }
+    return !el.matches(':disabled') && !inert(el) && rendered(el);
+  };
+  let count = 0;
+  const walk = (root) => {
+    for (const el of root.querySelectorAll('*')) {
+      if (candidate(el)) count += 1;
+      if (el.shadowRoot) walk(el.shadowRoot);
+    }
+  };
+  walk(document);
+  return count;
+}"""
+
+
+def tab_press_cap(inventory_size: int) -> int:
+    return min(CAP_PER_CANDIDATE * inventory_size + CAP_BASE, CAP_MAX)
+
+
+async def dom_inventory(page: Page) -> tuple[int, int]:
+    """Count tabbable candidates in every frame Playwright can reach.
+
+    Returns (candidates, unreachable frames). Closed shadow roots cannot be
+    read from page script and are not counted.
+    """
+    count, unreachable = 0, 0
+    for frame in page.frames:
+        try:
+            count += await frame.evaluate(_INVENTORY_JS)
+        except Exception:
+            unreachable += 1
+    return count, unreachable
+
 
 def parse_aria_line(snapshot: str) -> tuple[str | None, str | None]:
     """Role and name from the first line of a Playwright ARIA snapshot,
@@ -151,12 +220,15 @@ async def focus_walk(
     page: Page,
     forward: bool,
     max_presses: int,
+    inventory_size: int,
     out_dir: Path,
     rel_base: Path,
     log: LogFn,
     settle_ms: int = 50,
 ) -> FocusWalk:
     """Press Tab (or Shift+Tab) up to max_presses times, recording each stop.
+
+    The caller sets max_presses; the pipeline uses tab_press_cap().
 
     Ends early when focus returns to the first recorded stop (one full cycle)
     or the top-level page navigates. Either way it is evidence, not a verdict.
@@ -171,7 +243,7 @@ async def focus_walk(
     )
 
     stops: list[FocusStop] = []
-    stopped_because = "max_presses"
+    stopped_because = "cap"
     presses = 0
     for i in range(max_presses):
         try:
@@ -216,6 +288,7 @@ async def focus_walk(
     return FocusWalk(
         direction=direction,
         max_presses=max_presses,
+        inventory_size=inventory_size,
         presses=presses,
         stops=stops,
         stopped_because=stopped_because,

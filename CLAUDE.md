@@ -14,8 +14,11 @@ by TT test ID. Package: `a11y_assist` (name is provisional).
    decision may be coded anywhere else: not in evidence collection, the judge
    plumbing, the tools or the tests. Specs live in `docs/rules/`, one file per
    TT test (`<id>-<short-name>.md`, e.g. `4c-no-keyboard-trap.md`); each
-   spec's `spec_version` front matter is recorded in every report. Until a
-   test's spec is implemented, it is reported `NOT_TESTED`. Answers to open
+   spec's `spec_version` front matter is recorded in every report. Never
+   report `NOT_TESTED` unless the test's TT text names it (PDF p. 6). A test
+   the tool cannot perform, or has no implemented spec for, is `NEEDS_REVIEW`
+   with the note "This test could not be performed" and the reason
+   (`Finding.not_performed`). Answers to open
    questions are recorded, never turned into outcomes outside the spec.
 3. **A false PASS is the worst error.** When a rule cannot decide, the outcome
    is `NEEDS_REVIEW` (the `Finding` default). Never default to PASS, never infer
