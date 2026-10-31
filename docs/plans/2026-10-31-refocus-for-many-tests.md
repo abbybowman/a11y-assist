@@ -7,7 +7,7 @@ Status: **approved by Abby 2026-10-31, with the changes in "Decisions" below. In
 - Done: MCP-1, MCP-2, MCP-3, MCP-4 (resources, expiry), MCP-5 (progress plus the 120 s limit), MCP-6, MCP-7 (page text once per result), MCP-8 (one answer, human override).
 - Done (Phase 2): shared walk (`walk.py`), `checks/` registry with the "add a check" steps, generic pipeline and resume, typed results, plain-language summaries guarded by a test, `docs/solutions/`.
 - Done: the TT PDF as data (Abby's call: convert once instead of parsing at run time). `docs/sources/tt-5.1.3/` holds the whole document as Markdown plus `tt.json` (63 conditions), verified word for word against the PDF; `TestId` now covers all 61 active tests; served as `tt://` resources. The conversion script was dropped after use (the PDF changes rarely; updates by hand from its change log). `explain` prompt, before or after a run, built on `explain.py` so failure reports can reuse it (part of MCP-10).
-- In parallel (other thread): 4.D spec, briefed by `2026-10-31-4d-rewrite-brief.md`.
+- Done: 4.D, 4.E and 4.F specs drafted, reviewed and decided (decisions live in the specs).
 - Next: 4.E and 4.F specs for approval; the "Test a page" prompt and agent evals (MCP-10, MCP-11); Phase 4 scanners; `read_report` (agency ACR/SCRT input).
 Branch: `ccr-9bc8f27b-l7ncp0` (same commit as `claude/wizardly-hawking-19pgnu`, 26d5d69).
 

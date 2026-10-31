@@ -13,6 +13,16 @@ File names: docs/rules/<id>-<short-name>.md, where <short-name> is the TT test
 name without its WCAG number (4c-no-keyboard-trap). Companion file:
 docs/rules/<id>-build-tasks.md with the Fixtures and Verify tables.
 
+Versions (spec_version):
+- 0.y.z: draft. Bump y on each revision. A draft gives no outcome.
+- 1.0.0: approved by Abby, its check registered, its fixtures passing.
+- After 1.0.0: MINOR for any change to rules or evidence that can change an
+  outcome (needs approval); PATCH for wording, citations or plain-language
+  sentences only; MAJOR only for a new TT version.
+
+Decisions go into the rule they decide, not into a log. Delete plans, briefs
+and approval sheets once their decisions are in the specs.
+
 Rules for every spec:
 - The PDF is the authority. Cite printed page + step for every rule
   (p. 21 HtT 2.b; ER 1.a). PDF page index = printed page + 3.
