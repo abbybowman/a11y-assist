@@ -54,6 +54,10 @@ by TT test ID. Package: `a11y_assist` (name is provisional).
   read as certification). Say "open questions" to users, not "judgments". Tool inputs are Pydantic-validated with precise
   descriptions.
 - Test runs analyze a HAR replay, never the live page, so runs are repeatable.
+- Fixtures: use a vendored W3C ACT test case when one covers the rule; write a
+  custom page only for a gap. Never edit an ACT page. Expected outcomes live in
+  `tests/fixtures/act/manifest.json` or the test files, never in a page (pages
+  are evidence an agent may read). Tests never fetch from the network.
 
 ## Layout
 
@@ -75,8 +79,10 @@ src/a11y_assist/
   tools/        one MCP tool per file
 docs/rules/     rules specs (one per TT test), <id>-build-tasks.md checklists,
                 _template.md (start new specs from it)
+docs/sources/   TT 5.1.3 PDF (the authority), SHA-256 in its README
 third_party/    ANDI 29.2.2, jQuery 3.7.1, PROVENANCE.json
-tests/fixtures/ no_trap.html (general evidence); 4c/fNN-short-name.html (4.C fixtures)
+tests/fixtures/ no_trap.html (general evidence); 4c/fNN-short-name.html (custom 4.C
+                fixtures); act/ (vendored W3C ACT cases, manifest.json, sync_act.py)
 runs/           output (git-ignored)
 ```
 
