@@ -7,8 +7,9 @@ spec, CLAUDE.md or `docs/solutions/` where it belongs.
 ## Now: TT Test 4 is complete
 
 Built (spec 1.0.0+, check registered, fixtures green): 4.A, 4.B, 4.C, 4.D,
-4.E, 4.F. Next: measure the time budget across all of Test 4 (below), then
-choose the next TT test group.
+4.E, 4.F. Judge eval (fresh agents, no scripted answers): 43/44 fixtures, no
+false PASS ([evals/README.md](../evals/README.md)). Next: the time budget
+(below), then choose the next TT test group.
 
 Per-test leftovers live in each `docs/rules/<id>-build-tasks.md` (mostly
 browser checks on Windows headed Chrome, which this Linux container cannot
@@ -17,25 +18,34 @@ run).
 ## Soon
 
 - **Time budget across Test 4.** One `run_tt_tests` call must finish in
-  `RUN_LIMIT_S` (120 s). Measured so far: a 100-link page takes 53 s for the
-  walk plus 4.D. Measure all of 4.A–4.F together on
-  that page, and run the 600-link fixture (4.C F34, `pytest -m slow`), which
+  `RUN_LIMIT_S` (120 s), and every implemented test now runs by default.
+  Measured so far: a 100-link page takes 53 s for the walk plus 4.D. Measure
+  all of 4.A–4.F together on that page (4.A adds hover, click and execute
+  replays), and run the 600-link fixture (4.C F34, `pytest -m slow`), which
   has never run under the 120 s limit (expected: NEEDS REVIEW "ran out of
-  time").
-- **Share replays.** 4.C's widget check (P4) and 4.D's widget pass W replay
-  to the same stops; 4.C could also read 4.F's pass R (traps inside revealed
-  content).
+  time"). Then cut, starting with shared replays (next item).
+- **Share replays.** 4.C's widget check (P4), 4.D's widget pass W and 4.A's
+  arrow probes replay to the same stops; 4.A's execute check and 4.F's pass R
+  both press Enter on triggers; 4.C could also read 4.F's pass R (traps inside
+  revealed content).
+- **Confirm 4.B alternatives by pressing them.** The last judge-eval mismatch
+  (4.B f02): the agent could not tell whether the named alternative does what
+  the timed press does. Press it normally on a fresh replay and compare its
+  effect with the timed press's (a mechanical check on J2, like 4.C's
+  documented keys).
 - **Starter-template leftovers.** `pyproject.toml` still says "Starter MCP
   server for the GSA MCP hackathon". `app.main` binds HTTP to `0.0.0.0`
   whenever `PORT` or `DATABRICKS_APP_PORT` is set, with no auth: make HTTP an
   explicit opt-in with auth before any hosted deployment (CLAUDE.md: hosted is
   the target).
 - **"Test a page" prompt** for operators who are not Trusted Testers: run,
-  answer questions, summarize, offer to save the report.
-- **Agent evals.** A small set on fixtures where a model drives the tools:
-  right calls, outcomes relayed in the tool's words, no "certified" or
-  "compliant", questions answered by rubric, tokens used. Each failure becomes
-  a tool-description fix plus a regression case.
+  answer questions (one subagent for all of them), summarize, read
+  `report_uri` and offer to save it.
+- **Agent evals, the rest.** The judge eval covers answering questions. Still
+  to cover: a model driving the tools end to end (right calls, outcomes
+  relayed in the tool's words, no "certified" or "compliant", reports saved),
+  other models (Haiku as a cheap consumer, Opus), and a check that fails when
+  an eval agent opens files outside its packet.
 
 ## Later
 

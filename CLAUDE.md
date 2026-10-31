@@ -38,7 +38,11 @@ by TT test ID. Package: `a11y_assist` (name is provisional).
 6. **Verify behavior with a test instead of assuming it, and say which you
    did.** When reporting work, separate "verified (test/command)" from
    "assumed". If something cannot be verified in the current environment
-   (e.g. Windows headed Chrome from a Linux container), say so.
+   (e.g. Windows headed Chrome from a Linux container), say so. Scripted
+   answers in `tests/` test the rules, not the questions: after changing an
+   open question, its rubric or its input, run the judge eval (`evals/`),
+   where a fresh agent answers from the tool's output alone. It found a false
+   PASS the scripted tests could not (`docs/solutions/judge-eval.md`).
 
 7. **Proportionate to the PDF.** A spec step must match something the TT
    PDF asks a human tester to do. Anything past that is NEEDS_REVIEW or a
@@ -73,14 +77,20 @@ by TT test ID. Package: `a11y_assist` (name is provisional).
   ACR or SCRT report → recommended fixes) planned; guidance goes in resources
   or a prompt, not a tool. Never put "trusted_tester" in a tool name (it could
   read as certification). Say "open questions" to users, not "judgments". Tool inputs are Pydantic-validated with precise
-  descriptions.
+  descriptions. The implemented-test list in `run_tt_tests`'s description and
+  its default come from `checks.REGISTRY`; never hardcode them.
+- Keep tool output small: the full report is a `run://` resource
+  (`report_uri`), never inline; evidence several questions share goes once in
+  `shared_inputs` (questions name their keys in `shared`); screenshots and
+  files in a question are `run://` links, never run-folder paths.
 - Test runs analyze a HAR replay, never the live page, so runs are repeatable.
 - A page that is never tested (not allowed, cannot load, bad input) is a tool
   error (`ToolError`, isError), not a finding, and leaves no run folder.
 - Hosted deployment is the target; stdio is fine for now. Build nothing that
   only works locally: evidence must be reachable without the server's file
-  paths, run state is short-lived (results belong in the user's codebase,
-  returned in tool output), and one tool call stays within `RUN_LIMIT_S`
+  paths, run state is short-lived (results belong in the user's codebase: the
+  client reads `report_uri` and saves it before `expires_at`), and one tool
+  call stays within `RUN_LIMIT_S`
   (default 120 s) so it survives HTTP proxy timeouts.
 - What to build next is in `docs/ROADMAP.md` (a living list); the plan for
   the current step is in `docs/plans/`; lessons that save the next test time
@@ -141,7 +151,10 @@ tests/fixtures/ no_trap.html (general evidence); 4a/ … 4f/ fNN-short-name.html
                 Baseline Alignment cases, manifest.json, sync_baseline.py)
 tests/harness.py     end-to-end runs of any check with scripted answers (test data);
                      harness_4c.py does the same for 4.C's j1/j2 questions
-tests/scoring.py     DHS / ACT agreement printed after every test run
+tests/scoring.py     DHS / ACT agreement printed after every test run (per worker files)
+tests/test_baseline_cases.py   every (case, TT test) pair in fixtures/baseline/manifest.json
+evals/          judge eval: fresh agents answer the open questions from isolated
+                packets; judge_eval.py, README.md (results of each run)
 runs/           output (git-ignored)
 ```
 
@@ -154,6 +167,8 @@ uv run pytest                    # Playwright Chromium, headless, one worker per
 uv run pytest -n 8               # tests mostly wait, so 2x CPUs is faster (~3.5 min)
 uv run pytest -n0 tests/test_fixtures_4e.py -k f03   # one fixture while building
 uv run pytest -m slow            # long fixtures (F34, ~10 min)
+uv run python evals/judge_eval.py prepare /tmp/eval   # judge eval packets ...
+uv run python evals/judge_eval.py apply /tmp/eval     # ... after one agent answers them
 TEST_BROWSER_CHANNEL=chrome TEST_HEADED=1 uv run pytest   # installed Chrome, visible
 uv run ruff check . && uv run ruff format --check .
 uv run a11y-assist               # stdio MCP server
