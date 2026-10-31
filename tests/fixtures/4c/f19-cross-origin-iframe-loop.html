@@ -1,0 +1,22 @@
+<!doctype html>
+<!-- F19. Expected 4.C: FAIL. Proves V5 (cross-origin frames are followed). Serve over http. -->
+<html lang="en">
+<head><meta charset="utf-8"><title>F19: loop in a cross-origin iframe</title></head>
+<body>
+<h1>Cross-origin frame</h1>
+<a id="before" href="#">Before the frame</a>
+<iframe id="frame" title="Buttons"  width="400" height="120"></iframe>
+<a id="after" href="#">After the frame</a>
+<script>
+  document.addEventListener("click", (e) => {
+    const a = e.target.closest && e.target.closest('a[href="#"]');
+    if (a) e.preventDefault();
+  });
+  // The same server is reachable as 127.0.0.1 and localhost, which are different
+  // sites, so this loads the frame cross-origin.
+  const otherHost = location.hostname === "127.0.0.1" ? "localhost" : "127.0.0.1";
+  const otherOrigin = location.protocol + "//" + otherHost + ":" + location.port;
+  document.getElementById("frame").src = otherOrigin + "/4c/f18-frame-loop.html";
+</script>
+</body>
+</html>

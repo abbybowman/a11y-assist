@@ -92,10 +92,12 @@ async def test_backward_walk_no_trap(browser, settings, tmp_path):
 
 
 @pytest.mark.parametrize("forward", [True, False])
-async def test_walk_on_simple_trap_records_repeated_stops(
+async def test_walk_on_f04_trap_records_repeated_stops(
     browser, settings, tmp_path, forward
 ):
-    walk = await _walk(browser, settings, "simple_trap.html", forward, tmp_path, 8)
+    walk = await _walk(
+        browser, settings, "4c/f04-field-swallows-tab.html", forward, tmp_path, 8
+    )
     assert walk.presses == 8
     assert walk.stopped_because == "cap"
     ids = _ids(walk)
@@ -105,10 +107,12 @@ async def test_walk_on_simple_trap_records_repeated_stops(
     assert beyond_trap not in ids
 
 
-async def test_walk_on_modal_dialog_stays_in_dialog_or_leaves_page(
+async def test_walk_on_f10_dialog_stays_in_dialog_or_leaves_page(
     browser, settings, tmp_path
 ):
-    walk = await _walk(browser, settings, "modal_dialog.html", True, tmp_path, 12)
+    walk = await _walk(
+        browser, settings, "4c/f10-native-dialog.html", True, tmp_path, 12
+    )
     in_page = [s.selector for s in walk.stops if not s.is_body]
     assert set(in_page) <= {"#name", "#save", "#close"}
     assert "#behind-link" not in in_page and "#open" not in in_page

@@ -1,0 +1,26 @@
+<!doctype html>
+<!-- Inner page for F20 (not a fixture by itself). -->
+<html lang="en">
+<head><meta charset="utf-8"><title>F20 frame: player that traps</title></head>
+<body>
+<div role="group" aria-label="Video player">
+  <button id="play" type="button">Play</button>
+  <button id="mute" type="button">Mute</button>
+  <label for="vol">Volume</label> <input id="vol" type="range" min="0" max="10" value="5">
+  <button id="fs" type="button">Full screen</button>
+</div>
+<script>
+  // Tab on the last element goes to the first; Shift+Tab on the first goes to
+  // the last. Focus never leaves the list by Tab or Shift+Tab.
+  function loop(els) {
+    els.forEach((el, i) => el.addEventListener("keydown", (e) => {
+      if (e.key !== "Tab") return;
+      if (!e.shiftKey && i === els.length - 1) { e.preventDefault(); els[0].focus(); }
+      else if (e.shiftKey && i === 0) { e.preventDefault(); els[els.length - 1].focus(); }
+    }));
+  }
+  const $ = (id) => document.getElementById(id);
+  loop([$("play"), $("mute"), $("vol"), $("fs")]);
+</script>
+</body>
+</html>

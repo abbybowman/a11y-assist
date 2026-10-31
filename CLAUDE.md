@@ -76,7 +76,7 @@ src/a11y_assist/
 docs/rules/     rules specs (one per TT test), <id>-build-tasks.md checklists,
                 _template.md (start new specs from it)
 third_party/    ANDI 29.2.2, jQuery 3.7.1, PROVENANCE.json
-tests/fixtures/ no_trap.html, simple_trap.html, modal_dialog.html
+tests/fixtures/ no_trap.html (general evidence); 4c/fNN-short-name.html (4.C fixtures)
 runs/           output (git-ignored)
 ```
 

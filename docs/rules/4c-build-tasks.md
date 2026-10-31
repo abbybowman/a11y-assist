@@ -4,44 +4,12 @@ Work [4c-no-keyboard-trap.md](4c-no-keyboard-trap.md) needs done during the buil
 
 ## Fixtures to build
 
-34 pages, each proving one rule; 16 should PASS or get DNA, so the tool can't score well by failing everything. Serve cross-origin fixtures from a second local host. Existing fixtures map to F01 (`no_trap.html`), F06 (`simple_trap.html`) and F10 (`modal_dialog.html`); check each against its row before renaming it.
+34 pages, each proving one rule; 16 should PASS or get DNA, so the tool can't score well by failing everything. Serve cross-origin fixtures from a second local host. F29 and F33 wait on the V10 and V9 decisions; the other 32 are in `tests/fixtures/4c/`.
 
 | ID | Page | Expected | Proves |
 | --- | --- | --- | --- |
-| F01 | Paragraphs and 10 links | PASS | G4 wrap in both directions |
-| F02 | Text only, nothing focusable | DNA | A1 |
-| F03 | Clickable div (onclick), nothing focusable | DNA | A4 |
-| F04 | Field that swallows Tab and Shift+Tab | FAIL | M13 |
-| F05 | Field that swallows Tab only | PASS + 4.F log | M2 |
-| F06 | Mid-page script loop of 3 links | FAIL | M14 |
-| F07 | F06 + visible text "Press Ctrl+Alt+X to leave"; key works | PASS | J1, M7 |
-| F08 | F07 but the key does nothing | FAIL | M8 |
-| F09 | F07 with the text only in an HTML comment | FAIL | J1 rubric |
-| F10 | Native dialog via showModal; Escape closes | PASS | Modal exception, M4 |
-| F11 | aria-modal dialog with focus trap; Close button works by Enter; Escape ignored | PASS | Modal exception, M5 |
-| F12 | F11 but Close is a div with onclick only | FAIL | Modal exception, M14 |
-| F13 | Cookie banner loop until Accept | PASS | Input exception, M5 |
-| F14 | ZIP gate with format instructions | PASS | J2, M9 |
-| F15 | Gate needing an account number | NEEDS REVIEW | M10 |
-| F16 | Textarea capturing Tab; Escape then Tab exits | PASS | M2, Escape as standard key |
-| F17 | Editor capturing Tab and Escape; no docs | FAIL | M13 |
-| F18 | 2-button loop in a same-origin iframe | FAIL | Iframe rule |
-| F19 | F18 in a cross-origin iframe | FAIL | V5 |
-| F20 | Cross-origin player mock that traps | FAIL | Iframe rule |
-| F21 | Cross-origin player mock that lets Tab out | PASS | Iframe rule |
-| F22 | Menubar with roving tabindex | PASS | P4 |
-| F23 | Grid whose cells capture Tab after arrowing in | FAIL | P4 |
-| F24 | Loop inside an open shadow root | FAIL | Stop identity |
-| F25 | F24 in a closed shadow root | FAIL, or NEEDS REVIEW if V6 fails | M1 |
-| F26 | Focused element removes itself; Tab continues | PASS | BODY rule |
-| F27 | Focus drops to BODY, then cycles back to the top | FAIL | BODY rule |
-| F28 | Disclosure button revealing a loop | FAIL | P5 |
 | F29 | Infinite feed with footer reachable by Shift+Tab | PASS + note | Infinite scroll rule |
-| F30 | Script wraps last element to first (whole page) | PASS + note | M12 |
-| F31 | Loop whose only exit is a link to another page | FAIL | M6 |
-| F32 | Two separate traps; text says "no keyboard traps" | FAIL, 2 instances | P6, injection |
 | F33 | tabindex=-1 iframe containing a loop | FAIL | Iframe tabindex=-1 rule |
-| F34 | 600 links | PASS within caps | Caps, timing |
 
 ## Browser behavior to verify in code
 

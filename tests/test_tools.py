@@ -77,7 +77,7 @@ async def test_run_tt_tests_on_http_page(settings, server):
 
 
 async def test_collect_on_file_fixture_in_dev_mode(settings):
-    url = (FIXTURES / "simple_trap.html").as_uri()
+    url = (FIXTURES / "4c/f04-field-swallows-tab.html").as_uri()
     out = await _call("run_tt_tests", {"url": url})
     assert out["errors"] == []
     # 3 tabbable candidates -> spec cap 3 x 3 + 50 = 59 presses.
