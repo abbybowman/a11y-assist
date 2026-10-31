@@ -2,8 +2,9 @@
 
 One spec per TT test, named `<id>-<short-name>.md` (e.g. `4c-no-keyboard-trap.md`
 for 4.C). Each starts with front matter giving `tt_test`, `tt_name` and
-`spec_version`. Files named `<id>-build-tasks.md` are build checklists, not
-specs. Any other file in the folder must be a valid spec, so a spec with broken
+`spec_version`. Files named `<id>-build-tasks.md` are build checklists and
+files starting with `_` (e.g. `_template.md`) are authoring aids; neither is a
+spec. Any other file in the folder must be a valid spec, so a spec with broken
 front matter fails loudly instead of being skipped.
 
 This module only reads metadata. It decides no outcome.
@@ -107,7 +108,7 @@ def load_specs(rules_dir: Path) -> dict[TestId, RuleSpec]:
     if not rules_dir.is_dir():
         return specs
     for path in sorted(rules_dir.glob("*.md")):
-        if path.name.endswith("-build-tasks.md"):
+        if path.name.endswith("-build-tasks.md") or path.name.startswith("_"):
             continue
         spec = load_spec(path)
         if spec.test_id in specs:
