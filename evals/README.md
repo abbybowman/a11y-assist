@@ -20,7 +20,39 @@ because fixture names describe the expected answer ("key-in-comment-only").
 The answer key (`/tmp/eval/state.json`) is outside the packet tree. Agents
 are told to open nothing else and to list every file they opened.
 
-## Results, 2026-10-31 (Sonnet subagents, one per page, 46 pages, 54 answers)
+## Run 2, 2026-10-31: after the fixes, one subagent for everything
+
+Same fixtures after the fixes from run 1 (4.A 1.1.0, 4.B 1.1.0, 4.C 1.5.1,
+4.F 1.1.0). 44 pages ask questions (the two ACT pages where keyboard focus
+reaches nothing are now decided without one). One Sonnet subagent answered all
+44 folders, then one more answered the two 4.B follow-ups.
+
+| Test | Match |
+| --- | --- |
+| 4.A | 5/5 |
+| 4.B | 3/4 |
+| 4.C | 25/25 |
+| 4.E | 2/2 |
+| 4.F | 8/8 (f14, the false PASS, now FAIL) |
+| All | 43/44, no false PASS |
+
+The one mismatch (4.B f02) is a safe unsure: the agent could not tell whether
+"Switch request type" does what the timed press does, because nothing shows
+what a normal press on it changes. The tool could press it and compare
+(a mechanical check on the J2 answer; not built).
+
+| | Run 1: one subagent per page | Run 2: one subagent for all |
+| --- | --- | --- |
+| Agents | 48 | 2 |
+| Tokens (as reported per agent, summed) | about 2,700,000 | about 159,000 (96,000 + 63,000) |
+| Time | 8 to 20 s each, in parallel | 77 s + 13 s, one after the other |
+
+About 17 times fewer tokens. Each agent's start-up costs roughly 55,000
+tokens, so the second agent (two questions) cost almost as much as the first
+(52 answers). The run-2 agent also wrote a helper script outside the packet
+folders (it read nothing outside them, by its own report).
+
+## Run 1, 2026-10-31 (Sonnet subagents, one per page, 46 pages, 54 answers)
 
 | Test | Match | Mismatches |
 | --- | --- | --- |
