@@ -81,7 +81,7 @@ def register(mcp: FastMCP) -> None:
 
         Each finding has a plain-language `summary` to relay to the user; use
         its wording, and its `reference` resource (the TT test text, WCAG links)
-        or the explain_result prompt to explain it. Never call a page
+        or the explain prompt to explain it. Never call a page
         "certified" or "compliant". The result's `report` is the full record:
         offer to save it in the user's repository. The server keeps the run
         (for answering questions and reading `evidence` resources) only until

@@ -39,6 +39,9 @@ class Check(Protocol):
     test_id: ClassVar[TestId]
     state_type: ClassVar[type[BaseModel]]
     uses_walk: ClassVar[bool]  # needs the shared keyboard walk
+    # Plain words for users: what the tool does for this test automatically,
+    # and what it leaves to a person (explain.py shows it before a run).
+    about: ClassVar[str]
 
     async def collect(
         self, ctx: RunContext, walk: KeyboardWalk | None
