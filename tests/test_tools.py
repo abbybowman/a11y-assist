@@ -268,3 +268,34 @@ async def test_old_runs_expire(settings, server):
         "answer_questions", {"run_id": out["run_id"], "answers": [_ANSWER]}
     )
     assert "may have expired" in msg and "/" not in msg.split("(")[0]
+
+
+async def test_tt_text_is_available_as_resources(settings):
+    async with Client(mcp) as client:
+        [index] = await client.read_resource("tt://5.1.3/index")
+        rows = json.loads(index.text)
+        assert len(rows) == 63 and {r["id"] for r in rows} >= {"4.C", "6.B"}
+        [t] = await client.read_resource("tt://5.1.3/tests/4.C")
+        assert "There is no keyboard trap." in t.text
+        assert "Understanding/no-keyboard-trap.html" in t.text
+        [part] = await client.read_resource("tt://5.1.3/parts/appendix-b-change-log")
+        assert "Document Change Log" in part.text
+        for bad in ("tt://5.1.3/tests/9.Z", "tt://5.1.3/parts/../tt"):
+            with pytest.raises(Exception):
+                await client.read_resource(bad)
+
+
+async def test_explain_result_prompt_uses_tt_text_and_the_run(settings, server):
+    out = await _call("run_tt_tests", {"url": f"{server.base}/no_trap.html"})
+    [f] = out["findings"]
+    assert f["reference"] == "tt://5.1.3/tests/4.C"
+    assert f["understanding"] == [
+        "https://www.w3.org/WAI/WCAG22/Understanding/no-keyboard-trap.html"
+    ]
+    async with Client(mcp) as client:
+        r = await client.get_prompt(
+            "explain_result", {"test_id": "4.C", "run_id": out["run_id"]}
+        )
+    text = r.messages[0].content.text
+    assert "There is no keyboard trap." in text and "Outcome: PASS" in text
+    assert "NOT a certified" in text

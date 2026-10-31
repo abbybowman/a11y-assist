@@ -58,6 +58,9 @@ by TT test ID. Package: `a11y_assist` (name is provisional).
   `third_party/` and aborts any other www.ssa.gov request.
 - No Content-Security-Policy bypass (`bypass_csp`) without explicit approval.
 - Ask before installing anything system-wide.
+- Read TT text (names, conditions, how to test, requirements, WCAG links)
+  from `catalog.py` / `tt.json`, never retype it. Specs still cite the PDF's
+  printed pages.
 - One tool per file in `src/a11y_assist/tools/`, registered in
   `tools/__init__.py`. Tools are broad and outcome-based, not one per step:
   `run_tt_tests` and `answer_questions` now; `verify_fix` (an option on
@@ -101,15 +104,19 @@ src/a11y_assist/
   pipeline.py   run_tt_tests / answer_questions orchestration (generic)
   runlog.py     runs/<run_id>/ folder, steps.jsonl
   versions.py   version collection
+  catalog.py    the TT 5.1.3 test catalog (from docs/sources/tt-5.1.3/tt.json)
   rules.py      loads docs/rules/ specs and their front matter versions
   models.py     Pydantic models
   tools/        one MCP tool per file (typed results: RunResult, AnswerResult)
-  resources/    run://{run_id}/{path} evidence while a run is kept
+  resources/    run://{run_id}/{path} evidence while a run is kept;
+                tt://5.1.3/... the TT text (index, tests/{id}, parts/{part})
+  prompts/      explain_result (a command in clients)
 docs/rules/     rules specs (one per TT test), <id>-build-tasks.md checklists,
                 _template.md (start new specs from it)
 docs/plans/     plans, newest first by date
 docs/solutions/ lessons that save the next test time
-docs/sources/   TT 5.1.3 PDF (the authority), SHA-256 in its README
+docs/sources/   TT 5.1.3 PDF (the authority), SHA-256 in its README;
+                tt-5.1.3/ its faithful Markdown + tt.json copy (convert.py)
 third_party/    ANDI 29.2.2, jQuery 3.7.1, PROVENANCE.json
 tests/fixtures/ no_trap.html (general evidence); 4c/fNN-short-name.html (custom 4.C
                 fixtures); act/ (vendored W3C ACT cases, manifest.json, sync_act.py)

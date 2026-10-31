@@ -1,0 +1,72 @@
+"""The machine-readable TT 5.1.3 copy (docs/sources/tt-5.1.3/) matches the PDF."""
+
+from __future__ import annotations
+
+import importlib.util
+import json
+import re
+import shutil
+
+import pytest
+
+from a11y_assist.config import REPO_ROOT
+
+TT = REPO_ROOT / "docs" / "sources" / "tt-5.1.3"
+DATA = json.loads((TT / "tt.json").read_text("utf-8"))
+
+
+def _norm(s: str) -> str:
+    return re.sub(r"[^0-9A-Za-z]", "", s)
+
+
+def test_catalog_has_every_condition_once():
+    ids = [t["id"] for t in DATA["tests"]]
+    assert len(ids) == 63 == len(set(ids))  # "63 Test Conditions" (p. 5)
+    status = {t["id"]: t["status"] for t in DATA["tests"]}
+    assert status["5.E"] == "obsolete" and status["6.B"] == "removed"
+    assert sum(s == "active" for s in status.values()) == 61
+    assert [t["id"] for t in DATA["tests"] if t.get("not_tested_named")] == [
+        "3.A",
+        "20.A",
+    ]
+
+
+def test_known_records():
+    t = {x["id"]: x for x in DATA["tests"]}
+    assert t["4.C"]["name"] == "2.1.2-no-keyboard-trap"
+    assert t["4.C"]["condition"] == "There is no keyboard trap."
+    req = {r["id"]: r for r in t["4.C"]["requirements"]}
+    assert req["2.1.2"]["level"] == "A"
+    assert req["2.1.2"]["understanding_url"].endswith("/no-keyboard-trap.html")
+    assert "Con.5" in req  # Non-Interference (Appendix A)
+    assert "Continue from Test 4.C." in t["4.D"]["how_to_test"]
+
+
+def test_every_active_test_has_its_blocks_and_text_in_its_section_file():
+    for t in DATA["tests"]:
+        if t["status"] != "active":
+            continue
+        assert t["name"] and t["condition"] and t["requirements"], t["id"]
+        section = (TT / t["section"]["file"]).read_text("utf-8")
+        assert _norm(t["markdown"]) in _norm(section), t["id"]
+        assert _norm(t["condition"]) in _norm(section), t["id"]
+        if t["id"] not in ("3.A", "20.A"):  # these two have no test steps
+            assert t.get("how_to_test") and t.get("evaluate_results"), t["id"]
+        for r in t["requirements"]:
+            if r["kind"] == "wcag":
+                assert r["level"] in ("A", "AA"), (t["id"], r)
+                assert r["understanding_url"].startswith(
+                    "https://www.w3.org/WAI/WCAG22/Understanding/"
+                ), (t["id"], r)
+
+
+@pytest.mark.skipif(shutil.which("pdftotext") is None, reason="needs pdftotext")
+def test_markdown_has_every_word_of_the_pdf_in_order():
+    spec = importlib.util.spec_from_file_location("convert", TT / "convert.py")
+    convert = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(convert)
+    problems = []
+    for stem, _, chunk in convert.split_parts(convert.read_pages()):
+        md = (TT / "md" / f"{stem}.md").read_text("utf-8").split("-->\n", 1)[1]
+        problems += convert.check_part(stem, [line for _, line in chunk], md)
+    assert problems == []
