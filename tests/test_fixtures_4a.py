@@ -1,8 +1,8 @@
-"""4.A (2.1.1-keyboard-access) on W3C ACT cases (akn7bn, 0ssw9k), Section 508
-Baseline Alignment cases and custom fixtures for gaps, plus rules unit tests
-for rows no page triggers reliably. Expected outcomes and scripted answers
-(what a correct agent would say) live here and in the manifests, never in a
-page."""
+"""4.A (2.1.1-keyboard-access) on W3C ACT cases (akn7bn, 0ssw9k) and custom
+fixtures for gaps, plus rules unit tests for rows no page triggers reliably.
+Section 508 Baseline cases are in test_baseline_cases.py. Expected outcomes
+and scripted answers (what a correct agent would say) live here and in the
+manifests, never in a page."""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ import pytest
 from a11y_assist.checks import t4a
 from a11y_assist.models import Outcome, TestId
 
-from .conftest import ACT_ROOT, BASELINE_ROOT, FIXTURES
+from .conftest import ACT_ROOT, FIXTURES
 from .harness import instance_rows, run_check
 from .scoring import write_score
 
@@ -48,11 +48,7 @@ ACT = {
     for c in json.loads((ACT_ROOT / "manifest.json").read_text())["cases"]
     if c["tt_test"] == "4.A"
 }
-BASELINE = {
-    c["id"]: c
-    for c in json.loads((BASELINE_ROOT / "manifest.json").read_text())["cases"]
-}
-ANSWERS = {"62673162": NO_ALT, "aa153f67": NO_ALT, "TC01.A-1-fail-1": NO_ALT}
+ANSWERS = {"62673162": NO_ALT, "aa153f67": NO_ALT}
 
 
 def test_every_fixture_is_listed():
@@ -84,20 +80,6 @@ async def test_act_case(case_id, settings, act_server):
     outcome = got["finding"].outcome.value
     write_score(case_id, outcome, got["finding"].rows)
     assert outcome == case["expected"], got["finding"].rationale
-
-
-@pytest.mark.parametrize("case_id", sorted(BASELINE))
-async def test_baseline_case(case_id, settings, baseline_server):
-    case = BASELINE[case_id]
-    got = await run_check(
-        settings,
-        f"{baseline_server}/{case['path']}",
-        TestId.T4A,
-        ANSWERS.get(case_id),
-    )
-    assert got["finding"].outcome.value == case["expected"]["4.A"], got[
-        "finding"
-    ].rationale
 
 
 async def test_pass_says_what_was_looked_for_and_the_browser(settings, server):
