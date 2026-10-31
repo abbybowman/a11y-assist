@@ -9,8 +9,9 @@
 4. Each selected check (checks/REGISTRY) collects any extra evidence it needs,
    then its rules module evaluates. A selected test with no check is
    NEEDS_REVIEW "This test could not be performed" (never NOT_TESTED, p. 6).
-5. The result carries the full report for the user to save; the run folder is
-   kept only for `run_ttl_hours`, to finish open questions.
+5. The result links the full report (`report_uri`, a run:// resource) for the
+   user to save; the run folder is kept only for `run_ttl_hours`, to finish
+   open questions and serve evidence.
 
 Nothing here decides an outcome: checks do, from their specs.
 """

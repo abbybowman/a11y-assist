@@ -2,6 +2,8 @@
 
 Spec [4b-no-keystroke-timing.md](4b-no-keystroke-timing.md) 1.0.0 is built (`checks/t4b.py`, `tests/test_fixtures_4b.py`: 3 custom fixtures, `no_trap.html`, 2 Section 508 Baseline Alignment cases; no ACT rule covers keystroke timing). Baseline's own 4.B case (TC01.A-2-fail-1) expects FAIL; we give NEEDS REVIEW because the published page is broken in Chrome (its jQuery integrity hash is wrong, so holding Space does nothing). Left to do:
 
+- Confirm a J2 alternative by pressing it: a normal press on the named stop, compared with the timed press's effect (judge eval run 2: the agent answered unsure on f02 because nothing showed what the alternative does). Needs a MINOR spec change.
+
 - Timing that the page does not describe in words is not found (proportionate: a tester finds it while operating; 4.A's Enter and Space presses cover custom controls).
 - The timing words are English only; other languages give no matches (M1).
 

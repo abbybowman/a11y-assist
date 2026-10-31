@@ -8,12 +8,13 @@ agents answer them for real, seeing only what a consumer agent would get.
 
 ```bash
 uv run python evals/judge_eval.py prepare /tmp/eval   # packets in /tmp/eval-packets
-# One fresh agent per packet folder answers questions.json into answers.json.
+# ONE fresh agent answers every packet folder (questions.json -> answers.json);
+# one agent per folder costs ~55k tokens each (docs/solutions/subagent-token-cost.md).
 uv run python evals/judge_eval.py apply /tmp/eval     # follow-ups -> round2; score
 ```
 
 **Isolation.** Each packet holds only the tool's own output: questions,
-rubrics, inputs, page text, the evidence files they point to (copied from
+rubrics, inputs, page text, shared inputs, the evidence files they point to (copied from
 `run://`), and the `answer_questions` description. Local URLs are mapped to
 `https://example.gov/site/pageN.html` and folders are shuffled `qNN` IDs,
 because fixture names describe the expected answer ("key-in-comment-only").

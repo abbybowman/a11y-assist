@@ -19,12 +19,19 @@ smallest):
   4. Write checks/t<id>.py: a Check below, walk extras as StepHooks, rows
      as engine.Row tables copied from the spec. Register it in
      checks/__init__.py. Run it with tests/harness.py run_check().
-  5. When fixtures pass, make the spec match the code exactly (every row
+     Open questions: link files as run:// (never run-folder paths), put
+     evidence several questions share in shared_inputs(state), and give the
+     agent what its rubric asks about (an eval found a rubric judged on half
+     the evidence).
+  5. Run the judge eval on the fixtures that ask questions (evals/README.md):
+     one fresh agent answers them from the tool output alone. Fix every
+     mismatch in the question or its evidence before trusting the rows.
+  6. When fixtures pass, make the spec match the code exactly (every row
      the code has, the spec has), set spec_version 1.0.0, trim
      <id>-build-tasks.md to what is left, and add any lesson that cost
      time to docs/solutions/.
-  6. The pipeline, tools, report, explain prompt and resume path need no
-     changes.
+  7. The pipeline, tools, report, explain prompt and resume path need no
+     changes; the tool description lists the new test from the registry.
 """
 
 from __future__ import annotations
