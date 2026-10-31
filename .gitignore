@@ -31,4 +31,4 @@ htmlcov/
 
 # Run output (evidence, HAR files, screenshots, reports)
 runs/
-tests/.act_scores.json
+tests/.act_scores/

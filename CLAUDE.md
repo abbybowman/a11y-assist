@@ -149,8 +149,10 @@ runs/           output (git-ignored)
 
 ```bash
 uv sync --group dev
-uv run pytest                    # Playwright Chromium, headless (~17 min)
-uv run pytest tests/test_fixtures_4e.py -k f03   # one fixture while building
+uv run pytest                    # Playwright Chromium, headless, one worker per CPU
+                                 # (4 CPUs: ~5.5 min; serial was ~20 min)
+uv run pytest -n 8               # tests mostly wait, so 2x CPUs is faster (~3.5 min)
+uv run pytest -n0 tests/test_fixtures_4e.py -k f03   # one fixture while building
 uv run pytest -m slow            # long fixtures (F34, ~10 min)
 TEST_BROWSER_CHANNEL=chrome TEST_HEADED=1 uv run pytest   # installed Chrome, visible
 uv run ruff check . && uv run ruff format --check .

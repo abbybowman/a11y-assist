@@ -169,9 +169,12 @@ def baseline_server():
 
 
 def pytest_sessionstart(session):
-    from .scoring import RESULTS_FILE
+    # Only the controller clears the scores (pytest-xdist workers have a
+    # workerinput); a worker clearing them would delete the others' results.
+    if not hasattr(session.config, "workerinput"):
+        from .scoring import clear_scores
 
-    RESULTS_FILE.unlink(missing_ok=True)
+        clear_scores()
 
 
 def pytest_terminal_summary(terminalreporter):
