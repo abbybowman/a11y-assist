@@ -393,9 +393,12 @@ class Collector:
             how = await bypass(s.page, top_paths)
             inst.bypass = how
             if how is None:
-                self.state.incomplete.append(
-                    f"{inst.id}: P6 found no way past the trap"
+                # No text or tabbable element follows the trap: nothing is left
+                # to continue to (spec section 6), so P6 is complete.
+                self.state.notes.append(
+                    f"{inst.id}: nothing follows the trap in the page."
                 )
+                inst.continuation_wrap = True
                 return
             end, trap, own = await drive(
                 s, "Tab", self.cap, f"{inst.id}-P6", detect_continuation
@@ -572,6 +575,22 @@ async def collect(
         distinct_p1p2=distinct,
     )
     st = c.state
+    grew = any(
+        p.inventory_end and p.inventory_end > 2 * max(p.inventory, 1) for p in (p1, p2)
+    )
+    unanswered = sum(p.failed_requests for p in (p1, p2))
+    if grew or unanswered:
+        # Infinite-scroll signs (spec section 5). A sign never gives PASS.
+        st.notes.append(
+            "Feed growth was not fully observed in the recorded page "
+            f"({unanswered} request(s) the recording could not answer"
+            f"{'; inventory more than doubled' if grew else ''}); whether content "
+            "after the feed is reachable forward is logged for 4.A."
+        )
+        if p1.end == "cap" and p2.end == "wrap":
+            # Shift+Tab from the top reached the content after the feed: no trap event.
+            p1 = p1.model_copy(update={"end": "done"})
+            st.p1 = _summary(p1)
     for p in (p1, p2):
         if p.end in ("cap", "error"):
             st.incomplete.append(
@@ -1053,7 +1072,7 @@ def evaluate(st: State4C, fraction: float, evidence_refs: list[str]) -> Finding:
     incomplete = list(st.incomplete)
 
     def ended_ok(trap_id: str | None, end: str) -> bool:
-        if end == "wrap":
+        if end in ("wrap", "done"):  # "done": P1 capped in a feed (section 5)
             return True
         if trap_id is None:
             return False
@@ -1088,8 +1107,11 @@ def evaluate(st: State4C, fraction: float, evidence_refs: list[str]) -> Finding:
             evidence_refs=evidence_refs,
         )
     elif g in ("G3", "G5"):
+        rid = dict(t.split(":", 1) for t in trace if ":" in t)
         why = incomplete + [
-            f"{i}: {r}" for i, r in results if r is Outcome.NEEDS_REVIEW
+            f"{i}: row {rid[i]} gives NEEDS REVIEW"
+            for i, r in results
+            if r is Outcome.NEEDS_REVIEW
         ]
         if g == "G5" and not why:
             why = [

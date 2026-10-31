@@ -43,6 +43,10 @@ class Settings(BaseSettings):
     # (used in CI/containers where Chrome is not installed).
     browser_channel: str = "chrome"
     headless: bool = False
+    # Extra Chromium flags. Empty for real runs; tests serve cross-origin
+    # fixtures from two loopback hosts and turn off Local Network Access checks,
+    # which block intercepted loopback requests (they never apply to public hosts).
+    browser_args: list[str] = Field(default_factory=list)
     viewport_width: int = 1280
     viewport_height: int = 900
     navigation_timeout_ms: int = 30_000

@@ -163,6 +163,10 @@ class PassResult(BaseModel):
     )
     cap: int
     inventory: int
+    inventory_end: int | None = None
+    failed_requests: int = Field(
+        default=0, description="Requests the recorded page could not answer."
+    )
     error: str | None = None
 
     @property

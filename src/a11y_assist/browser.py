@@ -37,7 +37,9 @@ async def launch_browser(pw: Playwright, settings: Settings) -> Browser:
     channel = (
         None if settings.browser_channel == "chromium" else settings.browser_channel
     )
-    return await pw.chromium.launch(channel=channel, headless=settings.headless)
+    return await pw.chromium.launch(
+        channel=channel, headless=settings.headless, args=settings.browser_args
+    )
 
 
 async def new_context(
