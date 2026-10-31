@@ -1,13 +1,9 @@
-"""The machine-readable TT 5.1.3 copy (docs/sources/tt-5.1.3/) matches the PDF."""
+"""The TT 5.1.3 copy (docs/sources/tt-5.1.3/) is complete and consistent."""
 
 from __future__ import annotations
 
-import importlib.util
 import json
 import re
-import shutil
-
-import pytest
 
 from a11y_assist.config import REPO_ROOT
 
@@ -58,15 +54,3 @@ def test_every_active_test_has_its_blocks_and_text_in_its_section_file():
                 assert r["understanding_url"].startswith(
                     "https://www.w3.org/WAI/WCAG22/Understanding/"
                 ), (t["id"], r)
-
-
-@pytest.mark.skipif(shutil.which("pdftotext") is None, reason="needs pdftotext")
-def test_markdown_has_every_word_of_the_pdf_in_order():
-    spec = importlib.util.spec_from_file_location("convert", TT / "convert.py")
-    convert = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(convert)
-    problems = []
-    for stem, _, chunk in convert.split_parts(convert.read_pages()):
-        md = (TT / "md" / f"{stem}.md").read_text("utf-8").split("-->\n", 1)[1]
-        problems += convert.check_part(stem, [line for _, line in chunk], md)
-    assert problems == []

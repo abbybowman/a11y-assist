@@ -4,11 +4,10 @@
 conditions, how to test, WCAG mapping). Parsing the PDF at run time is
 fragile, and retyping text drifts.
 
-**What we do.** `docs/sources/tt-5.1.3/convert.py` converted the PDF once into
-Markdown (one file per part) and `tt.json` (63 conditions). The converter
-fails unless every word of the PDF body appears in the Markdown in the same
-order; `tests/test_tt_source.py` re-runs that check where `pdftotext` exists.
-Code reads TT text only through `catalog.py`.
+**What we do.** Converted the PDF once into Markdown (one file per part) and
+`tt.json` (63 conditions), checked word for word against the PDF; the script
+is in git history (`df488cf`). The PDF changes rarely, so updates are by hand
+from its change log. Code reads TT text only through `catalog.py`.
 
 **Layout traps found while converting** (pdftotext -layout):
 

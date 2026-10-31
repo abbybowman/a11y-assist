@@ -110,13 +110,15 @@ src/a11y_assist/
   tools/        one MCP tool per file (typed results: RunResult, AnswerResult)
   resources/    run://{run_id}/{path} evidence while a run is kept;
                 tt://5.1.3/... the TT text (index, tests/{id}, parts/{part})
-  prompts/      explain_result (a command in clients)
+  explain.py    plain-language explanations of tests and results (prompt now,
+                failure reports later)
+  prompts/      explain (a command in clients)
 docs/rules/     rules specs (one per TT test), <id>-build-tasks.md checklists,
                 _template.md (start new specs from it)
 docs/plans/     plans, newest first by date
 docs/solutions/ lessons that save the next test time
 docs/sources/   TT 5.1.3 PDF (the authority), SHA-256 in its README;
-                tt-5.1.3/ its faithful Markdown + tt.json copy (convert.py)
+                tt-5.1.3/ its Markdown + tt.json copy (made once; see README)
 third_party/    ANDI 29.2.2, jQuery 3.7.1, PROVENANCE.json
 tests/fixtures/ no_trap.html (general evidence); 4c/fNN-short-name.html (custom 4.C
                 fixtures); act/ (vendored W3C ACT cases, manifest.json, sync_act.py)

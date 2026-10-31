@@ -55,5 +55,3 @@ addopts = "-m 'not slow'"
 "src/a11y_assist/traverse.py" = ["E501"]
 # Spec row tables and question wording stay on one line each.
 "src/a11y_assist/checks/t4c.py" = ["E501"]
-# One-off PDF converter: literal part titles and regexes stay on one line.
-"docs/sources/tt-5.1.3/convert.py" = ["E501"]

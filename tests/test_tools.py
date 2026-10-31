@@ -285,17 +285,40 @@ async def test_tt_text_is_available_as_resources(settings):
                 await client.read_resource(bad)
 
 
-async def test_explain_result_prompt_uses_tt_text_and_the_run(settings, server):
+async def _prompt(args: dict) -> str:
+    async with Client(mcp) as client:
+        r = await client.get_prompt("explain", args)
+    return r.messages[0].content.text
+
+
+async def test_explain_before_a_run(settings):
+    text = await _prompt({"about": "4.C"})
+    assert "before any testing" in text
+    assert "There is no keyboard trap." in text  # the TT text
+    assert "Understanding/no-keyboard-trap.html" in text
+    assert "tries the keys a person would" in text  # what this tool does
+    assert "NOT a certified" in text
+    # Untested tests say so plainly.
+    assert "cannot run this test yet" in await _prompt({"about": "4.D"})
+
+
+async def test_explain_finds_tests_by_words_criterion_or_name(settings):
+    assert "=== 4.C ===" in await _prompt({"about": "keyboard trap"})
+    assert "=== 4.C ===" in await _prompt({"about": "2.1.2-no-keyboard-trap"})
+    many = await _prompt({"about": "1.3.1"})  # one WCAG SC, many TT tests
+    assert "=== 5.C ===" in many and "=== 14.B ===" in many
+    assert "Full text: tt://5.1.3/tests/14.B" in many  # brief entries
+    assert "Ask the user which" in await _prompt({"about": "zzzz"})
+
+
+async def test_explain_after_a_run(settings, server):
     out = await _call("run_tt_tests", {"url": f"{server.base}/no_trap.html"})
     [f] = out["findings"]
     assert f["reference"] == "tt://5.1.3/tests/4.C"
     assert f["understanding"] == [
         "https://www.w3.org/WAI/WCAG22/Understanding/no-keyboard-trap.html"
     ]
-    async with Client(mcp) as client:
-        r = await client.get_prompt(
-            "explain_result", {"test_id": "4.C", "run_id": out["run_id"]}
-        )
-    text = r.messages[0].content.text
-    assert "There is no keyboard trap." in text and "Outcome: PASS" in text
-    assert "NOT a certified" in text
+    text = await _prompt({"run_id": out["run_id"]})  # every result of the run
+    assert "Explain these results" in text and "Result for 4.C: PASS" in text
+    gone = await _prompt({"about": "4.C", "run_id": "20000101T000000Z-000000"})
+    assert "no longer on the server" in gone and "saved its report" in gone

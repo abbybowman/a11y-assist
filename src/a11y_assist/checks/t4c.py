@@ -1105,6 +1105,17 @@ class Check4C:
     test_id = TestId.T4C
     state_type = State4C
     uses_walk = True
+    about = (
+        "It records the page once, then moves through the recorded copy with Tab "
+        "and with Shift+Tab. Wherever focus seems stuck or keeps cycling, it "
+        "tries the keys a person would (Shift+Tab or Tab back, the arrow keys, "
+        "Escape, Enter on the controls there) and any exit key the page's own "
+        "text documents. It decides PASS, FAIL or DOES NOT APPLY where those key "
+        "presses settle it, and asks for a person where they do not. It does not "
+        "open menus or accordions, follow help links, or type into forms: if a "
+        "section seems to need input first, it suggests values for a person to "
+        "try. One run takes up to about two minutes."
+    )
 
     async def collect(self, ctx: RunContext, walk: KeyboardWalk | None) -> State4C:
         assert walk is not None
