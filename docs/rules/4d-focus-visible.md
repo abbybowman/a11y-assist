@@ -1,7 +1,7 @@
 ---
 tt_test: 4.D
 tt_name: 2.4.7-focus-visible
-spec_version: 0.2.0
+spec_version: 0.3.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -14,7 +14,7 @@ The tool gives each page one 4.D outcome: PASS, FAIL, DOES NOT APPLY or NEEDS RE
 
 **W3C sources.** [Understanding 2.4.7](https://www.w3.org/WAI/WCAG22/Understanding/focus-visible), techniques [G149](https://www.w3.org/TR/2016/NOTE-WCAG20-TECHS-20161007/G149) and [C15](https://www.w3.org/TR/2016/NOTE-WCAG20-TECHS-20161007/C15), failure [F55](https://www.w3.org/TR/2016/NOTE-WCAG20-TECHS-20161007/F55), and ACT rule [oj04fd](https://www.w3.org/WAI/standards-guidelines/act/rules/oj04fd/), on whose 7 approved test cases DHS reports TT 5.1 fully consistent. They inform OPEN items and fixtures only; the PDF stays the authority.
 
-**Terms.** *Stop*, *OUT*, *BODY*, passes P1 and P2, stop identity and the settle rule are defined in [4c-no-keyboard-trap.md](4c-no-keyboard-trap.md) (Terms, section 2). The *region* of a stop is its border box plus `indicator_margin_px` on every side, joined with the boxes of its associated labels, clipped to the viewport, in page coordinates. The *on image* is a clip of the region at the step where the stop gains focus; the *off image* is a clip of the same page region at the next step of the same pass, after focus has moved on. A *frame stop* is a stop that is a frame or iframe element itself.
+**Terms.** *Stop*, *OUT*, *BODY*, passes P1 and P2, stop identity and the settle rule are defined in [4c-no-keyboard-trap.md](4c-no-keyboard-trap.md) (Terms, section 2). The *region* of a stop is its border box plus `INDICATOR_MARGIN_PX` on every side, joined with the boxes of its associated labels and of any ancestor whose style changes between the two reads (an indicator on a wrapper or card, as in oj04fd Passed Example 3 and C15 Example 2), clipped to the viewport, in page coordinates. The *on image* is a clip of the region at the step where the stop gains focus; the *off image* is a clip of the same page region at the next step of the same pass, after focus has moved on. A *frame stop* is a stop that is a frame or iframe element itself.
 
 ## 1. Applicability
 
@@ -35,7 +35,7 @@ The p. 22 Identify Content block says "4.A to 4.H"; as in 4.C, the spec reads it
 **Extra evidence this test collects** (walk extras, collected only when 4.D is selected). Looking at each element as focus lands on it is what p. 22 HtT 2 asks a tester to do; the images and style reads are how the tool looks. At each step where a stop gains focus, after the settle rule:
 
 1. **On image:** a clip of the stop's region, with animations disabled and the caret hidden. Disabling animations finishes CSS transitions, so a ring that fades in is captured in its final state (V1).
-2. **Focus styles,** read through CDP after the on image (read before it, a transition still shows its start state): for the stop, its parent and its associated labels, the computed outline (style, width, color, offset), box-shadow, border (width, style, color), background color and image, color, text-decoration-line, opacity, visibility, transform, and the content of ::before and ::after. Also the stop's box, the page's scroll offsets, and for text fields whether they are editable and their caret-color (V7).
+2. **Focus styles,** read through CDP after the on image (read before it, a transition still shows its start state): the whole computed style of the stop, its ancestors up to the nearest block container, its associated labels, and their ::before and ::after, compared as a whole between the two reads rather than property by property. Also the stop's box, the page's scroll offsets, and for text fields whether they are editable and their caret-color (V7).
 3. **At the next step of the same pass,** after the settle rule: the off image of the previous stop's region, captured only if that region is fully inside the viewport, and the previous stop's focus styles again. Pixels inside the new stop's region are masked out of the comparison.
 
 P1 collects at every stop. P2 collects only at stops (matched by frame chain plus CSS path) that P1 left without complete evidence. Stops reached only by 4.C's own follow-ups (P3, P4, P6) get no extras.
@@ -44,19 +44,19 @@ P1 collects at every stop. P2 collects only at stops (matched by frame chain plu
 
 **Time budget:** measured on Linux (Chromium headless shell, Playwright 1.63): a clip screenshot takes about 27 ms (median) and a CDP style read about 10 ms, so about 100 ms per stop. On a typical page of 100 stops that is about 10 s for P1 plus a few P2 top-ups, on top of the walk itself. Windows headed Chrome is not yet measured (V8). The whole run stays within `run_limit_s`; when the walk stops at the limit, stops without complete evidence go to M3 and G3 gives the reason "the page is too large to finish within the time limit".
 
-**Run limits.** Settings, in server config and recorded in every report; all defaults are provisional until the V-checks and fixtures calibrate them:
+**Constants.** These decide outcomes, so they live in this spec, not in server config (CLAUDE.md principle 2): changing one is a spec version change. Provisional until the V-checks and fixtures calibrate them.
 
-| Setting | Default | Used by |
+| Constant | Value | Used by |
 | --- | --- | --- |
-| `indicator_margin_px` | 8 CSS px | Region |
-| `pixel_delta_visible` | 8 (max channel difference, 0–255) | Changed pixel |
-| `pixel_delta_strong` | 40 | Strongly changed pixel |
-| `min_changed_px` | 12 CSS px² | M5, M6, M7 |
-| `mask_max_fraction` | 0.5 | Complete evidence |
+| `INDICATOR_MARGIN_PX` | 8 CSS px | Region |
+| `PIXEL_DELTA_VISIBLE` | 8 (max channel difference, 0–255) | Changed pixel |
+| `PIXEL_DELTA_STRONG` | 40 | Strongly changed pixel |
+| `MIN_CHANGED_PX` | 12 CSS px² | M5, M6, M7 |
+| `MASK_MAX_FRACTION` | 0.5 | Complete evidence |
 
 ## 3. Mechanical checks
 
-Each distinct stop (frame chain plus CSS path; not BODY or OUT) is an *instance*, evaluated on its first step with complete evidence, P1 before P2. *Complete evidence* is a settled, resolved step with an on image, an off image whose mask covers at most `mask_max_fraction` of the region, and focus styles in both states. A pixel is *changed* when it differs between the on and off images by at least `pixel_delta_visible`, outside the mask; *strongly changed* at `pixel_delta_strong`. A *style signal* is any focus style of the stop, its parent or a label that differs between the two reads, or the stop's box moving between them.
+Each distinct stop (frame chain plus CSS path; not BODY or OUT) is an *instance*, evaluated on its first step with complete evidence, P1 before P2. *Complete evidence* is a settled, resolved step with an on image, an off image whose mask covers at most `MASK_MAX_FRACTION` of the region, and focus styles in both states. A pixel is *changed* when it differs between the on and off images by at least `PIXEL_DELTA_VISIBLE`, outside the mask; *strongly changed* at `PIXEL_DELTA_STRONG`. A *style signal* is any computed-style difference between the two reads on the stop, an ancestor up to its block container, a label or their pseudo-elements, or the stop's box moving between them.
 
 **3a. Instance rules (first match wins)**
 
@@ -65,15 +65,15 @@ Each distinct stop (frame chain plus CSS path; not BODY or OUT) is an *instance*
 | M1 | Every step that reached the stop is unsettled or unresolved | NEEDS REVIEW | Spec rule |
 | M2 | Frame stop, and the next stop in the same pass is inside that frame | PASS (frame exempt) | p. 22 HtT 2.a; Note |
 | M3 | No complete evidence. Reasons: reached only after a 4.C bypass; never fully in view; scrolled out of view before the next step; the next stop covers the region; focus never moved on (the pass ended on this stop); the run hit its time limit | NEEDS REVIEW, with the reason | Spec rule; p. 5 |
-| M4 | The stop is an editable text field (text-like input, textarea or contenteditable), not read-only, with a caret-color that is not transparent | PASS (the caret shows focus) | Understanding 2.4.7; G149 |
-| M5 | A style signal, and at least `min_changed_px` of strongly changed pixels | PASS | p. 22 ER 1; ACT oj04fd |
-| M6 | At least `min_changed_px` of changed pixels, and M5 not met | Ask J1 (M8–M10) | p. 22 HtT 2 |
-| M7 | Anything else: fewer than `min_changed_px` of changed pixels | FAIL | p. 22 ER 1 |
+| M4 | The stop is an editable text field (text-like input, textarea or contenteditable), not read-only, with a caret-color that is not transparent | PASS (the caret shows focus) | Understanding 2.4.7, Examples ("a vertical bar is displayed in the field"); G149 |
+| M5 | A style signal, and at least `MIN_CHANGED_PX` of strongly changed pixels | PASS | p. 22 ER 1; ACT oj04fd |
+| M6 | At least `MIN_CHANGED_PX` of changed pixels, and M5 not met | Ask J1 (M8–M10) | p. 22 HtT 2 |
+| M7 | Anything else: fewer than `MIN_CHANGED_PX` of changed pixels | FAIL | p. 22 ER 1 |
 | M8 | J1 = yes | PASS (M6's measured change confirms it) | p. 22 ER 1 |
 | M9 | J1 = no | FAIL | p. 22 ER 1 |
 | M10 | J1 = unsure, or not yet answered | NEEDS REVIEW | Spec rule |
 
-**What counts as an indication.** The change must be on or right around the element, where a keyboard user looks: a change elsewhere on the page, one too faint to see, or one hidden behind other content (a sticky header) leaves fewer than `min_changed_px` changed pixels in the region, so M7 fails it. The indicator may sit on an associated label or a wrapper (C15 Example 2; oj04fd Passed Example 3), which the region and the parent and label style reads cover. An element that appears only when focused, such as a skip link, passes through M5: its box moves and the region changes.
+**What counts as an indication.** The change must be on or right around the element, where a keyboard user looks: a change elsewhere on the page, one too faint to see, or one hidden behind other content (a sticky header) leaves fewer than `MIN_CHANGED_PX` changed pixels in the region, so M7 fails it. The indicator may sit on an associated label or a wrapper (C15 Example 2; oj04fd Passed Example 3), which the region and the parent and label style reads cover. An element that appears only when focused, such as a skip link, passes through M5: its box moves and the region changes. A focused element hidden behind a sticky header fails here (no indicator a tester could see, p. 22 ER 1); WCAG 2.2 also covers this as 2.4.11 Focus Not Obscured, which is outside TT 5.1.3 (WCAG 2.0).
 
 **Exceptions (p. 22 HtT 2.a and Note).** A frame or iframe element itself may show no focus; elements inside frames are still tested. M2 applies it. The Note's way of confirming that focus is on the frame (Tab moves into it) is what the walk's next stop shows.
 
@@ -121,7 +121,7 @@ One question, asked only for M6. The calling agent answers it once, by the rubri
 
 **Output:** `{indicator: yes|no|unsure, change: "<a few plain words>"}`.
 
-**Rubric.** Yes: an outline, border, underline, background or text color change, or an added icon or marker, on the element or touching it. No: no noticeable change; or the only change is elsewhere in the picture (a slideshow, a video, an animation); or only soft edge pixels around text. Unsure: a pop-up such as a tooltip appears beside the element and nothing on the element changes; or the change is too faint to tell. Mechanical guard: J1 is asked only when M6 measured at least `min_changed_px` changed pixels.
+**Rubric.** Yes: an outline, border, underline, background or text color change, or an added icon or marker, on the element or touching it. No: no noticeable change; or the only change is elsewhere in the picture (a slideshow, a video, an animation); or only soft edge pixels around text. Unsure: a pop-up such as a tooltip appears beside the element and nothing on the element changes; or the change is too faint to tell. Mechanical guard: J1 is asked only when M6 measured at least `MIN_CHANGED_PX` changed pixels.
 
 | Example | Answer |
 | --- | --- |
@@ -148,9 +148,9 @@ Only cases that need a rule of their own; everything else follows sections 2–3
 
 **OPEN O5, aria-activedescendant widgets.** Focus stays on the widget while arrow keys move a highlight among its options. The shared walk presses only Tab and Shift+Tab, so it never moves that highlight. Options: (a) don't test it; when the walk reaches a stop with aria-activedescendant, add the note "We did not check whether the options inside <element> show which one is selected; please arrow through them"; (b) add arrow presses at those stops, beyond what the walk does. (b) adds a probe the PDF's 4.D step doesn't ask for. Recommend (a).
 
-**OPEN O7, element that drops focus as soon as it gets it.** The walk's focus-event log already shows an element gaining focus from a key press and losing it before the step settles, with no further key. W3C failure F55 names this a 2.4.7 failure; the PDF is silent. Options: (a) an instance with outcome FAIL and the sentence "<element> drops keyboard focus as soon as it gets it, so keyboard users never see focus there. To see it, load the page and press <keys>."; (b) a note only, for 4.E. The evidence costs nothing extra, and the experience is clearly worse for users. Recommend (a).
+**OPEN O7, element that drops focus as soon as it gets it.** The walk's focus-event log already shows an element gaining focus from a key press and losing it before the step settles, with no further key. W3C failure F55 names this a failure of 2.1.1, 2.4.7 and 3.2.1. The PDF's 4.D text is silent, but its 4.E step names "focus is moved to another interface component" (p. 22), so 4.E fails it in any case (4.E row M7). Options: (a) also an instance here, outcome FAIL, sentence "<element> drops keyboard focus as soon as it gets it, so keyboard users never see focus there. To see it, load the page and press <keys>."; (b) a note only, pointing to 4.E. (a) matches F55, which counts it against both criteria. Recommend (a).
 
-**OPEN O8, indicator that disappears while focus stays.** Current Understanding 2.4.7 says the indicator must not be time limited. The PDF is silent, and the images are taken within about 2 s of focus. Options: (a) not tested; listed here as a known limit, with no per-page note; (b) a late image `late_check_ms` (3,000) after focus, once per style signature (tag, role and class list), adding about 3 s per signature. (b) goes past what p. 22 asks a tester to do. Recommend (a).
+**OPEN O8, indicator that disappears while focus stays.** Understanding 2.4.7 (Intent) says "The focus indicator must not be time limited: when the keyboard focus is shown, it must remain visible." The PDF is silent, and the images are taken within about 2 s of focus. Options: (a) not tested; listed here as a known limit, with no per-page note; (b) a late image `late_check_ms` (3,000) after focus, once per style signature (tag, role and class list), adding about 3 s per signature. (b) goes past what p. 22 asks a tester to do. Recommend (a).
 
 ## 6. What a FAIL records
 

@@ -1,10 +1,10 @@
 # Build tasks: 4.D
 
-Work [4d-focus-visible.md](4d-focus-visible.md) (spec 0.2.0) needs done during the build, once Abby approves the spec. Delete each row once it exists in the repo: ACT fixtures under `tests/fixtures/act/`, custom fixtures under `tests/fixtures/4d/`, browser checks under `tests/browser/`. Delete this file when every table is empty.
+Work [4d-focus-visible.md](4d-focus-visible.md) (spec 0.3.0) needs done during the build, once Abby approves the spec. Delete each row once it exists in the repo: ACT fixtures under `tests/fixtures/act/`, custom fixtures under `tests/fixtures/4d/`, browser checks under `tests/browser/`. Delete this file when every table is empty.
 
 ## Walk changes
 
-The shared walk has no extras hook yet (`walk_page` takes none, and `Check` declares no evidence needs). 4.D needs one: a check declares the per-step extras it wants, the walk collects the union, and running 4.C alone collects none. The extras are the on and off images and the focus-style reads in spec section 2.
+The shared walk has no extras hook yet (`walk_page` takes none, and `Check` declares no evidence needs). 4.D needs one: a check declares the per-step extras it wants, the walk collects the union, and running 4.C alone collects none. The extras are the on and off images and the focus-style reads in spec section 2. 4.E and 4.F use the same hook (dialog visibility, scroll offsets, richer focus log), so build it once for all three.
 
 ## Fixtures to build
 
