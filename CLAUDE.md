@@ -92,6 +92,12 @@ by TT test ID. Package: `a11y_assist` (name is provisional).
   client reads `report_uri` and saves it before `expires_at`), and one tool
   call stays within `RUN_LIMIT_S`
   (default 120 s) so it survives HTTP proxy timeouts.
+- Hackathon docs: when a TT test, spec version, evaluation method or
+  security control changes, update `docs/hackathon/evaluation.md` and the
+  matching slide in `docs/hackathon/deck.md` in the same commit. Remove a
+  [PENDING] marker only when the work exists and is checked; never fill a
+  [FILL] placeholder (final figures come from one scored run at the
+  submission commit; see `docs/hackathon/README.md`).
 - What to build next is in `docs/ROADMAP.md` (a living list); the plan for
   the current step is in `docs/plans/`; lessons that save the next test time
   go in `docs/solutions/` (read its README before building). Adding a TT
@@ -141,6 +147,7 @@ src/a11y_assist/
 docs/rules/     rules specs (one per TT test), <id>-build-tasks.md checklists,
                 _template.md (start new specs from it)
 docs/plans/     plans, newest first by date
+docs/hackathon/ GSA hackathon evaluation document and deck (drafts)
 docs/solutions/ lessons that save the next test time
 docs/sources/   TT 5.1.3 PDF (the authority), SHA-256 in its README;
                 tt-5.1.3/ its Markdown + tt.json copy (made once; see README)
