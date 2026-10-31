@@ -14,7 +14,9 @@ by TT test ID. Package: `a11y_assist` (name is provisional).
    decision may be coded anywhere else: not in evidence collection, the judge
    plumbing, the tools or the tests. Specs live in `docs/rules/`, one file per
    TT test (`<id>-<short-name>.md`, e.g. `4c-no-keyboard-trap.md`); each
-   spec's `spec_version` front matter is recorded in every report. Never
+   spec's `spec_version` front matter is recorded in every report (0.y.z is
+   a draft with no outcome; 1.0.0 is approved and built; then MINOR for rule
+   changes, PATCH for wording; see `docs/rules/_template.md`). Never
    report `NOT_TESTED` unless the test's TT text names it (PDF p. 6). A test
    the tool cannot perform, or has no implemented spec for, is `NEEDS_REVIEW`
    with the note "This test could not be performed" and the reason
