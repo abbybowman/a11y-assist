@@ -73,7 +73,8 @@ src/a11y_assist/
   rules.py      loads docs/rules/ specs and their front matter versions
   models.py     Pydantic models
   tools/        one MCP tool per file
-docs/rules/     rules specs (one per TT test) and <id>-build-tasks.md checklists
+docs/rules/     rules specs (one per TT test), <id>-build-tasks.md checklists,
+                _template.md (start new specs from it)
 third_party/    ANDI 29.2.2, jQuery 3.7.1, PROVENANCE.json
 tests/fixtures/ no_trap.html, simple_trap.html, modal_dialog.html
 runs/           output (git-ignored)

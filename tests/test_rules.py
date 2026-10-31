@@ -34,7 +34,9 @@ def test_every_rules_file_is_a_spec_or_build_tasks() -> None:
     # load_specs raises on any non-build-tasks file that is not a valid spec.
     names = {p.name for p in RULES_DIR.glob("*.md")}
     spec_names = {s.path.name for s in load_specs(RULES_DIR).values()}
-    assert names - spec_names <= {p for p in names if p.endswith("-build-tasks.md")}
+    assert names - spec_names <= {
+        p for p in names if p.endswith("-build-tasks.md") or p.startswith("_")
+    }
 
 
 def test_version_recorded_in_report_versions(tmp_path: Path) -> None:
@@ -85,3 +87,10 @@ def test_two_specs_for_one_test_fail(tmp_path: Path) -> None:
 def test_build_tasks_file_is_not_a_spec(tmp_path: Path) -> None:
     (tmp_path / "4c-build-tasks.md").write_text("# Build tasks\n")
     assert load_specs(tmp_path) == {}
+
+
+def test_template_is_not_a_spec() -> None:
+    # The repo template has placeholder front matter (tt_test: X.Y) that would
+    # fail validation; the leading underscore keeps it out of the loader.
+    assert (RULES_DIR / "_template.md").is_file()
+    assert all(s.path.name != "_template.md" for s in load_specs(RULES_DIR).values())
