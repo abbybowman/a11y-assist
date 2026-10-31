@@ -4,11 +4,11 @@ What is left to build, newest priorities first. A living list, not a log:
 delete an item once it is built, and put any decision it needed into the
 spec, CLAUDE.md or `docs/solutions/` where it belongs.
 
-## Now: TT Test 4 is complete except 4.A and 4.B
+## Now: TT Test 4 is complete
 
-Built (spec 1.0.0+, check registered, fixtures green): 4.C, 4.D, 4.E, 4.F.
-Next: 4.A (2.1.1-keyboard-access) and 4.B (2.1.1-no-keystroke-timing). See
-[plans/2026-10-31-next-4a-4b.md](plans/2026-10-31-next-4a-4b.md).
+Built (spec 1.0.0+, check registered, fixtures green): 4.A, 4.B, 4.C, 4.D,
+4.E, 4.F. Next: measure the time budget across all of Test 4 (below), then
+choose the next TT test group.
 
 Per-test leftovers live in each `docs/rules/<id>-build-tasks.md` (mostly
 browser checks on Windows headed Chrome, which this Linux container cannot
@@ -18,7 +18,7 @@ run).
 
 - **Time budget across Test 4.** One `run_tt_tests` call must finish in
   `RUN_LIMIT_S` (120 s). Measured so far: a 100-link page takes 53 s for the
-  walk plus 4.D. Measure all of 4.C–4.F (and 4.A/4.B once built) together on
+  walk plus 4.D. Measure all of 4.A–4.F together on
   that page, and run the 600-link fixture (4.C F34, `pytest -m slow`), which
   has never run under the 120 s limit (expected: NEEDS REVIEW "ran out of
   time").

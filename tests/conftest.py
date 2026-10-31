@@ -33,7 +33,12 @@ def settings(tmp_path: Path) -> Settings:
         dev_mode=True,
         browser_channel=os.getenv("TEST_BROWSER_CHANNEL", "chromium"),
         headless=os.getenv("TEST_HEADED") != "1",
-        browser_args=["--disable-features=LocalNetworkAccessChecks"],
+        browser_args=[
+            "--disable-features=LocalNetworkAccessChecks",
+            # Tests never use the network: the vendored Baseline page loads
+            # jQuery from cdnjs (which its own wrong SRI hash blocks anyway).
+            "--host-resolver-rules=MAP cdnjs.cloudflare.com ~NOTFOUND",
+        ],
         runs_dir=tmp_path / "runs",
     )
 
@@ -135,6 +140,28 @@ class _ActHandler(http.server.SimpleHTTPRequestHandler):
 @pytest.fixture(scope="session")
 def act_server():
     httpd = http.server.ThreadingHTTPServer(("127.0.0.1", 0), _ActHandler)
+    threading.Thread(target=httpd.serve_forever, daemon=True).start()
+    yield f"http://127.0.0.1:{httpd.server_address[1]}"
+    httpd.shutdown()
+    httpd.server_close()
+
+
+BASELINE_ROOT = FIXTURES / "baseline"
+
+
+class _BaselineHandler(http.server.SimpleHTTPRequestHandler):
+    """Serves tests/fixtures/baseline (Section 508 Baseline Alignment pages)."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, directory=str(BASELINE_ROOT), **kwargs)
+
+    def log_message(self, *args) -> None:
+        pass
+
+
+@pytest.fixture(scope="session")
+def baseline_server():
+    httpd = http.server.ThreadingHTTPServer(("127.0.0.1", 0), _BaselineHandler)
     threading.Thread(target=httpd.serve_forever, daemon=True).start()
     yield f"http://127.0.0.1:{httpd.server_address[1]}"
     httpd.shutdown()

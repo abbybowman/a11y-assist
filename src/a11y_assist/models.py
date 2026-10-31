@@ -280,6 +280,19 @@ class ChoiceAnswer(BaseModel):
     reasons: str = Field(
         default="", max_length=500, description="A few plain words: why."
     )
+    # Only where a question asks for them (4.A J1, 4.B J1/J2).
+    element: int | None = Field(
+        default=None, ge=1, description="The number of an element in input.stops."
+    )
+    key: str | None = Field(
+        default=None, max_length=40, description='A key name, e.g. "Space" or "Enter".'
+    )
+    duration_ms: int | None = Field(
+        default=None, ge=1, le=10000, description="How long the key must be held."
+    )
+    presses: int | None = Field(
+        default=None, ge=2, le=5, description="How many quick presses are needed."
+    )
 
 
 class Answer(BaseModel):

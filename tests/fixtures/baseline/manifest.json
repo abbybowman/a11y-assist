@@ -1,0 +1,32 @@
+{
+ "source": "https://baselinealignment.section508.gov",
+ "license": "U.S. Government work",
+ "cases": [
+  {
+   "id": "TC01.A-1-fail-1",
+   "summary": "https://baselinealignment.section508.gov/testcases/TC01.A-1-fail-1.html",
+   "path": "testfiles/TF01/01.A-1-fail-1.html",
+   "baseline_expected": "FAIL",
+   "expected": {
+    "4.A": "FAIL",
+    "4.B": "PASS"
+   },
+   "differs": ""
+  },
+  {
+   "id": "TC01.A-2-fail-1",
+   "summary": "https://baselinealignment.section508.gov/testcases/TC01.A-2-fail-1.html",
+   "path": "testfiles/TF01/01.A-2-fail-1.html",
+   "baseline_expected": "FAIL",
+   "expected": {
+    "4.A": "PASS",
+    "4.B": "NEEDS_REVIEW"
+   },
+   "differs": "4.B: the page's integrity hash for jQuery is wrong, so Chrome blocks the script and holding Space does nothing; the documented timing cannot be confirmed (verified against the cdnjs file, 2026-10-31)."
+  }
+ ],
+ "files": {
+  "testfiles/TF01/01.A-1-fail-1.html": "a6c46bee0329ef78a36cb47290ede5e001f3934b247720397a1e4d6a96bfd720",
+  "testfiles/TF01/01.A-2-fail-1.html": "acc04aa06f6c50a33a0540ec08ae764e59986dfb492cf185986fa0efd3b8cd8d"
+ }
+}

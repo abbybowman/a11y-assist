@@ -17,10 +17,12 @@ async def run_check(
     settings,
     url: str,
     test: TestId,
-    choice: str | None = None,
+    choice: str | dict[str, dict[str, Any]] | None = None,
     reasons: str = "scripted test answer",
 ) -> dict[str, Any]:
-    """`choice` answers every "choice" question the run asks."""
+    """`choice` answers every "choice" question the run asks: one choice for
+    all, or a dict from the question ID's last part ("J1", "J2") to
+    ChoiceAnswer fields (choice, element, key, duration_ms, presses)."""
     out = await run_tt_tests(settings, url, [test])
     assert out.errors == [], out.errors
     report = out.report
@@ -29,10 +31,18 @@ async def run_check(
         if not open_qs:
             break
         assert choice is not None, f"{url}: a question was asked: {open_qs[0].question}"
+
+        def fields(q) -> dict[str, Any]:
+            if isinstance(choice, dict):
+                f = choice.get(q.question_id.rsplit("-", 1)[-1])
+                assert f is not None, f"{url}: no scripted answer for {q.question_id}"
+                return {"reasons": reasons, **f}
+            return {"choice": choice, "reasons": reasons}
+
         answers = [
             Answer(
                 question_id=q.question_id,
-                choice=ChoiceAnswer(choice=choice, reasons=reasons),
+                choice=ChoiceAnswer(**fields(q)),
                 rationale="scripted test answer",
             )
             for q in open_qs

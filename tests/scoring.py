@@ -29,33 +29,37 @@ def report_lines() -> list[str]:
         c["id"]: c
         for c in json.loads((ACT_ROOT / "manifest.json").read_text())["cases"]
     }
-    lines = [
-        "4.C on W3C ACT cases (rules a1b64e, ebe86a, 80af7b; W3C status: proposed)"
-    ]
-    dhs_n = dhs_ok = act_n = act_ok = review = 0
-    mismatches = []
-    for cid, got in sorted(ours.items()):
-        c = cases[cid]
-        o = got["outcome"]
-        review += o == "NEEDS_REVIEW"
-        if c["dhs_tt51"]:
-            dhs_n += 1
-            dhs_ok += o == c["dhs_tt51"]
-            if o != c["dhs_tt51"]:
-                mismatches.append(
-                    f"  {cid} ours {o} vs DHS {c['dhs_tt51']} rows {got['rows']}"
-                )
-        for rule, exp in c["act_expected"].items():
-            act_n += 1
-            act_ok += o == exp
-            if o != exp:
-                mismatches.append(
-                    f"  {cid} ours {o} vs ACT {rule} {exp} rows {got['rows']}"
-                )
-    n = len(ours)
-    lines.append(f"  agreement with DHS TT 5.1: {dhs_ok}/{dhs_n}")
-    lines.append(f"  agreement with ACT expected (per rule): {act_ok}/{act_n}")
-    lines.append(f"  NEEDS_REVIEW: {review}/{n}")
-    lines.append("  mismatches:" if mismatches else "  mismatches: none")
-    lines += mismatches
+    lines: list[str] = []
+    for tt in sorted({cases[cid]["tt_test"] for cid in ours}):
+        mine = {cid: got for cid, got in ours.items() if cases[cid]["tt_test"] == tt}
+        rules = sorted({r for cid in mine for r in cases[cid]["act_expected"]})
+        lines.append(f"{tt} on W3C ACT cases (rules {', '.join(rules)})")
+        dhs_n = dhs_ok = act_n = act_ok = review = 0
+        mismatches = []
+        for cid, got in sorted(mine.items()):
+            c = cases[cid]
+            o = got["outcome"]
+            review += o == "NEEDS_REVIEW"
+            if c["dhs_tt51"]:
+                dhs_n += 1
+                dhs_ok += o == c["dhs_tt51"]
+                if o != c["dhs_tt51"]:
+                    mismatches.append(
+                        f"  {cid} ours {o} vs DHS {c['dhs_tt51']} rows {got['rows']}"
+                    )
+            for rule, exp in c["act_expected"].items():
+                act_n += 1
+                act_ok += o == exp
+                if o != exp:
+                    mismatches.append(
+                        f"  {cid} ours {o} vs ACT {rule} {exp} rows {got['rows']}"
+                    )
+        lines.append(
+            f"  agreement with DHS TT 5.1: {dhs_ok}/{dhs_n}"
+            + (" (DHS publishes no results for these rules)" if not dhs_n else "")
+        )
+        lines.append(f"  agreement with ACT expected (per rule): {act_ok}/{act_n}")
+        lines.append(f"  NEEDS_REVIEW: {review}/{len(mine)}")
+        lines.append("  mismatches:" if mismatches else "  mismatches: none")
+        lines += mismatches
     return lines
