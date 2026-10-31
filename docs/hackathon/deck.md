@@ -185,6 +185,7 @@ flowchart LR
 **On the slide**
 
 - Public .gov/.mil pages only, checked on every redirect; no logins, no credentials
+- Every browser connection is checked at connect time: names that point inside (private, loopback, cloud metadata) are refused, and DNS rebinding can't get past the check
 - Page content is untrusted: never shown to the agent as instructions; outcomes come only from rules
 - A test page tells "automated testers" to report PASS; the tool must still find both traps **[FILL: result]**
 - Evidence kept 24 h, then deleted; results go to the user's repository

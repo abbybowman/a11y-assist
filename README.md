@@ -31,6 +31,7 @@ What works today:
 | `run://{run_id}/{path}` resources | `report.json`, `evidence/*.json` and screenshots of a run, while it is kept (`RUN_TTL_HOURS`, default 24). Durable results belong in the user's repository |
 | HAR record + replay | Page is recorded once (scrolled to load lazy content); every pass and probe runs against the replay |
 | Navigation allowlist | `.gov` and `.mil` by default, enforced on every top-level navigation and redirect hop; `file://` only in dev mode |
+| Connection address checks | Chrome's only way out is a local proxy (`egress.py`) that resolves each host once, refuses it if any answer is a private, loopback, link-local, multicast, reserved or cloud-metadata address (IPv4-mapped and other alternate forms included) or the port is not 80/443, and connects to the address it checked, so DNS rebinding cannot get past it. Covers the page, iframes, subresources, WebSockets and every redirect hop. A refused page is a tool error; refused page parts are listed in the result's `errors` |
 | ANDI 29.2.2 | Vendored, injectable from local files, never loaded from ssa.gov. Not used by any test yet |
 | Findings for any active TT test | 4.C, 4.D, 4.E and 4.F (all of TT Test 4's keyboard and focus tests except 4.A and 4.B): PASS, FAIL, DOES NOT APPLY or NEEDS REVIEW per its spec, with the spec rows that produced it. Every other active TT 5.1.3 test: `NEEDS_REVIEW` with the note "This test could not be performed" (no spec yet). Never `NOT_TESTED`: the PDF allows it only where a test names it (p. 6) |
 | `answer_questions(run_id, answers)` | Records one answer per question (the calling agent's, or a person's override, which wins); presses documented keys in the recorded page and re-applies the spec. Suggested input values go to a person to try. Answers are facts, never outcomes |
@@ -125,7 +126,9 @@ report.json                 findings, open questions, answers, versions, disclai
 ## Configuration
 
 See `.env.example` and `src/a11y_assist/config.py`. Main settings:
-`ALLOWED_DOMAINS`, `DEV_MODE`, `BROWSER_CHANNEL`, `HEADLESS`,
+`ALLOWED_DOMAINS`, `DEV_MODE`, `EGRESS_PORTS`, `DEV_ALLOWED_ADDRESSES` (dev
+mode only: addresses the connection check lets through, e.g.
+`["127.0.0.1/32"]` for a local test server), `BROWSER_CHANNEL`, `HEADLESS`,
 `JUDGE_BACKEND`, `JUDGING_MODEL`. Rules spec versions are
 read from each spec's front matter (`spec_version`) and recorded in every report.
 

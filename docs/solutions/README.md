@@ -23,3 +23,4 @@ took more than an hour to understand; update it when the answer changes.
 | [subagent-token-cost.md](subagent-token-cost.md) | One subagent per question costs ~55k tokens each; batch all questions in one |
 | [parallel-tests.md](parallel-tests.md) | pytest-xdist; per-worker files for anything tests write in common |
 | [small-tool-output.md](small-tool-output.md) | Report as a `run://` link; shared evidence once per result |
+| [egress-proxy.md](egress-proxy.md) | `route.fetch` goes through the launch proxy; a CONNECT 403 is a response, not an error; HAR replay hangs on failed requests |
