@@ -82,8 +82,13 @@ by TT test ID. Package: `a11y_assist` (name is provisional).
   paths, run state is short-lived (results belong in the user's codebase,
   returned in tool output), and one tool call stays within `RUN_LIMIT_S`
   (default 120 s) so it survives HTTP proxy timeouts.
-- Plans live in `docs/plans/`; lessons that save the next test time go in
-  `docs/solutions/`.
+- What to build next is in `docs/ROADMAP.md` (a living list); the plan for
+  the current step is in `docs/plans/`; lessons that save the next test time
+  go in `docs/solutions/` (read its README before building). Adding a TT
+  test: follow the steps at the top of `src/a11y_assist/checks/base.py`.
+- Compound the work: each test should leave the next one easier. Reuse the
+  walk, its extras and existing collectors; put shared logic where the next
+  check can call it; write down what cost time.
 - Fixtures: use a vendored W3C ACT test case when one covers the rule; write a
   custom page only for a gap. Never edit an ACT page. Expected outcomes live in
   `tests/fixtures/act/manifest.json` or the test files, never in a page (pages
@@ -141,7 +146,8 @@ runs/           output (git-ignored)
 
 ```bash
 uv sync --group dev
-uv run pytest                    # Playwright Chromium, headless (~10 min)
+uv run pytest                    # Playwright Chromium, headless (~17 min)
+uv run pytest tests/test_fixtures_4e.py -k f03   # one fixture while building
 uv run pytest -m slow            # long fixtures (F34, ~10 min)
 TEST_BROWSER_CHANNEL=chrome TEST_HEADED=1 uv run pytest   # installed Chrome, visible
 uv run ruff check . && uv run ruff format --check .
