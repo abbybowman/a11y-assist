@@ -1,7 +1,7 @@
 ---
 tt_test: 4.D
 tt_name: 2.4.7-focus-visible
-spec_version: 0.4.0
+spec_version: 0.5.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -38,11 +38,13 @@ The p. 22 Identify Content block says "4.A to 4.H"; as in 4.C, the spec reads it
 2. **Focus styles,** read through CDP after the on image (read before it, a transition still shows its start state): the whole computed style of the stop, its ancestors up to the nearest block container, its associated labels, and their ::before and ::after, compared as a whole between the two reads rather than property by property. Also the stop's box, the page's scroll offsets, and for text fields whether they are editable and their caret-color (V7).
 3. **At the next step of the same pass,** after the settle rule: the off image of the previous stop's region, captured only if that region is fully inside the viewport, and the previous stop's focus styles again. Pixels inside the new stop's region are masked out of the comparison.
 
+**Widget pass W** (one fresh replay per composite widget the walk reached: menubar, menu, tablist, grid, treegrid, tree, listbox, toolbar, radio group, and any element with aria-activedescendant). Items inside a widget get focus only from arrow keys, which 4.C's How to Test uses ("arrow keys", p. 21 HtT 1) and 4.D continues from. Replay to the widget's stop, then press its arrow key (ArrowRight in a menubar, tablist or toolbar; ArrowDown otherwise) up to `WIDGET_ITEMS_MAX` times, collecting the same on and off images and style reads at each press. The *item* at each press is the element with DOM focus (roving tabindex), or the element its aria-activedescendant names (WAI-ARIA 1.2: the active descendant "is treated as having keyboard focus in the user interface", and the author styles it). Items of one widget share their styling, so the first `WIDGET_ITEMS_MAX` stand for the rest; a page with more than `WIDGET_MAX` widgets is G3. This shares its replay with 4.C's widget check (P4), which presses one arrow and then Tab at the same stops.
+
 P1 collects at every stop. P2 collects only at stops (matched by frame chain plus CSS path) that P1 left without complete evidence. Stops reached only by 4.C's own follow-ups (P3, P4, P6) get no extras.
 
 **Images:** PNG, about 1.5 KB each for a link-sized region (measured), two per stop, saved as `evidence/shots/4d/<pass>-<step>-on.png` and `-off.png` and served as run resources while the run is kept.
 
-**Time budget:** measured on Linux (Chromium headless shell, Playwright 1.63): a clip screenshot takes about 27 ms (median) and a CDP style read about 10 ms, so about 100 ms per stop. On a typical page of 100 stops that is about 10 s for P1 plus a few P2 top-ups, on top of the walk itself. Windows headed Chrome is not yet measured (V8). The whole run stays within `run_limit_s`; when the walk stops at the limit, stops without complete evidence go to M4 and G3 gives the reason "the page is too large to finish within the time limit".
+**Time budget:** widget pass W adds one replay per widget (about 2–3 s, shared with 4.C's P4) plus about 100 ms per item. Measured on Linux (Chromium headless shell, Playwright 1.63): a clip screenshot takes about 27 ms (median) and a CDP style read about 10 ms, so about 100 ms per stop. On a typical page of 100 stops that is about 10 s for P1 plus a few P2 top-ups, on top of the walk itself. Windows headed Chrome is not yet measured (V8). The whole run stays within `run_limit_s`; when the walk stops at the limit, stops without complete evidence go to M4 and G3 gives the reason "the page is too large to finish within the time limit".
 
 **Constants.** These decide outcomes, so they live in this spec, not in server config (CLAUDE.md principle 2): changing one is a spec version change. Provisional until the V-checks and fixtures calibrate them.
 
@@ -53,10 +55,12 @@ P1 collects at every stop. P2 collects only at stops (matched by frame chain plu
 | `PIXEL_DELTA_STRONG` | 40 | Strongly changed pixel |
 | `MIN_CHANGED_PX` | 12 CSS px² | M6, M7, M8 |
 | `MASK_MAX_FRACTION` | 0.5 | Complete evidence |
+| `WIDGET_ITEMS_MAX` | 5 items per widget | Widget pass W |
+| `WIDGET_MAX` | 10 widgets per page | Widget pass W, G3 |
 
 ## 3. Mechanical checks
 
-Each distinct stop (frame chain plus CSS path; not BODY or OUT) is an *instance*, evaluated on its first step with complete evidence, P1 before P2. *Complete evidence* is a settled, resolved step with an on image, an off image whose mask covers at most `MASK_MAX_FRACTION` of the region, and focus styles in both states. A pixel is *changed* when it differs between the on and off images by at least `PIXEL_DELTA_VISIBLE`, outside the mask; *strongly changed* at `PIXEL_DELTA_STRONG`. A *style signal* is any computed-style difference between the two reads on the stop, an ancestor up to its block container, a label or their pseudo-elements, or the stop's box moving between them.
+Each distinct stop (frame chain plus CSS path; not BODY or OUT), and each widget item from pass W, is an *instance*, evaluated on its first step with complete evidence, P1 before P2. *Complete evidence* is a settled, resolved step with an on image, an off image whose mask covers at most `MASK_MAX_FRACTION` of the region, and focus styles in both states. A pixel is *changed* when it differs between the on and off images by at least `PIXEL_DELTA_VISIBLE`, outside the mask; *strongly changed* at `PIXEL_DELTA_STRONG`. A *style signal* is any computed-style difference between the two reads on the stop, an ancestor up to its block container, a label or their pseudo-elements, or the stop's box moving between them.
 
 **3a. Instance rules (first match wins)**
 
@@ -84,7 +88,7 @@ Each distinct stop (frame chain plus CSS path; not BODY or OUT) is an *instance*
 | --- | --- | --- |
 | G1 | Section 1 gives DOES NOT APPLY or NEEDS REVIEW | That outcome |
 | G2 | Any instance is FAIL | FAIL, listing every instance |
-| G3 | Any instance is NEEDS REVIEW; or P1 or P2 is incomplete (cap, time limit, error); or P1 and P2 ended in different traps, so stops between them were reached only by 4.C's bypass or not at all | NEEDS REVIEW, with the note "This test could not be performed" and the reason (p. 5). Never NOT TESTED (p. 6) |
+| G3 | Any instance is NEEDS REVIEW; or P1 or P2 is incomplete (cap, time limit, error); or more than `WIDGET_MAX` widgets; or P1 and P2 ended in different traps, so stops between them were reached only by 4.C's bypass or not at all | NEEDS REVIEW, with the note "This test could not be performed" and the reason (p. 5). Never NOT TESTED (p. 6) |
 | G4 | P1 and P2 each ended in a wrap or at the same trap; every instance is PASS | PASS |
 | G5 | Anything else | NEEDS REVIEW |
 
@@ -144,13 +148,9 @@ Only cases that need a rule of their own; everything else follows sections 2–3
 | Stops inside frames, same- or cross-origin | Tested like any stop; the walk's box is already in top-level coordinates, and the top-level clip shows the frame's content. Only the frame element itself is exempt (M2) | V4, V5 |
 | Stops larger than the viewport | The region is clipped to the viewport; both images use the same clipped part | V6 |
 | Stops past a keyboard trap | Reached by P2 where possible. Reached only through 4.C's bypass: M4. Between two different traps and never reached: G3 | — |
-| Widgets using aria-activedescendant (comboboxes, listboxes, grids) | OPEN O5 | — |
+| Widget items (roving tabindex or aria-activedescendant) | Tested through widget pass W, with the same rows | V10 |
 | Element that drops focus as soon as it gets it (F55) | M3; 4.E fails it too (its M7) | V9 |
-| Indicator that disappears after a few seconds | OPEN O8 | — |
-
-**OPEN O5, aria-activedescendant widgets.** Focus stays on the widget while arrow keys move a highlight among its options. The shared walk presses only Tab and Shift+Tab, so it never moves that highlight. Options: (a) don't test it; when the walk reaches a stop with aria-activedescendant, add the note "We did not check whether the options inside <element> show which one is selected; please arrow through them"; (b) add arrow presses at those stops, beyond what the walk does. (b) adds a probe the PDF's 4.D step doesn't ask for. Recommend (a).
-
-**OPEN O8, indicator that disappears while focus stays.** Understanding 2.4.7 (Intent) says "The focus indicator must not be time limited: when the keyboard focus is shown, it must remain visible." The PDF is silent, and the images are taken within about 2 s of focus. Options: (a) not tested; listed here as a known limit, with no per-page note; (b) a late image `late_check_ms` (3,000) after focus, once per style signature (tag, role and class list), adding about 3 s per signature. (b) goes past what p. 22 asks a tester to do. Recommend (a).
+| Indicator that disappears after a few seconds | Not tested: a known limit (Abby, 2026-10-31). Understanding 2.4.7 says the indicator must not be time limited; the PDF is silent, and the images are taken within about 2 s of focus | — |
 
 ## 6. What a FAIL records
 

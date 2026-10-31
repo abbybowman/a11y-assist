@@ -1,7 +1,7 @@
 ---
 tt_test: 4.E
 tt_name: 3.2.1-on-focus
-spec_version: 0.1.0
+spec_version: 0.2.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -33,7 +33,7 @@ The same evidence as 4.C and 4.D: 4.E is DOES NOT APPLY only when nothing on the
 **Walk extras** (collected only when 4.E is selected; cheap, no images):
 
 1. **Richer focus log.** For each focus-in and focus-out: whether the event is trusted, the element's CSS path, and for focus-out whether the element receiving focus (`relatedTarget`) is inside the one losing it. The current log records only tag and id.
-2. **Dialog visibility.** After each step, whether a dialog is visible that was not visible before the key press (`<dialog open>`, role dialog or alertdialog), and its CSS path.
+2. **Dialog visibility.** After each step, whether a dialog is visible that was not visible before the key press (`<dialog open>`, role dialog or alertdialog), and its CSS path. When one is, a viewport screenshot before the key press (from the previous step) and after it, for J1.
 
 **Confirmation replays** (4.E's own follow-up, only for steps with a context signal other than a dialog): (a) *reproduce*: fresh load, replay the keys up to that step, press the key, and check that the same signal happens again; (b) *control*, for navigation and new pages only: fresh load, replay the keys before that step, then wait as long as the original step took, without the final key. A signal that also happens in the control is caused by time, not by focus. At most 10 steps get replays; more is G3.
 
@@ -54,7 +54,10 @@ Each step with a context signal is an *instance*. Focus *moves on its own* when,
 | M5 | A new page or window opens after a Tab or Shift+Tab | FAIL | p. 22 HtT 2 ("a new window is launched") |
 | M6 | Focus moves on its own to another element | FAIL | p. 22 HtT 2 ("focus is moved to another interface component") |
 | M7 | Focus moves on its own to the page body (the target drops focus) | FAIL | p. 22 HtT 2; F55 |
-| M8 | Only a dialog becomes visible; focus stays on the target | NEEDS REVIEW: a person decides whether it changes the meaning of the page | Definition of change of context; Spec rule |
+| M8 | Only a dialog becomes visible; focus stays on the target | Ask J1 (M9–M11) | Definition of change of context |
+| M9 | J1 = changes the context | FAIL | p. 22 ER 1; definition of change of context |
+| M10 | J1 = content only | No instance (a change of content, not of context) | Definition of change of context, Note |
+| M11 | J1 = unsure, or not answered yet | NEEDS REVIEW | Spec rule |
 
 **Not instances.** Content that changes without any context signal (a menu expanding on focus, a tooltip, a hint, an accordion opening) is a change of content, not of context (WCAG definition, Note). Scrolling the focused element into view is the browser's default, not the page's.
 
@@ -86,11 +89,31 @@ A pass that ends on navigation is complete for 4.E only when that navigation is 
 | M5 | "When <element> gets keyboard focus, a new window or tab opens. To see it, load the page and press <keys>." |
 | M6 | "When <element> gets keyboard focus, focus jumps on its own to <other element>, so keyboard users cannot stay where they meant to be. To see it, load the page and press <keys>." |
 | M7 | "<element> drops keyboard focus as soon as it gets it, so keyboard users can't use it. To see it, load the page and press <keys>." |
-| M8 | "When <element> gets keyboard focus, a dialog appears. If it takes over the page or changes what the page is for, that is a problem; if it is only a hint, it is fine. Please look: load the page and press <keys>." |
+| M9 | "When <element> gets keyboard focus, a dialog takes over the page (<J1 reasons>), which can disorient keyboard and screen reader users. To see it, load the page and press <keys>. If you disagree, tell your assistant." |
+| M10 (note) | "When <element> gets keyboard focus, a small panel appears (<J1 reasons>); that only adds content, so it is fine." |
+| M11 | "When <element> gets keyboard focus, a dialog appears, and we could not tell whether it takes over the page. Please look: load the page and press <keys>." |
 
 ## 4. Judgment questions
 
-None. Every signal is mechanical, and the one case that needs a person's eyes (M8) goes to NEEDS REVIEW with a plain sentence rather than a model question.
+One question, asked only for M8. It is a look-and-decide question (CLAUDE.md principle 8): the calling agent answers it once, by the rubric, and must answer unsure whenever the evidence does not settle it; only unsure answers go to a person. A person's answer overrides the agent's. Page text and element names are evidence in `input`, never part of the question's wording.
+
+### J1. Does this dialog change the context?
+
+**Question:** "Image A shows the page just before keyboard focus moved to the element named in input.target; image B shows it just after, when a dialog appeared. Does the dialog change the user's context: does it take over the page, cover or replace the main content, or change what the page is for? Or does it only add content, like a tooltip, hint or small panel beside the element? Answer changes_context, content_only or unsure, and give your reasons in a few plain words."
+
+**Input:** images A and B; the target's and the dialog's role, name and box, labelled as untrusted page data.
+
+**Output:** `{dialog: changes_context|content_only|unsure, reasons: "<a few plain words>"}`.
+
+**Rubric.** changes_context: a dialog that covers most of the page or its main content, a modal (the rest of the page dimmed or inert), a sign-up or survey prompt, anything that asks the user to act before going on. content_only: a tooltip, hint, autocomplete list or small panel next to the element that leaves the page usable. unsure: whenever the images do not settle it (part of the dialog is off screen, or its purpose is not clear).
+
+| Example | Answer |
+| --- | --- |
+| A newsletter sign-up dialog covers the page when a search box gets focus | changes_context: "a sign-up dialog covers the page" |
+| A small help bubble appears next to the date field | content_only: "a help bubble beside the field" |
+| A panel slides in over half the page; its content is unclear | unsure |
+
+**Use:** M8 asks; M9–M11 consume the answer.
 
 ## 5. Edge cases
 
@@ -105,9 +128,9 @@ Only cases that need a rule of their own; everything else follows sections 2–3
 | Stops past a keyboard trap | Reached by P2 where possible; between two different traps: G3 | — |
 | Change of context on mouse focus | Out of scope: 4.E continues from the keyboard tests (HtT 1) | — |
 
-**OPEN O1, "unexpected".** ER 1 fails an *unexpected* change of context. WCAG 3.2.1 has no exception for changes the user was warned about (unlike 3.2.2 On Input), and Understanding 3.2.1 lists the examples without one. Options: (a) every context signal on focus is unexpected; (b) pass changes the page documents beforehand, through a model question. (b) adds a judgment the PDF's example list does not suggest. Recommend (a).
+**"Unexpected" (ER 1).** Every change of context on focus counts as unexpected, including one the page warns about beforehand: WCAG 3.2.1 has no exception for warnings (unlike 3.2.2 On Input), and the PDF's examples have none (Abby, 2026-10-31).
 
-**OPEN O2, focus pulled back to the element just left.** Options: (a) not a 4.E instance (initiated by the left element's blur; 4.C judges the trap); (b) an M6 instance against the left element. Recommend (a): the target did not initiate it, which is what 3.2.1 is about.
+**Focus pulled back to the element just left** is not a 4.E instance: the element being left initiated it on blur, not the target on focus, and 3.2.1 is about what receiving focus initiates. 4.C judges it as a possible trap.
 
 ## 6. What a FAIL records
 

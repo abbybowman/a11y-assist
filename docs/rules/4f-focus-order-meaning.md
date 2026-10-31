@@ -1,7 +1,7 @@
 ---
 tt_test: 4.F
 tt_name: 2.4.3-focus-order-meaning
-spec_version: 0.2.0
+spec_version: 0.3.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -140,7 +140,7 @@ Only cases that need a rule of their own; everything else follows sections 2–3
 | Content in frames | Ordered within the page at the frame's position (DOM order of frames) | V3 |
 | ANDI's tab order | Not used (p. 23 Note 3) | — |
 
-**OPEN O1, A3 (one stop).** Note 2 says 4.F does not apply when focus order cannot affect meaning. Options: (a) DNA mechanically only for a single stop, everything else through J1 (as written); (b) also DNA when every stop is in one row of links of the same kind. (b) is a judgment in disguise. Recommend (a).
+**A3 (one stop).** DOES NOT APPLY is given mechanically only for a page with a single stop; every other "order does not matter" case goes through J1, where the agent decides.
 
 ## 6. What a FAIL records
 
