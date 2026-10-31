@@ -1,7 +1,7 @@
 ---
 tt_test: 4.F
 tt_name: 2.4.3-focus-order-meaning
-spec_version: 0.1.0
+spec_version: 0.2.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -41,7 +41,7 @@ The tool gives each page one 4.F outcome: PASS, FAIL, DOES NOT APPLY or NEEDS RE
 
 | Constant | Value | Used by |
 | --- | --- | --- |
-| `REVEAL_MAX` | 6 triggers | Pass R |
+| `REVEAL_MAX` | 6 triggers (Abby, 2026-10-31; revisit after real pages) | Pass R |
 | `ROW_TOLERANCE` | half the previous stop's height, at least 8 CSS px | S3 |
 | `BADGE_MAX` | 60 | Order image |
 
@@ -70,11 +70,11 @@ The tool gives each page one 4.F outcome: PASS, FAIL, DOES NOT APPLY or NEEDS RE
 | M4 | O or R: no signal | PASS (focus follows the document order, which follows the reading order, both ways) | p. 23 ER 1–2; G59, C27 |
 | M5 | O or R: one or more signals | Ask J1 (M6–M9) | p. 23 HtT 2 |
 | M6 | J1 = does not preserve | FAIL | p. 23 ER 1–2 |
-| M7 | J1 = preserves | Answered by a person: PASS. Answered by the agent: NEEDS REVIEW, with the agent's reasons as our recommendation | p. 23 ER 1–2; CLAUDE.md principle 8 |
-| M8 | J1 = does not matter | Answered by a person: DOES NOT APPLY. Answered by the agent: NEEDS REVIEW, with the agent's reasons as our recommendation | p. 23 Note 2 |
+| M7 | J1 = preserves | PASS | p. 23 ER 1–2 |
+| M8 | J1 = does not matter | DOES NOT APPLY | p. 23 Note 2 |
 | M9 | J1 = unsure, or not answered yet | NEEDS REVIEW | Spec rule |
 
-**Why the agent's "preserves" is not enough for PASS.** A signal means the order departs from the document's reading order, and nothing mechanical can confirm that the departure keeps the meaning. So the agent recommends and a person confirms; a person's answer overrides the agent's (`answer_questions` with decided_by "human").
+**Who decides.** Whether an order makes sense is a call a careful tester makes by looking, and most cases are clear (two independent columns, navigation after main content). The calling agent decides them, and only answers *unsure* that go to a person (M9). Every decision is explained in the finding, and a person's answer overrides the agent's (`answer_questions` with decided_by "human"). This is the exception CLAUDE.md principle 8 allows for spec-designated look-and-decide questions.
 
 **3b. Page outcome (first match wins)**
 
@@ -101,9 +101,8 @@ The tool gives each page one 4.F outcome: PASS, FAIL, DOES NOT APPLY or NEEDS RE
 | M4 (O) | "Focus follows the page's reading order, forward and backward." |
 | M4 (R) | "After opening <element>, the next Tab moves into what it revealed." |
 | M6 | "The focus order doesn't make sense here: <signals>. <J1 reasons>. If you disagree, tell your assistant." |
-| M7 (person) | "The focus order departs from the reading order (<signals>), but you confirmed it still makes sense." |
-| M7 (agent) | "The focus order departs from the reading order (<signals>). We think it still makes sense: <J1 reasons>. Please confirm by tabbing through the page; tell your assistant if you agree or not." |
-| M8 (agent) | "The focus order departs from the reading order (<signals>), but we think the order doesn't matter here: <J1 reasons>. Please confirm." |
+| M7 | "The focus order departs from the reading order (<signals>), but it still makes sense: <J1 reasons>. If you disagree, tell your assistant." |
+| M8 | "The order of these elements can't change what the page means (<J1 reasons>), so this test does not apply here. If you disagree, tell your assistant." |
 | M9 | "The focus order departs from the reading order (<signals>), and we could not tell whether that matters. Please tab through the page and check." |
 
 ## 4. Judgment questions
@@ -116,7 +115,7 @@ The tool gives each page one 4.F outcome: PASS, FAIL, DOES NOT APPLY or NEEDS RE
 
 **Output:** `{order: preserves|does_not_preserve|does_not_matter|unsure, reasons: "<a few plain words>"}`.
 
-**Rubric.** does_not_preserve: related fields split apart (the address fields interleaved with other fields); focus jumping back and forth between unrelated areas; a menu's or dialog's content reached far from its trigger (F85); a positive tabindex sending focus to an unrelated place first (F44). preserves: columns read one after another; header, navigation, main, footer; a skip link first; independent sidebars in either order (Understanding 2.4.3). does_not_matter: independent items whose order cannot change meaning, such as a row of social media icons (p. 23 Note 2). unsure: the images and list are not enough to tell.
+**Rubric.** does_not_preserve: related fields split apart (the address fields interleaved with other fields); focus jumping back and forth between unrelated areas; a menu's or dialog's content reached far from its trigger (F85); a positive tabindex sending focus to an unrelated place first (F44). preserves: columns read one after another; header, navigation, main, footer; a skip link first; independent sidebars in either order (Understanding 2.4.3). does_not_matter: independent items whose order cannot change meaning, such as a row of social media icons (p. 23 Note 2). unsure: whenever the evidence does not settle it, for example: the image does not show every numbered stop clearly; the grouping that matters is not visible (which fields belong together); the content is in a language you cannot read; or the order would make sense only under an assumption you cannot check. Answer preserves or does_not_preserve only when you are sure; unsure answers go to a person.
 
 | Example | Answer |
 | --- | --- |
@@ -126,7 +125,7 @@ The tool gives each page one 4.F outcome: PASS, FAIL, DOES NOT APPLY or NEEDS RE
 | A row of five social media icons in a different order than shown | does_not_matter |
 | Focus goes to the footer first because of tabindex=1, then the header | does_not_preserve: "focus starts in the footer" |
 
-**Use:** M5 asks; M6–M9 consume the answer. A person's answer overrides the agent's.
+**Use:** M5 asks; M6–M9 consume the answer. The agent's answer decides unless it is unsure; a person's answer overrides it.
 
 ## 5. Edge cases
 
@@ -141,11 +140,7 @@ Only cases that need a rule of their own; everything else follows sections 2–3
 | Content in frames | Ordered within the page at the frame's position (DOM order of frames) | V3 |
 | ANDI's tab order | Not used (p. 23 Note 3) | — |
 
-**OPEN O1, the agent's "preserves" (M7).** Options: (a) NEEDS REVIEW with the agent's recommendation until a person confirms (as written); (b) PASS when the only signal is S3 and the order follows the DOM (no S1, S2, S5), since the author's own document order is being followed. (a) keeps principle 8; it means many multi-column pages need a person's one-line confirmation. (b) risks a false PASS where the document order itself is wrong. Recommend (a).
-
-**OPEN O2, A3 (one stop).** Note 2 says 4.F does not apply when focus order cannot affect meaning. Options: (a) DNA mechanically only for a single stop, everything else through J1 (as written); (b) also DNA when every stop is in one row of links of the same kind. (b) is a judgment in disguise. Recommend (a).
-
-**OPEN O3, `REVEAL_MAX`.** HtT 2.b says opening triggers "may be necessary". Options: (a) the first 6 triggers in forward order, and G3 beyond that (as written); (b) only dialog and menu triggers (aria-haspopup), at most 6; (c) none. (a) catches F85 and modal failures on typical pages within the budget; pages with many accordions become NEEDS REVIEW. Recommend (a), and revisit once real pages are measured.
+**OPEN O1, A3 (one stop).** Note 2 says 4.F does not apply when focus order cannot affect meaning. Options: (a) DNA mechanically only for a single stop, everything else through J1 (as written); (b) also DNA when every stop is in one row of links of the same kind. (b) is a judgment in disguise. Recommend (a).
 
 ## 6. What a FAIL records
 
