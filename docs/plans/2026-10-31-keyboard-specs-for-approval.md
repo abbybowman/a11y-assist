@@ -1,14 +1,14 @@
 # For approval: 4.D, 4.E and 4.F specs
 
-Status: **drafts awaiting Abby.** No code is written for them yet. Draft
+Status: **every open decision answered (Abby, 2026-10-31); specs ready for final approval before building.** No code is written for them yet. Draft
 specs (version 0.x) load and are recorded in reports, but give no outcome
 until a check is registered.
 
 | Spec | Version | Written by |
 | --- | --- | --- |
-| [4d-focus-visible.md](../rules/4d-focus-visible.md) | 0.4.0 | 4.D thread (0.2.0), reviewed and edited here |
-| [4e-on-focus.md](../rules/4e-on-focus.md) | 0.1.0 | this thread |
-| [4f-focus-order-meaning.md](../rules/4f-focus-order-meaning.md) | 0.2.0 | this thread |
+| [4d-focus-visible.md](../rules/4d-focus-visible.md) | 0.5.0 | 4.D thread (0.2.0), reviewed and edited here |
+| [4e-on-focus.md](../rules/4e-on-focus.md) | 0.2.0 | this thread |
+| [4f-focus-order-meaning.md](../rules/4f-focus-order-meaning.md) | 0.3.0 | this thread |
 
 Checked against: TT 5.1.3 text (`tt://5.1.3/tests/4.D`, `4.E`, `4.F`), W3C
 Understanding 2.4.7, 3.2.1 and 2.4.3, failures F55, F44 and F85, and W3C's
@@ -49,19 +49,26 @@ table matches W3C and DHS exactly. Changes made:
   required whenever the evidence does not settle it.
 - **4.F triggers:** the first 6 in forward order.
 
-## Decisions needed
+Second round (Abby, 2026-10-31):
 
-| # | Spec | Question | Recommendation |
-| --- | --- | --- | --- |
-| 1 | 4.D O5 | aria-activedescendant widgets: note only, or arrow through them? | Note only |
-| 3 | 4.D O8 | Indicator that disappears after a few seconds: not tested, or a late image? | Not tested, listed as a known limit |
-| 4 | 4.E O1 | Is a change of context on focus ever "expected" (e.g. warned about)? | No exception (WCAG 3.2.1 has none) |
-| 5 | 4.E O2 | Focus pulled back by the element just left: 4.E instance or not? | Not 4.E (the target did not initiate it; 4.C judges it) |
-| 6 | 4.E M8 | A dialog that appears on focus without taking focus: NEEDS REVIEW for a person, or ignore? | NEEDS REVIEW (false PASS is the worst error) |
-| 8 | 4.F O1 | DNA from p. 23 Note 2: only for a page with one stop? | Yes, only one stop |
+- **4.D widget items** (roving tabindex and aria-activedescendant) are tested,
+  not noted: WAI-ARIA 1.2 says the active descendant "is treated as having
+  keyboard focus in the user interface" and the author must style it; the ARIA
+  Authoring Practices say to move the visual focus indicator with the arrow
+  keys; TT 4.C navigates with arrow keys and 4.D continues from it. New widget
+  pass W: up to 5 items per widget, 10 widgets per page, sharing 4.C's widget
+  replay (4.D 0.5.0).
+- **4.D fading indicator:** not tested, a known limit.
+- **4.E dialog on focus:** the agent decides from before/after images (new J1,
+  look-and-decide); only unsure goes to a person (4.E 0.2.0).
+- **4.E warned changes:** no exception.
+- Written in as recommended (say if you disagree): **4.E** focus pulled back
+  by the element just left is not a 4.E instance (4.C judges it); **4.F** DNA
+  is mechanical only for a single-stop page (4.F 0.3.0).
 
 ## Shared build work these specs need
 
+- **Widget pass W** (4.D), sharing one replay per widget with 4.C's P4.
 - **A walk extras hook** (all three): a check declares per-step extras, the
   walk collects the union, and running 4.C alone collects none.
 - **A richer focus log** (4.E; also helps 4.C and 4.D): trusted flag, CSS path,

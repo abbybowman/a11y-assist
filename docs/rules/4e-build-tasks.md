@@ -1,6 +1,6 @@
 # Build tasks: 4.E
 
-Work [4e-on-focus.md](4e-on-focus.md) (spec 0.1.0) needs done during the build, once Abby approves the spec. Delete each row once it exists in the repo. Delete this file when every table is empty.
+Work [4e-on-focus.md](4e-on-focus.md) (spec 0.2.0) needs done during the build, once Abby approves the spec. Delete each row once it exists in the repo. Delete this file when every table is empty.
 
 ## Walk changes
 
@@ -19,8 +19,9 @@ No ACT rule covers 3.2.1 and DHS published no 4.E results, so all pages are cust
 | F05 | Listbox container (tabindex=0) that hands focus to its selected option | PASS | Focus moved into the target is not an instance |
 | F06 | Menu that expands on focus; tooltip on focus | PASS | Change of content, not context |
 | F07 | Page that redirects after 3 s, no focus handlers | NEEDS REVIEW (pass incomplete) | M2 control replay; note for 8.A |
-| F08 | Dialog appears on focus, focus stays on the field | NEEDS REVIEW | M8 |
-| 4.C f04-field-swallows-tab, ACT f5ea9fd3 | Refocus on blur / field swallowing Tab | PASS for 4.E | O2: pulled back, not an instance |
+| F08 | Sign-up dialog covers the page when a field gets focus; focus stays on the field; scripted J1: changes_context | FAIL | M8, M9 |
+| F08b | Help bubble appears beside a field on focus (role=dialog); scripted J1: content_only | PASS | M10 |
+| 4.C f04-field-swallows-tab, ACT f5ea9fd3 | Refocus on blur / field swallowing Tab | PASS for 4.E | Pulled back, not an instance |
 | no_trap.html | General page | PASS | G4 |
 
 M3 (signal not reproduced) and M1 are covered by rules unit tests on recorded evidence: no page makes them happen reliably.

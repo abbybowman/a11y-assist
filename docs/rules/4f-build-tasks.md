@@ -1,6 +1,6 @@
 # Build tasks: 4.F
 
-Work [4f-focus-order-meaning.md](4f-focus-order-meaning.md) (spec 0.2.0) needs done during the build, once Abby approves the spec. Delete each row once it exists in the repo. Delete this file when every table is empty.
+Work [4f-focus-order-meaning.md](4f-focus-order-meaning.md) (spec 0.3.0) needs done during the build, once Abby approves the spec. Delete each row once it exists in the repo. Delete this file when every table is empty.
 
 ## Walk changes
 
