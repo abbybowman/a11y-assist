@@ -16,6 +16,10 @@ the rules specs in [docs/rules/](docs/rules/), one file per TT test
 (`<id>-<short-name>.md`), checked against the TT 5.1.3 PDF in
 [docs/sources/](docs/sources/).
 
+For contributors: start with `CLAUDE.md` (principles and layout), then
+`docs/ROADMAP.md` (what is next) and `docs/solutions/` (lessons). To add a TT
+test, follow the steps at the top of `src/a11y_assist/checks/base.py`.
+
 What works today:
 
 | Area | State |
