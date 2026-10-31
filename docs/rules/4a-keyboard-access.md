@@ -12,7 +12,7 @@ The tool gives each page one 4.A outcome: PASS, FAIL, DOES NOT APPLY or NEEDS RE
 
 **Citations.** Printed page numbers of TT 5.1.3 (text also in `tt://5.1.3/tests/4.A`). HtT = How to Test step; ER = Evaluate Results item. 4.A is on pp. 19–20: identify functionality and essential information with the mouse, touch, voice or documentation (HtT 1.a), and title attributes on focusable elements (HtT 1.b); then access each with the keyboard (tab to it) and execute it (press Enter) (HtT 2); a title tooltip that does not appear within two seconds of focus is not revealed by focus (HtT 2.a); for an element without keyboard access, look for another keyboard method on the page with the same function (HtT 2.b); for essential information not reachable by keyboard, look for it elsewhere on the page (HtT 2.c). PASS if all functionality can be accessed and executed by keyboard (ER 1) and all essential information is keyboard accessible or available elsewhere (ER 2). Notes: changes that happen automatically or after interaction are included (ER Note 1); information is essential when it is needed to execute an action or understand information and relationships (ER Note 2); non-essential title information needs no keyboard access (ER Note 3).
 
-**W3C sources.** [Understanding 2.1.1](https://www.w3.org/WAI/WCAG22/Understanding/keyboard.html): not every visible control must itself be focusable when the function is available by keyboard another way (its search form example: Enter in the field submits); a custom control that reacts only to Enter still satisfies the criterion. Failures [F54](https://www.w3.org/WAI/WCAG22/Techniques/failures/F54) (only pointing-device event handlers for a function), [F42](https://www.w3.org/WAI/WCAG22/Techniques/failures/F42) (emulated links not operable by keyboard), F55 (focus removed on focus; 4.E's evidence). ACT rules [akn7bn](https://www.w3.org/WAI/standards-guidelines/act/rules/akn7bn/) (iframe with interactive content excluded from the tab order) and [0ssw9k](https://www.w3.org/WAI/standards-guidelines/act/rules/0ssw9k/) (scrollable content reachable by keyboard). DHS publishes no TT results for either rule. These inform OPEN items and fixtures only; the PDF stays the authority.
+**W3C sources.** [Understanding 2.1.1](https://www.w3.org/WAI/WCAG22/Understanding/keyboard.html): not every visible control must itself be focusable when the function is available by keyboard another way (its search form example: Enter in the field submits); a custom control that reacts only to Enter still satisfies the criterion. Failures [F54](https://www.w3.org/WAI/WCAG22/Techniques/failures/F54) (only pointing-device event handlers for a function), [F42](https://www.w3.org/WAI/WCAG22/Techniques/failures/F42) (emulated links not operable by keyboard), F55 (focus removed on focus; 4.E's evidence). ACT rules [akn7bn](https://www.w3.org/WAI/standards-guidelines/act/rules/akn7bn/) (iframe with interactive content excluded from the tab order) and [0ssw9k](https://www.w3.org/WAI/standards-guidelines/act/rules/0ssw9k/) (scrollable content reachable by keyboard). DHS publishes no TT results for either rule. These informed the decisions and fixtures only; the PDF stays the authority.
 
 **Terms.** *Stop*, *OUT*, *BODY*, passes P1 and P2, stop identity and the settle rule are defined in [4c-no-keyboard-trap.md](4c-no-keyboard-trap.md). A *native control* is `a[href]`, `area[href]`, `button`, `input` (not hidden), `select`, `textarea`, `summary`, `[contenteditable]`, `audio[controls]`, `video[controls]`. A *pointer target* is a visible element a mouse can hit (the element or a descendant is what `elementFromPoint` returns at its centre, followed through frames, so hidden, inert, covered and clipped elements are not targets) that is a native control; or has an interactive ARIA role; or has its own click, mousedown, mouseup, dblclick or pointerdown listener or `on…` attribute; or whose computed cursor is `pointer` when its parent's is not. A `<label>` for a control, `html` and `body` are never targets. A *custom control* is a stop that is a pointer target but not a native control. The *effect* of an action is any of: the top or a frame URL changes, a new page opens, a dialog becomes visible, focus moves, `aria-expanded` or `aria-checked` or `aria-pressed` or `aria-selected` changes, or the DOM changes, measured after the settle rule, with the page's own background changes over the same window subtracted.
 
@@ -38,11 +38,11 @@ A page with zero stops and only pointer targets applies: everything on it is mou
 
 **Click check** (for each candidate that is not a native control, at most `CLICK_MAX`). Fresh load; hover its revealing stop if it has one; move the mouse onto the candidate; settle; click; record the effect. A native control is functional by definition (a link goes to its address) and needs no click.
 
-**Execute check** (HtT 2, "execute"; each custom control, at most `EXECUTE_MAX`). Fresh replay to the stop; press Enter and record the effect; if none, press Space and record it; if neither has an effect, a fresh replay to the stop followed by a mouse click on it, and its effect. Native controls are not executed: the browser activates them from the keyboard. <!-- OPEN Q3 -->
+**Execute check** (HtT 2, "execute"; each custom control, at most `EXECUTE_MAX`). Fresh replay to the stop; press Enter and record the effect; if none, press Space and record it; if neither has an effect, a fresh replay to the stop followed by a mouse click on it, and its effect. Native controls are not executed: the browser activates them from the keyboard, and custom controls are where keyboard operation breaks (F42); this keeps a typical page inside the time budget (Abby, 2026-10-31).
 
 **Title check** (HtT 1.b, 2.a). Every stop with a non-empty title. Chrome does not show a title tooltip on keyboard focus (V2), so title text is never treated as revealed by focus. The title is *available elsewhere* (HtT 2.c) when, after collapsing whitespace and case, it equals the stop's accessible name or is contained in the page's visible text.
 
-**Undetectable signals.** Things the scans cannot judge: a visible `<canvas>` at least 50 × 50 px; an element with `draggable=true` or its own drag, mousemove, pointermove, touch or wheel listener; `<object>` or `<embed>`; a frame the tool cannot read. <!-- OPEN Q1 -->
+**Undetectable signals.** Things the scans cannot judge: a visible `<canvas>` at least 50 × 50 px; an element with `draggable=true` or its own drag, mousemove, pointermove, touch or wheel listener; `<object>` or `<embed>`; a frame the tool cannot read. Each is NEEDS REVIEW (M16), never a reason to PASS: a page with none of them and no other instance can PASS mechanically (G4), with the list of what was looked for (Abby, 2026-10-31).
 
 **Constants** (they decide outcomes, so they live here; provisional until real pages calibrate them):
 
@@ -65,7 +65,7 @@ Instances: *K*, each unreached candidate; *X*, each custom control executed; *T*
 | M1 | The evidence for the instance is unsettled, unresolved, or the page changes on its own during the check | NEEDS REVIEW | Spec rule |
 | M2 | K: a non-native candidate whose click has no effect | No instance (nothing for a mouse to operate) | p. 19 HtT 1 |
 | M3 | K: a link, or a click that navigates, whose address is the address of a reached link | PASS (another keyboard method with the same function) | p. 19 HtT 2.b |
-| M4 | K: otherwise | Ask J1 (M5–M7) <!-- OPEN Q2 --> | p. 19 HtT 2.b |
+| M4 | K: otherwise | Ask J1 (M5–M7) | p. 19 HtT 2.b |
 | M5 | J1 = another keyboard way, naming a reached stop | PASS | p. 19 HtT 2.b |
 | M6 | J1 = no other keyboard way | FAIL | p. 19 ER 1; F54, F42 |
 | M7 | J1 = unsure, or not answered yet | NEEDS REVIEW | Spec rule |
@@ -73,13 +73,15 @@ Instances: *K*, each unreached candidate; *X*, each custom control executed; *T*
 | M9 | X: neither key has an effect, and the click has none either | No instance | p. 19 HtT 1 |
 | M10 | X: the click has an effect and neither key does | FAIL | p. 19 ER 1; F42 |
 | M11 | T: the title is available elsewhere | PASS | p. 19 HtT 2.c |
-| M12 | T: otherwise | Ask J2 (M13–M15) <!-- OPEN Q5 --> | p. 19 HtT 2.a; ER Note 2–3 |
+| M12 | T: otherwise | Ask J2 (M13–M15) | p. 19 HtT 2.a; ER Note 2–3 |
 | M13 | J2 = not essential | PASS | p. 19 ER Note 3 |
 | M14 | J2 = essential | FAIL | p. 19 ER 2 |
 | M15 | J2 = unsure, or not answered yet | NEEDS REVIEW | Spec rule |
-| M16 | U | NEEDS REVIEW <!-- OPEN Q1 --> | Spec rule |
+| M16 | U | NEEDS REVIEW | Spec rule |
 
-**Scrollable regions (ACT 0ssw9k).** <!-- OPEN Q4 --> Chromium 153 puts a scroll container with no focusable content in the Tab order (verified on the ACT cases: the walk reaches the `<section>`). A reached scroller is a stop like any other.
+**Scrollable regions (ACT 0ssw9k).** Chrome 130 and later put a scroll container with no focusable content in the Tab order (verified in Chromium 153 on the ACT cases: Tab reaches the `<section>`). A reached scroller is a stop like any other, so ACT's two failed examples PASS here. Results are for the browser the report records and are not claimed for other browsers (Abby, 2026-10-31).
+
+**Who decides.** J1 and J2 are look-and-decide questions (CLAUDE.md principle 8): the calling agent answers by the rubric and must answer unsure whenever the evidence does not settle it; only unsure answers go to a person, and a person's answer overrides the agent's (Abby, 2026-10-31).
 
 **3b. Page outcome (first match wins)**
 
@@ -116,7 +118,7 @@ The calling agent answers each once, by the rubric; a person's answer overrides 
 
 ### J1. Is there another keyboard way to do the same thing?
 
-**Question:** "input.candidate is something a mouse can use (with what clicking it did) that keyboard focus never reaches. input.stops lists, numbered, every element keyboard focus does reach, with role and name. Image A shows the page. Is there an element in input.stops that does the same thing, so a keyboard user loses nothing? Answer alternative (give its number), no_alternative or unsure, with your reasons in a few plain words."
+**Question:** "input.candidate is something a mouse can use (with what clicking it did) that keyboard focus never reaches. input.stops lists, numbered, every element keyboard focus does reach, with role and name. Image A shows the page. Is there an element in input.stops that does the same thing, so a keyboard user loses nothing? Answer alternative (with element: its number), no_alternative or unsure, with your reasons in a few plain words."
 
 **Rubric.** alternative: a reached element plainly does the same job (a second print button, a text link with the same purpose, a field where Enter submits the same search). no_alternative: nothing reached does that job. unsure: whenever the evidence does not settle it. The named number must be a stop (mechanical guard; otherwise the answer is treated as unsure).
 

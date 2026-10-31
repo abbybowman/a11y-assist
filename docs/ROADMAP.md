@@ -57,3 +57,10 @@ run).
   (Appendix A); 4.A and 4.B share 2.1.1.
 - **Multi-page tests** (9.B, 9.C), then the visual-versus-code cluster (10.x,
   14.x, 15.A, 18.A).
+- **Firefox as an optional browser.** TT 5.1.3 validates Chrome and Firefox
+  (Test Environment). Results are reported for the browser the report
+  records and never claimed for others (e.g. Chrome 130+ tabs to scroll
+  containers; ACT 0ssw9k). Not a setting change: focus reading
+  (`traverse.FocusReader`) and listener lookup use Chrome's DevTools
+  protocol, so Firefox needs its own reader (Playwright's Firefox has no
+  CDP or isolated-world API) and every fixture rerun on it.
