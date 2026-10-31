@@ -1,4 +1,4 @@
-"""End-to-end keyboard evidence run: record, replay, walk, write report.
+"""run_tt_tests orchestration: record, replay, walk, write report.
 
 1. Check the URL against the allowlist before launching anything.
 2. Record the page live to evidence/page.har.zip (allowlist enforced on every
@@ -8,7 +8,7 @@
 4. Write evidence/keyboard.json and report.json.
 
 No rules spec is implemented yet, so every in-scope TT test is reported
-NOT_TESTED and no judgment questions are generated.
+NOT_TESTED and no open questions are generated.
 """
 
 from __future__ import annotations
@@ -25,8 +25,8 @@ from a11y_assist.judgment import get_judge
 from a11y_assist.models import (
     Finding,
     FocusWalk,
-    JudgmentQuestion,
     KeyboardEvidence,
+    OpenQuestion,
     Outcome,
     Report,
     TestId,
@@ -58,17 +58,26 @@ def _walk_summary(walk: FocusWalk) -> dict[str, Any]:
     }
 
 
-def _question_view(q: JudgmentQuestion) -> dict[str, Any]:
+def _question_view(q: OpenQuestion) -> dict[str, Any]:
     return q.model_dump(mode="json")
 
 
-async def collect_keyboard_evidence(
-    settings: Settings, url: str, max_presses: int | None = None
+async def run_tt_tests(
+    settings: Settings,
+    url: str,
+    tests: list[TestId],
+    max_presses: int | None = None,
 ) -> dict[str, Any]:
     run = RunRecorder(settings.runs_dir)
+    selected = [t for t in TestId if t in set(tests)]
     max_presses = max_presses or settings.max_tab_presses
     started = utcnow()
-    run.log("run_start", target=url, max_presses=max_presses)
+    run.log(
+        "run_start",
+        target=url,
+        tests=[t.value for t in selected],
+        max_presses=max_presses,
+    )
     report = Report(
         run_id=run.run_id,
         target=url,
@@ -90,6 +99,7 @@ async def collect_keyboard_evidence(
             "report_path": str(run.report_path),
             "steps_log": str(run.steps_path),
             "target": url,
+            "tests": [t.value for t in selected],
             "errors": report.errors,
             **summary,
             "untrusted_content_notice": UNTRUSTED_NOTICE,
@@ -160,11 +170,11 @@ async def collect_keyboard_evidence(
             evidence_refs=[run.rel(evidence_path)],
             rationale=NO_RULES_RATIONALE,
         )
-        for t in TestId
+        for t in selected
     ]
-    questions: list[JudgmentQuestion] = []  # created by the rules spec, later
+    questions: list[OpenQuestion] = []  # created by the rules spec, later
     result = await get_judge(settings.judge_backend).judge(questions)
-    report.pending_questions = result.pending
+    report.open_questions = result.pending
 
     return finish(
         {
@@ -181,6 +191,6 @@ async def collect_keyboard_evidence(
                 }
                 for f in report.findings
             ],
-            "pending_questions": [_question_view(q) for q in report.pending_questions],
+            "open_questions": [_question_view(q) for q in report.open_questions],
         }
     )

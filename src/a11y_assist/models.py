@@ -1,7 +1,8 @@
-"""Pydantic data model for evidence, findings, judgments and reports.
+"""Pydantic data model for evidence, findings, open questions and reports.
 
-Nothing here decides an outcome. Outcomes come only from the rules spec (not
-written yet), a model judgment or a human, and are recorded with `decided_by`.
+Nothing here decides an outcome. Outcomes come only from the rules specs in
+docs/rules/. Answers to open questions (from a model or a human) are recorded
+with `decided_by`; the spec decides what they mean.
 """
 
 from __future__ import annotations
@@ -134,7 +135,7 @@ class KeyboardEvidence(BaseModel):
     backward: FocusWalk
 
 
-# ── Findings and judgments ───────────────────────────────────────────────────
+# ── Findings and open questions ──────────────────────────────────────────────
 
 
 class Instance(BaseModel):
@@ -168,7 +169,7 @@ class Finding(BaseModel):
         )
 
 
-class JudgmentQuestion(BaseModel):
+class OpenQuestion(BaseModel):
     question_id: str
     test_id: TestId
     question: str
@@ -177,7 +178,7 @@ class JudgmentQuestion(BaseModel):
     evidence_paths: list[str] = Field(description="Absolute file paths to inspect.")
 
 
-class JudgmentAnswer(BaseModel):
+class Answer(BaseModel):
     question_id: str
     outcome: Outcome
     rationale: str = Field(min_length=1)
@@ -185,11 +186,11 @@ class JudgmentAnswer(BaseModel):
     decided_by: DecidedBy = DecidedBy.MODEL
 
 
-class RecordedJudgment(BaseModel):
+class RecordedAnswer(BaseModel):
     """An answered question. The rules spec maps these to finding outcomes."""
 
-    question: JudgmentQuestion
-    answer: JudgmentAnswer
+    question: OpenQuestion
+    answer: Answer
     recorded_at: datetime
 
 
@@ -233,8 +234,8 @@ class Report(BaseModel):
     finished_at: datetime | None = None
     versions: Versions
     findings: list[Finding] = Field(default_factory=list)
-    pending_questions: list[JudgmentQuestion] = Field(default_factory=list)
-    judgments: list[RecordedJudgment] = Field(default_factory=list)
+    open_questions: list[OpenQuestion] = Field(default_factory=list)
+    answers: list[RecordedAnswer] = Field(default_factory=list)
     judge_backend: str = "client"
     errors: list[str] = Field(default_factory=list)
     evidence_dir: str

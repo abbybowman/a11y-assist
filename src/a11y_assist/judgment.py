@@ -1,11 +1,11 @@
 """Judgment backends for questions a rule cannot decide on its own.
 
-The rules spec (not written yet) creates JudgmentQuestions. A Judge answers
-them now or defers them:
+The rules spec creates OpenQuestions ("open questions" to users). A Judge
+answers them now or defers them:
 
   ClientJudge  defers every question to the calling agent. Questions go out in
                tool output with a rubric and evidence file paths; answers come
-               back through the submit_judgments tool. Used because Claude Code
+               back through the answer_questions tool. Used because Claude Code
                does not support MCP sampling.
   ApiJudge     will call NASA's hosted model. Not implemented.
 
@@ -20,30 +20,30 @@ from abc import ABC, abstractmethod
 from pydantic import BaseModel, Field
 
 from a11y_assist.models import (
-    JudgmentAnswer,
-    JudgmentQuestion,
-    RecordedJudgment,
+    Answer,
+    OpenQuestion,
+    RecordedAnswer,
     Report,
     utcnow,
 )
 
 
 class JudgeResult(BaseModel):
-    answers: list[JudgmentAnswer] = Field(default_factory=list)
-    pending: list[JudgmentQuestion] = Field(default_factory=list)
+    answers: list[Answer] = Field(default_factory=list)
+    pending: list[OpenQuestion] = Field(default_factory=list)
 
 
 class Judge(ABC):
     name: str
 
     @abstractmethod
-    async def judge(self, questions: list[JudgmentQuestion]) -> JudgeResult: ...
+    async def judge(self, questions: list[OpenQuestion]) -> JudgeResult: ...
 
 
 class ClientJudge(Judge):
     name = "client"
 
-    async def judge(self, questions: list[JudgmentQuestion]) -> JudgeResult:
+    async def judge(self, questions: list[OpenQuestion]) -> JudgeResult:
         return JudgeResult(pending=list(questions))
 
 
@@ -54,7 +54,7 @@ class ApiJudge(Judge):
         self.endpoint = endpoint
         self.model = model
 
-    async def judge(self, questions: list[JudgmentQuestion]) -> JudgeResult:
+    async def judge(self, questions: list[OpenQuestion]) -> JudgeResult:
         raise NotImplementedError(
             "ApiJudge is a stub; it will be wired to NASA's hosted model later."
         )
@@ -69,14 +69,14 @@ def get_judge(backend: str) -> Judge:
 
 
 def record_answers(
-    report: Report, answers: list[JudgmentAnswer]
+    report: Report, answers: list[Answer]
 ) -> tuple[list[str], list[str]]:
-    """Move answered questions from report.pending_questions to report.judgments.
+    """Move answered questions from report.open_questions to report.answers.
 
     Returns (accepted question ids, error messages). An answer is rejected if
     its question is not pending or its outcome is not allowed for it.
     """
-    pending = {q.question_id: q for q in report.pending_questions}
+    pending = {q.question_id: q for q in report.open_questions}
     accepted, errors = [], []
     for answer in answers:
         question = pending.get(answer.question_id)
@@ -90,10 +90,10 @@ def record_answers(
                 f"(allowed: {allowed})"
             )
             continue
-        report.judgments.append(
-            RecordedJudgment(question=question, answer=answer, recorded_at=utcnow())
+        report.answers.append(
+            RecordedAnswer(question=question, answer=answer, recorded_at=utcnow())
         )
         del pending[answer.question_id]
         accepted.append(answer.question_id)
-    report.pending_questions = list(pending.values())
+    report.open_questions = list(pending.values())
     return accepted, errors

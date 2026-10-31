@@ -15,8 +15,8 @@ by TT test ID. Package: `a11y_assist` (name is provisional).
    plumbing, the tools or the tests. Specs live in `docs/rules/`, one file per
    TT test (`<id>-<short-name>.md`, e.g. `4c-no-keyboard-trap.md`); each
    spec's `spec_version` front matter is recorded in every report. Until a
-   test's spec is implemented, it is reported `NOT_TESTED`. Judgment answers
-   are recorded, never turned into outcomes outside the spec.
+   test's spec is implemented, it is reported `NOT_TESTED`. Answers to open
+   questions are recorded, never turned into outcomes outside the spec.
 3. **A false PASS is the worst error.** When a rule cannot decide, the outcome
    is `NEEDS_REVIEW` (the `Finding` default). Never default to PASS, never infer
    PASS from missing evidence, and prefer NEEDS_REVIEW over a low-confidence
@@ -45,7 +45,10 @@ by TT test ID. Package: `a11y_assist` (name is provisional).
 - No Content-Security-Policy bypass (`bypass_csp`) without explicit approval.
 - Ask before installing anything system-wide.
 - One tool per file in `src/a11y_assist/tools/`, registered in
-  `tools/__init__.py`. Tool inputs are Pydantic-validated with precise
+  `tools/__init__.py`. Tools are broad and outcome-based, not one per step:
+  `run_tt_tests` and `answer_questions` now; `verify_fix`, `get_guidance` and
+  `read_report` planned. Never put "trusted_tester" in a tool name (it could
+  read as certification). Say "open questions" to users, not "judgments". Tool inputs are Pydantic-validated with precise
   descriptions.
 - Test runs analyze a HAR replay, never the live page, so runs are repeatable.
 
@@ -61,7 +64,7 @@ src/a11y_assist/
   andi.py       local ANDI injection
   evidence.py   Tab / Shift+Tab focus walks (no outcome logic)
   judgment.py   Judge interface: ClientJudge, ApiJudge (stub)
-  pipeline.py   collect_keyboard_evidence orchestration
+  pipeline.py   run_tt_tests orchestration
   runlog.py     runs/<run_id>/ folder, steps.jsonl
   versions.py   version collection
   rules.py      loads docs/rules/ specs and their front matter versions

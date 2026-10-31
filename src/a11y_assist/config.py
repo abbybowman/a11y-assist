@@ -60,10 +60,10 @@ class Settings(BaseSettings):
     rules_dir: Path = REPO_ROOT / "docs" / "rules"
 
     # ── Versions recorded in every report ─────────────────────────────────────
-    # "client": questions go to the calling agent (submit_judgments).
+    # "client": open questions go to the calling agent (answer_questions).
     # "api": NASA hosted model (not implemented yet).
     judge_backend: str = "client"
-    # Identifier of the model that answers judgment questions, if any.
+    # Identifier of the model that answers open questions, if any.
     judging_model: str = "none"
 
 
