@@ -888,8 +888,7 @@ def _mech_exit(inst: Inst, names: tuple[str, ...]) -> bool:
     return any(p.exit and p.name.startswith(names) for p in inst.probes)
 
 
-def instance_rows(st: State4C, fraction: float) -> list[Row]:
-    total = len(st.distinct_p1p2) or 1
+def instance_rows(st: State4C) -> list[Row]:
     opp = lambda i: _opposite(i.key)  # noqa: E731
     return [
         Row(
@@ -982,6 +981,7 @@ def instance_rows(st: State4C, fraction: float) -> list[Row]:
                 and set(st.distinct_p1p2) <= set(i.members)
                 and st.p1["end"] != "wrap"
                 and st.p2["end"] != "wrap"
+                and len(i.members) >= st.inventory
             ),
             Outcome.PASS,
             "p. 21 HtT 2.b",
@@ -989,12 +989,6 @@ def instance_rows(st: State4C, fraction: float) -> list[Row]:
         Row("M12", lambda i: i.kind == "stuck", Outcome.FAIL, "p. 21 ER 1"),
         Row(
             "M13",
-            lambda i: i.kind == "loop" and len(i.members) >= fraction * total,
-            Outcome.NEEDS_REVIEW,
-            "p. 21 HtT 2.b",
-        ),
-        Row(
-            "M14",
             lambda i: (
                 i.kind == "loop"
                 and (not i.fields or (i.j2["agreed"] and i.j2["gate"] == "no"))
@@ -1022,10 +1016,10 @@ APPLICABILITY = [
 ]
 
 
-def evaluate(st: State4C, fraction: float, evidence_refs: list[str]) -> Finding:
+def evaluate(st: State4C, evidence_refs: list[str]) -> Finding:
     applicability = first_match(APPLICABILITY, st)
     assert applicability is not None
-    rows = instance_rows(st, fraction)
+    rows = instance_rows(st)
     results: list[tuple[str, Outcome]] = []
     instances: list[Instance] = []
     notes = list(st.notes)
