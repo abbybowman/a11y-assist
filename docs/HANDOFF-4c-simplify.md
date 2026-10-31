@@ -1,3 +1,5 @@
+> **Superseded** by [docs/plans/2026-10-31-refocus-for-many-tests.md](plans/2026-10-31-refocus-for-many-tests.md) and spec 4.C 1.5.0. Kept for its history and the open items it lists (Windows checks, F34, V14 frames).
+
 # Handoff: simplify the 4.C build before going further
 
 You are picking up the a11y-assist repo (branch `claude/wizardly-hawking-19pgnu`)

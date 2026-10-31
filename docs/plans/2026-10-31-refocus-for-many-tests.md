@@ -1,6 +1,12 @@
 # Plan: refocus the codebase from one 4.C suite to many TT tests
 
 Status: **approved by Abby 2026-10-31, with the changes in "Decisions" below. In progress.**
+
+**Progress (2026-10-31):**
+- Done: Phase 1 (spec 4.C 1.5.0, fixture retirements). Full suite 35+ min → about 10 min; DHS agreement 16/17, known mismatches only.
+- Done: MCP-1, MCP-2, MCP-3, MCP-4 (resources, expiry), MCP-5 (progress plus the 120 s limit), MCP-6, MCP-7 (page text once per result), MCP-8 (one answer, human override).
+- Done (Phase 2): shared walk (`walk.py`), `checks/` registry with the "add a check" steps, generic pipeline and resume, typed results, plain-language summaries guarded by a test, `docs/solutions/`.
+- Next: the TT catalog of all 63 conditions (54 parse from "Check" headers; the rest need the table rows); then Phase 3 (4.D, 4.E, 4.F specs for approval); then the MCP prompt and agent evals (MCP-10, MCP-11); then Phase 4 scanners.
 Branch: `ccr-9bc8f27b-l7ncp0` (same commit as `claude/wizardly-hawking-19pgnu`, 26d5d69).
 
 Inputs weighed: #1 scope review, #2 architecture review, #3 `docs/HANDOFF-4c-simplify.md`.

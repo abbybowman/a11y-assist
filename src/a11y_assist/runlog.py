@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import json
 import secrets
+import shutil
+import time
 from pathlib import Path
 from typing import Any
 
@@ -32,7 +34,8 @@ class RunRecorder:
         root = runs_dir.resolve()
         path = (root / run_id).resolve()
         if path.parent != root or not path.is_dir():
-            raise FileNotFoundError(f"No run named {run_id!r} in {root}")
+            # No server path in the message: it goes back to the client.
+            raise FileNotFoundError(f"No run named {run_id!r} (it may have expired)")
         return cls(runs_dir, run_id)
 
     def log(self, step: str, status: str = "ok", **detail: Any) -> None:
@@ -51,3 +54,30 @@ class RunRecorder:
         )
         path.write_text(text + "\n", encoding="utf-8")
         return path
+
+
+def prune_runs(runs_dir: Path, ttl_hours: float) -> int:
+    """Delete run folders older than `ttl_hours`. Runs are working files for
+    finishing a run (answers, overrides), not an archive. Returns the count."""
+    if not runs_dir.is_dir():
+        return 0
+    cutoff = time.time() - ttl_hours * 3600
+    n = 0
+    for d in runs_dir.iterdir():
+        if d.is_dir() and _last_activity(d) < cutoff:
+            shutil.rmtree(d, ignore_errors=True)
+            n += 1
+    return n
+
+
+def expires_at(run_dir: Path, ttl_hours: float):
+    from datetime import datetime, timezone
+
+    return datetime.fromtimestamp(
+        _last_activity(run_dir) + ttl_hours * 3600, tz=timezone.utc
+    )
+
+
+def _last_activity(run_dir: Path) -> float:
+    report = run_dir / "report.json"
+    return (report if report.exists() else run_dir).stat().st_mtime
