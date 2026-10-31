@@ -19,8 +19,10 @@ import pytest
 import pytest_asyncio
 from playwright.async_api import async_playwright
 
+from a11y_assist import egress
 from a11y_assist.browser import launch_browser
 from a11y_assist.config import Settings
+from a11y_assist.egress import EgressProxy
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -40,13 +42,33 @@ def settings(tmp_path: Path) -> Settings:
             "--host-resolver-rules=MAP cdnjs.cloudflare.com ~NOTFOUND",
         ],
         runs_dir=tmp_path / "runs",
+        # The fixture servers listen on 127.0.0.1 only (any port). 127.0.0.2
+        # stays refused: tests use it as a sentinel for leaks.
+        dev_allowed_addresses=["127.0.0.1/32"],
     )
+
+
+async def offline_resolver(host: str, port: int) -> list[str]:
+    """Tests never use the network: only IP literals and localhost resolve."""
+    import ipaddress
+
+    if host == "localhost":
+        return ["127.0.0.1"]
+    try:
+        return [str(ipaddress.ip_address(host))]
+    except ValueError:
+        raise OSError(f"offline: {host} not resolved") from None
+
+
+@pytest.fixture(autouse=True)
+def _offline_dns(monkeypatch):
+    monkeypatch.setattr(egress, "RESOLVER", offline_resolver)
 
 
 @pytest_asyncio.fixture
 async def browser(settings: Settings):
-    async with async_playwright() as pw:
-        b = await launch_browser(pw, settings)
+    async with EgressProxy(settings) as proxy, async_playwright() as pw:
+        b = await launch_browser(pw, settings, proxy)
         yield b
         await b.close()
 

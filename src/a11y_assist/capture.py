@@ -7,6 +7,8 @@ still vary between replays.
 
 from __future__ import annotations
 
+import json
+import zipfile
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -16,6 +18,7 @@ from playwright.async_api import Browser, BrowserContext
 from a11y_assist.andi import install_andi_routes
 from a11y_assist.browser import LogFn, NavigationGuard, new_context
 from a11y_assist.config import Settings
+from a11y_assist.egress import EgressProxy
 from a11y_assist.traverse import INIT_JS
 
 
@@ -28,13 +31,18 @@ class Capture:
 
 
 async def record(
-    browser: Browser, settings: Settings, url: str, har_path: Path, log: LogFn
+    browser: Browser,
+    settings: Settings,
+    url: str,
+    har_path: Path,
+    log: LogFn,
+    egress: EgressProxy | None = None,
 ) -> Capture:
     """Load `url` live in a fresh context and save every response to `har_path`."""
     ctx = await new_context(
         browser, settings, record_har_path=str(har_path), record_har_mode="full"
     )
-    guard = NavigationGuard(settings, live=True, log=log)
+    guard = NavigationGuard(settings, live=True, log=log, egress=egress)
     await guard.install(ctx)
     try:
         page = await ctx.new_page()
@@ -54,6 +62,14 @@ async def record(
     finally:
         await ctx.close()  # writes the HAR
     return Capture(url, final_url, har_path, guard.redirects)
+
+
+def _failed_urls(har_path: Path) -> set[str]:
+    """URLs the HAR recorded with no response (status -1)."""
+    with zipfile.ZipFile(har_path) as z:
+        name = next(n for n in z.namelist() if n.endswith(".har"))
+        entries = json.loads(z.read(name))["log"]["entries"]
+    return {e["request"]["url"] for e in entries if e["response"].get("status", 0) < 0}
 
 
 async def _idle(page, log: LogFn, timeout_ms: int) -> None:
@@ -81,6 +97,16 @@ async def replay_context(
     ctx = await new_context(browser, settings)
     await ctx.add_init_script(INIT_JS)  # focus and mutation log (settle rule)
     await ctx.route_from_har(str(har_path), not_found="abort")
+    failed = _failed_urls(har_path)
+    if failed:
+        # Requests that failed while recording (refused by the egress proxy,
+        # DNS errors) are saved with status -1, and Playwright's HAR replay
+        # waits on them forever. Fail them, as they failed live. Registered
+        # after route_from_har, so it runs first.
+        async def fail(route) -> None:
+            await route.abort("failed")
+
+        await ctx.route(lambda url: url in failed, fail)
     andi_aborted = None
     if with_andi:
         andi_aborted = await install_andi_routes(ctx, settings.third_party_dir)

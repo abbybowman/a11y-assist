@@ -37,6 +37,14 @@ class Settings(BaseSettings):
     # file:// is allowed only when dev_mode is on (for local fixtures).
     dev_mode: bool = False
     max_redirects: int = Field(default=10, ge=0, le=50)
+    # Every browser connection goes through egress.EgressProxy, which refuses
+    # any host that resolves to a private, loopback, link-local, multicast,
+    # reserved or cloud-metadata address, and any port not listed here.
+    egress_ports: list[int] = Field(default_factory=lambda: [80, 443])
+    # Dev mode only (ignored otherwise): addresses (CIDRs) the proxy lets
+    # through, at any port, for the local fixture server. Exact match: an
+    # IPv4-mapped form of a listed address is still refused.
+    dev_allowed_addresses: list[str] = Field(default_factory=list)
 
     # ── Browser ───────────────────────────────────────────────────────────────
     # "chrome" = installed Google Chrome. "chromium" = Playwright's bundled build

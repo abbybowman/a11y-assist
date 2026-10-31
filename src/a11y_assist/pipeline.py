@@ -30,6 +30,7 @@ from a11y_assist.browser import NavigationBlocked, launch_browser
 from a11y_assist.capture import record, replay_context
 from a11y_assist.checks import REGISTRY, RunContext
 from a11y_assist.config import Settings
+from a11y_assist.egress import EgressProxy
 from a11y_assist.judgment import get_judge, record_answers
 from a11y_assist.models import (
     REVIEW_HEAD,
@@ -96,12 +97,13 @@ class _LazyBrowser:
 
     def __init__(self, settings: Settings):
         self.settings = settings
-        self._pw = self._browser = None
+        self._pw = self._browser = self._proxy = None
 
     async def get(self) -> Browser:
         if self._browser is None:
+            self._proxy = await EgressProxy(self.settings).__aenter__()
             self._pw = await async_playwright().start()
-            self._browser = await launch_browser(self._pw, self.settings)
+            self._browser = await launch_browser(self._pw, self.settings, self._proxy)
         return self._browser
 
     async def close(self) -> None:
@@ -109,6 +111,19 @@ class _LazyBrowser:
             await self._browser.close()
         if self._pw is not None:
             await self._pw.stop()
+        if self._proxy is not None:
+            await self._proxy.__aexit__(None, None, None)
+
+
+def _blocked_hosts(proxy: EgressProxy) -> str:
+    """Hosts the egress proxy refused for their address (host, port and
+    reason only)."""
+    seen: dict[str, str] = {}
+    for r in proxy.refused:
+        if not r["reason"].startswith("resolves to"):
+            continue
+        seen.setdefault(f"{r['host']}:{r['port']}", r["reason"])
+    return "; ".join(f"{h} ({why})" for h, why in seen.items())
 
 
 def _walk_summary(walk: KeyboardWalk) -> dict[str, Any]:
@@ -240,8 +255,8 @@ async def run_tt_tests(
     states: dict[TestId, Any] = {}
     walk: KeyboardWalk | None = None
 
-    async with async_playwright() as pw:
-        browser = await launch_browser(pw, settings)
+    async with EgressProxy(settings, log=run.log) as proxy, async_playwright() as pw:
+        browser = await launch_browser(pw, settings, proxy)
 
         async def get_browser() -> Browser:
             return browser
@@ -252,7 +267,7 @@ async def run_tt_tests(
             await say(0, "Recording the page")
             har = run.evidence_dir / "page.har.zip"
             try:
-                cap = await record(browser, settings, url, har, run.log)
+                cap = await record(browser, settings, url, har, run.log, proxy)
             except Exception as exc:
                 # The page never loaded: a tool error, and nothing is kept.
                 shutil.rmtree(run.dir, ignore_errors=True)
@@ -262,6 +277,14 @@ async def run_tt_tests(
                     f"The page could not be loaded: {safe_error(exc)}"
                 ) from None
             report.final_url = cap.final_url
+            blocked = _blocked_hosts(proxy)
+            if blocked:
+                # The page loaded without these parts; the findings cover only
+                # what loaded. A note, not an outcome.
+                report.errors.append(
+                    "Some page content was not loaded because its host resolves "
+                    f"to a non-public address: {blocked}"
+                )
             run.log("captured", final_url=cap.final_url, redirects=cap.redirects)
             ctx = _context(settings, run, get_browser, cap.final_url)
             if any(c.uses_walk for c in checks):
