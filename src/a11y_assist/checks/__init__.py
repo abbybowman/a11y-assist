@@ -7,10 +7,11 @@ from a11y_assist.checks.base import Check, RunContext
 from a11y_assist.checks.t4c import Check4C
 from a11y_assist.checks.t4d import Check4D
 from a11y_assist.checks.t4e import Check4E
+from a11y_assist.checks.t4f import Check4F
 from a11y_assist.models import TestId
 
 REGISTRY: dict[TestId, Check] = {
-    c.test_id: c for c in (Check4C(), Check4D(), Check4E())
+    c.test_id: c for c in (Check4C(), Check4D(), Check4E(), Check4F())
 }
 
 __all__ = ["REGISTRY", "Check", "RunContext"]

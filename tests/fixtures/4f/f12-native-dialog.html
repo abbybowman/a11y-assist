@@ -1,0 +1,5 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>F12 native dialog</title></head><body>
+<p><a href="#a">Before</a> <button id="open" aria-haspopup="dialog">Settings</button> <a href="#c">After</a></p>
+<dialog id="dlg"><label>Theme <select><option>Light</option><option>Dark</option></select></label> <button id="close">Close</button></dialog>
+<script>document.getElementById('open').addEventListener('click',()=>document.getElementById('dlg').showModal());
+document.getElementById('close').addEventListener('click',()=>document.getElementById('dlg').close());</script></body></html>

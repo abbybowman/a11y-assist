@@ -28,7 +28,7 @@ What works today:
 | HAR record + replay | Page is recorded once (scrolled to load lazy content); every pass and probe runs against the replay |
 | Navigation allowlist | `.gov` and `.mil` by default, enforced on every top-level navigation and redirect hop; `file://` only in dev mode |
 | ANDI 29.2.2 | Vendored, injectable from local files, never loaded from ssa.gov. Not used by any test yet |
-| Findings for any active TT test | 4.C: PASS, FAIL, DOES NOT APPLY or NEEDS REVIEW per its spec, with the spec rows that produced it. Every other active TT 5.1.3 test: `NEEDS_REVIEW` with the note "This test could not be performed" (no spec yet). Never `NOT_TESTED`: the PDF allows it only where a test names it (p. 6) |
+| Findings for any active TT test | 4.C, 4.D, 4.E and 4.F (all of TT Test 4's keyboard and focus tests except 4.A and 4.B): PASS, FAIL, DOES NOT APPLY or NEEDS REVIEW per its spec, with the spec rows that produced it. Every other active TT 5.1.3 test: `NEEDS_REVIEW` with the note "This test could not be performed" (no spec yet). Never `NOT_TESTED`: the PDF allows it only where a test names it (p. 6) |
 | `answer_questions(run_id, answers)` | Records one answer per question (the calling agent's, or a person's override, which wins); presses documented keys in the recorded page and re-applies the spec. Suggested input values go to a person to try. Answers are facts, never outcomes |
 | ApiJudge | Stub (`NotImplementedError`) |
 
