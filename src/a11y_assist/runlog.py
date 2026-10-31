@@ -12,6 +12,7 @@ from typing import Any
 from pydantic import BaseModel
 
 from a11y_assist.models import StepLog, utcnow
+from a11y_assist.redact import safe_detail
 
 
 def new_run_id() -> str:
@@ -39,7 +40,8 @@ class RunRecorder:
         return cls(runs_dir, run_id)
 
     def log(self, step: str, status: str = "ok", **detail: Any) -> None:
-        entry = StepLog(step=step, status=status, detail=detail)
+        # Redacted at the sink, so no caller can log a query string (redact.py).
+        entry = StepLog(step=step, status=status, detail=safe_detail(detail))
         with self.steps_path.open("a", encoding="utf-8") as f:
             f.write(entry.model_dump_json() + "\n")
 

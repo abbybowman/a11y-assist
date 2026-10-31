@@ -13,6 +13,7 @@ from a11y_assist.checks import REGISTRY
 from a11y_assist.models import RunResult, TestId
 from a11y_assist.pipeline import RunRefused
 from a11y_assist.pipeline import run_tt_tests as run_pipeline
+from a11y_assist.redact import safe_error
 
 
 def _built() -> list[TestId]:
@@ -104,4 +105,7 @@ def register(mcp: FastMCP) -> None:
         try:
             return await run_pipeline(config.settings, url, tests, progress)
         except RunRefused as exc:
-            raise ToolError(str(exc)) from exc
+            raise ToolError(str(exc)) from None
+        except Exception as exc:
+            # One redacted line, no stack trace or call log (redact.py).
+            raise ToolError(safe_error(exc)) from None
