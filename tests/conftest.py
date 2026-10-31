@@ -116,3 +116,25 @@ def server():
 
 def noop_log(*args, **kwargs) -> None:
     pass
+
+
+ACT_ROOT = FIXTURES / "act"
+
+
+class _ActHandler(http.server.SimpleHTTPRequestHandler):
+    """Serves tests/fixtures/act as the web root (ACT pages use /WAI/... paths)."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, directory=str(ACT_ROOT), **kwargs)
+
+    def log_message(self, *args) -> None:
+        pass
+
+
+@pytest.fixture(scope="session")
+def act_server():
+    httpd = http.server.ThreadingHTTPServer(("127.0.0.1", 0), _ActHandler)
+    threading.Thread(target=httpd.serve_forever, daemon=True).start()
+    yield f"http://127.0.0.1:{httpd.server_address[1]}"
+    httpd.shutdown()
+    httpd.server_close()
