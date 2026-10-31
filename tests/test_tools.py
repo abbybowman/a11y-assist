@@ -46,8 +46,8 @@ async def test_run_tt_tests_on_http_page(settings, server):
     out = await _call("run_tt_tests", {"url": f"{server.base}/no_trap.html"})
     assert out["errors"] == []
     assert "NOT a certified" in out["disclaimer"]
-    assert out["forward"]["stopped_because"] == "returned_to_start"
-    assert out["backward"]["stops"] > 0
+    assert out["passes"]["P1"]["end"] == "wrap"
+    assert out["passes"]["P2"]["end"] == "wrap"
     assert out["tests"] == ["4.C"]  # default selection
     assert [f["test_id"] for f in out["findings"]] == ["4.C"]
     [finding] = out["findings"]
@@ -55,14 +55,15 @@ async def test_run_tt_tests_on_http_page(settings, server):
     assert finding["note"] == "This test could not be performed"
     assert finding["rationale"].startswith("Spec G3.")
     assert "not implemented" in finding["rationale"]
+    assert finding["rows"] == ["A3", "G3"]
     assert out["open_questions"] == []
 
     run_dir = Path(out["run_dir"])
     assert run_dir.parent == settings.runs_dir.resolve()
     assert (run_dir / "evidence" / "page.har.zip").is_file()
-    evidence = json.loads(Path(out["keyboard_evidence"]).read_text())
-    for stop in evidence["forward"]["stops"] + evidence["backward"]["stops"]:
-        assert (run_dir / stop["screenshot"]).is_file()
+    evidence = json.loads(Path(out["evidence"]).read_text())
+    for step in evidence["P1"]["steps"] + evidence["P2"]["steps"]:
+        assert (run_dir / step["screenshot"]).is_file()
 
     report = Report.model_validate_json((run_dir / "report.json").read_text())
     assert report.certified is False
@@ -73,19 +74,18 @@ async def test_run_tt_tests_on_http_page(settings, server):
     steps = [json.loads(line) for line in (run_dir / "steps.jsonl").open()]
     names = [s["step"] for s in steps]
     assert names[0] == "run_start" and names[-1] == "run_end"
-    assert "captured" in names and names.count("focus_walk") == 2
+    assert "captured" in names and names.count("pass") == 2
 
 
 async def test_collect_on_file_fixture_in_dev_mode(settings):
     url = (FIXTURES / "4c/f04-field-swallows-tab.html").as_uri()
     out = await _call("run_tt_tests", {"url": url})
     assert out["errors"] == []
+    # The field swallows Tab: P1 ends as soon as it is stuck for 3 presses.
+    assert out["passes"]["P1"]["end"] == "stuck"
+    assert out["passes"]["P1"]["presses"] == 4
     # 3 tabbable candidates -> spec cap 3 x 3 + 50 = 59 presses.
-    assert out["forward"]["presses"] == 59
-    assert out["forward"]["stopped_because"] == "cap"
-    evidence = json.loads(Path(out["keyboard_evidence"]).read_text())
-    assert evidence["forward"]["inventory_size"] == 3
-    assert evidence["forward"]["max_presses"] == 59
+    assert out["passes"]["P1"]["cap"] == 59
 
 
 async def test_selected_tests_are_deduplicated_and_ordered(settings):

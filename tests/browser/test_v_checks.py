@@ -480,3 +480,31 @@ async def test_v13_arrow_keys_change_a_closed_select_and_fire_change(context, pa
     assert await active(page) == {"id": "s", "hasFocus": True}
     await page.keyboard.press("Tab")
     assert (await active(page))["id"] == "after"
+
+
+# ── V15 ───────────────────────────────────────────────────────────────────────
+
+
+async def test_v15_script_focus_pulls_focus_back_from_the_browser_ui(context, pages):
+    """V15: two buttons that refocus each other on blur (the pattern of ACT
+    d2f5325f). Shift+Tab from the first sends focus to the browser UI (OUT),
+    and the blur handler's focus() pulls it back into the page, so Shift+Tab
+    cycles too: a loop in both directions, not a one-way escape."""
+    url = pages.add(
+        "/pair.html",
+        "<!doctype html><html lang=en><title>p</title>"
+        "<button id=b1 onblur='setTimeout(() => "
+        "this.nextElementSibling.focus(), 10)'>1</button>"
+        "<button id=b2 onblur='setTimeout(() => "
+        "this.previousElementSibling.focus(), 10)'>2</button>"
+        "<button id=b3>3</button>",
+    )
+    page = await context.new_page()
+    await page.goto(url)
+    seq = []
+    for key in ["Tab", "Tab", "Tab", "Shift+Tab", "Shift+Tab", "Shift+Tab"]:
+        await page.keyboard.press(key)
+        await page.wait_for_timeout(300)
+        seq.append(await active(page))
+    assert [s["id"] for s in seq] == ["b1", "b2", "b1", "b2", "b1", "b2"]
+    assert all(s["hasFocus"] for s in seq)
