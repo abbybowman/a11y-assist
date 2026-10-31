@@ -33,6 +33,7 @@ def settings(tmp_path: Path) -> Settings:
         dev_mode=True,
         browser_channel=os.getenv("TEST_BROWSER_CHANNEL", "chromium"),
         headless=os.getenv("TEST_HEADED") != "1",
+        browser_args=["--disable-features=LocalNetworkAccessChecks"],
         runs_dir=tmp_path / "runs",
     )
 

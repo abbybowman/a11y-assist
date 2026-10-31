@@ -229,7 +229,16 @@ class FocusReader:
         return tree["frameTree"]["frame"]["id"]
 
     async def read(self) -> tuple[Stop, bool]:
-        """(stop, top document hasFocus)."""
+        """(stop, top document hasFocus). After a navigation the cached worlds
+        are gone, so they are dropped and the read is retried once."""
+        try:
+            return await self._read()
+        except Exception:
+            self._worlds.clear()
+            self._top = None
+            return await self._read()
+
+    async def _read(self) -> tuple[Stop, bool]:
         frame_id = await self._top_frame_id()
         session, ctx = await self._session_for(frame_id)
         has_focus = (
@@ -588,6 +597,7 @@ class Session:
     inventory: Inventory
     start_url: str
     start_pages: int
+    failed_requests: list[str] = field(default_factory=list)
 
     @property
     def page(self) -> Page:
@@ -607,7 +617,10 @@ async def open_session(
     inv = await dom_inventory(page)
     t = Traversal(context, page, focus_stable_ms, shots_dir, rel_base)
     await t.start()
-    return Session(t, inv, page.url, len(context.pages))
+    s = Session(t, inv, page.url, len(context.pages))
+    # Requests the recorded page cannot answer (infinite-scroll sign, V10).
+    page.on("requestfailed", lambda r: s.failed_requests.append(r.url))
+    return s
 
 
 async def drive(
@@ -658,7 +671,15 @@ async def run_pass(
         for k in prefix or []:
             await s.traversal.press(k, name)
         end, trap, _ = await drive(s, key, cap, name, detector)
-        return PassResult(steps=s.traversal.steps, end=end, trap=trap, **base)
+        end_inv = (await dom_inventory(s.page)).candidates
+        return PassResult(
+            steps=s.traversal.steps,
+            end=end,
+            trap=trap,
+            failed_requests=len(s.failed_requests),
+            inventory_end=end_inv,
+            **base,
+        )
     except Exception as exc:  # record and stop; never guess
         return PassResult(steps=s.traversal.steps, end="error", error=repr(exc), **base)
     finally:
