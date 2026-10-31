@@ -32,8 +32,10 @@ DHS_URL = (
 )
 ALLOWED_HOST = "www.w3.org"
 
-# TT test -> ACT rule IDs. 4.D (oj04fd) is left out until its spec is final.
-RULES = {"4.C": ["a1b64e", "ebe86a", "80af7b"]}
+# TT test -> ACT rule IDs.
+RULES = {"4.C": ["a1b64e", "ebe86a", "80af7b"], "4.D": ["oj04fd"]}
+# Unapproved near-copies of approved cases (docs/rules/4d-build-tasks.md).
+SKIP = {"8f296b7a", "eb4f387b"}
 
 # Our expected outcome per case (first 8 hex of testcaseId), from the build
 # tasks table. A case missing here stops the sync.
@@ -58,7 +60,17 @@ EXPECTED = {
         "8fba3918": "FAIL",
         "62fd24e7": "FAIL",
         "b20beca9": "PASS",
-    }
+    },
+    # docs/rules/4d-build-tasks.md
+    "4.D": {
+        "52be6331": "PASS",
+        "95cf4fdf": "PASS",
+        "b44aa294": "PASS",
+        "dd9628d8": "PASS",
+        "f1c9efb4": "FAIL",
+        "90789ad8": "DNA",
+        "b12f1f45": "DNA",
+    },
 }
 
 EARL = {
@@ -72,7 +84,12 @@ EARL = {
     "inapplicable": "DNA",
 }
 
-_ASSET = re.compile(r"""(?:src|href)\s*=\s*["']([^"'#]+)["']""", re.I)
+# Assets only: src= on any element, and href= on <link>. Ordinary <a href>
+# links are navigation, not assets, and are never fetched.
+_ASSET = re.compile(
+    r"""(?:\bsrc\s*=\s*["']([^"'#]+)["']|<link\b[^>]*\bhref\s*=\s*["']([^"'#]+)["'])""",
+    re.I,
+)
 
 
 def fetch(url: str) -> bytes:
@@ -96,7 +113,8 @@ def save(url: str) -> Path:
 def assets(page_url: str, html: str) -> list[str]:
     """Same-host assets a page references (scripts, styles, images, frames)."""
     out = []
-    for ref in _ASSET.findall(html):
+    for groups in _ASSET.findall(html):
+        ref = next(g for g in groups if g)
         url = urljoin(page_url, ref.strip())
         path = urlparse(url).path
         if urlparse(url).hostname == ALLOWED_HOST and (
@@ -130,6 +148,8 @@ def main() -> None:
                 continue
             tid = c["testcaseId"]
             short = tid[:8]
+            if short in SKIP:
+                continue
             entry = cases.setdefault(
                 tid,
                 {

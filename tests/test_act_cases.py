@@ -56,7 +56,9 @@ ANSWERS = {
 RESULTS: dict[str, str] = {}
 
 
-@pytest.mark.parametrize("case_id", sorted(CASES))
+@pytest.mark.parametrize(
+    "case_id", sorted(c for c in CASES if CASES[c]["tt_test"] == "4.C")
+)
 async def test_case_outcome(case_id, settings, act_server, record_property):
     case = CASES[case_id]
     got = await run_4c(settings, f"{act_server}/{case['path']}", ANSWERS.get(case_id))

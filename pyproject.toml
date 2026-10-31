@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "fastmcp>=2.0.0",
+    "pillow>=13.0.0",
     "playwright==1.63.0",
     "pydantic>=2.0.0",
     "pydantic-settings>=2.0.0",
@@ -56,3 +57,5 @@ addopts = "-m 'not slow'"
 # Spec row tables and question wording stay on one line each.
 "src/a11y_assist/checks/t4c.py" = ["E501"]
 "src/a11y_assist/checks/t4e.py" = ["E501"]
+"src/a11y_assist/checks/t4d.py" = ["E501"]
+"src/a11y_assist/checks/t4f.py" = ["E501"]

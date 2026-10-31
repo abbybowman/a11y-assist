@@ -89,6 +89,24 @@
    "path": "WAI/content-assets/wcag-act-rules/testcases/80af7b/4b93a866e14ad4c9ed8efa13c080a1e05350fa2f.html"
   },
   {
+   "id": "52be6331",
+   "testcaseId": "52be6331dc0978990a8b806a9a4a84bf738a43e1",
+   "tt_test": "4.D",
+   "examples": [
+    "oj04fd Passed Example 1"
+   ],
+   "act_expected": {
+    "oj04fd": "PASS"
+   },
+   "approved": {
+    "oj04fd": true
+   },
+   "url": "https://www.w3.org/WAI/content-assets/wcag-act-rules/testcases/oj04fd/52be6331dc0978990a8b806a9a4a84bf738a43e1.html",
+   "dhs_tt51": "PASS",
+   "expected": "PASS",
+   "path": "WAI/content-assets/wcag-act-rules/testcases/oj04fd/52be6331dc0978990a8b806a9a4a84bf738a43e1.html"
+  },
+  {
    "id": "62fd24e7",
    "testcaseId": "62fd24e73ea55f55ad45de392128a816a6f03526",
    "tt_test": "4.C",
@@ -173,6 +191,42 @@
    "path": "WAI/content-assets/wcag-act-rules/testcases/80af7b/8fba3918b361f251dab4c19bec8eddc5624218ee.html"
   },
   {
+   "id": "90789ad8",
+   "testcaseId": "90789ad82a761b7697418e8cb403db103f0925a2",
+   "tt_test": "4.D",
+   "examples": [
+    "oj04fd Inapplicable Example 1"
+   ],
+   "act_expected": {
+    "oj04fd": "DNA"
+   },
+   "approved": {
+    "oj04fd": true
+   },
+   "url": "https://www.w3.org/WAI/content-assets/wcag-act-rules/testcases/oj04fd/90789ad82a761b7697418e8cb403db103f0925a2.html",
+   "dhs_tt51": "DNA",
+   "expected": "DNA",
+   "path": "WAI/content-assets/wcag-act-rules/testcases/oj04fd/90789ad82a761b7697418e8cb403db103f0925a2.html"
+  },
+  {
+   "id": "95cf4fdf",
+   "testcaseId": "95cf4fdf26825900e91a30eaf6c2235516db79f9",
+   "tt_test": "4.D",
+   "examples": [
+    "oj04fd Passed Example 2"
+   ],
+   "act_expected": {
+    "oj04fd": "PASS"
+   },
+   "approved": {
+    "oj04fd": true
+   },
+   "url": "https://www.w3.org/WAI/content-assets/wcag-act-rules/testcases/oj04fd/95cf4fdf26825900e91a30eaf6c2235516db79f9.html",
+   "dhs_tt51": "PASS",
+   "expected": "PASS",
+   "path": "WAI/content-assets/wcag-act-rules/testcases/oj04fd/95cf4fdf26825900e91a30eaf6c2235516db79f9.html"
+  },
+  {
    "id": "96eb4b26",
    "testcaseId": "96eb4b26010e8c598cb659108dbc34ca0abd82f9",
    "tt_test": "4.C",
@@ -236,6 +290,24 @@
    "path": "WAI/content-assets/wcag-act-rules/testcases/80af7b/ab24c77ed9daefc8fa1650aedf0d1c6438460243.html"
   },
   {
+   "id": "b12f1f45",
+   "testcaseId": "b12f1f45eef29c30197ca3bda79d793cd90eeadd",
+   "tt_test": "4.D",
+   "examples": [
+    "oj04fd Inapplicable Example 2"
+   ],
+   "act_expected": {
+    "oj04fd": "DNA"
+   },
+   "approved": {
+    "oj04fd": true
+   },
+   "url": "https://www.w3.org/WAI/content-assets/wcag-act-rules/testcases/oj04fd/b12f1f45eef29c30197ca3bda79d793cd90eeadd.html",
+   "dhs_tt51": "DNA",
+   "expected": "DNA",
+   "path": "WAI/content-assets/wcag-act-rules/testcases/oj04fd/b12f1f45eef29c30197ca3bda79d793cd90eeadd.html"
+  },
+  {
    "id": "b20beca9",
    "testcaseId": "b20beca9dd7d487092cafcabce8c2b194896bc47",
    "tt_test": "4.C",
@@ -252,6 +324,24 @@
    "dhs_tt51": "PASS",
    "expected": "PASS",
    "path": "WAI/content-assets/wcag-act-rules/testcases/ebe86a/b20beca9dd7d487092cafcabce8c2b194896bc47.html"
+  },
+  {
+   "id": "b44aa294",
+   "testcaseId": "b44aa294df6f0de62f11f6ae732087d92c90b448",
+   "tt_test": "4.D",
+   "examples": [
+    "oj04fd Passed Example 3"
+   ],
+   "act_expected": {
+    "oj04fd": "PASS"
+   },
+   "approved": {
+    "oj04fd": true
+   },
+   "url": "https://www.w3.org/WAI/content-assets/wcag-act-rules/testcases/oj04fd/b44aa294df6f0de62f11f6ae732087d92c90b448.html",
+   "dhs_tt51": "PASS",
+   "expected": "PASS",
+   "path": "WAI/content-assets/wcag-act-rules/testcases/oj04fd/b44aa294df6f0de62f11f6ae732087d92c90b448.html"
   },
   {
    "id": "b92b5214",
@@ -332,6 +422,24 @@
    "path": "WAI/content-assets/wcag-act-rules/testcases/a1b64e/dcf917e0b17ba9ddbd9fe01239a94519b5bc0458.html"
   },
   {
+   "id": "dd9628d8",
+   "testcaseId": "dd9628d86628e285fe99ce98efdacbe441c20ca5",
+   "tt_test": "4.D",
+   "examples": [
+    "oj04fd Passed Example 4"
+   ],
+   "act_expected": {
+    "oj04fd": "PASS"
+   },
+   "approved": {
+    "oj04fd": true
+   },
+   "url": "https://www.w3.org/WAI/content-assets/wcag-act-rules/testcases/oj04fd/dd9628d86628e285fe99ce98efdacbe441c20ca5.html",
+   "dhs_tt51": "PASS",
+   "expected": "PASS",
+   "path": "WAI/content-assets/wcag-act-rules/testcases/oj04fd/dd9628d86628e285fe99ce98efdacbe441c20ca5.html"
+  },
+  {
    "id": "e3902f01",
    "testcaseId": "e3902f01b8589702925be6d97f9542895ef3c76d",
    "tt_test": "4.C",
@@ -351,6 +459,24 @@
    "dhs_tt51": "PASS",
    "expected": "PASS",
    "path": "WAI/content-assets/wcag-act-rules/testcases/80af7b/e3902f01b8589702925be6d97f9542895ef3c76d.html"
+  },
+  {
+   "id": "f1c9efb4",
+   "testcaseId": "f1c9efb4c8d1b5f7870c693bce2e6ca046dd768d",
+   "tt_test": "4.D",
+   "examples": [
+    "oj04fd Failed Example 1"
+   ],
+   "act_expected": {
+    "oj04fd": "FAIL"
+   },
+   "approved": {
+    "oj04fd": true
+   },
+   "url": "https://www.w3.org/WAI/content-assets/wcag-act-rules/testcases/oj04fd/f1c9efb4c8d1b5f7870c693bce2e6ca046dd768d.html",
+   "dhs_tt51": "FAIL",
+   "expected": "FAIL",
+   "path": "WAI/content-assets/wcag-act-rules/testcases/oj04fd/f1c9efb4c8d1b5f7870c693bce2e6ca046dd768d.html"
   },
   {
    "id": "f5ea9fd3",
@@ -393,6 +519,8 @@
   }
  ],
  "files": {
+  "WAI/content-assets/wcag-act-rules/test-assets/focus-visible-oj04fd/script.js": "9da483aada394275a8911089b46e0d9511940c766ef0138d81225288abee5216",
+  "WAI/content-assets/wcag-act-rules/test-assets/focus-visible-oj04fd/styles.css": "0185e3b237f4ae64dbd0858743a671f7ac7059197fcbeb09386369cb61f0672c",
   "WAI/content-assets/wcag-act-rules/test-assets/focusable-no-keyboard-trap/keyboard.js": "eac088532912108fb70a71f5ed75b7ec0fce03cccb7d2c9107005905dbff5b2b",
   "WAI/content-assets/wcag-act-rules/testcases/80af7b/0ec0e93e7f8ffca39e1eb58a4a8503f1bd4cb145.html": "f8235037487dcfbb01de9249c446adb814c8bf9ab916267f8d982de681b87204",
   "WAI/content-assets/wcag-act-rules/testcases/80af7b/16dddd8ac5c419caba2c709b1b1f49cc5759e63c.html": "118f24d5b8b83341824cb54de6232ef26846a8638c3f9cb741c6a271536db157",
@@ -412,6 +540,13 @@
   "WAI/content-assets/wcag-act-rules/testcases/80af7b/fb76f71a94bf95f5cfef22f3db6655e7b0a57b0c.html": "351195778f111f8946b357e4991aa0bdaa4a88fec432f35eaa21f14f5adfd32c",
   "WAI/content-assets/wcag-act-rules/testcases/a1b64e/d26e3cbd39acb781e77c93ea99cc37b4c886c0c5.html": "5152865e64c73775e0ceadd25e6aa9d155e7088cd64ed497cdb7eff9786d8e3e",
   "WAI/content-assets/wcag-act-rules/testcases/a1b64e/dcf917e0b17ba9ddbd9fe01239a94519b5bc0458.html": "aca203e9242501e7376a50a9f6c46ef97d5cb5680d11ee47115bc46a50e6f33e",
-  "WAI/content-assets/wcag-act-rules/testcases/ebe86a/b20beca9dd7d487092cafcabce8c2b194896bc47.html": "a2b016dd246582a12405f075c831874d5d02eebfb93d697cfb859445efe2048f"
+  "WAI/content-assets/wcag-act-rules/testcases/ebe86a/b20beca9dd7d487092cafcabce8c2b194896bc47.html": "a2b016dd246582a12405f075c831874d5d02eebfb93d697cfb859445efe2048f",
+  "WAI/content-assets/wcag-act-rules/testcases/oj04fd/52be6331dc0978990a8b806a9a4a84bf738a43e1.html": "640d441d94f8ed19a53660b7ae118e4be0e35f1a54ecf33fd6d00bbc19c42b7a",
+  "WAI/content-assets/wcag-act-rules/testcases/oj04fd/90789ad82a761b7697418e8cb403db103f0925a2.html": "64eb59685fc84d981d990cf4c4f78113d0bc67824824d8f07dcb0147e09bb6b2",
+  "WAI/content-assets/wcag-act-rules/testcases/oj04fd/95cf4fdf26825900e91a30eaf6c2235516db79f9.html": "2ba07ff0db94931c55569a6633a74eb3c2f632e030200b39aa9f3a362003edc2",
+  "WAI/content-assets/wcag-act-rules/testcases/oj04fd/b12f1f45eef29c30197ca3bda79d793cd90eeadd.html": "a3da62f088aa63b90a6118a1339cdc271144cac3238aebd5fc94784acc2c7a51",
+  "WAI/content-assets/wcag-act-rules/testcases/oj04fd/b44aa294df6f0de62f11f6ae732087d92c90b448.html": "709be09193d87e891c01c14488b82d7cca1439a172022d7f3c06e5a3aff75cf2",
+  "WAI/content-assets/wcag-act-rules/testcases/oj04fd/dd9628d86628e285fe99ce98efdacbe441c20ca5.html": "2e8600017d36f70b031636970d6bcb7b324a99406219561696216977ca1ee086",
+  "WAI/content-assets/wcag-act-rules/testcases/oj04fd/f1c9efb4c8d1b5f7870c693bce2e6ca046dd768d.html": "304e242b999b5499e7e4af68b8c67754b27c533e29a05590d3d2bfd38037f7a9"
  }
 }

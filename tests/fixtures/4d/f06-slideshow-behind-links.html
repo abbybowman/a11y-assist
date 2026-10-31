@@ -1,0 +1,3 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>F06 slideshow behind links</title><style>#show{width:400px;height:120px;position:relative}a{outline:none;position:relative;z-index:1;color:#000;margin:8px;display:inline-block}</style></head><body>
+<div id="show"><a href="#a">Slide one</a><a href="#b">Slide two</a></div>
+<script>let h=0;setInterval(()=>{h=(h+40)%360;document.getElementById('show').style.background='hsl('+h+',70%,70%)';},100);</script></body></html>

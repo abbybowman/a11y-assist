@@ -1,0 +1,6 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>F13 listbox without a highlight</title><style>[role=option]{padding:4px}#lb{width:200px;outline:none}#lb:focus{outline:2px solid #036}</style></head><body>
+<p><a href="#a">Before</a></p>
+<ul id="lb" role="listbox" tabindex="0" aria-label="States" aria-activedescendant="o1">
+<li role="option" id="o1" class="active">Alabama</li><li role="option" id="o2">Alaska</li><li role="option" id="o3">Arizona</li><li role="option" id="o4">Arkansas</li></ul>
+<p><a href="#c">After</a></p>
+<script>const lb=document.getElementById('lb');lb.addEventListener('keydown',e=>{const o=[...lb.querySelectorAll('[role=option]')];let i=o.findIndex(x=>x.id===lb.getAttribute('aria-activedescendant'));if(e.key==='ArrowDown')i=Math.min(i+1,o.length-1);else if(e.key==='ArrowUp')i=Math.max(i-1,0);else return;e.preventDefault();o.forEach(x=>x.classList.remove('active'));o[i].classList.add('active');lb.setAttribute('aria-activedescendant',o[i].id);});</script></body></html>
