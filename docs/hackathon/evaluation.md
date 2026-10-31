@@ -181,7 +181,8 @@ The server reads public web pages, by default only on `.gov` and `.mil`. It need
 
 ### Logs and errors
 
-**[PENDING] Data-leakage tests.** Following the GSA template, tool errors and logs should not contain query strings, cookies, headers, stack traces or page text. Seed a secret in a URL query string and in a page error, and check it appears in neither the tool error nor the logs. The user's saved report may keep the full URL.
+- **Redacted errors and logs.** Following the GSA template, tool errors and the run log carry no query strings, cookies, headers, stack traces or page text. URLs keep only scheme, host, port and path; an error is one line (exception type and first message line, URLs redacted, capped at 200 characters). The run log is redacted where it is written, so no caller can bypass it. The user's saved report keeps the full URL.
+- **Data-leakage tests** (`tests/test_leakage.py`). Secrets are seeded in a URL query string, a page script error, a console error, a cookie and a failing subresource; a redirect out of the allowlist and an unreachable page are also covered. Each test checks the tool error, the result's error list, the run log, Python logging and the process's stdout and stderr. With the redaction removed, 4 of the 5 tests fail.
 
 ### Secrets and configuration
 
@@ -189,12 +190,12 @@ Settings load from a `.env` file that is never committed. No API key is needed t
 
 ### Transport and isolation
 
-- **Local only.** stdio is the supported transport.
+- **Local only.** stdio is the default transport. HTTP is opt-in, binds only to a loopback address (127.0.0.1 or ::1), and checks the Host and Origin headers of every request, so a web page can't reach it through DNS rebinding (`tests/test_transport.py`). There is no authentication yet, so the server can't be hosted.
 - **Fresh state for every load.** Each page load gets a fresh browser context, so cookies and storage can't carry state between probes.
 - **No CSP bypass.** No content security policy bypass is enabled.
 - **Pinned third-party code.** ANDI and jQuery are bundled with hashes, and requests to ssa.gov are blocked so ANDI is never loaded live.
 
-**[PENDING — known gap, fix before any hosted demo]:** the server entry point, inherited from the template, still starts an unauthenticated HTTP server on all interfaces when a `PORT` or `DATABRICKS_APP_PORT` environment variable is set. It should require an explicit setting plus authentication.
+The template's entry point started an unauthenticated HTTP server on all interfaces whenever a `PORT` or `DATABRICKS_APP_PORT` environment variable was set. That branch is removed and those variables are ignored. **[PENDING]** Authentication, before any hosted demo.
 
 ### Misuse: findings mistaken for certification
 
