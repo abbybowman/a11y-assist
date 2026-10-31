@@ -1,6 +1,6 @@
 # Build tasks: 4.C
 
-Work [4c-no-keyboard-trap.md](4c-no-keyboard-trap.md) (spec 1.2.0) needs done during the build. Delete each row once it exists in the repo: ACT fixtures under `tests/fixtures/act/`, custom fixtures under `tests/fixtures/4c/`, browser checks under `tests/browser/`. Delete this file when every table is empty.
+Work [4c-no-keyboard-trap.md](4c-no-keyboard-trap.md) (spec 1.3.0) needs done during the build. Delete each row once it exists in the repo: ACT fixtures under `tests/fixtures/act/`, custom fixtures under `tests/fixtures/4c/`, browser checks under `tests/browser/`. Delete this file when every table is empty.
 
 ## Fixtures to build
 
@@ -34,7 +34,7 @@ Work [4c-no-keyboard-trap.md](4c-no-keyboard-trap.md) (spec 1.2.0) needs done du
 
 | ID | Page | Expected | Proves |
 | --- | --- | --- | --- |
-| F35 | Button that refocuses itself 600 ms after blur, with no DOM change | FAIL | Settle focus check (M1 rerun, then M12) |
+| F35 | Button that refocuses itself 600 ms after blur, with no DOM change | FAIL | Settle focus check. The refocus lands after the next press, so it reads as a 2-stop loop: M14 (M12 if read as stuck) |
 
 **Changes to fixtures that exist**, once the ACT cases run in CI:
 
