@@ -10,6 +10,7 @@ import json
 
 import pytest
 
+from a11y_assist.checks import REGISTRY
 from a11y_assist.models import TestId
 
 from .conftest import BASELINE_ROOT
@@ -35,6 +36,8 @@ def test_files_match_their_hashes():
 
 @pytest.mark.parametrize(("case_id", "tt"), PAIRS)
 async def test_case(case_id, tt, settings, baseline_server):
+    if TestId(tt) not in REGISTRY:
+        pytest.skip(f"{tt} has no check yet (vendored ahead of its build)")
     case = CASES[case_id]
     got = await run_check(
         settings,

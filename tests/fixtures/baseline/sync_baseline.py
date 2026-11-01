@@ -6,7 +6,7 @@ Run deliberately, then review the diff:
 
 Pages are saved byte for byte under their URL path and never edited; tests
 serve this folder as the web root and never fetch from the network. Expected
-outcomes are ours (docs/rules/4a-*, 4b-*) and live only in manifest.json.
+outcomes are ours (docs/rules/4a-*, 4b-*, 5d-*) and live only in manifest.json.
 Baseline's own expected result is recorded beside ours for scoring.
 """
 
@@ -49,6 +49,37 @@ CASES = {
         "/testfiles/TF02/02.A-ic-dna-1.html",
         "DNA",
         {t: "DNA" for t in ("4.A", "4.B", "4.C", "4.D", "4.E", "4.F")},
+        "",
+    ),
+    # 5.D On input (3.2.2), Baseline test 10.C.
+    "TC10.C-3-fail-1": (
+        "/testfiles/TF10/10.C-3-fail-1.html",
+        "FAIL",
+        {"5.D": "FAIL"},
+        "",
+    ),
+    "TC10.C-3-fail-2": (
+        "/testfiles/TF10/10.C-3-fail-2.html",
+        "FAIL",
+        {"5.D": "FAIL"},
+        "",
+    ),
+    "TC10.C-3-fail-3": (
+        "/testfiles/TF10/10.C-3-fail-3.html",
+        "FAIL",
+        {"5.D": "FAIL"},
+        "",
+    ),
+    "TC10.C-all-pass": (
+        "/testfiles/TF10/10.C-all-pass-1.html",
+        "PASS",
+        {"5.D": "PASS"},
+        "",
+    ),
+    "TC10.C-ic-dna-1": (
+        "/testfiles/TF10/10.C-ic-dna-1.html",
+        "DNA",
+        {"5.D": "DNA"},
         "",
     ),
 }
