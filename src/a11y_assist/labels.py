@@ -137,7 +137,11 @@ FOCUS_JS = (
     others.push(o);
     for (const x of labelEls(o)) if (!mine.has(x)) others.push(x);
   }
-  const inOther = (n) => others.some((o) => o === n || o.contains(n));
+  // Fieldsets that do not hold this field belong to other fields (their
+  // legend and content); outside the field's form is not its cue.
+  for (const fs of doc.querySelectorAll('fieldset')) if (!fs.contains(el)) others.push(fs);
+  const form = el.form || el.closest('form');
+  const inOther = (n) => others.some((o) => o === n || o.contains(n)) || (form && !form.contains(n));
   const labels = [...labelEls(el), ...groupEls(el)].map((l) => ({
     text: txt(l), shown: shown(l) && inReg(l.getBoundingClientRect()) }));
   const near = [];
@@ -171,7 +175,8 @@ FOCUS_JS = (
     focused: doc.activeElement === el,
     labels, nearby: near.map((x) => x.t), nearby_other: nbr.slice(0, 6),
     placeholder_shown: !!el.getAttribute('placeholder') && !el.value,
-    clip: { x: reg.l + scrollX, y: reg.t + scrollY, width: Math.max(1, reg.r - reg.l), height: Math.max(1, reg.b - reg.t) },
+    // Viewport coordinates: a viewport screenshot's clip is relative to it.
+    clip: { x: reg.l, y: reg.t, width: Math.max(1, reg.r - reg.l), height: Math.max(1, reg.b - reg.t) },
   };
 })""".replace("LEFT", str(LEFT))
     .replace("UP", str(UP))
