@@ -45,6 +45,12 @@ EXPECTED: dict[str, dict] = {
         "rows": ["M8"],
         "j2": {"gate": "yes", "fields": [{"locator": "m1", "value": "12345"}]},
     },
+    # A gate made of radio buttons: "input or interaction" (p. 21), 1.8.0.
+    "f35-radio-gate": {
+        "outcome": "NEEDS_REVIEW",
+        "rows": ["M8"],
+        "j2": {"gate": "yes", "fields": [{"locator": "m1", "value": "English"}]},
+    },
     "f15-account-number-gate": {
         "outcome": "NEEDS_REVIEW",
         "rows": ["M8"],
@@ -54,7 +60,12 @@ EXPECTED: dict[str, dict] = {
     "f17-editor-captures-tab-escape": {"outcome": "FAIL", "rows": ["M11"]},
     "f18-same-origin-iframe-loop": {"outcome": "FAIL", "rows": ["M12"]},
     "f19-cross-origin-iframe-loop": {"outcome": "FAIL", "rows": ["M12"]},
-    "f20-cross-origin-player-trap": {"outcome": "FAIL", "rows": ["M12"]},
+    # The player's volume slider is a form control, so J2 is asked (1.8.0).
+    "f20-cross-origin-player-trap": {
+        "outcome": "FAIL",
+        "rows": ["M12"],
+        "j2": {"gate": "no"},
+    },
     "f21-cross-origin-player-ok": {"outcome": "PASS", "rows": []},
     "f22-menubar-roving": {"outcome": "PASS", "rows": []},
     "f23-grid-captures-tab": {"outcome": "FAIL", "rows": ["M12"]},
@@ -267,6 +278,20 @@ async def test_f14_zip_gate_frees_focus_with_12345(open_fixture):
     assert await page.text_content("#error") == "Enter a 5-digit ZIP code."
     assert await keys(page, "Tab", 1) == ["field"]
     await page.keyboard.type("12345")
+    await page.keyboard.press("Tab")
+    await page.keyboard.press("Enter")
+    assert await page.is_visible("#results")
+    assert await keys(page, "Tab", 1) == ["r1"]
+
+
+async def test_f35_radio_gate_frees_focus_after_a_choice(open_fixture):
+    page = await open_fixture("f35-radio-gate")
+    assert await keys(page, "Tab", 3) == ["en", "go", "en"]
+    await page.keyboard.press("Tab")  # to Continue
+    await page.keyboard.press("Enter")  # nothing chosen
+    assert await page.text_content("#error") == "Choose a language."
+    await page.keyboard.press("Shift+Tab")
+    await page.keyboard.press("Space")  # choose English
     await page.keyboard.press("Tab")
     await page.keyboard.press("Enter")
     assert await page.is_visible("#results")

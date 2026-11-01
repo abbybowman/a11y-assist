@@ -296,7 +296,10 @@ class J1Answer(BaseModel):
 
 class J2Field(BaseModel):
     locator: str = Field(description='A member id from the question input, e.g. "m1".')
-    value: str = Field(description='Text to type, or "check" for a checkbox.')
+    value: str = Field(
+        description='Text to type; "check" for a checkbox or switch; the option '
+        "to choose for a radio group, select or combobox; a number for a slider."
+    )
     basis_quote: str = ""
 
 

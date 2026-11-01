@@ -1,7 +1,7 @@
 ---
 tt_test: 4.C
 tt_name: 2.1.2-no-keyboard-trap
-spec_version: 1.7.0
+spec_version: 1.8.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -82,7 +82,7 @@ Each trap event is an *instance* judged by the first matching row of table 3a. T
 | M5 | The only exit found navigates, reloads or opens a new page | Not an exit; continue down the table | Spec rule: leaving the page is not an exit |
 | M6 | A key found by J1 is pressed and exits | PASS (documented custom key) | p. 21 HtT 3; ER 1.b, 2.b |
 | M7 | A key found by J1 does not exit | Not an exit; continue down the table | p. 21 HtT 3.b |
-| M8 | Loop holds text, select or checkbox fields, and J2 says gate = yes | NEEDS REVIEW. The finding gives J2's values (if any) in plain words for a person to try | p. 21 HtT 2.b note 2 |
+| M8 | Loop holds form controls (text fields, selects, listboxes, checkboxes, switches, radio buttons, comboboxes, sliders, spinbuttons; 1.8.0), and J2 says gate = yes | NEEDS REVIEW. The finding gives J2's values (if any) in plain words for a person to try | p. 21 HtT 2.b note 2 |
 | M9 | Loop holds fields, and J2 is unsure | NEEDS REVIEW | Spec rule |
 | M10 | Loop contains every stop reached in both passes, never reaches OUT, and holds at least as many stops as the DOM inventory has candidates (whole-page cycle) | PASS, with the instance logged for tester review on real pages | p. 21 HtT 2.b |
 | M11 | Stuck, and every exit above failed | FAIL | p. 21 ER 1 |
@@ -92,7 +92,7 @@ Each trap event is an *instance* judged by the first matching row of table 3a. T
 
 **Loop size.** A loop with no exit fails whatever its size: ER 2 sets no size limit ("small section" in HtT 2.b describes what a trap looks like). A loop holding the whole page is M10.
 
-**Exceptions (p. 21 HtT 2.b notes).** Focus may stay inside a modal dialog until it is closed (also p. 23, 4.F HtT 3), but the dialog is still checked for traps: it passes only through M3 or M4, and its stuck elements follow M2–M11. WCAG's own modal example matches: focus cycles inside the dialog, which closes by its Cancel or OK button (Understanding 2.1.2). A section that requires input or interaction before focus can move on is not a failure: M4, then J2 with M8. The tool does not type values into a page; a person tries J2's values. Only interactions that keep the same URL and then let Tab reach the rest of the page count.
+**Exceptions (p. 21 HtT 2.b notes).** Focus may stay inside a modal dialog until it is closed (also p. 23, 4.F HtT 3), but the dialog is still checked for traps: it passes only through M3 or M4, and its stuck elements follow M2–M11. WCAG's own modal example matches: focus cycles inside the dialog, which closes by its Cancel or OK button (Understanding 2.1.2). A section that requires input or interaction before focus can move on is not a failure: M4, then J2 with M8. "Input or interaction" covers every form control kind, as 5.D defines them ([5d-on-input.md](5d-on-input.md), Terms), not only text, select and checkbox (1.8.0). The tool does not type values into a page; a person tries J2's values. Only interactions that keep the same URL and then let Tab reach the rest of the page count.
 
 **3b. Page outcome (first match wins)**
 
@@ -142,12 +142,13 @@ Modal status is not a model question. The spec labels a loop "modal" from markup
 
 **Output:** `{gate: yes|no|unsure, fields: [{locator, value, basis_quote}]}`.
 
-**Rubric.** Yes: consent or terms checkboxes, a required field with a stated format, an age or location gate. No: navigation menus, carousels, media players, toolbars, rich-text editors. Values come from on-page instructions or are neutral (check a box, "12345" for a stated 5-digit ZIP), never real personal data. A CAPTCHA or a value only the user could know (account number) is yes with no values.
+**Rubric.** Yes: consent or terms checkboxes, a required field with a stated format, an age or location gate. No: navigation menus, carousels, media players, toolbars, rich-text editors. Values come from on-page instructions or are neutral (check a box, choose an option, "12345" for a stated 5-digit ZIP), never real personal data. A CAPTCHA or a value only the user could know (account number) is yes with no values.
 
 | Section | Answer |
 | --- | --- |
 | "Enter your 5-digit ZIP code to see local offices" + field + Go | Yes: 12345 in the field |
 | "I agree to the terms" checkbox + Continue | Yes: check the box |
+| "Choose a language to continue" radio buttons + Continue | Yes: choose English |
 | "Enter your account number to continue" | Yes, no values |
 | Mega-menu whose links cycle | No |
 | Video player controls cycling | No |

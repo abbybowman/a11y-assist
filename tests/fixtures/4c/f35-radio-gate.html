@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>F35: language choice gate</title></head>
+<body>
+<h1>Benefits information</h1>
+<section id="gate" aria-labelledby="gate-title">
+  <h2 id="gate-title">Choose a language to continue</h2>
+  <fieldset>
+    <legend>Language</legend>
+    <label><input type="radio" name="lang" id="en" value="en"> English</label>
+    <label><input type="radio" name="lang" id="es" value="es"> Español</label>
+  </fieldset>
+  <button id="go" type="button">Continue</button>
+  <p id="error" role="alert"></p>
+</section>
+<div id="results" hidden><p>Information in your language is below.</p></div>
+<a id="r1" href="#">Apply</a>
+<a id="r2" href="#">Contact us</a>
+<script>
+  const $ = (id) => document.getElementById(id);
+  document.addEventListener("click", (e) => {
+    const a = e.target.closest && e.target.closest('a[href="#"]');
+    if (a) e.preventDefault();
+  });
+  // Tab and Shift+Tab stay in the gate until a language is chosen and
+  // Continue is pressed.
+  let gated = true;
+  const radios = [$("en"), $("es")];
+  const group = () => radios.find((r) => r.checked) || radios[0];
+  // Continue: Tab and Shift+Tab both go to the group; the group: Shift+Tab
+  // goes to Continue (Tab reaches it natively).
+  $("go").addEventListener("keydown", (e) => {
+    if (gated && e.key === "Tab") { e.preventDefault(); group().focus(); }
+  });
+  radios.forEach((r) => r.addEventListener("keydown", (e) => {
+    if (gated && e.key === "Tab" && e.shiftKey) { e.preventDefault(); $("go").focus(); }
+  }));
+  $("go").addEventListener("click", () => {
+    if (radios.some((r) => r.checked)) {
+      gated = false; $("results").hidden = false; $("error").textContent = "";
+    } else {
+      $("error").textContent = "Choose a language.";
+    }
+  });
+</script>
+</body>
+</html>
