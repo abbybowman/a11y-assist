@@ -6,8 +6,6 @@ it goes to 1.0.0 when its check is built and its fixtures pass. Plan:
 
 ## Code
 
-- Move 4.A's `observe`, `snapshot` and `Effect` to a shared module
-  (`observe.py`); 4.A and 4.B import it from there. No behavior change.
 - Stops: `stop.field` today is text, select or checkbox. Add radio (with its
   group key: form and `name`, or the radiogroup), switch, combobox, slider and spinbutton
   (custom widgets with a value), and the disabled and read-only flags.

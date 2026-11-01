@@ -17,6 +17,7 @@ from a11y_assist.checks import t4a
 from a11y_assist.checks.base import RunContext
 from a11y_assist.engine import Row, first_match
 from a11y_assist.models import DecidedBy, Finding, OpenQuestion, Outcome, TestId
+from a11y_assist.observe import Effect, observe
 from a11y_assist.traverse import open_session, page_text
 from a11y_assist.walk import KeyboardWalk
 
@@ -159,7 +160,7 @@ async def prove(ctx: RunContext, st: State4B) -> None:
     assert sr is not None and key is not None
     keys = ["Tab"] * (sr.index + 1)
 
-    async def run(timed: bool) -> t4a.Effect | None:
+    async def run(timed: bool) -> Effect | None:
         s = await t4a._replay(ctx, keys)
         try:
             at, _ = await s.traversal.reader.read()
@@ -179,7 +180,7 @@ async def prove(ctx: RunContext, st: State4B) -> None:
                         await kb.press(key)
                         await s.page.wait_for_timeout(REPEAT_GAP_MS)
 
-            return await t4a.observe(s, ctx.quiet_ms, act, sr.path_key)
+            return await observe(s, ctx.quiet_ms, act, sr.path_key)
         except Exception:
             return None
         finally:
@@ -198,7 +199,7 @@ async def prove(ctx: RunContext, st: State4B) -> None:
 
 def _confirmed(st: State4B) -> bool:
     p = st.proof or {}
-    eff = lambda k: t4a.Effect(**p[k]) if p.get(k) else None  # noqa: E731
+    eff = lambda k: Effect(**p[k]) if p.get(k) else None  # noqa: E731
     n, t, t2 = eff("normal"), eff("timed"), eff("timed2")
     return (
         n is not None
