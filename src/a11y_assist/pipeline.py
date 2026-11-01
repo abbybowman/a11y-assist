@@ -52,7 +52,7 @@ from a11y_assist.policy import check_url
 from a11y_assist.redact import safe_error
 from a11y_assist.resources.runs import run_uri
 from a11y_assist.runlog import RunRecorder, expires_at, prune_runs
-from a11y_assist.traverse import Pace, WalkTooLong, metered
+from a11y_assist.traverse import Pace, ReplayPlan, WalkTooLong, metered
 from a11y_assist.versions import collect_versions
 from a11y_assist.walk import KeyboardWalk, walk_page
 
@@ -373,6 +373,7 @@ async def run_tt_tests(
                     )
                     run.log("walk", "error", error="time limit", cost=asdict(cost))
                 if walk is not None:
+                    ctx.plan = ReplayPlan.of(walk.p1, walk.p2)
                     run.write_json(run.evidence_dir / "walk.json", walk)
                     run.log("walk", **_walk_summary(walk), cost=asdict(cost))
             for c in checks:
@@ -449,6 +450,10 @@ async def answer_questions(
             report.final_url or report.target,
             _soft_deadline(time.monotonic(), settings, no_limit),
         )
+        walk_path = run.evidence_dir / "walk.json"
+        if walk_path.exists():
+            w = KeyboardWalk.model_validate_json(walk_path.read_text("utf-8"))
+            ctx.plan = ReplayPlan.of(w.p1, w.p2)
         for t, state in states.items():
             try:
                 errors += await REGISTRY[t].resume(ctx, state, report)

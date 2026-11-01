@@ -143,7 +143,7 @@ Experienced manual reviewers already know scanners miss most WCAG failures. Adri
 
 - **Agreement with W3C's expected results:** **[FILL]**.
 - **Model dependence:** **[FILL: outcomes decided by rules alone vs. needing an answer; accuracy when Claude answers]**.
-- **Run time:** **[FILL: per-page time on real pages]**. Target: under 60 s for Test 4 on a typical page, hard limit 120 s per call (checks stop 10 s early so the report is written in time; anything cut short is NEEDS REVIEW). A page too large to walk within the limit is refused within seconds, before anything is tested, and the caller may rerun it with `no_time_limit` (4.C spec 1.6.0; a 600-link page is refused after about 5 s).
+- **Run time:** **[FILL: per-page time on real pages]**. Target: under 60 s for Test 4 on a typical page, hard limit 120 s per call (checks stop 10 s early so the report is written in time; anything cut short is NEEDS REVIEW). A page too large to walk within the limit is refused within seconds, before anything is tested, and the caller may rerun it with `no_time_limit` (4.C spec 1.6.0; a 600-link page is refused after about 5 s). Replays to a walk stop skip the quiet window on presses the walk saw change nothing, and are redone fully settled if focus ends elsewhere (4.C spec 1.7.0): a realistic agency home page went from 151 s to 97 s with every outcome unchanged.
 - **Consistency over 5 runs:** **[FILL]**.
 
 **Sample-size caveat.** If the tool misses none of n true failures, the 95% upper bound on its miss rate is about 1 − 0.05^(1/n) (roughly 3/n). Showing ≤ 5% needs about 60 failing cases with no misses. **[FILL: n per test and the resulting bound.]** Unless n reaches about 60, describe results as "promising," not "validated."

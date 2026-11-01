@@ -37,7 +37,7 @@ The same evidence as 4.C and 4.D: 4.E is DOES NOT APPLY only when nothing on the
 
 **Confirmation replays** (4.E's own follow-up, only for steps with a context signal other than a dialog): (a) *reproduce*: fresh load, replay the keys up to that step, press the key, and check that the same signal happens again; (b) *control*, for navigation and new pages only: fresh load, replay the keys before that step, then wait as long as the original step took, without the final key. A signal that also happens in the control is caused by time, not by focus. At most 10 steps get replays; more is G3.
 
-**Time budget:** the extras add a few milliseconds per step. Each confirmation is one fresh replay (about 2–5 s on a fixture page). Pages without context signals cost nothing more. The whole run stays within `run_limit_s` (4.C spec section 2, Run limits): no confirmation replay starts after the checks' deadline (1.1.0).
+**Time budget:** the extras add a few milliseconds per step. Each confirmation is one fresh replay (about 2–5 s on a fixture page). Pages without context signals cost nothing more. The whole run stays within `run_limit_s` (4.C spec section 2, Run limits): no confirmation replay starts after the checks' deadline (1.1.0). The timing control replay and the before image use the 4.C replay rule (4.C spec section 2, 1.7.0); the reproduce replay presses every key fully settled, since what each press changes is its evidence.
 
 ## 3. Mechanical checks
 

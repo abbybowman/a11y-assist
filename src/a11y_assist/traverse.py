@@ -43,6 +43,8 @@ class Meter:
 
     loads: int = 0
     presses: int = 0
+    quick: int = 0  # replay-prefix presses without the quiet window
+    slow_redos: int = 0  # replays redone with every press settled
     seconds: float = 0.0
 
 
@@ -77,9 +79,15 @@ WORLD = "a11y-assist"
 # Runs in every frame before page scripts (main world, so it sees page events).
 INIT_JS = """(() => {
   if (window.__a11yLog) return;
-  const log = { m: 0, lastM: 0, f: [], lastF: 0 };
+  const log = { m: 0, lastM: 0, f: [], lastF: 0, pause: 0 };
   Object.defineProperty(window, "__a11yLog", { value: log });
-  const obs = new MutationObserver((r) => { log.m += r.length; log.lastM = performance.now(); });
+  // Paused while the tool takes a screenshot: Playwright adds and removes a
+  // style element for every shot, which is not the page changing.
+  const obs = new MutationObserver((r) => { if (log.pause) return; log.m += r.length; log.lastM = performance.now(); });
+  // Records still pending when a pause starts are the page's: count them.
+  // Records taken when it ends are the shot's: drop them.
+  log.flush = (count) => { const r = obs.takeRecords();
+    if (count && r.length && !log.pause) { log.m += r.length; log.lastM = performance.now(); } };
   obs.observe(document, { subtree: true, childList: true, attributes: true, characterData: true });
   const watchRoot = (root) => obs.observe(root, { subtree: true, childList: true, attributes: true, characterData: true });
   const attach = Element.prototype.attachShadow;
@@ -617,6 +625,29 @@ async def _focus_events(page: Page, before: dict[str, int]) -> list[dict[str, An
     return sorted(out, key=lambda e: e["t"])
 
 
+_PAUSE_JS = """(on) => { const l = window.__a11yLog; if (!l) return;
+  if (on) { l.flush && l.flush(true); l.pause += 1; } else { l.flush && l.flush(false); l.pause = Math.max(0, l.pause - 1); } }"""
+
+
+async def _pause_log(page: Page, on: bool) -> None:
+    for frame in page.frames:
+        try:
+            await frame.evaluate(_PAUSE_JS, on)
+        except Exception:
+            continue
+
+
+async def screenshot(page: Page, **kw: Any) -> bytes:
+    """page.screenshot, with the mutation log paused: the tool's own shots
+    must not look like the page changing (they used to mark every step of a
+    walk with 4.D's images as changed, docs/solutions/time-budget.md)."""
+    await _pause_log(page, True)
+    try:
+        return await page.screenshot(**kw)
+    finally:
+        await _pause_log(page, False)
+
+
 async def settle(page: Page, quiet_ms: int, window_ms: int = SETTLE_MAX_MS) -> bool:
     """Wait per the settle rule: 2 animation frames, then until the DOM has been
     quiet for `quiet_ms`. Returns False if the limit was hit (unsettled)."""
@@ -680,7 +711,9 @@ class Traversal:
         self._last_mutations, self._last_focus_total = m, f
         await _focus_events(self.page, self._seen_focus)
 
-    async def press(self, key: str) -> Step:
+    async def press(self, key: str, quick: bool = False) -> Step:
+        """Press `key`, settle and read. `quick` (replay prefixes only, see
+        replay()) skips the quiet window: two animation frames, then read."""
         # A focus change after the last step was read: re-read that step after
         # the 1,000 ms window (settle rule).
         _, f, _, _ = await _read_logs(self.page)
@@ -700,8 +733,10 @@ class Traversal:
             )
             _, self._last_focus_total, _, _ = await _read_logs(self.page)
         _count("presses")
+        if quick:
+            _count("quick")
         await self.page.keyboard.press(key)
-        settled = await settle(self.page, self.quiet_ms)
+        settled = await settle(self.page, 0 if quick else self.quiet_ms)
         stop, has_focus = await self.reader.read()
         m, f, _, _ = await _read_logs(self.page)
         step = Step(
@@ -714,6 +749,7 @@ class Traversal:
             mutations=m - self._last_mutations,
             focus_events=await _focus_events(self.page, self._seen_focus),
             unsettled=not settled,
+            quick=quick,
         )
         self._last_mutations, self._last_focus_total = m, f
         self.steps.append(step)
@@ -730,7 +766,7 @@ class Traversal:
             return None
         self.shots_dir.mkdir(parents=True, exist_ok=True)
         path = self.shots_dir / f"{label}-{len(self.steps):04d}.png"
-        await self.page.screenshot(path=str(path), animations="disabled")
+        await screenshot(self.page, path=str(path), animations="disabled")
         rel = path.resolve().relative_to(self.rel_base.resolve()).as_posix()
         self.steps[-1] = self.steps[-1].model_copy(update={"screenshot": rel})
         return rel
@@ -840,6 +876,96 @@ class Pace:
         estimate = (now - self.started) / presses * n * WALK_FACTOR
         if self.started + estimate > self.deadline:
             raise WalkTooLong(n, presses, estimate)
+
+
+@dataclass
+class ReplayPlan:
+    """What the walk saw at each press of each pass, for replays to its stops
+    (4.C spec section 2, settle rule): where focus went (path key) and whether
+    the press was quiet (it changed nothing a replay could depend on)."""
+
+    passes: dict[str, list[tuple[str, bool]]] = field(default_factory=dict)
+
+    @classmethod
+    def of(cls, *passes: PassResult) -> ReplayPlan:
+        plan = cls()
+        for p in passes:
+            if p.steps and p.steps[0].key not in plan.passes:
+                plan.passes[p.steps[0].key] = [
+                    (st.stop.path_key, _quiet(st, p)) for st in p.steps
+                ]
+        return plan
+
+    def flags(self, keys: list[str]) -> list[bool]:
+        """Which presses of `keys` may be quick: within the leading run of one
+        pass's key, those the walk saw quiet, except the run's last press (the
+        stop the replay goes to is always read after the full settle)."""
+        if not keys or keys[0] not in self.passes:
+            return [False] * len(keys)
+        seen = self.passes[keys[0]]
+        run = 0
+        while run < len(keys) and run < len(seen) and keys[run] == keys[0]:
+            run += 1
+        return [j < run - 1 and seen[j][1] for j in range(len(keys))]
+
+    def expect(self, keys: list[str], j: int) -> str | None:
+        seen = self.passes.get(keys[0]) if keys else None
+        if seen is None or j >= len(seen) or any(k != keys[0] for k in keys[: j + 1]):
+            return None
+        return seen[j][0]
+
+
+def _quiet(step: Step, p: PassResult) -> bool:
+    return (
+        step.stop.kind == "element"
+        and step.mutations == 0
+        and not step.rerun
+        and not step.unsettled
+        and not navigated(step, p.start_url, p.start_pages)
+    )
+
+
+async def replay(
+    new_page: NewPage,
+    quiet_ms: int,
+    keys: list[str],
+    plan: ReplayPlan | None = None,
+    shots_dir: Path | None = None,
+    rel_base: Path | None = None,
+    hooks: list[StepHook] | None = None,
+) -> Session:
+    """A fresh load with `keys` pressed: a replay to a stop the walk reached.
+    With a plan, prefix presses the walk saw quiet are quick (no quiet window);
+    the last press is fully settled. If any press so far was quick and focus
+    is not where the walk had it, the replay is redone with every press
+    settled, so a quick press never changes where the replay ends."""
+    flags = plan.flags(keys) if plan is not None else [False] * len(keys)
+
+    async def run(quick: bool) -> Session | None:
+        s = await open_session(new_page, quiet_ms, shots_dir, rel_base, hooks)
+        try:
+            for j, k in enumerate(keys):
+                q = quick and flags[j]
+                step = await s.traversal.press(k, quick=q)
+                want = plan.expect(keys, j) if quick else None
+                if (
+                    want is not None
+                    and step.stop.path_key != want
+                    and any(flags[: j + 1])
+                ):
+                    await s.close()
+                    return None
+        except BaseException:
+            await s.close()
+            raise
+        return s
+
+    if any(flags):
+        s = await run(True)
+        if s is not None:
+            return s
+        _count("slow_redos")
+    return await run(False)
 
 
 async def drive(

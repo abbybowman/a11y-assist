@@ -1,7 +1,7 @@
 ---
 tt_test: 4.B
 tt_name: 2.1.1-no-keystroke-timing
-spec_version: 1.1.1
+spec_version: 1.1.2
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -32,7 +32,7 @@ The tool gives each page one 4.B outcome: PASS, FAIL, DOES NOT APPLY or NEEDS RE
 
 **Timing proof** (only after J1 = timing_required). For the stop J1 names, three fresh replays to it: (a) one normal press of the key; (b) the timed press J1 describes: the key held down for its duration plus `HOLD_EXTRA_MS` (300 ms), or pressed its number of times `REPEAT_GAP_MS` (50 ms) apart; (c) only when (b) has an effect and (a) has none, a second (b), to confirm. Each records the effect.
 
-**Time budget:** page text under 1 s; a proof is three replays (about 10 s), at most one per page per J1 answer.
+**Time budget:** page text under 1 s; a proof is three replays (about 10 s; each uses the 4.C replay rule, 4.C spec section 2, 1.7.0; 1.1.2), at most one per page per J1 answer.
 
 ## 3. Mechanical checks
 

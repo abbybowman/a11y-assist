@@ -1,7 +1,7 @@
 ---
 tt_test: 4.C
 tt_name: 2.1.2-no-keyboard-trap
-spec_version: 1.6.0
+spec_version: 1.7.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -41,7 +41,9 @@ The tool does what p. 21 asks a human tester to do, and no more: walk the page w
 
 **Stop identity.** A stop is identified by (frame ID, CDP backend node ID) of the deepest focused element, following focus through frames and shadow roots. Two stops are the same only if both parts match. BODY and OUT are pseudo-stops. If the deepest element cannot be resolved (closed shadow root, unreachable frame), the stop is flagged *unresolved*. Node IDs change on every load, so across loads (instances found by different passes, and the stops "reached in both passes" in M11) stops match by frame chain plus CSS path.
 
-**Settle rule.** After each key press: wait 2 animation frames, then until no DOM mutation for `settle_quiet_ms` (default 150), at most 1,500 ms. If the limit is hit, flag the step *unsettled*. Any focus change between key presses (seen in the focus-event log at the next press) re-reads the previous step after a 1,000 ms window and flags it unsettled if focus is still moving. 4.D and 4.E use this rule by reference.
+**Settle rule.** After each key press: wait 2 animation frames, then until no DOM mutation for `settle_quiet_ms` (default 150), at most 1,500 ms. If the limit is hit, flag the step *unsettled*. Any focus change between key presses (seen in the focus-event log at the next press) re-reads the previous step after a 1,000 ms window and flags it unsettled if focus is still moving. 4.D and 4.E use this rule by reference. The mutation log is paused while the tool takes its own screenshots: Playwright adds and removes a style element for each shot, which is not the page changing (1.7.0).
+
+**Replays to a walk stop** (1.7.0, time budget 2026-11-01). Every probe and check that replays keys from a fresh load to a stop the walk reached (P3–P6 here; 4.A, 4.B, 4.D pass W, 4.E and 4.F replays) presses the leading run of the walk's key (Tab for P1, Shift+Tab for P2) like this: a press the walk saw *quiet* (it reached an element, with no DOM mutation, no re-read, not unsettled, no navigation) waits only the 2 animation frames before it is read; every other press, and always the run's last press, gets the full settle rule. If after a quick press focus is not where the walk had it, the replay is redone on a fresh load with every press fully settled. Evidence is read only after the full settle, at the stop the walk reached, so a quick press never changes what a check sees. Steps record `quick`. Measured: about 70% of a run's presses were replay prefixes; this cut a realistic agency home page from 151 s to 97 s with every outcome unchanged.
 
 **Why the focus check.** ACT treats focus as settled only after 1 second, and its failed examples pull focus back with a timer (a1b64e Failed Example 1). A fixed 1,000 ms window on every press would add over 20 minutes to a 600-stop page. Instead the step is read as soon as the DOM is quiet, and any focus change that lands before the next press triggers the re-read, so a late refocus is still seen.
 

@@ -27,7 +27,7 @@ from a11y_assist.models import (
     Step,
     TestId,
 )
-from a11y_assist.traverse import Traversal, open_session
+from a11y_assist.traverse import Traversal, open_session, screenshot
 from a11y_assist.walk import KeyboardWalk
 
 # Spec constants.
@@ -299,10 +299,9 @@ async def _reveal(
             )
             return
         keys = ["Tab"] * (i + 1) + ["Enter"]
-        s = await open_session(ctx.new_page, ctx.quiet_ms)
+        s = await ctx.replay(keys)
         try:
-            for k in keys:
-                step = await s.traversal.press(k)
+            step = s.traversal.steps[-1]
             container = trig.info.get("container")
             after = step.stop
             if after.modal:
@@ -366,10 +365,8 @@ async def _dialog_check(
     """D: does focus stay in the open modal dialog, forward and backward?"""
     inst = Inst4F(id=f"dlg{n}", kind="D", label=_plain(trig), keys=keys)
     for key in ("Tab", "Shift+Tab"):
-        s = await open_session(ctx.new_page, ctx.quiet_ms)
+        s = await ctx.replay(keys)
         try:
-            for k in keys:
-                await s.traversal.press(k)
             for _ in range(30):
                 step = await s.traversal.press(key)
                 if step.stop.unresolved:
@@ -413,7 +410,7 @@ async def _order_image(ctx: RunContext, fwd: list[StopInfo]) -> str | None:
         )
         ctx.shots.mkdir(parents=True, exist_ok=True)
         path = ctx.shots / "4f-order.png"
-        await s.page.screenshot(path=str(path), full_page=True, animations="disabled")
+        await screenshot(s.page, path=str(path), full_page=True, animations="disabled")
         return path.resolve().relative_to(ctx.rel.resolve()).as_posix()
     except Exception:
         return None

@@ -30,7 +30,7 @@ from a11y_assist.models import (
     Step,
     TestId,
 )
-from a11y_assist.traverse import Traversal, open_session
+from a11y_assist.traverse import Traversal, screenshot
 from a11y_assist.walk import KeyboardWalk
 
 # Spec constants (section 2). They decide outcomes, so they are not settings.
@@ -235,8 +235,8 @@ class FocusHook:
         path = self._shot_path(t, step.n, "on")
         if path is not None:
             shot = {"x": clip[0], "y": clip[1], "width": clip[2], "height": clip[3]}
-            await t.page.screenshot(
-                path=str(path), clip=shot, animations="disabled", caret="hide"
+            await screenshot(
+                t.page, path=str(path), clip=shot, animations="disabled", caret="hide"
             )
             out["on"] = self._rel(t, path)
             # Second read while focus stays, only if the page is changing:
@@ -250,8 +250,12 @@ class FocusHook:
             if moving:
                 await t.page.wait_for_timeout(NOISE_WAIT_MS)
                 path2 = self._shot_path(t, step.n, "on2")
-                await t.page.screenshot(
-                    path=str(path2), clip=shot, animations="disabled", caret="hide"
+                await screenshot(
+                    t.page,
+                    path=str(path2),
+                    clip=shot,
+                    animations="disabled",
+                    caret="hide",
                 )
                 out["on2"] = self._rel(t, path2)
                 snap2 = await t.reader.call(
@@ -276,7 +280,8 @@ class FocusHook:
             return
         path = self._shot_path(t, prev["step"].n, "off")
         if path is not None:
-            await t.page.screenshot(
+            await screenshot(
+                t.page,
                 path=str(path),
                 clip={"x": clip[0], "y": clip[1], "width": clip[2], "height": clip[3]},
                 animations="disabled",
@@ -577,11 +582,10 @@ async def _widget_pass(
             return
         for arrow in ("ArrowDown", "ArrowRight"):
             hook = FocusHook(f"W{i + 1}{arrow[5]}", set(by_subject), item_mode=True)
-            s = await open_session(ctx.new_page, ctx.quiet_ms, ctx.shots, ctx.rel)
+            s = None
             moved = False
             try:
-                for _ in range(i + 1):
-                    await s.traversal.press("Tab")
+                s = await ctx.replay(["Tab"] * (i + 1), shots=True)
                 s.traversal.hooks = [hook]
                 p = PassResult(
                     name=hook.pass_name,
@@ -615,7 +619,8 @@ async def _widget_pass(
                     f"Checking the items of a widget failed to run: {exc!r}"
                 )
             finally:
-                await s.close()
+                if s is not None:
+                    await s.close()
             if moved:
                 break
 

@@ -47,7 +47,9 @@ EXPECTED: dict[str, dict] = {
     "f07-sticky-header-covers": {"outcome": "FAIL"},
     "f08-focusable-iframe": {"outcome": "PASS"},
     "f09-faint-outline": {"outcome": "NEEDS_REVIEW", "choice": "unsure"},
-    "f10-100-links": {"outcome": "PASS", "max_s": 60},
+    # ~55 s alone, up to ~61 s under -n 8. Pausing the mutation log around
+    # 4.D's own screenshots costs ~2 s here (docs/solutions/time-budget.md).
+    "f10-100-links": {"outcome": "PASS", "max_s": 65},
     "f11-blur-on-focus": {"outcome": "FAIL", "rows": ["M3"]},
     "f12-listbox-activedescendant": {"outcome": "PASS"},
     "f13-listbox-no-highlight": {"outcome": "FAIL"},

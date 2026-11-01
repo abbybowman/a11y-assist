@@ -43,7 +43,7 @@ from typing import Any, ClassVar, Protocol
 from pydantic import BaseModel
 
 from a11y_assist.models import Finding, OpenQuestion, Report, TestId
-from a11y_assist.traverse import NewPage
+from a11y_assist.traverse import NewPage, ReplayPlan, Session, replay
 from a11y_assist.walk import ExtraFactory, KeyboardWalk
 
 
@@ -56,6 +56,24 @@ class RunContext:
     deadline: float  # time.monotonic() limit for the whole run
     shots: Path  # screenshot folder
     rel: Path  # run folder (evidence paths are relative to it)
+    plan: ReplayPlan | None = None  # from the walk, once it has run
+
+    async def replay(
+        self, keys: list[str], shots: bool = False, hooks: list | None = None
+    ) -> Session:
+        """A fresh load with `keys` pressed. Use it for every replay to a walk
+        stop: prefix presses the walk saw quiet skip the quiet window, and the
+        replay is redone fully settled if focus does not end where the walk
+        had it (traverse.replay; 4.C spec section 2)."""
+        return await replay(
+            self.new_page,
+            self.quiet_ms,
+            keys,
+            self.plan,
+            self.shots if shots else None,
+            self.rel if shots else None,
+            hooks,
+        )
 
 
 class Check(Protocol):

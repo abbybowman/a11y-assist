@@ -1,7 +1,7 @@
 ---
 tt_test: 4.F
 tt_name: 2.4.3-focus-order-meaning
-spec_version: 1.1.1
+spec_version: 1.1.2
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -35,7 +35,7 @@ The tool gives each page one 4.F outcome: PASS, FAIL, DOES NOT APPLY or NEEDS RE
 
 **Order image** (only when J1 is asked): one full-page screenshot on a fresh load, with a numbered badge drawn at each forward stop's box (on that copy only; the walk's page is never marked). Pages with more than `BADGE_MAX` stops get one image per `BADGE_MAX` stops.
 
-**Time budget:** the extras add a few milliseconds per step. Pass R costs one replay per trigger (about 2–5 s each) plus two per modal dialog, so about 15–30 s at `REVEAL_MAX`. The order image is about 0.5 s. The whole run stays within `run_limit_s`; triggers not reached in time are G3.
+**Time budget:** the extras add a few milliseconds per step. Pass R costs one replay per trigger (about 2–5 s each) plus two per modal dialog, so about 15–30 s at `REVEAL_MAX`. The order image is about 0.5 s. Replays use the 4.C replay rule (4.C spec section 2, 1.7.0; 1.1.2). The whole run stays within `run_limit_s`; triggers not reached in time are G3.
 
 **Constants** (they decide outcomes, so they live here, not in server config; provisional until fixtures calibrate them):
 

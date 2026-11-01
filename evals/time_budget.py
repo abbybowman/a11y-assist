@@ -4,10 +4,12 @@ the run's steps.jsonl (record, walk, each check's collect: seconds, page loads,
 key presses). Measurement only; it decides nothing.
 
     uv run python evals/time_budget.py 4d/f10-100-links.html budget/agency-home.html
-    uv run python evals/time_budget.py --limit 900 4c/f34-600-links.html
+    uv run python evals/time_budget.py --no-time-limit 4c/f34-600-links.html
 
---limit sets RUN_LIMIT_S for the run (default 120, the tool's own); a larger
-limit shows what an uncapped run would cost. Paths are under tests/fixtures/.
+--limit sets RUN_LIMIT_S for the run (default 120, the tool's own);
+--no-time-limit runs as the tool's no_time_limit does (what an uncapped run
+costs). "quick" counts replay-prefix presses without the quiet window,
+"redos" replays redone fully settled. Paths are under tests/fixtures/.
 Offline, like the tests: only 127.0.0.1 resolves.
 """
 
@@ -28,7 +30,7 @@ from pathlib import Path
 from a11y_assist import egress
 from a11y_assist.checks import REGISTRY
 from a11y_assist.config import Settings
-from a11y_assist.pipeline import run_tt_tests
+from a11y_assist.pipeline import RunRefused, run_tt_tests
 
 FIXTURES = Path(__file__).resolve().parent.parent / "tests" / "fixtures"
 
@@ -54,24 +56,32 @@ def _serve() -> str:
     return f"http://127.0.0.1:{httpd.server_address[1]}"
 
 
-def costs(steps_path: Path) -> list[tuple[str, float, int, int]]:
-    """(phase, seconds, loads, presses) per phase, from steps.jsonl."""
+def costs(steps_path: Path) -> list[tuple]:
+    """(phase, seconds, loads, presses, quick, slow redos) per phase, from
+    steps.jsonl."""
     out = []
     for line in steps_path.read_text("utf-8").splitlines():
         e = json.loads(line)
         d = e["detail"]
         if e["step"] == "captured":
-            out.append(("record", d.get("seconds", 0.0), 1, 0))
+            out.append(("record", d.get("seconds", 0.0), 1, 0, 0, 0))
         elif e["step"] == "walk":
             c = d["cost"]
-            out.append(("walk", c["seconds"], c["loads"], c["presses"]))
+            out.append(("walk", *_cost(c)))
         elif e["step"] == "collected":
             c = d["cost"]
-            out.append((d["test"], c["seconds"], c["loads"], c["presses"]))
+            out.append((d["test"], *_cost(c)))
     return out
 
 
-async def measure(base: str, page: str, limit: int, runs: Path) -> None:
+def _cost(c: dict) -> tuple:
+    keys = ("seconds", "loads", "presses", "quick", "slow_redos")
+    return tuple(c.get(k, 0) for k in keys)
+
+
+async def measure(
+    base: str, page: str, limit: int, runs: Path, no_limit: bool = False
+) -> None:
     settings = Settings(
         _env_file=None,
         allowed_domains=["127.0.0.1"],
@@ -84,12 +94,22 @@ async def measure(base: str, page: str, limit: int, runs: Path) -> None:
         run_limit_s=limit,
     )
     t0 = time.monotonic()
-    out = await run_tt_tests(settings, f"{base}/{page}", list(REGISTRY))
+    try:
+        out = await run_tt_tests(
+            settings, f"{base}/{page}", list(REGISTRY), no_time_limit=no_limit
+        )
+    except RunRefused as exc:
+        print(f"\n{page}  refused after {time.monotonic() - t0:.1f} s: {exc}")
+        return
     total = time.monotonic() - t0
     print(f"\n{page}  (limit {limit} s, total {total:.1f} s)")
-    print(f"  {'phase':8} {'s':>7} {'loads':>6} {'presses':>8}")
-    for name, s, loads, presses in costs(runs / out.run_id / "steps.jsonl"):
-        print(f"  {name:8} {s:7.1f} {loads:6} {presses:8}")
+    print(
+        f"  {'phase':8} {'s':>7} {'loads':>6} {'presses':>8} {'quick':>6} {'redos':>6}"
+    )
+    for name, s, loads, presses, quick, redos in costs(
+        runs / out.run_id / "steps.jsonl"
+    ):
+        print(f"  {name:8} {s:7.1f} {loads:6} {presses:8} {quick:6} {redos:6}")
     asked = [q.test_id.value for q in out.open_questions]
     for f in out.report.findings:
         n = asked.count(f.test_id.value)
@@ -102,12 +122,13 @@ async def main(argv: list[str]) -> None:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("pages", nargs="+")
     ap.add_argument("--limit", type=int, default=120)
+    ap.add_argument("--no-time-limit", action="store_true")
     args = ap.parse_args(argv)
     egress.RESOLVER = _offline
     base = _serve()
     with tempfile.TemporaryDirectory() as tmp:
         for page in args.pages:
-            await measure(base, page, args.limit, Path(tmp))
+            await measure(base, page, args.limit, Path(tmp), args.no_time_limit)
 
 
 if __name__ == "__main__":
