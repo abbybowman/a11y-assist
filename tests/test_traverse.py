@@ -19,6 +19,7 @@ from a11y_assist.traverse import (
     replay,
     run_pass,
     screenshot,
+    submissions,
     tab_press_cap,
 )
 
@@ -301,5 +302,52 @@ async def test_own_screenshots_are_not_page_mutations(browser, settings):
         await page.evaluate("document.body.append(document.createElement('p'))")
         await page.wait_for_timeout(50)
         assert (await _read_logs(page))[0] == before + 2
+    finally:
+        await ctx.close()
+
+
+async def test_form_controls_on_stops_and_in_the_inventory(browser, settings):
+    """5.D's fields (its spec, Terms): control kind, read-only, radio group;
+    4.C's `field` keeps its three kinds."""
+    p = await _pass(browser, settings, _fixture("5d/controls.html"))
+    by_id = {
+        s.stop.css_path.rsplit("#", 1)[-1]: s.stop
+        for s in p.steps
+        if "#" in (s.stop.css_path or "")
+    }
+    button = by_id.pop("f > button")
+    assert button.control is None
+    assert {k: v.control for k, v in by_id.items()} == {
+        "name": "text",
+        "email": "text",
+        "code": "text",
+        "s1": "radio",
+        "news": "checkbox",
+        "state": "select",
+        "notes": "text",
+        "vol": "slider",
+        "dark": "switch",
+    }
+    assert by_id["code"].readonly and not by_id["name"].readonly
+    assert by_id["s1"].group and by_id["s1"].group.endswith(":size")
+    assert by_id["dark"].field is None and by_id["news"].field == "checkbox"
+    # name, email, size (one group), news, state, notes, vol, dark; not the
+    # read-only or disabled fields, not the button.
+    assert p.form_fields == 8
+
+
+async def test_form_submissions_are_logged_in_every_frame(browser, settings):
+    """5.D's submission evidence: submit events and submit()/requestSubmit()
+    calls (submit() fires no event)."""
+    ctx, page = await _opener(browser, settings, _fixture("5d/controls.html"))()
+    try:
+        await page.evaluate(
+            "() => { const f = document.getElementById('f');"
+            " f.addEventListener('submit', (e) => e.preventDefault());"
+            " f.requestSubmit(); }"
+        )
+        got = await submissions(page)
+        assert [g["how"] for g in got] == ["requestSubmit", "event"]
+        assert all(g["css"].endswith("#f") for g in got)
     finally:
         await ctx.close()

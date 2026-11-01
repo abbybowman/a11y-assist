@@ -79,7 +79,7 @@ WORLD = "a11y-assist"
 # Runs in every frame before page scripts (main world, so it sees page events).
 INIT_JS = """(() => {
   if (window.__a11yLog) return;
-  const log = { m: 0, lastM: 0, f: [], lastF: 0, pause: 0 };
+  const log = { m: 0, lastM: 0, f: [], lastF: 0, pause: 0, s: [] };
   Object.defineProperty(window, "__a11yLog", { value: log });
   // Paused while the tool takes a screenshot: Playwright adds and removes a
   // style element for every shot, which is not the page changing.
@@ -104,6 +104,19 @@ INIT_JS = """(() => {
     }
     return parts.join(' > ');
   };
+  // Form submissions (5.D): submit events, and submit()/requestSubmit()
+  // calls, which fire no event for submit(). Evidence only; the recorded
+  // page answers no request it did not record.
+  addEventListener("submit", (e) => {
+    log.s.push({ how: "event", trusted: e.isTrusted, css: e.target && e.target.nodeType === 1 ? path(e.target) : null });
+  }, true);
+  for (const name of ["submit", "requestSubmit"]) {
+    const orig = HTMLFormElement.prototype[name];
+    HTMLFormElement.prototype[name] = function (...args) {
+      log.s.push({ how: name, trusted: false, css: path(this) });
+      return orig.apply(this, args);
+    };
+  }
   for (const type of ["focusin", "focusout"]) {
     addEventListener(type, (e) => {
       const el = e.composedPath()[0];
@@ -171,13 +184,35 @@ _DESCRIBE_FN = (
   if (tag === 'select') field = 'select';
   else if (tag === 'textarea' || (tag === 'input' && !['button','submit','reset','image','checkbox','radio','range','color','file','hidden'].includes(type))) field = 'text';
   else if (tag === 'input' && type === 'checkbox') field = 'checkbox';
+  // The form control kind 5.D completes (its spec, Terms: field). Separate
+  // from `field`, which 4.C's J2 reads and keeps its three kinds.
+  const ROLE_CONTROL = { textbox: 'text', searchbox: 'text', combobox: 'combobox', checkbox: 'checkbox',
+    switch: 'switch', radio: 'radio', slider: 'slider', spinbutton: 'spinbutton' };
+  let control = null;
+  if (role && ROLE_CONTROL[role]) control = ROLE_CONTROL[role];
+  else if (tag === 'select') control = this.multiple || this.size > 1 ? 'listbox' : 'select';
+  else if (tag === 'textarea') control = 'text';
+  else if (tag === 'input') {
+    if (type === 'checkbox') control = 'checkbox';
+    else if (type === 'radio') control = 'radio';
+    else if (type === 'range') control = 'slider';
+    else if (!['button','submit','reset','image','color','file','hidden'].includes(type)) control = 'text';
+  }
+  const readonly = this.readOnly === true || this.getAttribute('aria-readonly') === 'true';
+  const disabled = this.disabled === true || this.getAttribute('aria-disabled') === 'true';
+  let group = null;
+  if (control === 'radio') {
+    const rg = this.closest('[role=radiogroup]');
+    group = tag === 'input' && this.name ? 'radio:' + (this.form ? path(this.form) : '') + ':' + this.name
+      : (rg ? path(rg) : null);
+  }
   const collapsed = this.getAttribute('aria-expanded') === 'false' ||
     (tag === 'summary' && !!this.parentElement && this.parentElement.tagName === 'DETAILS' && !this.parentElement.open);
   const dlg = this.closest('dialog, [role=dialog], [role=alertdialog]');
   const modal = !!dlg && ((dlg.tagName === 'DIALOG' && dlg.matches(':modal')) || dlg.getAttribute('aria-modal') === 'true');
   return { css: path(this), tag, x: r.x, y: r.y, w: r.width, h: r.height,
            isBody: this === document.body || this === document.documentElement,
-           widget, field, collapsed, modal };
+           widget, field, control, readonly, disabled, group, collapsed, modal };
 }"""
 )
 
@@ -207,15 +242,31 @@ _INVENTORY_JS = """() => {
         el.parentElement.querySelector(':scope > summary') === el)) return false;
     return !el.matches(':disabled') && !inert(el) && rendered(el);
   };
+  // Form fields 5.D completes (its spec, Terms: field), radio groups once;
+  // not disabled, not read-only, rendered.
+  const FIELD = 'input:not([type=hidden]):not([type=button]):not([type=submit]):not([type=reset]):not([type=image])' +
+    ':not([type=color]):not([type=file]), select, textarea, [role=textbox], [role=searchbox], [role=combobox], ' +
+    '[role=checkbox], [role=switch], [role=radio], [role=slider], [role=spinbutton]';
+  const fieldKey = (el) => {
+    if (el.matches('input[type=radio]') && el.name) return 'radio:' + (el.form ? 'f' : '') + el.name;
+    return null;
+  };
   let count = 0;
+  const fields = new Set();
+  let n = 0;
   const walk = (root) => {
     for (const el of root.querySelectorAll('*')) {
       if (candidate(el)) count += 1;
+      if (el.matches(FIELD) && !el.matches(':disabled') && !el.readOnly && el.getAttribute('aria-disabled') !== 'true'
+          && el.getAttribute('aria-readonly') !== 'true' && !inert(el) && rendered(el)) {
+        const k = fieldKey(el);
+        fields.add(k || ('#' + (n += 1)));
+      }
       if (el.shadowRoot) walk(el.shadowRoot);
     }
   };
   walk(document);
-  return count;
+  return { count, fields: fields.size };
 }"""
 
 _NEG_TABINDEX_FRAME_JS = """(el) => {
@@ -235,13 +286,16 @@ class Inventory:
     # Focusable elements inside tabindex=-1 iframes: left out of `candidates`
     # because Tab cannot reach them (V9); reported for 4.A.
     keyboard_unreachable: int = 0
+    # Form fields 5.D would complete (radio groups once), every frame read.
+    form_fields: int = 0
 
 
 async def dom_inventory(page: Page) -> Inventory:
     inv = Inventory(0)
     for frame in page.frames:
         try:
-            n = await frame.evaluate(_INVENTORY_JS)
+            got = await frame.evaluate(_INVENTORY_JS)
+            n = got["count"]
         except Exception:
             inv.unreachable_frames += 1
             continue
@@ -253,6 +307,7 @@ async def dom_inventory(page: Page) -> Inventory:
                 skipped = True
                 break
             f = f.parent_frame
+        inv.form_fields += got["fields"]
         if skipped:
             inv.keyboard_unreachable += n
         else:
@@ -591,6 +646,10 @@ class FocusReader:
             frame_url=frame_url,
             widget=(" >> ".join([*chain, info["widget"]]) if info["widget"] else None),
             field=info["field"],
+            control=info.get("control"),
+            readonly=bool(info.get("readonly")),
+            disabled=bool(info.get("disabled")),
+            group=(" >> ".join([*chain, info["group"]]) if info.get("group") else None),
             collapsed=info["collapsed"],
             modal=info["modal"],
         )
@@ -627,6 +686,20 @@ async def _focus_events(page: Page, before: dict[str, int]) -> list[dict[str, An
 
 _PAUSE_JS = """(on) => { const l = window.__a11yLog; if (!l) return;
   if (on) { l.flush && l.flush(true); l.pause += 1; } else { l.flush && l.flush(false); l.pause = Math.max(0, l.pause - 1); } }"""
+
+
+async def submissions(page: Page) -> list[dict[str, Any]]:
+    """Every form submission logged so far, in every frame (5.D)."""
+    out: list[dict[str, Any]] = []
+    for frame in page.frames:
+        try:
+            got = await frame.evaluate(
+                "() => (window.__a11yLog ? window.__a11yLog.s.slice() : [])"
+            )
+        except Exception:
+            continue
+        out.extend({**g, "frame": frame.url} for g in got or [])
+    return out
 
 
 async def _pause_log(page: Page, on: bool) -> None:
@@ -1019,6 +1092,7 @@ async def run_pass(
         keys=[],
         cap=cap,
         inventory=s.inventory.candidates,
+        form_fields=s.inventory.form_fields,
         start_url=s.start_url,
         start_pages=s.start_pages,
     )

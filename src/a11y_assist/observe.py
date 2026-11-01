@@ -12,7 +12,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from a11y_assist.traverse import Session, _read_logs, settle
+from a11y_assist.traverse import Session, _read_logs, settle, submissions
 
 # Before the action, the page is watched this long; DOM changes in it are
 # page noise (animation), so an effect of only DOM changes is unreliable.
@@ -60,19 +60,27 @@ async def snapshot(s: Session) -> dict[str, Any]:
 
 
 async def observe(
-    s: Session, quiet_ms: int, act: Callable[[], Awaitable[None]], own: str | None
+    s: Session,
+    quiet_ms: int,
+    act: Callable[[], Awaitable[None]],
+    own: str | None,
+    submits: bool = False,
 ) -> Effect:
     """What an action changes (spec: Terms, effect). `own` is the path key of
-    the element acted on: focus moving onto it (a click) is not an effect."""
+    the element acted on: focus moving onto it (a click) is not an effect.
+    `submits` (5.D) also records form submissions as the effect "submit";
+    off for 4.A and 4.B, whose specs do not read it."""
     page = s.page
     await settle(page, quiet_ms)
     before = await snapshot(s)
+    sub0 = len(await submissions(page)) if submits else 0
     m0, *_ = await _read_logs(page)
     await page.wait_for_timeout(NOISE_MS)
     m1, *_ = await _read_logs(page)
     await act()
     await settle(page, quiet_ms)
     after = await snapshot(s)
+    sub1 = len(await submissions(page)) if submits else 0
     m2, *_ = await _read_logs(page)
     e = Effect(mutations=max(0, m2 - m1), noise=max(0, m1 - m0))
     if after["url"] != before["url"]:
@@ -80,6 +88,8 @@ async def observe(
         e.url = after["url"]
     elif after["frames"] != before["frames"]:
         e.kinds.append("frame_navigation")
+    if sub1 > sub0:
+        e.kinds.append("submit")
     if after["pages"] > before["pages"]:
         e.kinds.append("new_page")
     if after["dialogs"] != before["dialogs"]:
