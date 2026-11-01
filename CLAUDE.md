@@ -105,6 +105,12 @@ by TT test ID. Package: `a11y_assist` (name is provisional).
   the current step is in `docs/plans/`; lessons that save the next test time
   go in `docs/solutions/` (read its README before building). Adding a TT
   test: follow the steps at the top of `src/a11y_assist/checks/base.py`.
+- Research before drafting a plan or spec, not after: read the TT text,
+  the W3C Understanding page and its sufficient and failure techniques, the
+  ACT rules and DHS's verdicts on their cases (act-tt data), and the ICT
+  Testing Baseline test and its Baseline Alignment cases. Cite them in the
+  draft and ask Abby only what they leave open (a draft of 5.D and 9.A asked
+  questions the baseline already answered).
 - Compound the work: each test should leave the next one easier. Reuse the
   walk, its extras and existing collectors; put shared logic where the next
   check can call it; write down what cost time.
