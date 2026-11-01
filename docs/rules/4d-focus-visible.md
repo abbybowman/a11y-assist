@@ -1,7 +1,7 @@
 ---
 tt_test: 4.D
 tt_name: 2.4.7-focus-visible
-spec_version: 1.0.0
+spec_version: 1.1.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -45,7 +45,7 @@ P1 collects at every stop. P2 collects only at stops (matched by frame chain plu
 
 **Images:** PNG, about 1.5 KB each for a link-sized region (measured), two per stop, saved as `evidence/shots/4d/<pass>-<step>-on.png` and `-off.png` and served as run resources while the run is kept.
 
-**Time budget:** measured with the build on Linux (Chromium headless shell): a 100-link page takes 53 s for the walk and 4.D together, of which the walk is about 36 s. Widget pass W adds one replay per widget (about 2–3 s). Earlier estimate, measured on Linux (Chromium headless shell, Playwright 1.63): a clip screenshot takes about 27 ms (median) and a CDP style read about 10 ms, so about 100 ms per stop. On a typical page of 100 stops that is about 10 s for P1 plus a few P2 top-ups, on top of the walk itself. Windows headed Chrome is not yet measured (V8). The whole run stays within `run_limit_s`; when the walk stops at the limit, stops without complete evidence go to M4 and G3 gives the reason "the page is too large to finish within the time limit".
+**Time budget:** measured with the build on Linux (Chromium headless shell): a 100-link page takes 53 s for the walk and 4.D together, of which the walk is about 36 s. Widget pass W adds one replay per widget (about 2–3 s). Earlier estimate, measured on Linux (Chromium headless shell, Playwright 1.63): a clip screenshot takes about 27 ms (median) and a CDP style read about 10 ms, so about 100 ms per stop. On a typical page of 100 stops that is about 10 s for P1 plus a few P2 top-ups, on top of the walk itself. Windows headed Chrome is not yet measured (V8). The whole run stays within `run_limit_s` (4.C spec section 2, Run limits): pass W starts no widget after the checks' deadline (1.1.0); when the walk stops at the limit, stops without complete evidence go to M4 and G3 gives the reason "the page is too large to finish within the time limit".
 
 **Constants.** These decide outcomes, so they live in this spec, not in server config (CLAUDE.md principle 2): changing one is a spec version change. Provisional until the V-checks and fixtures calibrate them.
 
@@ -91,7 +91,7 @@ Each distinct stop (frame chain plus CSS path; not BODY or OUT), and each widget
 | --- | --- | --- |
 | G1 | Section 1 gives DOES NOT APPLY or NEEDS REVIEW | That outcome |
 | G2 | Any instance is FAIL | FAIL, listing every instance |
-| G3 | Any instance is NEEDS REVIEW; or P1 or P2 is incomplete (cap, time limit, error); or more than `WIDGET_MAX` widgets; or P1 and P2 ended in different traps, so stops between them were reached only by 4.C's bypass or not at all | NEEDS REVIEW, with the note "This test could not be performed" and the reason (p. 5). Never NOT TESTED (p. 6) |
+| G3 | Any instance is NEEDS REVIEW; or P1 or P2 is incomplete (cap, time limit, error); or more than `WIDGET_MAX` widgets; or the run limit was reached before widget pass W checked every widget (1.1.0); or P1 and P2 ended in different traps, so stops between them were reached only by 4.C's bypass or not at all | NEEDS REVIEW, with the note "This test could not be performed" and the reason (p. 5). Never NOT TESTED (p. 6) |
 | G4 | P1 and P2 each ended in a wrap or at the same trap; every instance is PASS | PASS |
 | G5 | Anything else | NEEDS REVIEW |
 

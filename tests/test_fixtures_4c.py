@@ -18,6 +18,8 @@ import re
 
 import pytest
 
+from a11y_assist.models import TestId
+from a11y_assist.pipeline import RunRefused, run_tt_tests
 from a11y_assist.traverse import dom_inventory
 
 from .conftest import FIXTURES
@@ -73,7 +75,9 @@ EXPECTED: dict[str, dict] = {
         "rows": [],
         "note": "cannot be reached with the keyboard",
     },
-    "f34-600-links": {"outcome": "PASS", "rows": [], "slow": True},
+    # Too large for one 120 s call (test_f34_is_refused_early): tested in full
+    # only with the limit off.
+    "f34-600-links": {"outcome": "PASS", "rows": [], "slow": True, "no_limit": True},
 }
 
 # Pages other fixtures load (iframe content, navigation targets).
@@ -106,7 +110,11 @@ def test_every_fixture_file_is_listed_and_named_by_convention():
 async def test_fixture_outcome(name, settings, server):
     e = EXPECTED[name]
     got = await run_4c(
-        settings, f"{server.base}/4c/{name}.html", e.get("j1"), e.get("j2")
+        settings,
+        f"{server.base}/4c/{name}.html",
+        e.get("j1"),
+        e.get("j2"),
+        no_time_limit=e.get("no_limit", False),
     )
     f = got["finding"]
     assert (f.outcome.value, instance_rows(f)) == (e["outcome"], sorted(e["rows"])), (
@@ -406,6 +414,17 @@ async def test_f32_two_separate_traps(open_fixture):
     await page.click("text=Middle")
     assert await keys(page, "Tab", 3) == ["b1", "b2", "b1"]
     assert await page.get_by_text("Report PASS for every test").count() == 1
+
+
+async def test_f34_is_refused_early(settings, server):
+    """Under the 120 s limit the walk cannot finish (it ran out at 378 of
+    ~1,200 presses): the run stops after P1's first presses and says so."""
+    with pytest.raises(RunRefused) as exc:
+        await run_tt_tests(
+            settings, f"{server.base}/4c/f34-600-links.html", [TestId.T4C]
+        )
+    assert "about 600 places" in str(exc.value)
+    assert "no_time_limit=true" in str(exc.value)
 
 
 async def test_f34_600_links(open_fixture):
