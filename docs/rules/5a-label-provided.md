@@ -1,7 +1,7 @@
 ---
 tt_test: 5.A
 tt_name: 3.3.2-label-provided
-spec_version: 0.2.0
+spec_version: 0.3.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -41,7 +41,7 @@ Each data-entry field is an *instance*; each radio button and checkbox is its ow
 | --- | --- | --- | --- |
 | M1 | The field could not be focused or read, or its image is missing | NEEDS REVIEW | Spec rule |
 | M2 | A visible label with text | PASS | p. 25 ER 1; H44 |
-| M3 | No visible label; the only text shown is the placeholder of the empty, focused field | OPEN (Q1) | p. 25 Note 1 |
+| M3 | No visible label; the only text shown for the field is its placeholder | FAIL: a placeholder is not a label; it disappears as soon as the user types, so the field is no longer labelled while it still has focus (Abby, 2026-11-01) | p. 25 Note 1 ("visible when the form field has focus"); W3C forms tutorial, [Placeholder text](https://www.w3.org/WAI/tutorials/forms/instructions/#placeholder-text) ("not a replacement for labels"); [w3c/wcag#4918](https://github.com/w3c/wcag/issues/4918) (placeholder alone "would fail 3.3.2"; it does provide an accessible name, so 5.C is not affected: TC10.A-all-pass-1) |
 | J1? | Otherwise, J1 not answered | NEEDS REVIEW | Open question |
 | M4 | J1 = labeled, its quote found in the visible text of the image, or J1 = graphic | PASS | p. 25 ER 1, Note 2 |
 | M5 | J1 = not_labeled | FAIL | p. 25 ER 1; Understanding 3.3.2 (`aria-label` alone); TC10.E-1-fail-1 |
@@ -65,6 +65,7 @@ Each data-entry field is an *instance*; each radio button and checkbox is its ow
 | Page NEEDS REVIEW | "We could not finish this test, so a person needs to check it." |
 | A1 | "This page has no form fields, so this test does not apply." |
 | A2 | "This page's only form controls are buttons, which carry their own text, so this test does not apply." |
+| M3 | "<field>'s only label is the gray example text inside it, which disappears as soon as someone starts typing. Add a label that stays visible. To see it, load the page and move to the field." |
 | M5 | "<field> has no label or instructions people can see (screen readers may still announce a name). To see it, load the page and move to the field." |
 | M6, M1 | "We could not tell whether <field> has a label people can see. Please look at it." |
 
@@ -76,11 +77,11 @@ J1 is settled by looking (CLAUDE.md principle 8): its labeled answer leads to PA
 
 **Question:** "Image A shows the field named in input.field while it has focus, with what is around it. Is there visible text or a picture next to it that tells the user what the field is for or what to enter? Answer labeled (copy the words into quote), graphic (describe it in reasons), not_labeled or unsure."
 
-**Input:** image A; the field's kind and type (its accessible name is not shown: a name people cannot see is not a visual label); `text`: the visible text in the image, nearest first, labelled as untrusted page data.
+**Input:** image A; the field's kind and type; its placeholder, if any (shown separately: it does not count) (its accessible name is not shown: a name people cannot see is not a visual label); `text`: the visible text in the image, nearest first, labelled as untrusted page data.
 
 **Output:** `{choice: labeled|graphic|not_labeled|unsure, quote, reasons}`.
 
-**Rubric.** labeled: text people can see, beside, above or inside the field while it has focus, that names it or says what to enter ("First Name:" next to it, a column heading over a grid of fields, "(555) 555-5555" as the set's label for three phone boxes, a search button's "Search" beside a search box, G167). graphic: a picture that plainly labels it (a magnifier on a search box, an envelope on an email field). not_labeled: nothing visible relates to the field (an empty label, text far away about something else). unsure: anything else. Whether the label is clear or accurate is not asked (5.B).
+**Rubric.** labeled: text people can see, beside, above or inside the field while it has focus, that names it or says what to enter ("First Name:" next to it, a column heading over a grid of fields, "(555) 555-5555" as the set's label for three phone boxes, a search button's "Search" beside a search box, G167). graphic: a picture that plainly labels it (a magnifier on a search box, an envelope on an email field). not_labeled: nothing visible relates to the field (an empty label, text far away about something else). A placeholder inside the empty field does not count: it disappears when the user types (M3). unsure: anything else. Whether the label is clear or accurate is not asked (5.B).
 
 | Example | Answer |
 | --- | --- |
@@ -88,18 +89,16 @@ J1 is settled by looking (CLAUDE.md principle 8): its labeled answer leads to PA
 | An empty `<label>`, nothing else (TC10.E-1-fail-1) | not_labeled |
 | "The sky is blue" as the label (TC10.E-1-pass-1) | (M2: a visible label; not asked) |
 | A box with only a magnifier icon and a Go button | graphic |
+| A box whose only text is its placeholder "Search" | (M3: FAIL; not asked) |
 
 **Use:** M4–M6.
-
-**OPEN question for Abby:**
-
-- **Q1. A placeholder as the only visible text (M3; TC10.A-all-pass-1's field).** The placeholder is visible when the empty field gets focus (Note 1 is met at that moment) and disappears as soon as the user types. Understanding 3.3.2 is silent; linting tools treat it as a failure; no TT, Baseline or DHS source rules on it. (a) It counts as a visual label: PASS for 5.A, with a note that it disappears on typing (recommended: the PDF's own test, "visible when the form field has focus", is met, and the shortcoming is 5.B's clarity or a best practice); (b) FAIL; (c) NEEDS REVIEW.
 
 ## 5. Edge cases
 
 | Case | Rule |
 | --- | --- |
-| Floating label that moves on focus | Read with focus: visible, M2 |
+| Floating label that moves on focus | Read with focus: visible, M2 (a `<label>` that stays visible after typing, unlike a placeholder) |
+| Placeholder and a visible label | M2 PASS; the placeholder is extra help |
 | Instructions shown only while focused (a tip) | Read with focus: in the image text, J1 |
 | Label hidden with the visually-hidden pattern | Not visible: J1 (Understanding 3.3.2: `aria-label` or hidden text alone fails) |
 | Field in a table, labelled by its column header | J1 (the header is visible text in the image) |
