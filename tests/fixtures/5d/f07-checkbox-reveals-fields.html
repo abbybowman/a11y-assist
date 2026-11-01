@@ -1,0 +1,16 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>F07 Address</title></head><body>
+<h1>Your address</h1>
+<form onsubmit="return false">
+<p><label for="street">Street</label> <input id="street"></p>
+<p><label><input type="checkbox" id="diff"> My mailing address is different</label></p>
+<div id="mail" hidden>
+<p><label for="mstreet">Mailing street</label> <input id="mstreet"></p>
+<p><label for="mcity">Mailing city</label> <input id="mcity"></p>
+</div>
+<p><button type="submit">Continue</button></p>
+</form>
+<script>
+document.getElementById("diff").addEventListener("change", (e) => {
+  document.getElementById("mail").hidden = !e.target.checked;
+});
+</script></body></html>

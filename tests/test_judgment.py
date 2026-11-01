@@ -5,15 +5,16 @@ from __future__ import annotations
 import pytest
 
 from a11y_assist.judgment import ApiJudge, ClientJudge, get_judge
-from a11y_assist.models import JudgmentQuestion, Outcome, TestId
+from a11y_assist.models import OpenQuestion, TestId
 
-Q = JudgmentQuestion(
+Q = OpenQuestion(
     question_id="q1",
-    test_id=TestId.T4D,
+    test_id=TestId.T4C,
+    kind="J1",
+    instance="i1",
     question="?",
     rubric="r",
-    allowed_outcomes=[Outcome.FAIL, Outcome.NEEDS_REVIEW],
-    evidence_paths=["/tmp/x.png"],
+    input={"text": []},
 )
 
 

@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>F11: aria-modal dialog with a Close button</title></head>
+<body>
+<h1>Account home</h1>
+<a id="behind1" href="#">Behind the dialog 1</a>
+<a id="behind2" href="#">Behind the dialog 2</a>
+<div id="dlg" role="dialog" aria-modal="true" aria-labelledby="dlg-title"
+     style="position:fixed;top:20%;left:20%;padding:1em;background:#fff;border:2px solid #000">
+  <h2 id="dlg-title">Session notice</h2>
+  <p>Your session will end in 10 minutes.</p>
+  <p id="more" hidden>Sessions end after 30 minutes without activity.</p>
+  <button id="details" type="button">Details</button>
+  <button id="close" type="button">Close</button>
+</div>
+<script>
+  // Tab on the last element goes to the first; Shift+Tab on the first goes to
+  // the last. Focus never leaves the list by Tab or Shift+Tab.
+  function loop(els) {
+    els.forEach((el, i) => el.addEventListener("keydown", (e) => {
+      if (e.key !== "Tab") return;
+      if (!e.shiftKey && i === els.length - 1) { e.preventDefault(); els[0].focus(); }
+      else if (e.shiftKey && i === 0) { e.preventDefault(); els[els.length - 1].focus(); }
+    }));
+  }
+  const $ = (id) => document.getElementById(id);
+  document.addEventListener("click", (e) => {
+    const a = e.target.closest && e.target.closest('a[href="#"]');
+    if (a) e.preventDefault();
+  });
+  const dlg = $("dlg");
+  $("details").addEventListener("click", () => { $("more").hidden = false; });
+  // Focus that lands outside the open dialog is sent back to its first control.
+  document.addEventListener("focusin", (e) => {
+    if (!dlg.hidden && !dlg.contains(e.target)) $("details").focus();
+  });
+  loop([$("details"), $("close")]);
+  // Close works by click, Enter or Space. Escape is ignored.
+  $("close").addEventListener("click", () => { dlg.hidden = true; $("behind1").focus(); });
+</script>
+</body>
+</html>

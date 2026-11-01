@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>F06: script loop of 3 links</title></head>
+<body>
+<h1>Script loop</h1>
+<a id="before" href="#">Before the loop</a>
+<nav aria-label="Loop">
+  <a id="a1" href="#">Loop link 1</a>
+  <a id="a2" href="#">Loop link 2</a>
+  <a id="a3" href="#">Loop link 3</a>
+</nav>
+
+<a id="after" href="#">After the loop</a>
+<script>
+  // Tab on the last element goes to the first; Shift+Tab on the first goes to
+  // the last. Focus never leaves the list by Tab or Shift+Tab.
+  function loop(els) {
+    els.forEach((el, i) => el.addEventListener("keydown", (e) => {
+      if (e.key !== "Tab") return;
+      if (!e.shiftKey && i === els.length - 1) { e.preventDefault(); els[0].focus(); }
+      else if (e.shiftKey && i === 0) { e.preventDefault(); els[els.length - 1].focus(); }
+    }));
+  }
+  const $ = (id) => document.getElementById(id);
+  document.addEventListener("click", (e) => {
+    const a = e.target.closest && e.target.closest('a[href="#"]');
+    if (a) e.preventDefault();
+  });
+  loop([$("a1"), $("a2"), $("a3")]);
+</script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>F33: loop inside a tabindex=-1 iframe</title></head>
+<body>
+<h1>Hidden frame</h1>
+<a id="before" href="#">Before the frame</a>
+<iframe id="frame" title="Buttons" tabindex="-1" src="f18-frame-loop.html" width="400" height="120"></iframe>
+<a id="after" href="#">After the frame</a>
+<script>
+  document.addEventListener("click", (e) => {
+    const a = e.target.closest && e.target.closest('a[href="#"]');
+    if (a) e.preventDefault();
+  });
+</script>
+</body>
+</html>

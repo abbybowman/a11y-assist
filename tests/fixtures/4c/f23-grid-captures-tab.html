@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>F23: grid that captures Tab after arrowing in</title></head>
+<body>
+<h1>Grid</h1>
+<a id="before" href="#">Before</a>
+<table role="grid" aria-label="Schedule">
+  <tr><td id="c00" tabindex="0">Mon</td><td id="c01" tabindex="-1">Tue</td><td id="c02" tabindex="-1">Wed</td></tr>
+  <tr><td id="c10" tabindex="-1">9am</td><td id="c11" tabindex="-1">10am</td><td id="c12" tabindex="-1">11am</td></tr>
+</table>
+<a id="after" href="#">After</a>
+<script>
+  document.addEventListener("click", (e) => {
+    const a = e.target.closest && e.target.closest('a[href="#"]');
+    if (a) e.preventDefault();
+  });
+  // Arrow keys move between cells. After the first arrow key, Tab and Shift+Tab
+  // also move between cells (wrapping) and never leave the grid.
+  const cells = Array.from(document.querySelectorAll('[role="grid"] td'));
+  const cols = 3;
+  let armed = false;
+  const go = (j) => {
+    cells.forEach((c) => c.setAttribute("tabindex", "-1"));
+    cells[j].setAttribute("tabindex", "0");
+    cells[j].focus();
+  };
+  cells.forEach((cell, i) => cell.addEventListener("keydown", (e) => {
+    const n = cells.length;
+    const step = { ArrowRight: 1, ArrowLeft: -1, ArrowDown: cols, ArrowUp: -cols }[e.key];
+    if (step) { e.preventDefault(); armed = true; go((i + step + n) % n); return; }
+    if (e.key === "Tab" && armed) { e.preventDefault(); go((i + (e.shiftKey ? -1 : 1) + n) % n); }
+  }));
+</script>
+</body>
+</html>

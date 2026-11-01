@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>F16: textarea that captures Tab until Escape</title></head>
+<body>
+<h1>Write a note</h1>
+<button id="before" type="button">Before</button>
+<label for="note">Note</label>
+<textarea id="note" rows="4" cols="40"></textarea>
+<button id="after" type="button">After</button>
+<script>
+  // While the textarea has focus, Tab inserts a tab and Shift+Tab is swallowed.
+  // Escape turns this off until the textarea is focused again.
+  const note = document.getElementById("note");
+  let capture = true;
+  note.addEventListener("focus", () => { capture = true; });
+  note.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") { capture = false; return; }
+    if (e.key === "Tab" && capture) {
+      e.preventDefault();
+      if (!e.shiftKey) note.setRangeText("\t", note.selectionStart, note.selectionEnd, "end");
+    }
+  });
+</script>
+</body>
+</html>

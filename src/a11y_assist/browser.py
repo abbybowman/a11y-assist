@@ -14,12 +14,14 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from typing import Any
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlsplit
 
 from playwright.async_api import Browser, BrowserContext, Page, Playwright, Route
 
 from a11y_assist.config import Settings
+from a11y_assist.egress import EgressProxy
 from a11y_assist.policy import check_url
+from a11y_assist.redact import safe_error, safe_url
 
 REDIRECT_STUB = (
     "<!doctype html><title>a11y-assist redirect hold</title>"
@@ -30,14 +32,35 @@ LogFn = Callable[..., None]
 
 
 class NavigationBlocked(RuntimeError):
-    """A top-level navigation was refused by the allowlist."""
+    """A top-level navigation was refused by the allowlist or the egress
+    proxy's address check."""
 
 
-async def launch_browser(pw: Playwright, settings: Settings) -> Browser:
+class PageUnreachable(RuntimeError):
+    """A top-level navigation's host could not be connected to."""
+
+
+async def launch_browser(
+    pw: Playwright, settings: Settings, proxy: EgressProxy
+) -> Browser:
+    """Chrome whose only way out is `proxy` (egress.py), which checks the
+    address of every connection. There is no unproxied launch."""
+    if not proxy.url:
+        raise RuntimeError("The egress proxy is not running")
     channel = (
         None if settings.browser_channel == "chromium" else settings.browser_channel
     )
-    return await pw.chromium.launch(channel=channel, headless=settings.headless)
+    return await pw.chromium.launch(
+        channel=channel,
+        headless=settings.headless,
+        args=[
+            *settings.browser_args,
+            # No UDP outside the proxy (WebRTC could otherwise reach any address).
+            "--force-webrtc-ip-handling-policy=disable_non_proxied_udp",
+        ],
+        # Playwright adds <-loopback>, so loopback goes through the proxy too.
+        proxy={"server": proxy.url},
+    )
 
 
 async def new_context(
@@ -73,11 +96,22 @@ class NavigationGuard:
     recently registered matching route first.
     """
 
-    def __init__(self, settings: Settings, live: bool, log: LogFn | None = None):
+    def __init__(
+        self,
+        settings: Settings,
+        live: bool,
+        log: LogFn | None = None,
+        egress: EgressProxy | None = None,
+    ):
         self.settings = settings
         self.live = live
+        # The proxy this context's browser uses: a top-level fetch it refused
+        # comes back as an ordinary 403 response, so the guard checks its
+        # refusal list and blocks the navigation instead of serving that page.
+        self.egress = egress
         self._log = log or (lambda *a, **k: None)
         self.blocked: list[dict[str, str]] = []
+        self.unreachable: dict[str, str] = {}
         self.redirects: list[dict[str, Any]] = []
         self._pending_redirect: str | None = None
 
@@ -106,7 +140,25 @@ class NavigationGuard:
         if not self.live:
             return await route.fallback()
 
-        response = await route.fetch(max_redirects=0)
+        seen = len(self.egress.refused) if self.egress is not None else 0
+        try:
+            response = await route.fetch(max_redirects=0)
+        except Exception as exc:
+            # An exception escaping a route handler is printed to stderr with
+            # Playwright's call log (full URL and headers). Log one redacted
+            # line instead and fail the navigation.
+            self._log("navigation_fetch_failed", "error", error=safe_error(exc))
+            return await route.abort("failed")
+        refusal = self._egress_refusal(url, seen)
+        if refusal is not None:
+            reason, policy = refusal
+            if not policy:
+                self.unreachable[url] = reason
+                self._log("navigation_unreachable", "error", url=url, reason=reason)
+                return await route.abort("connectionrefused")
+            self.blocked.append({"url": url, "reason": reason})
+            self._log("navigation_blocked", "blocked", url=url, reason=reason)
+            return await route.abort("blockedbyclient")
         location = response.headers.get("location")
         if 300 <= response.status < 400 and location:
             target = urljoin(url, location)
@@ -120,19 +172,37 @@ class NavigationGuard:
             )
         await route.fulfill(response=response)
 
+    def _egress_refusal(self, url: str, since: int) -> tuple[str, bool] | None:
+        if self.egress is None:
+            return None
+        parts = urlsplit(url)
+        port = parts.port or (443 if parts.scheme == "https" else 80)
+        for r in self.egress.refused[since:]:
+            if r["host"] == parts.hostname and r["port"] == port:
+                return f"{r['host']} {r['reason']}", r["policy"]
+        return None
+
     async def goto(self, page: Page, url: str) -> str:
         """Navigate, following redirects only to allowed URLs. Returns final URL."""
         for _ in range(self.settings.max_redirects + 1):
             if not self._check(url):
                 raise NavigationBlocked(
-                    f"Navigation to {url} blocked: {self.blocked[-1]['reason']}"
+                    f"Navigation to {safe_url(url)} blocked: "
+                    f"{self.blocked[-1]['reason']}"
                 )
             self._pending_redirect = None
             try:
                 await page.goto(url, wait_until="load")
             except Exception:
+                if url in self.unreachable:
+                    raise PageUnreachable(
+                        f"{safe_url(url)}: {self.unreachable[url]}"
+                    ) from None
                 if self.blocked and self.blocked[-1]["url"] == url:
-                    raise NavigationBlocked(f"Navigation to {url} blocked") from None
+                    raise NavigationBlocked(
+                        f"Navigation to {safe_url(url)} blocked: "
+                        f"{self.blocked[-1]['reason']}"
+                    ) from None
                 raise
             if self._pending_redirect is None:
                 return page.url

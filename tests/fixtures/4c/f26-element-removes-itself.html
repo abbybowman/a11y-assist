@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>F26: focused element removes itself</title></head>
+<body>
+<h1>Self-removing element</h1>
+<a id="a1" href="#">Link 1</a>
+<button id="gone" type="button">Dismiss tip</button>
+<a id="a3" href="#">Link 3</a>
+<a id="a4" href="#">Link 4</a>
+<script>
+  document.addEventListener("click", (e) => {
+    const a = e.target.closest && e.target.closest('a[href="#"]');
+    if (a) e.preventDefault();
+  });
+  // The button removes itself shortly after it gets focus; focus falls to BODY.
+  document.getElementById("gone").addEventListener("focus", (e) => {
+    setTimeout(() => e.target.remove(), 50);
+  });
+</script>
+</body>
+</html>

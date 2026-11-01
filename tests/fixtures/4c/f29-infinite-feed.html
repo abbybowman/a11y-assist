@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>F29: infinite feed with a footer</title></head>
+<body>
+<h1>News</h1>
+<div id="feed" role="feed" aria-label="Latest news"></div>
+<footer>
+  <a id="f1" href="#">Privacy</a>
+  <a id="f2" href="#">Contact</a>
+</footer>
+<script>
+  document.addEventListener("click", (e) => {
+    const a = e.target.closest && e.target.closest('a[href="#"]');
+    if (a) e.preventDefault();
+  });
+  // Each fetch asks for a new page, so a frozen replay can answer only the
+  // pages that were recorded. Near the bottom, scrolling loads the next page;
+  // focusing a link scrolls it into view, so Tab keeps the feed growing.
+  const feed = document.getElementById("feed");
+  let page = 0, loading = false;
+  async function more() {
+    if (loading) return;
+    loading = true;
+    try {
+      const r = await fetch("f29-feed-page.html?page=" + (++page));
+      const tpl = document.createElement("template");
+      tpl.innerHTML = (await r.text()).replace(/N/g, String(page));
+      feed.append(...tpl.content.querySelector("#items").children);
+    } catch (e) {
+      feed.dataset.error = String(page);
+    } finally {
+      loading = false;
+    }
+    // Keep loading until the page is taller than the window.
+    if (!feed.dataset.error && document.body.scrollHeight < innerHeight + 300) more();
+  }
+  window.addEventListener("scroll", () => {
+    if (innerHeight + scrollY > document.body.scrollHeight - 300) more();
+  });
+  more();
+</script>
+</body>
+</html>

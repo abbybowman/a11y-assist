@@ -1,0 +1,13 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>F02 State offices</title></head><body>
+<h1>State offices</h1>
+<form onsubmit="return false">
+<p id="hint">Choosing a state takes you to its page.</p>
+<label for="state">State</label>
+<select id="state" aria-describedby="hint"><option value="">Choose</option><option value="al">Alabama</option><option value="ak">Alaska</option><option value="az">Arizona</option></select>
+</form>
+<p><a href="#help">Help</a></p>
+<script>
+document.getElementById("state").addEventListener("change", (e) => {
+  if (e.target.value) location.href = "f01-other.html?state=" + e.target.value;
+});
+</script></body></html>

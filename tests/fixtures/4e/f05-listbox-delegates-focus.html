@@ -1,0 +1,17 @@
+<!doctype html><html lang="en"><head><title>F05 listbox hands focus to its option</title>
+<style>[role=option]:focus{outline:2px solid #005ea2}</style></head><body>
+<h1>Pick a state</h1>
+<a href="#a" id="before">Before</a>
+<div role="listbox" id="states" tabindex="0" aria-label="States">
+  <div role="option" id="o1" tabindex="-1">Alabama</div>
+  <div role="option" id="o2" tabindex="-1" aria-selected="true">Alaska</div>
+</div>
+<a href="#c" id="after">After</a>
+<script>
+  states.addEventListener('focus', (e) => { if (e.target === states) o2.focus(); });
+  for (const o of [o1, o2]) o.addEventListener('blur', (e) => {
+    if (!states.contains(e.relatedTarget)) { states.tabIndex = 0; }
+  });
+  o2.addEventListener('focus', () => { states.tabIndex = -1; });
+</script>
+</body></html>

@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>F15: account number gate</title></head>
+<body>
+<h1>Your account</h1>
+<section id="gate" aria-labelledby="gate-title">
+  <h2 id="gate-title">Enter your account number to continue</h2>
+  <label for="field">Account number</label> <input id="field" type="text">
+  <button id="go" type="button">Continue</button>
+  <p id="error" role="alert"></p>
+</section>
+<div id="results" hidden><p>Account details are listed below.</p></div>
+<a id="r1" href="#">Office directory</a>
+<a id="r2" href="#">Contact us</a>
+<script>
+  // Only the real account holder knows the value.
+  const VALID = (v) => v === "4417-0092-6635";
+  const ERROR = "That account number was not found.";
+  // Tab on the last element goes to the first; Shift+Tab on the first goes to
+  // the last. Focus never leaves the list by Tab or Shift+Tab.
+  function loop(els) {
+    els.forEach((el, i) => el.addEventListener("keydown", (e) => {
+      if (e.key !== "Tab") return;
+      if (!e.shiftKey && i === els.length - 1) { e.preventDefault(); els[0].focus(); }
+      else if (e.shiftKey && i === 0) { e.preventDefault(); els[els.length - 1].focus(); }
+    }));
+  }
+  const $ = (id) => document.getElementById(id);
+  document.addEventListener("click", (e) => {
+    const a = e.target.closest && e.target.closest('a[href="#"]');
+    if (a) e.preventDefault();
+  });
+  // Tab and Shift+Tab stay in the gate until a valid value is submitted.
+  let gated = true;
+  const members = [$("field"), $("go")];
+  members.forEach((el, i) => el.addEventListener("keydown", (e) => {
+    if (!gated || e.key !== "Tab") return;
+    if (!e.shiftKey && i === 1) { e.preventDefault(); members[0].focus(); }
+    else if (e.shiftKey && i === 0) { e.preventDefault(); members[1].focus(); }
+  }));
+  $("go").addEventListener("click", () => {
+    if (VALID($("field").value.trim())) {
+      gated = false; $("results").hidden = false; $("error").textContent = "";
+    } else {
+      $("error").textContent = ERROR;
+    }
+  });
+</script>
+</body>
+</html>

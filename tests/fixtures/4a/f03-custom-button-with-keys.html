@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+<head><title>Save settings</title>
+<style>.btn { display: inline-block; padding: 4px 10px; border: 1px solid #333; cursor: pointer; }</style></head>
+<body>
+<h1>Settings</h1>
+<p><a href="#help">Help</a></p>
+<div class="btn" role="button" tabindex="0" id="save">Save</div>
+<p id="msg"></p>
+<p id="help">Choose your settings, then save.</p>
+<script>
+  const save = document.getElementById('save');
+  const go = () => { document.getElementById('msg').textContent = 'Saved'; };
+  save.addEventListener('click', go);
+  save.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
+</script>
+</body>
+</html>

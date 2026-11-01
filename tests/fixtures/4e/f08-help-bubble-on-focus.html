@@ -1,0 +1,11 @@
+<!doctype html><html lang="en"><head><title>F08 help bubble on focus</title>
+<style>#bubble{position:absolute;margin-left:1em;background:#eef;border:1px solid #336;padding:2px 6px;font-size:90%}</style></head><body>
+<h1>Appointment</h1>
+<a href="#a" id="before">Before</a>
+<label>Date <input id="date"></label><span id="bubble" role="dialog" aria-label="Date help" hidden>Use MM/DD/YYYY</span>
+<a href="#c" id="after">After</a>
+<script>
+  date.addEventListener('focus', () => { bubble.hidden = false; });
+  date.addEventListener('blur', () => { bubble.hidden = true; });
+</script>
+</body></html>

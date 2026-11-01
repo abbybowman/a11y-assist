@@ -1,0 +1,6 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>F09 disclosure adjacent</title></head><body>
+<p><a href="#a">Before</a></p>
+<button id="db" aria-expanded="false" aria-controls="more">More details</button>
+<div id="more" hidden><p><a href="#d1">Detail one</a> <a href="#d2">Detail two</a></p></div>
+<p><a href="#c">After</a></p>
+<script>db.addEventListener('click',()=>{const o=db.getAttribute('aria-expanded')==='true';db.setAttribute('aria-expanded',String(!o));more.hidden=o;});</script></body></html>

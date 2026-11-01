@@ -1,0 +1,14 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>F03 Contact form</title></head><body>
+<h1>Contact us</h1>
+<form id="f" action="f01-other.html" method="get">
+<p><label for="name">Name</label> <input id="name" name="name"></p>
+<p><label for="email">Email</label> <input id="email" name="email" type="email"></p>
+<p><label for="topic">Topic</label> <input id="topic" name="topic"></p>
+<p><button type="submit">Send</button></p>
+</form>
+<script>
+const f = document.getElementById("f");
+document.getElementById("topic").addEventListener("change", () => {
+  if ([...f.querySelectorAll("input")].every((i) => i.value.trim())) f.requestSubmit();
+});
+</script></body></html>

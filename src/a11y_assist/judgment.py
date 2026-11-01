@@ -1,11 +1,11 @@
 """Judgment backends for questions a rule cannot decide on its own.
 
-The rules spec (not written yet) creates JudgmentQuestions. A Judge answers
-them now or defers them:
+The rules spec creates OpenQuestions ("open questions" to users). A Judge
+answers them now or defers them:
 
   ClientJudge  defers every question to the calling agent. Questions go out in
                tool output with a rubric and evidence file paths; answers come
-               back through the submit_judgments tool. Used because Claude Code
+               back through the a11y_answer_questions tool. Used because Claude Code
                does not support MCP sampling.
   ApiJudge     will call NASA's hosted model. Not implemented.
 
@@ -20,30 +20,31 @@ from abc import ABC, abstractmethod
 from pydantic import BaseModel, Field
 
 from a11y_assist.models import (
-    JudgmentAnswer,
-    JudgmentQuestion,
-    RecordedJudgment,
+    Answer,
+    DecidedBy,
+    OpenQuestion,
+    RecordedAnswer,
     Report,
     utcnow,
 )
 
 
 class JudgeResult(BaseModel):
-    answers: list[JudgmentAnswer] = Field(default_factory=list)
-    pending: list[JudgmentQuestion] = Field(default_factory=list)
+    answers: list[Answer] = Field(default_factory=list)
+    pending: list[OpenQuestion] = Field(default_factory=list)
 
 
 class Judge(ABC):
     name: str
 
     @abstractmethod
-    async def judge(self, questions: list[JudgmentQuestion]) -> JudgeResult: ...
+    async def judge(self, questions: list[OpenQuestion]) -> JudgeResult: ...
 
 
 class ClientJudge(Judge):
     name = "client"
 
-    async def judge(self, questions: list[JudgmentQuestion]) -> JudgeResult:
+    async def judge(self, questions: list[OpenQuestion]) -> JudgeResult:
         return JudgeResult(pending=list(questions))
 
 
@@ -54,7 +55,7 @@ class ApiJudge(Judge):
         self.endpoint = endpoint
         self.model = model
 
-    async def judge(self, questions: list[JudgmentQuestion]) -> JudgeResult:
+    async def judge(self, questions: list[OpenQuestion]) -> JudgeResult:
         raise NotImplementedError(
             "ApiJudge is a stub; it will be wired to NASA's hosted model later."
         )
@@ -69,31 +70,41 @@ def get_judge(backend: str) -> Judge:
 
 
 def record_answers(
-    report: Report, answers: list[JudgmentAnswer]
+    report: Report, answers: list[Answer]
 ) -> tuple[list[str], list[str]]:
-    """Move answered questions from report.pending_questions to report.judgments.
-
-    Returns (accepted question ids, error messages). An answer is rejected if
-    its question is not pending or its outcome is not allowed for it.
-    """
-    pending = {q.question_id: q for q in report.pending_questions}
+    """Record answers to questions asked in this run. One answer closes a
+    question; a later answer replaces it (a person's answer beats a model's).
+    Returns (accepted question ids, error messages)."""
+    asked = {q.question_id: q for q in report.questions or report.open_questions}
     accepted, errors = [], []
     for answer in answers:
-        question = pending.get(answer.question_id)
-        if question is None:
-            errors.append(f"{answer.question_id}: no pending question with this id")
-            continue
-        if answer.outcome not in question.allowed_outcomes:
-            allowed = ", ".join(o.value for o in question.allowed_outcomes)
-            errors.append(
-                f"{answer.question_id}: outcome {answer.outcome.value} not allowed "
-                f"(allowed: {allowed})"
+        q = asked.get(answer.question_id)
+        tag = answer.question_id
+        if q is None:
+            errors.append(f"{tag}: no question with this id in this run")
+        elif (
+            (q.kind == "J1") != (answer.j1 is not None)
+            or (q.kind == "J2") != (answer.j2 is not None)
+            or (q.kind == "choice") != (answer.choice is not None)
+        ):
+            field = {"J1": "j1", "J2": "j2", "choice": "choice"}[q.kind]
+            errors.append(f"{tag}: a {q.kind} question needs a `{field}` answer")
+        elif q.kind == "choice" and answer.choice.choice not in q.choices:
+            errors.append(f"{tag}: choice must be one of {', '.join(q.choices)}")
+        else:
+            report.answers.append(
+                RecordedAnswer(question=q, answer=answer, recorded_at=utcnow())
             )
-            continue
-        report.judgments.append(
-            RecordedJudgment(question=question, answer=answer, recorded_at=utcnow())
-        )
-        del pending[answer.question_id]
-        accepted.append(answer.question_id)
-    report.pending_questions = list(pending.values())
+            accepted.append(tag)
+    done = {r.answer.question_id for r in report.answers}
+    report.open_questions = [
+        q for q in report.open_questions if q.question_id not in done
+    ]
     return accepted, errors
+
+
+def current_answer(report: Report, question_id: str) -> Answer | None:
+    """The answer in force: the latest from a person, else the latest."""
+    got = [r.answer for r in report.answers if r.answer.question_id == question_id]
+    human = [a for a in got if a.decided_by is DecidedBy.HUMAN]
+    return (human or got or [None])[-1]

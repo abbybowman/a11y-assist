@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head><title>Benefits</title></head>
+<body>
+<h1>Benefits</h1>
+<div role="tablist" aria-label="Benefit types">
+  <button role="tab" id="t1" aria-selected="true" aria-controls="p1">Health</button>
+  <button role="tab" id="t2" aria-selected="false" aria-controls="p2" tabindex="-1">Housing</button>
+  <button role="tab" id="t3" aria-selected="false" aria-controls="p3" tabindex="-1">Food</button>
+</div>
+<div role="tabpanel" id="p1" aria-labelledby="t1"><p>Health benefits.</p></div>
+<div role="tabpanel" id="p2" aria-labelledby="t2" hidden><p>Housing benefits.</p></div>
+<div role="tabpanel" id="p3" aria-labelledby="t3" hidden><p>Food benefits.</p></div>
+<p><a href="#contact">Contact us</a></p>
+<p id="contact">Call 555-0100.</p>
+<script>
+  const tabs = Array.from(document.querySelectorAll('[role=tab]'));
+  const select = (t) => {
+    for (const x of tabs) {
+      const on = x === t;
+      x.setAttribute('aria-selected', on); x.tabIndex = on ? 0 : -1;
+      document.getElementById(x.getAttribute('aria-controls')).hidden = !on;
+    }
+    t.focus();
+  };
+  for (const t of tabs) {
+    t.addEventListener('click', () => select(t));
+    t.addEventListener('keydown', (e) => {
+      const i = tabs.indexOf(t);
+      if (e.key === 'ArrowRight') { e.preventDefault(); select(tabs[(i + 1) % tabs.length]); }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); select(tabs[(i + tabs.length - 1) % tabs.length]); }
+    });
+  }
+</script>
+</body>
+</html>

@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "fastmcp>=2.0.0",
+    "pillow>=13.0.0",
     "playwright==1.63.0",
     "pydantic>=2.0.0",
     "pydantic-settings>=2.0.0",
@@ -29,6 +30,7 @@ packages = ["src/a11y_assist"]
 dev = [
     "pytest>=8.0.0",
     "pytest-asyncio>=0.23.0",
+    "pytest-xdist>=3.8.0",
     "ruff>=0.6.0",
 ]
 
@@ -46,3 +48,22 @@ select = ["E", "F", "I"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
+# F34 (600 links) with the time limit off takes minutes: run it with -m slow.
+markers = ["slow: long-running fixture, excluded by default"]
+# Tests run in parallel (pytest-xdist): one worker per CPU. Each test has its
+# own run folder, servers and browser; ACT scores are written per worker.
+# -n 8 on 4 CPUs measured 3m51s vs 5m32s at -n 4 and 20m17s serial; more
+# workers than CPUs risks timing noise in the settle rule. -n0 for one test.
+addopts = "-m 'not slow' -n auto"
+
+[tool.ruff.lint.per-file-ignores]
+# Embedded JavaScript strings are kept readable rather than wrapped.
+"src/a11y_assist/traverse.py" = ["E501"]
+# Spec row tables and question wording stay on one line each.
+"src/a11y_assist/checks/t4c.py" = ["E501"]
+"src/a11y_assist/checks/t5d.py" = ["E501"]
+"src/a11y_assist/checks/t4e.py" = ["E501"]
+"src/a11y_assist/checks/t4d.py" = ["E501"]
+"src/a11y_assist/checks/t4f.py" = ["E501"]
+"src/a11y_assist/checks/t4a.py" = ["E501"]
+"src/a11y_assist/checks/t4b.py" = ["E501"]
