@@ -116,10 +116,9 @@ class Stop(BaseModel):
     widget: str | None = Field(
         default=None, description="Composite widget (menubar, grid...) holding it."
     )
-    field: str | None = Field(default=None, description='"text", "select", "checkbox".')
     control: str | None = Field(
         default=None,
-        description='Form control kind 5.D completes: "text", "select", "listbox", '
+        description='Form control kind (4.C J2, 5.D): "text", "select", "listbox", '
         '"checkbox", "switch", "radio", "combobox", "slider", "spinbutton".',
     )
     readonly: bool = False

@@ -307,8 +307,7 @@ async def test_own_screenshots_are_not_page_mutations(browser, settings):
 
 
 async def test_form_controls_on_stops_and_in_the_inventory(browser, settings):
-    """5.D's fields (its spec, Terms): control kind, read-only, radio group;
-    4.C's `field` keeps its three kinds."""
+    """Form control kinds (4.C's J2, 5.D's fields), read-only, radio group."""
     p = await _pass(browser, settings, _fixture("5d/controls.html"))
     by_id = {
         s.stop.css_path.rsplit("#", 1)[-1]: s.stop
@@ -330,7 +329,6 @@ async def test_form_controls_on_stops_and_in_the_inventory(browser, settings):
     }
     assert by_id["code"].readonly and not by_id["name"].readonly
     assert by_id["s1"].group and by_id["s1"].group.endswith(":size")
-    assert by_id["dark"].field is None and by_id["news"].field == "checkbox"
     # name, email, size (one group), news, state, notes, vol, dark; not the
     # read-only or disabled fields, not the button.
     assert p.form_fields == 8

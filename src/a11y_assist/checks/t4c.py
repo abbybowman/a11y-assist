@@ -258,7 +258,7 @@ class Collector:
                     # Any form control (5.D's kinds, 1.8.0): "input or
                     # interaction" (p. 21 HtT 2.b note 2), not only text,
                     # select and checkbox.
-                    "field": s.stop.control or s.stop.field,
+                    "field": s.stop.control,
                 }
         inst = Inst(
             id=f"i{len(self.state.instances) + 1}",
