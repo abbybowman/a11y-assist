@@ -151,6 +151,7 @@ docs/rules/     rules specs (one per TT test), <id>-build-tasks.md checklists,
                 _template.md (start new specs from it)
 docs/plans/     plans, newest first by date
 docs/hackathon/ GSA hackathon evaluation document and deck (drafts)
+docs/research/  research notes (e.g. the TT scanner coverage map); not authorities
 docs/solutions/ lessons that save the next test time
 docs/sources/   TT 5.1.3 PDF (the authority), SHA-256 in its README;
                 tt-5.1.3/ its Markdown + tt.json copy (made once; see README)

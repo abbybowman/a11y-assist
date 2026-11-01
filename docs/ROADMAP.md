@@ -12,7 +12,9 @@ false PASS ([evals/README.md](../evals/README.md)). The time budget is
 done: all of 4.A–4.F fit one 120 s call on realistic multi-section pages
 (97 s and 83 s), pages too large to walk are refused early with a
 `no_time_limit` option ([plans/2026-11-01-time-budget.md](plans/2026-11-01-time-budget.md)).
-Next: choose the next TT test group.
+Next: 5.D On input and 9.A Bypass ([plans/2026-11-01-5d-9a.md](plans/2026-11-01-5d-9a.md)),
+chosen from the coverage map ([research/2026-10-31-tt-coverage-map.md](research/2026-10-31-tt-coverage-map.md)):
+no scanner covers them, and both reuse the walk, replays and 4.A's observer.
 
 Per-test leftovers live in each `docs/rules/<id>-build-tasks.md` (mostly
 browser checks on Windows headed Chrome, which this Linux container cannot
@@ -72,7 +74,8 @@ run).
   `tests/fixtures/baseline/sync_baseline.py` when its TT test is built, and
   load it in Chrome first (TC01.A-2's behaviour is broken there).
 
-- **Scanners** (axe-core, HTML_CodeSniffer) vendored with hashes and run on
+- **Scanners** (axe-core, HTML_CodeSniffer; which tests they cover:
+  [research/2026-10-31-tt-coverage-map.md](research/2026-10-31-tt-coverage-map.md)) vendored with hashes and run on
   their own fresh load after the walk ([solutions/scanners-after-the-walk.md](solutions/scanners-after-the-walk.md)).
   Licenses: axe-core MPL 2.0 (unmodified files, keep notice), HTML_CodeSniffer
   BSD 3-Clause (keep notice); NASA release review before open sourcing.
@@ -88,8 +91,9 @@ run).
 - **OpenACR export**, as a draft labelled agent-assisted; NEEDS_REVIEW maps
   to "not evaluated". TT tests map to WCAG criteria through `tt.json`
   (Appendix A); 4.A and 4.B share 2.1.1.
-- **Multi-page tests** (9.B, 9.C), then the visual-versus-code cluster (10.x,
-  14.x, 15.A, 18.A).
+- **Multi-page tests** (9.B, 9.C; 9.A's Q1 may add the input for other pages
+  of the site first), then the visual-versus-code cluster (10.x, 14.x, 15.A,
+  18.A; ANDI is the core evidence for most of it, so the ANDI spike first).
 - **Firefox as an optional browser.** TT 5.1.3 validates Chrome and Firefox
   (Test Environment). Results are reported for the browser the report
   records and never claimed for others (e.g. Chrome 130+ tabs to scroll

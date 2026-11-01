@@ -29,6 +29,7 @@ GSA MCP and AI Agent Hackathon
 - Testing is the weakest part of federal Section 508 programs: 2.00 of 5 (GSA, FY 2025)
 - Becoming a certified Trusted Tester takes about 70 hours of training plus a multi-hour exam (ONRR); DHS lowered the pass mark from 90% to 85% in 2024 to make it more attainable
 - Scanners miss many barriers, and every keyboard trap: axe-core has no rule for keyboard traps, focus visibility, focus changes or focus order
+- Of 60 active Trusted Tester test conditions, scanners reliably cover 3 and partly cover 21; 36 get no coverage (our map, axe-core 4.14 and pa11y 10)
 
 **Notes:**
 
