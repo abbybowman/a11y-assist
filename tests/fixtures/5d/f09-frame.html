@@ -1,0 +1,8 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Language</title></head><body>
+<form id="lf" action="f01-other.html" method="get">
+<label for="lang">Language</label>
+<select id="lang" name="lang"><option value="">Choose</option><option value="en">English</option><option value="es">Español</option></select>
+</form>
+<script>
+document.getElementById("lang").addEventListener("change", () => document.getElementById("lf").submit());
+</script></body></html>

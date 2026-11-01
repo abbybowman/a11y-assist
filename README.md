@@ -11,26 +11,45 @@ test ID. The package name is provisional.
 
 ## Status
 
-**Scaffold only.** It collects evidence and has the data model and plumbing.
-It does **not** decide pass/fail yet. Outcome logic will come only from a
-separate rules spec, which is not written yet.
+**TT Test 4 (4.A–4.F, keyboard and focus) is implemented; the other TT
+tests are not.** Outcome logic comes only from
+the rules specs in [docs/rules/](docs/rules/), one file per TT test
+(`<id>-<short-name>.md`), checked against the TT 5.1.3 PDF in
+[docs/sources/](docs/sources/).
+
+For contributors: start with `CLAUDE.md` (principles and layout), then
+`docs/ROADMAP.md` (what is next) and `docs/solutions/` (lessons). To add a TT
+test, follow the steps at the top of `src/a11y_assist/checks/base.py`.
 
 What works today:
 
 | Area | State |
 | --- | --- |
-| `collect_keyboard_evidence(url)` | Tab and Shift+Tab walks with a record per focus stop (selector, tag, role, accessible name, tabindex, bounding box, iframe path, page focus, screenshot) |
-| HAR record + replay | Page is recorded once, both walks run against the replay |
+| `a11y_run_tt_tests(url, tests=["4.C"])` | Runs the selected TT tests (4.A–4.F) and returns a typed result: findings with plain-language summaries, open questions (with the page text once), evidence as `run://` resources, and the full report for the user to save. One shared keyboard walk (Tab, Shift+Tab) per page feeds every keyboard check; 4.C adds its exit probes. A record per key press (stop identity, role and name from Chrome's accessibility tree, frames, shadow roots, focus events); screenshots at traps. Progress notifications while it runs; at most `RUN_LIMIT_S` (120 s) per call |
+| Tool errors | A URL outside the allowlist, a redirect out of it, a page that cannot load, or an unknown or expired run id is a tool error (isError) with no findings |
+| TT 5.1.3 as data | The whole PDF as Markdown plus `tt.json` (all 63 conditions with requirements and WCAG links), checked word for word against the PDF. Served as `tt://5.1.3/index`, `tt://5.1.3/tests/{id}` and `tt://5.1.3/parts/{part}`; every finding links its test (`reference`) and Understanding pages. See `docs/sources/README.md` |
+| `explain(about?, run_id?)` prompt | A command that explains Trusted Tester tests in plain language, before a run (what a test checks, what this tool does for it) or after (what was found, how to fix it). `about` takes a test ID, WCAG criterion, test name or words. Built on `explain.py`, which failure reports will reuse |
+| `run://{run_id}/{path}` resources | `report.json`, `evidence/*.json` and screenshots of a run, while it is kept (`RUN_TTL_HOURS`, default 24). Durable results belong in the user's repository |
+| HAR record + replay | Page is recorded once (scrolled to load lazy content); every pass and probe runs against the replay |
 | Navigation allowlist | `.gov` and `.mil` by default, enforced on every top-level navigation and redirect hop; `file://` only in dev mode |
+| Connection address checks | Chrome's only way out is a local proxy (`egress.py`) that resolves each host once, refuses it if any answer is a private, loopback, link-local, multicast, reserved or cloud-metadata address (IPv4-mapped and other alternate forms included) or the port is not 80/443, and connects to the address it checked, so DNS rebinding cannot get past it. Covers the page, iframes, subresources, WebSockets and every redirect hop. A refused page is a tool error; refused page parts are listed in the result's `errors` |
 | ANDI 29.2.2 | Vendored, injectable from local files, never loaded from ssa.gov. Not used by any test yet |
-| Findings for TT 4.A–4.F | Always `NOT_TESTED` (no rules spec) |
-| `submit_judgments` | Records answers from the calling agent; does not set outcomes |
+| Findings for any active TT test | 4.A to 4.F (all of TT Test 4's keyboard and focus tests): PASS, FAIL, DOES NOT APPLY or NEEDS REVIEW per its spec, with the spec rows that produced it. Every other active TT 5.1.3 test: `NEEDS_REVIEW` with the note "This test could not be performed" (no spec yet). Never `NOT_TESTED`: the PDF allows it only where a test names it (p. 6) |
+| `a11y_answer_questions(run_id, answers)` | Records one answer per question (the calling agent's, or a person's override, which wins); presses documented keys in the recorded page and re-applies the spec. Suggested input values go to a person to try. Answers are facts, never outcomes |
 | ApiJudge | Stub (`NotImplementedError`) |
+
+Planned: `read_report` (read an agency's existing ACR or SCRT report and
+recommend fixes and re-tests) and a `compare_to` option on `a11y_run_tt_tests` that
+takes a saved report (verify a fix). Guidance goes in resources or a prompt.
+Tools are broad and outcome-based, not one per test step.
 
 Known limits:
 
-- Role and accessible name come from Playwright's ARIA snapshot, not from
-  Chrome's accessibility tree or ANDI.
+- 4.C: help pages linked from the page are not followed for J1 (only text on
+  the page, including text revealed by Enter in a trap). Content behind
+  collapsed controls (menus, accordions) is not opened; the finding says how
+  many. A run stops at `RUN_LIMIT_S` (default 120 s); tests not finished are
+  NEEDS_REVIEW with the reason.
 - HAR replay freezes network responses, not client-side randomness or time.
 - A page Content-Security-Policy that forbids inline scripts will block ANDI
   injection. No CSP bypass is enabled.
@@ -39,9 +58,8 @@ Known limits:
 
 ## TT tests in scope
 
-Test names come from
-[section508coordinators.github.io/TrustedTester/keyboard.html](https://section508coordinators.github.io/TrustedTester/keyboard.html).
-They have not yet been checked against the official TT 5.1.3 PDF.
+TT 5.1.3 Test 4 has six tests, 4.A to 4.F. Names are checked against the TT
+5.1.3 PDF, pp. 19–23.
 
 | ID | TT test name | WCAG SC |
 | --- | --- | --- |
@@ -51,8 +69,6 @@ They have not yet been checked against the official TT 5.1.3 PDF.
 | 4.D | 2.4.7-focus-visible | 2.4.7 |
 | 4.E | 3.2.1-on-focus | 3.2.1 |
 | 4.F | 2.4.3-focus-order-meaning | 2.4.3 |
-
-TT 5 also defines 4.G and 4.H (focus order reveal/return), not yet in scope.
 
 ## Setup (Windows, Git Bash)
 
@@ -91,7 +107,62 @@ Add to `.mcp.json` in your project (use the absolute path to this repo):
 }
 ```
 
-Then ask, for example: "Collect keyboard evidence for https://www.section508.gov/".
+Then ask, for example: "Run TT test 4.C on https://www.section508.gov/".
+
+## Examples
+
+Three ways to call `a11y_run_tt_tests`, the main tool. Your agent makes these
+calls when you ask in plain words; they are shown as tool name and arguments.
+`tests/test_readme.py` checks every example below against the tool's schema,
+and runs example 3 end to end.
+
+**1. Every implemented test on a page.** Ask: "Check
+https://www.section508.gov/ for keyboard and focus problems."
+
+<!-- example -->
+```json
+{"tool": "a11y_run_tt_tests", "arguments": {"url": "https://www.section508.gov/"}}
+```
+
+`tests` defaults to every implemented test (4.A–4.F). The result has one
+finding per test (PASS, FAIL, DOES NOT APPLY or NEEDS REVIEW, with a
+plain-language summary), any open questions, and `report_uri`, the full
+report to save in your repository.
+
+**2. Chosen tests only.** Ask: "Is there a keyboard trap on
+https://www.section508.gov/, and is focus visible?"
+
+<!-- example -->
+```json
+{"tool": "a11y_run_tt_tests", "arguments": {"url": "https://www.section508.gov/", "tests": ["4.C", "4.D"]}}
+```
+
+Any active TT 5.1.3 test ID is accepted; one with no rules yet comes back
+NEEDS REVIEW with the note "This test could not be performed".
+
+**3. A local page, then an open question.** With `DEV_MODE=true`, `file://`
+pages can be tested (use your clone's absolute path). This fixture has three
+links that pass focus among themselves forever:
+
+<!-- example -->
+```json
+{"tool": "a11y_run_tt_tests", "arguments": {"url": "file:///ABSOLUTE/PATH/a11y-assist/tests/fixtures/4c/f06-script-loop.html", "tests": ["4.C"]}}
+```
+
+4.C comes back NEEDS REVIEW with one open question (`4.C-i1-J1`): does the
+page tell users a key that gets out of the loop? The agent reads the page
+text it was given and answers:
+
+<!-- example -->
+```json
+{"tool": "a11y_answer_questions", "arguments": {"run_id": "<run_id from the result>", "answers": [{"question_id": "4.C-i1-J1", "decided_by": "model", "rationale": "The page text names no key that moves focus out of the three looping links.", "j1": {"documented": "no"}}]}}
+```
+
+4.C is now FAIL: "Keyboard focus gets trapped on this page. Keyboard focus
+kept cycling between "Loop link 1" (link), "Loop link 2" (link), "Loop link
+3" (link), and none of the usual keys … move it out." A person can override
+the answer with `"decided_by": "human"`; if they name a key, the server
+presses it in the recorded page to check it.
 
 ## Output
 
@@ -99,20 +170,25 @@ Each run writes `runs/<timestamp>-<id>/`:
 
 ```
 evidence/page.har.zip       recorded page
-evidence/forward/NNN.png    screenshot after each Tab
-evidence/backward/NNN.png   screenshot after each Shift+Tab
-evidence/keyboard.json      all focus stops
-steps.jsonl                 step log
-report.json                 findings, pending questions, versions, disclaimer
+evidence/walk.json          the shared Tab / Shift+Tab walk
+evidence/4c.json …          each check's evidence (one file per TT test)
+evidence/shots/*.png        screenshots where a check needs them
+steps.jsonl                 step log (URLs without query strings, no page text)
+report.json                 findings, open questions, answers, versions, disclaimer
 ```
 
 `runs/` is git-ignored. Evidence holds page content; treat it as untrusted.
 
 ## Configuration
 
-See `.env.example` and `src/a11y_assist/config.py`. Main settings:
-`ALLOWED_DOMAINS`, `DEV_MODE`, `BROWSER_CHANNEL`, `HEADLESS`,
-`MAX_TAB_PRESSES`, `RULES_SPEC_VERSION`, `JUDGE_BACKEND`, `JUDGING_MODEL`.
+See `.env.example` and `src/a11y_assist/config.py`. Settings come from the
+environment or from `.env` in this repository's root, whatever directory the
+client starts the server in. Main settings:
+`ALLOWED_DOMAINS`, `DEV_MODE`, `EGRESS_PORTS`, `DEV_ALLOWED_ADDRESSES` (dev
+mode only: addresses the connection check lets through, e.g.
+`["127.0.0.1/32"]` for a local test server), `BROWSER_CHANNEL`, `HEADLESS`,
+`JUDGE_BACKEND`, `JUDGING_MODEL`. Rules spec versions are
+read from each spec's front matter (`spec_version`) and recorded in every report.
 
 ## Contributing
 

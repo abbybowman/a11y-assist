@@ -1,0 +1,5 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>F14 menubar without indicator</title><style>[role=menuitem]{outline:none;padding:4px 10px;display:inline-block}</style></head><body>
+<p><a href="#a">Before</a></p>
+<div role="menubar" aria-label="Main"><span role="menuitem" tabindex="0">Home</span><span role="menuitem" tabindex="-1">News</span><span role="menuitem" tabindex="-1">Jobs</span><span role="menuitem" tabindex="-1">Contact</span></div>
+<p><a href="#c">After</a></p>
+<script>const it=[...document.querySelectorAll('[role=menuitem]')];it.forEach((m,i)=>m.addEventListener('keydown',e=>{let j=i;if(e.key==='ArrowRight')j=(i+1)%it.length;else if(e.key==='ArrowLeft')j=(i-1+it.length)%it.length;else return;e.preventDefault();m.tabIndex=-1;it[j].tabIndex=0;it[j].focus();}));</script></body></html>

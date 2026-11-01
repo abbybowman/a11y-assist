@@ -1,0 +1,13 @@
+<!doctype html><html lang="en"><head><title>F06 menu and tooltip on focus</title>
+<style>#tip{position:absolute;background:#ffc;border:1px solid #333;padding:2px}</style></head><body>
+<h1>Services</h1>
+<nav><button id="menu" aria-expanded="false" aria-controls="items">Services</button>
+<ul id="items" hidden><li><a href="#s1">Passports</a></li><li><a href="#s2">Visas</a></li></ul></nav>
+<label>ZIP <input id="zip" aria-describedby="tip"></label><span id="tip" hidden>Five digits</span>
+<a href="#c" id="after">After</a>
+<script>
+  menu.addEventListener('focus', () => { items.hidden = false; menu.setAttribute('aria-expanded', 'true'); });
+  zip.addEventListener('focus', () => { tip.hidden = false; });
+  zip.addEventListener('blur', () => { tip.hidden = true; });
+</script>
+</body></html>

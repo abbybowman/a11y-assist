@@ -1,0 +1,6 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>F14 backward order differs</title></head><body>
+<p><a href="#1" id="l1">One</a> <a href="#2" id="l2">Two</a> <a href="#3" id="l3">Three</a> <a href="#4" id="l4">Four</a></p>
+<script>
+const L=[...document.querySelectorAll('a')];
+document.addEventListener('keydown',e=>{if(e.key==='Tab'&&e.shiftKey){const i=L.indexOf(document.activeElement);if(i===3){e.preventDefault();L[1].focus();}else if(i===1){e.preventDefault();L[2].focus();}else if(i===2){e.preventDefault();L[0].focus();}}});
+</script></body></html>

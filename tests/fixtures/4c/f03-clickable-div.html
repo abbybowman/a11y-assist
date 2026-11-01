@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>F03: clickable div only</title></head>
+<body>
+<h1>Show details</h1>
+<div id="toggle" style="cursor:pointer;text-decoration:underline">Show details</div>
+<p id="details" hidden>Details shown by mouse only.</p>
+<script>
+  document.getElementById("toggle").addEventListener("click", () => {
+    document.getElementById("details").hidden = false;
+  });
+</script>
+</body>
+</html>

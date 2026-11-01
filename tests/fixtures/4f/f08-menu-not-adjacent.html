@@ -1,0 +1,5 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>F08 menu not adjacent</title></head><body>
+<nav><button id="mb" aria-expanded="false" aria-controls="menu">Services</button> <a href="#about">About</a> <a href="#jobs">Jobs</a></nav>
+<main><p><a href="#m1">Main link</a></p></main>
+<ul id="menu" hidden><li><a href="#p">Passports</a></li><li><a href="#v">Visas</a></li></ul>
+<script>mb.addEventListener('click',()=>{const o=mb.getAttribute('aria-expanded')==='true';mb.setAttribute('aria-expanded',String(!o));menu.hidden=o;});</script></body></html>

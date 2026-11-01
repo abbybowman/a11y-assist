@@ -19,8 +19,10 @@ import pytest
 import pytest_asyncio
 from playwright.async_api import async_playwright
 
+from a11y_assist import egress
 from a11y_assist.browser import launch_browser
 from a11y_assist.config import Settings
+from a11y_assist.egress import EgressProxy
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -33,15 +35,40 @@ def settings(tmp_path: Path) -> Settings:
         dev_mode=True,
         browser_channel=os.getenv("TEST_BROWSER_CHANNEL", "chromium"),
         headless=os.getenv("TEST_HEADED") != "1",
-        max_tab_presses=25,
+        browser_args=[
+            "--disable-features=LocalNetworkAccessChecks",
+            # Tests never use the network: the vendored Baseline page loads
+            # jQuery from cdnjs (which its own wrong SRI hash blocks anyway).
+            "--host-resolver-rules=MAP cdnjs.cloudflare.com ~NOTFOUND",
+        ],
         runs_dir=tmp_path / "runs",
+        # The fixture servers listen on 127.0.0.1 only (any port). 127.0.0.2
+        # stays refused: tests use it as a sentinel for leaks.
+        dev_allowed_addresses=["127.0.0.1/32"],
     )
+
+
+async def offline_resolver(host: str, port: int) -> list[str]:
+    """Tests never use the network: only IP literals and localhost resolve."""
+    import ipaddress
+
+    if host == "localhost":
+        return ["127.0.0.1"]
+    try:
+        return [str(ipaddress.ip_address(host))]
+    except ValueError:
+        raise OSError(f"offline: {host} not resolved") from None
+
+
+@pytest.fixture(autouse=True)
+def _offline_dns(monkeypatch):
+    monkeypatch.setattr(egress, "RESOLVER", offline_resolver)
 
 
 @pytest_asyncio.fixture
 async def browser(settings: Settings):
-    async with async_playwright() as pw:
-        b = await launch_browser(pw, settings)
+    async with EgressProxy(settings) as proxy, async_playwright() as pw:
+        b = await launch_browser(pw, settings, proxy)
         yield b
         await b.close()
 
@@ -87,8 +114,9 @@ class _Handler(http.server.BaseHTTPRequestHandler):
                 ".then(j=>{xhr.textContent=j.n})</script>"
             )
             return self._send(200, body.encode())
-        fixture = FIXTURES / self.path.lstrip("/")
-        if self.path.endswith(".html") and fixture.is_file():
+        path = self.path.split("?")[0]  # fixtures may add a query (F29 paging)
+        fixture = FIXTURES / path.lstrip("/")
+        if path.endswith(".html") and fixture.is_file():
             return self._send(200, fixture.read_bytes())
         self._send(404, b"not found")
 
@@ -116,3 +144,63 @@ def server():
 
 def noop_log(*args, **kwargs) -> None:
     pass
+
+
+ACT_ROOT = FIXTURES / "act"
+
+
+class _ActHandler(http.server.SimpleHTTPRequestHandler):
+    """Serves tests/fixtures/act as the web root (ACT pages use /WAI/... paths)."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, directory=str(ACT_ROOT), **kwargs)
+
+    def log_message(self, *args) -> None:
+        pass
+
+
+@pytest.fixture(scope="session")
+def act_server():
+    httpd = http.server.ThreadingHTTPServer(("127.0.0.1", 0), _ActHandler)
+    threading.Thread(target=httpd.serve_forever, daemon=True).start()
+    yield f"http://127.0.0.1:{httpd.server_address[1]}"
+    httpd.shutdown()
+    httpd.server_close()
+
+
+BASELINE_ROOT = FIXTURES / "baseline"
+
+
+class _BaselineHandler(http.server.SimpleHTTPRequestHandler):
+    """Serves tests/fixtures/baseline (Section 508 Baseline Alignment pages)."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, directory=str(BASELINE_ROOT), **kwargs)
+
+    def log_message(self, *args) -> None:
+        pass
+
+
+@pytest.fixture(scope="session")
+def baseline_server():
+    httpd = http.server.ThreadingHTTPServer(("127.0.0.1", 0), _BaselineHandler)
+    threading.Thread(target=httpd.serve_forever, daemon=True).start()
+    yield f"http://127.0.0.1:{httpd.server_address[1]}"
+    httpd.shutdown()
+    httpd.server_close()
+
+
+def pytest_sessionstart(session):
+    # Only the controller clears the scores (pytest-xdist workers have a
+    # workerinput); a worker clearing them would delete the others' results.
+    if not hasattr(session.config, "workerinput"):
+        from .scoring import clear_scores
+
+        clear_scores()
+
+
+def pytest_terminal_summary(terminalreporter):
+    from .scoring import report_lines
+
+    for line in report_lines():
+        terminalreporter.write_line(line)

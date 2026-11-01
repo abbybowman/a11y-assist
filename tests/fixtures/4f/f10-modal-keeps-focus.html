@@ -1,0 +1,9 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>F10 modal keeps focus</title></head><body>
+<p><a href="#a">Before</a> <button id="open" aria-haspopup="dialog">Sign in</button> <a href="#c">After</a></p>
+<div id="dlg" role="dialog" aria-modal="true" aria-label="Sign in" hidden><label>User <input id="u"></label> <button id="ok">OK</button> <button id="cancel">Cancel</button></div>
+<script>
+const dlg=document.getElementById('dlg'),first=document.getElementById('u'),last=document.getElementById('cancel');
+document.getElementById('open').addEventListener('click',()=>{dlg.hidden=false;first.focus();});
+dlg.addEventListener('keydown',e=>{if(e.key==='Escape'){dlg.hidden=true;document.getElementById('open').focus();}
+ if(e.key==='Tab'){if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}}});
+</script></body></html>

@@ -1,0 +1,119 @@
+{
+ "source": "https://baselinealignment.section508.gov",
+ "license": "U.S. Government work",
+ "cases": [
+  {
+   "id": "TC01.A-1-fail-1",
+   "summary": "https://baselinealignment.section508.gov/testcases/TC01.A-1-fail-1.html",
+   "path": "testfiles/TF01/01.A-1-fail-1.html",
+   "baseline_expected": "FAIL",
+   "expected": {
+    "4.A": "FAIL",
+    "4.B": "PASS"
+   },
+   "differs": ""
+  },
+  {
+   "id": "TC01.A-2-fail-1",
+   "summary": "https://baselinealignment.section508.gov/testcases/TC01.A-2-fail-1.html",
+   "path": "testfiles/TF01/01.A-2-fail-1.html",
+   "baseline_expected": "FAIL",
+   "expected": {
+    "4.A": "PASS",
+    "4.B": "NEEDS_REVIEW"
+   },
+   "differs": "4.B: the page's integrity hash for jQuery is wrong, so Chrome blocks the script and holding Space does nothing; the documented timing cannot be confirmed (verified against the cdnjs file, 2026-10-31)."
+  },
+  {
+   "id": "TC01.B-ic-dna-1",
+   "summary": "https://baselinealignment.section508.gov/testcases/TC01.B-ic-dna-1.html",
+   "path": "testfiles/TF01/01.B-ic-dna-1.html",
+   "baseline_expected": "DNA",
+   "expected": {
+    "4.A": "DNA",
+    "4.B": "DNA",
+    "4.C": "DNA",
+    "4.D": "DNA",
+    "4.E": "DNA",
+    "4.F": "DNA"
+   },
+   "differs": ""
+  },
+  {
+   "id": "TC02.A-ic-dna-1",
+   "summary": "https://baselinealignment.section508.gov/testcases/TC02.A-ic-dna-1.html",
+   "path": "testfiles/TF02/02.A-ic-dna-1.html",
+   "baseline_expected": "DNA",
+   "expected": {
+    "4.A": "DNA",
+    "4.B": "DNA",
+    "4.C": "DNA",
+    "4.D": "DNA",
+    "4.E": "DNA",
+    "4.F": "DNA"
+   },
+   "differs": ""
+  },
+  {
+   "id": "TC10.C-3-fail-1",
+   "summary": "https://baselinealignment.section508.gov/testcases/TC10.C-3-fail-1.html",
+   "path": "testfiles/TF10/10.C-3-fail-1.html",
+   "baseline_expected": "FAIL",
+   "expected": {
+    "5.D": "FAIL"
+   },
+   "differs": ""
+  },
+  {
+   "id": "TC10.C-3-fail-2",
+   "summary": "https://baselinealignment.section508.gov/testcases/TC10.C-3-fail-2.html",
+   "path": "testfiles/TF10/10.C-3-fail-2.html",
+   "baseline_expected": "FAIL",
+   "expected": {
+    "5.D": "FAIL"
+   },
+   "differs": ""
+  },
+  {
+   "id": "TC10.C-3-fail-3",
+   "summary": "https://baselinealignment.section508.gov/testcases/TC10.C-3-fail-3.html",
+   "path": "testfiles/TF10/10.C-3-fail-3.html",
+   "baseline_expected": "FAIL",
+   "expected": {
+    "5.D": "FAIL"
+   },
+   "differs": ""
+  },
+  {
+   "id": "TC10.C-all-pass",
+   "summary": "https://baselinealignment.section508.gov/testcases/TC10.C-all-pass.html",
+   "path": "testfiles/TF10/10.C-all-pass-1.html",
+   "baseline_expected": "PASS",
+   "expected": {
+    "5.D": "PASS"
+   },
+   "differs": ""
+  },
+  {
+   "id": "TC10.C-ic-dna-1",
+   "summary": "https://baselinealignment.section508.gov/testcases/TC10.C-ic-dna-1.html",
+   "path": "testfiles/TF10/10.C-ic-dna-1.html",
+   "baseline_expected": "DNA",
+   "expected": {
+    "5.D": "DNA"
+   },
+   "differs": ""
+  }
+ ],
+ "files": {
+  "testfiles/TF01/01.A-1-fail-1.html": "a6c46bee0329ef78a36cb47290ede5e001f3934b247720397a1e4d6a96bfd720",
+  "testfiles/TF01/01.A-2-fail-1.html": "acc04aa06f6c50a33a0540ec08ae764e59986dfb492cf185986fa0efd3b8cd8d",
+  "testfiles/TF01/01.B-ic-dna-1.html": "f03520f0a893d8f80c5af5c98dc4d225a077824b0ad4493b34b98e3f46a521b9",
+  "testfiles/TF02/02.A-ic-dna-1.html": "caddadfee863c10a658de92d0c114272a6fe83cb3ee0ee4cc84c02decb794cb4",
+  "testfiles/TF10/10.C-3-fail-1.html": "ede99e5b0f3dc41a2dd71767822a13257acc996f1af8fae5724bc0e443699b1d",
+  "testfiles/TF10/10.C-3-fail-2.html": "fc7a54ac1eed98a3626705aff3727002a28f5a6faf5eb135522b07d2db867c12",
+  "testfiles/TF10/10.C-3-fail-3.html": "2043c9bf8793c954fa8a2a5f6eab600cf6237e3461a04d38cd50841841e03b62",
+  "testfiles/TF10/10.C-all-pass-1.html": "f68e032e25f4abb32a4f6610acc692484dab2d2c5cd3a6b42110935b732e8036",
+  "testfiles/TF10/10.C-ic-dna-1.html": "18c391426fd623bfc32bc37bd979df3cf4d8723f98bc322a93d8bb7a7b2c583e"
+ }
+}

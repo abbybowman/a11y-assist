@@ -1,0 +1,11 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>F10 Office finder</title></head><body>
+<h1>Find an office</h1>
+<form id="f" action="f01-other.html" method="get">
+<label for="zip">ZIP code</label>
+<input id="zip" name="zip" required pattern="[0-9]{5}" title="5 digits">
+<p><button type="submit">Find</button></p>
+</form>
+<script>
+const zip = document.getElementById("zip");
+zip.addEventListener("change", () => { if (zip.checkValidity()) document.getElementById("f").requestSubmit(); });
+</script></body></html>

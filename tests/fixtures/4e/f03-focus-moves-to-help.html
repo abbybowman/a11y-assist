@@ -1,0 +1,11 @@
+<!doctype html><html lang="en"><head><title>F03 focus moves to help</title></head><body>
+<h1>Apply</h1>
+<a href="#a" id="before">Before</a>
+<label>Date of birth <input id="dob"></label>
+<div id="help" hidden><p>Use the format MM/DD/YYYY.</p><button id="closehelp">Close help</button></div>
+<a href="#c" id="after">After</a>
+<script>
+  document.getElementById("dob").addEventListener("focus", () => { help.hidden = false; document.getElementById("closehelp").focus(); });
+  document.getElementById("closehelp").addEventListener("click", () => { help.hidden = true; });
+</script>
+</body></html>

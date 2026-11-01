@@ -20,14 +20,17 @@ def _versions() -> Versions:
         browser=None,
         os="test",
         python="3",
-        rules_spec="none",
+        rules_spec={"4.C": "1.0.0"},
         judging_model="none",
     )
 
 
-def test_test_ids_cover_4a_to_4f_with_names() -> None:
-    assert [t.value for t in TestId] == ["4.A", "4.B", "4.C", "4.D", "4.E", "4.F"]
+def test_test_ids_are_the_active_tt_conditions_with_names() -> None:
+    ids = [t.value for t in TestId]
+    assert len(ids) == 61 and ids[:2] == ["1.A", "1.B"] and ids[-1] == "20.A"
+    assert "5.E" not in ids and "6.B" not in ids  # obsolete and removed
     assert TestId.T4C.tt_name == "2.1.2-no-keyboard-trap"
+    assert TestId.T4D.wcag_sc == "2.4.7 Focus Visible"
 
 
 def test_finding_defaults_to_needs_review() -> None:

@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>F17: editor that captures Tab and Escape</title></head>
+<body>
+<h1>Code editor</h1>
+<button id="before" type="button">Before</button>
+<div id="editor" contenteditable="true" role="textbox" aria-multiline="true"
+     aria-label="Code" style="border:1px solid #000;min-height:4em">x = 1</div>
+<button id="after" type="button">After</button>
+<script>
+  // Tab and Shift+Tab indent and outdent; Escape is swallowed. No documented exit.
+  const editor = document.getElementById("editor");
+  editor.addEventListener("keydown", (e) => {
+    if (e.key === "Tab" || e.key === "Escape") e.preventDefault();
+  });
+</script>
+</body>
+</html>

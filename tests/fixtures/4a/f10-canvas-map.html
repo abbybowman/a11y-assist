@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="en">
+<head><title>Office map</title></head>
+<body>
+<h1>Find an office</h1>
+<canvas id="map" width="400" height="200" style="border: 1px solid #333"></canvas>
+<p><a href="#list">List of offices</a></p>
+<p id="list">Main office, 1 Federal Plaza.</p>
+<script>
+  const c = document.getElementById('map').getContext('2d');
+  c.fillStyle = '#9cf'; c.fillRect(0, 0, 400, 200);
+</script>
+</body>
+</html>

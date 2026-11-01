@@ -11,9 +11,12 @@ from a11y_assist import __version__
 from a11y_assist.andi import provenance
 from a11y_assist.config import Settings
 from a11y_assist.models import Versions
+from a11y_assist.rules import spec_versions
 
 
-def collect_versions(settings: Settings, browser: Browser | None) -> Versions:
+def collect_versions(
+    settings: Settings, browser: Browser | None, no_time_limit: bool = False
+) -> Versions:
     prov = provenance(settings.third_party_dir)
     return Versions(
         a11y_assist=__version__,
@@ -24,6 +27,13 @@ def collect_versions(settings: Settings, browser: Browser | None) -> Versions:
         browser=browser.version if browser else None,
         os=platform.platform(),
         python=platform.python_version(),
-        rules_spec=settings.rules_spec_version,
+        rules_spec=spec_versions(settings.rules_dir),
         judging_model=settings.judging_model,
+        run_settings={
+            "settle_quiet_ms": settings.settle_quiet_ms,
+            "record_scroll_passes": settings.record_scroll_passes,
+            "run_limit_s": settings.run_limit_s,
+            # The caller turned the run limit off for this run (a11y_run_tt_tests).
+            "no_time_limit": no_time_limit,
+        },
     )

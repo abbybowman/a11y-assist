@@ -1,0 +1,30 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>F14 Preferences</title></head><body>
+<form id="f">
+<label>Name <input id="name"></label>
+<label>Email <input id="email" type="email"></label>
+<label>Code <input id="code" readonly value="X1"></label>
+<label>Off <input id="off" disabled></label>
+<fieldset><legend>Size</legend><label><input type="radio" name="size" id="s1"> S</label><label><input type="radio" name="size" id="s2"> M</label></fieldset>
+<label><input type="checkbox" id="news"> News</label>
+<label>State <select id="state"><option>A</option><option>B</option></select></label>
+<label>Notes <textarea id="notes"></textarea></label>
+<label>Start date <input type="date" id="start"></label>
+<div role="slider" id="vol" tabindex="0" aria-valuenow="5" aria-valuemin="0" aria-valuemax="10" aria-label="Volume"></div>
+<div role="switch" id="dark" tabindex="0" aria-checked="false" aria-label="Dark mode"></div>
+<button type="submit">Send</button>
+</form>
+<script>
+const vol = document.getElementById("vol"), dark = document.getElementById("dark");
+vol.addEventListener("keydown", (e) => {
+  const d = { ArrowRight: 1, ArrowUp: 1, ArrowLeft: -1, ArrowDown: -1 }[e.key];
+  if (!d) return;
+  e.preventDefault();
+  vol.setAttribute("aria-valuenow", String(Math.max(0, Math.min(10, Number(vol.getAttribute("aria-valuenow")) + d))));
+});
+dark.addEventListener("keydown", (e) => {
+  if (e.key !== " " && e.key !== "Enter") return;
+  e.preventDefault();
+  dark.setAttribute("aria-checked", String(dark.getAttribute("aria-checked") !== "true"));
+});
+</script>
+</body></html>

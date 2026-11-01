@@ -47,3 +47,29 @@ def test_routes_register_without_error():
     from a11y_assist.routes import register_routes
 
     register_routes(FastMCP("test"))  # must not raise
+
+
+def test_instructions_have_a_tool_selection_guide():
+    """Every tool, the explain prompt and both resource schemes are named, and
+    the implemented-test list follows the check registry."""
+    import asyncio
+
+    from fastmcp import Client
+
+    from a11y_assist.checks import REGISTRY
+
+    async def names():
+        async with Client(mcp) as client:
+            tools = {t.name for t in await client.list_tools()}
+            prompts = {p.name for p in await client.list_prompts()}
+        return tools, prompts
+
+    tools, prompts = asyncio.run(names())
+    text = mcp.instructions
+    assert "TOOL SELECTION GUIDE" in text
+    for name in tools | prompts:
+        assert name in text, name
+    assert "tt://5.1.3/tests/" in text and "run://" in text
+    for t in REGISTRY:
+        assert t.value in text
+    assert "NOT certified" in text

@@ -1,0 +1,17 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>F12 Grants</title></head><body>
+<h1>Grants</h1>
+<p>Minimum award (thousands of dollars)</p>
+<div id="min" role="slider" tabindex="0" aria-label="Minimum award" aria-valuemin="0" aria-valuemax="100"
+  aria-valuenow="10" style="width:200px;height:20px;border:1px solid #333"></div>
+<p><a href="#list">Grant list</a></p>
+<script>
+const s = document.getElementById("min");
+s.addEventListener("keydown", (e) => {
+  const d = { ArrowRight: 10, ArrowUp: 10, ArrowLeft: -10, ArrowDown: -10 }[e.key];
+  if (!d) return;
+  e.preventDefault();
+  const v = Math.max(0, Math.min(100, Number(s.getAttribute("aria-valuenow")) + d));
+  s.setAttribute("aria-valuenow", String(v));
+  location.href = "f01-other.html?min=" + v;
+});
+</script></body></html>
