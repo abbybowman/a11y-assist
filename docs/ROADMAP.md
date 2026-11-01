@@ -17,7 +17,7 @@ run).
 
 ## Soon
 
-- **Time budget across Test 4.** One `run_tt_tests` call must finish in
+- **Time budget across Test 4.** One `a11y_run_tt_tests` call must finish in
   `RUN_LIMIT_S` (120 s), and every implemented test now runs by default.
   Measured so far: a 100-link page takes 53 s for the walk plus 4.D. Measure
   all of 4.A–4.F together on that page (4.A adds hover, click and execute
@@ -70,7 +70,7 @@ run).
   (4.F's note: use keyboard order, not ANDI's).
 - **`read_report`**: read an agency's existing ACR or SCRT report (passed in
   by the client) and recommend fixes and re-tests, reusing `explain.py`.
-- **`compare_to` on `run_tt_tests`** (verify a fix) taking a saved report, not
+- **`compare_to` on `a11y_run_tt_tests`** (verify a fix) taking a saved report, not
   a server-side run ID (runs expire after `RUN_TTL_HOURS`).
 - **OpenACR export**, as a draft labelled agent-assisted; NEEDS_REVIEW maps
   to "not evaluated". TT tests map to WCAG criteria through `tt.json`

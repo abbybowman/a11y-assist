@@ -5,7 +5,7 @@ answers them now or defers them:
 
   ClientJudge  defers every question to the calling agent. Questions go out in
                tool output with a rubric and evidence file paths; answers come
-               back through the answer_questions tool. Used because Claude Code
+               back through the a11y_answer_questions tool. Used because Claude Code
                does not support MCP sampling.
   ApiJudge     will call NASA's hosted model. Not implemented.
 

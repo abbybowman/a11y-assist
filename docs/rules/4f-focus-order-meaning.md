@@ -1,7 +1,7 @@
 ---
 tt_test: 4.F
 tt_name: 2.4.3-focus-order-meaning
-spec_version: 1.1.0
+spec_version: 1.1.1
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -74,7 +74,7 @@ The tool gives each page one 4.F outcome: PASS, FAIL, DOES NOT APPLY or NEEDS RE
 | M8 | J1 = does not matter | DOES NOT APPLY | p. 23 Note 2 |
 | M9 | J1 = unsure, or not answered yet | NEEDS REVIEW | Spec rule |
 
-**Who decides.** Whether an order makes sense is a call a careful tester makes by looking, and most cases are clear (two independent columns, navigation after main content). The calling agent decides them, and only answers *unsure* that go to a person (M9). Every decision is explained in the finding, and a person's answer overrides the agent's (`answer_questions` with decided_by "human"). This is the exception CLAUDE.md principle 8 allows for spec-designated look-and-decide questions.
+**Who decides.** Whether an order makes sense is a call a careful tester makes by looking, and most cases are clear (two independent columns, navigation after main content). The calling agent decides them, and only answers *unsure* that go to a person (M9). Every decision is explained in the finding, and a person's answer overrides the agent's (`a11y_answer_questions` with decided_by "human"; tool renamed in 1.1.1). This is the exception CLAUDE.md principle 8 allows for spec-designated look-and-decide questions.
 
 **3b. Page outcome (first match wins)**
 

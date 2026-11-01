@@ -38,13 +38,15 @@ async def _call(name: str, args: dict) -> dict:
 async def test_tools_are_listed():
     async with Client(mcp) as client:
         names = {t.name for t in await client.list_tools()}
-    assert {"run_tt_tests", "answer_questions"} <= names
+    assert {"a11y_run_tt_tests", "a11y_answer_questions"} <= names
+    # Old names are gone (renamed with the service prefix, 2026-11-01).
+    assert not {"run_tt_tests", "answer_questions"} & names
     assert not {"collect_keyboard_evidence", "submit_judgments"} & names
 
 
 async def test_run_tt_tests_on_http_page(settings, server):
     out = await _call(
-        "run_tt_tests", {"url": f"{server.base}/no_trap.html", "tests": ["4.C"]}
+        "a11y_run_tt_tests", {"url": f"{server.base}/no_trap.html", "tests": ["4.C"]}
     )
     assert out["errors"] == []
     assert "NOT a certified" in out["disclaimer"]
@@ -86,7 +88,7 @@ async def test_run_tt_tests_on_http_page(settings, server):
 
 async def test_collect_on_file_fixture_in_dev_mode(settings):
     url = (FIXTURES / "4c/f04-field-swallows-tab.html").as_uri()
-    out = await _call("run_tt_tests", {"url": url})
+    out = await _call("a11y_run_tt_tests", {"url": url})
     assert out["errors"] == []
     # The field swallows Tab: P1 ends as soon as it is stuck for 3 presses.
     assert out["walk"]["P1"]["end"] == "stuck"
@@ -97,7 +99,7 @@ async def test_collect_on_file_fixture_in_dev_mode(settings):
 
 async def test_selected_tests_are_deduplicated_and_ordered(settings):
     url = (FIXTURES / "no_trap.html").as_uri()
-    out = await _call("run_tt_tests", {"url": url, "tests": ["4.E", "4.A", "4.E"]})
+    out = await _call("a11y_run_tt_tests", {"url": url, "tests": ["4.E", "4.A", "4.E"]})
     assert out["errors"] == []
     assert out["tests"] == ["4.A", "4.E"]
     assert [f["test_id"] for f in out["findings"]] == ["4.A", "4.E"]
@@ -105,7 +107,9 @@ async def test_selected_tests_are_deduplicated_and_ordered(settings):
 
 async def test_no_test_is_reported_not_tested(settings):
     url = (FIXTURES / "no_trap.html").as_uri()
-    out = await _call("run_tt_tests", {"url": url, "tests": [t.value for t in TestId]})
+    out = await _call(
+        "a11y_run_tt_tests", {"url": url, "tests": [t.value for t in TestId]}
+    )
     assert out["errors"] == []
     by_id = {f["test_id"]: f for f in out["findings"]}
     assert set(by_id) == {t.value for t in TestId}
@@ -131,7 +135,7 @@ async def test_no_test_is_reported_not_tested(settings):
 async def test_invalid_test_selection_is_rejected_by_schema(settings, tests):
     async with Client(mcp) as client:
         result = await client.call_tool(
-            "run_tt_tests",
+            "a11y_run_tt_tests",
             {"url": "https://x.gov", "tests": tests},
             raise_on_error=False,
         )
@@ -147,7 +151,7 @@ async def _call_error(name: str, args: dict) -> str:
 
 async def test_disallowed_url_is_a_tool_error_without_browsing(settings, server):
     msg = await _call_error(
-        "run_tt_tests", {"url": f"http://localhost:{server.port}/dyn"}
+        "a11y_run_tt_tests", {"url": f"http://localhost:{server.port}/dyn"}
     )
     assert "not allowed" in msg
     assert server.hits[("localhost", "/dyn")] == 0
@@ -155,7 +159,7 @@ async def test_disallowed_url_is_a_tool_error_without_browsing(settings, server)
 
 
 async def test_redirect_out_of_allowlist_is_a_tool_error(settings, server):
-    msg = await _call_error("run_tt_tests", {"url": f"{server.base}/redir-bad"})
+    msg = await _call_error("a11y_run_tt_tests", {"url": f"{server.base}/redir-bad"})
     assert "blocked" in msg.lower()
     assert server.hits[("localhost", "/landed")] == 0
     assert not any(settings.runs_dir.iterdir())  # nothing kept for an untested page
@@ -192,7 +196,7 @@ async def test_answer_questions_records_and_rejects_invalid(settings):
     run_id, report_path = _seed_run_with_question(settings)
     j1 = {"documented": "no"}
     out = await _call(
-        "answer_questions",
+        "a11y_answer_questions",
         {
             "run_id": run_id,
             "answers": [
@@ -208,7 +212,7 @@ async def test_answer_questions_records_and_rejects_invalid(settings):
     # A person's answer overrides the model's.
     yes = {"documented": "yes", "keys": ["Escape"], "quote": "Press Esc"}
     out = await _call(
-        "answer_questions",
+        "a11y_answer_questions",
         {
             "run_id": run_id,
             "answers": [
@@ -237,7 +241,7 @@ _ANSWER = {
 async def test_answer_questions_rejects_path_like_run_id_by_schema(settings):
     async with Client(mcp) as client:
         result = await client.call_tool(
-            "answer_questions",
+            "a11y_answer_questions",
             {"run_id": "../etc", "answers": [_ANSWER]},
             raise_on_error=False,
         )
@@ -246,13 +250,13 @@ async def test_answer_questions_rejects_path_like_run_id_by_schema(settings):
 
 async def test_answer_questions_unknown_run_id_is_a_tool_error(settings):
     msg = await _call_error(
-        "answer_questions", {"run_id": "missing-run", "answers": [_ANSWER]}
+        "a11y_answer_questions", {"run_id": "missing-run", "answers": [_ANSWER]}
     )
     assert "No run named" in msg
 
 
 async def test_evidence_is_readable_as_resources_and_confined(settings, server):
-    out = await _call("run_tt_tests", {"url": f"{server.base}/no_trap.html"})
+    out = await _call("a11y_run_tt_tests", {"url": f"{server.base}/no_trap.html"})
     async with Client(mcp) as client:
         [content] = await client.read_resource(f"run://{out['run_id']}/report.json")
         assert json.loads(content.text)["run_id"] == out["run_id"]
@@ -270,13 +274,13 @@ async def test_old_runs_expire(settings, server):
 
     from a11y_assist.runlog import prune_runs
 
-    out = await _call("run_tt_tests", {"url": f"{server.base}/no_trap.html"})
+    out = await _call("a11y_run_tt_tests", {"url": f"{server.base}/no_trap.html"})
     run_dir = settings.runs_dir / out["run_id"]
     old = time.time() - 25 * 3600
     os.utime(run_dir / "report.json", (old, old))
     assert prune_runs(settings.runs_dir, 24) == 1 and not run_dir.exists()
     msg = await _call_error(
-        "answer_questions", {"run_id": out["run_id"], "answers": [_ANSWER]}
+        "a11y_answer_questions", {"run_id": out["run_id"], "answers": [_ANSWER]}
     )
     assert "may have expired" in msg and "/" not in msg.split("(")[0]
 
@@ -324,7 +328,7 @@ async def test_explain_finds_tests_by_words_criterion_or_name(settings):
 
 async def test_explain_after_a_run(settings, server):
     out = await _call(
-        "run_tt_tests", {"url": f"{server.base}/no_trap.html", "tests": ["4.C"]}
+        "a11y_run_tt_tests", {"url": f"{server.base}/no_trap.html", "tests": ["4.C"]}
     )
     [f] = out["findings"]
     assert f["reference"] == "tt://5.1.3/tests/4.C"
@@ -344,13 +348,13 @@ async def test_tool_descriptions_follow_the_registry():
 
     async with Client(mcp) as client:
         tools = {t.name: t for t in await client.list_tools()}
-    run = tools["run_tt_tests"]
+    run = tools["a11y_run_tt_tests"]
     built = [t.value for t in TestId if t in REGISTRY]
     assert run.inputSchema["properties"]["tests"]["default"] == built
     for t in REGISTRY:
         assert f"{t.value} ({t.tt_name})" in run.description
     assert "subagent" in run.description and "certified" in run.description
-    answer = tools["answer_questions"].inputSchema
+    answer = tools["a11y_answer_questions"].inputSchema
     assert "duration_ms" in str(answer)
 
 
@@ -358,7 +362,7 @@ async def test_open_questions_are_named_in_the_summary(settings, server):
     # While a question is open the summary says so, instead of "a person needs
     # to check it" (the agent answers it next). Wording only.
     url = f"{server.base}/4a/f01-click-only-text.html"
-    out = await _call("run_tt_tests", {"url": url, "tests": ["4.A"]})
+    out = await _call("a11y_run_tt_tests", {"url": url, "tests": ["4.A"]})
     [f] = out["findings"]
     assert f["outcome"] == "NEEDS_REVIEW"
     assert f["summary"].startswith("This test is not finished yet: 1 question about")
@@ -370,7 +374,7 @@ async def test_shared_evidence_is_sent_once(settings, server):
     # Judge eval 2026-10-31: every 4.A question repeated the whole stop list.
     # It now goes once per result, and questions name it.
     url = f"{server.base}/4a/f04-hover-only-menu.html"
-    out = await _call("run_tt_tests", {"url": url, "tests": ["4.A"]})
+    out = await _call("a11y_run_tt_tests", {"url": url, "tests": ["4.A"]})
     assert len(out["open_questions"]) == 2
     for q in out["open_questions"]:
         assert q["shared"] == ["stops"] and "stops" not in q["input"]

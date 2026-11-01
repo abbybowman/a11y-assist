@@ -446,7 +446,7 @@ class RunResult(BaseModel):
     findings: list[FindingView]
     open_questions: list[OpenQuestion] = Field(
         default_factory=list,
-        description="Answer these yourself with answer_questions, by each rubric.",
+        description="Answer these yourself with a11y_answer_questions, by each rubric.",
     )
     page_text: list[dict[str, str]] = Field(
         default_factory=list,

@@ -24,7 +24,7 @@ def _examples() -> list[dict]:
 
 async def test_examples_match_the_tool_schemas():
     examples = _examples()
-    runs = [e for e in examples if e["tool"] == "run_tt_tests"]
+    runs = [e for e in examples if e["tool"] == "a11y_run_tt_tests"]
     assert len(runs) >= 3
     async with Client(mcp) as client:
         schemas = {t.name: t.inputSchema for t in await client.list_tools()}
@@ -46,18 +46,20 @@ async def test_example_3_runs_as_described(settings, monkeypatch):
     run, answer = [
         e
         for e in _examples()
-        if "f06" in json.dumps(e) or e["tool"] == "answer_questions"
+        if "f06" in json.dumps(e) or e["tool"] == "a11y_answer_questions"
     ]
     fixture = REPO_ROOT / "tests/fixtures/4c/f06-script-loop.html"
     args = dict(run["arguments"], url=fixture.as_uri())
     assert run["arguments"]["url"].endswith("/tests/fixtures/4c/f06-script-loop.html")
     async with Client(mcp) as client:
-        out = json.loads((await client.call_tool("run_tt_tests", args)).content[0].text)
+        out = json.loads(
+            (await client.call_tool("a11y_run_tt_tests", args)).content[0].text
+        )
         [finding] = out["findings"]
         assert finding["outcome"] == "NEEDS_REVIEW"
         assert [q["question_id"] for q in out["open_questions"]] == ["4.C-i1-J1"]
         a_args = dict(answer["arguments"], run_id=out["run_id"])
-        res = await client.call_tool("answer_questions", a_args)
+        res = await client.call_tool("a11y_answer_questions", a_args)
         done = json.loads(res.content[0].text)
     assert done["accepted"] == ["4.C-i1-J1"] and done["open_questions"] == []
     [finding] = done["findings"]

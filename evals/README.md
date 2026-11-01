@@ -15,7 +15,7 @@ uv run python evals/judge_eval.py apply /tmp/eval     # follow-ups -> round2; sc
 
 **Isolation.** Each packet holds only the tool's own output: questions,
 rubrics, inputs, page text, shared inputs, the evidence files they point to (copied from
-`run://`), and the `answer_questions` description. Local URLs are mapped to
+`run://`), and the `a11y_answer_questions` description. Local URLs are mapped to
 `https://example.gov/site/pageN.html` and folders are shuffled `qNN` IDs,
 because fixture names describe the expected answer ("key-in-comment-only").
 The answer key (`/tmp/eval/state.json`) is outside the packet tree. Agents

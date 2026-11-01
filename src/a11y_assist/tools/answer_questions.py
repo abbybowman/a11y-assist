@@ -16,10 +16,10 @@ from a11y_assist.redact import safe_error
 
 
 def register(mcp: FastMCP) -> None:
-    """Register the answer_questions tool with the MCP server."""
+    """Register the a11y_answer_questions tool with the MCP server."""
 
     @mcp.tool(
-        name="answer_questions",
+        name="a11y_answer_questions",
         annotations={
             "title": "Answer open questions",
             "readOnlyHint": False,  # updates report.json
@@ -61,7 +61,7 @@ def register(mcp: FastMCP) -> None:
             ),
         ],
     ) -> AnswerResult:
-        """Answer open questions from a run_tt_tests run, then re-evaluate.
+        """Answer open questions from an a11y_run_tt_tests run, then re-evaluate.
 
         Inspect each question's evidence, apply its rubric and answer it
         yourself (or through one subagent for all of them, keeping only the answer
