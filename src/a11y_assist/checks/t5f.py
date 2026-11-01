@@ -663,7 +663,8 @@ J0_QUESTION = (
 J0_RUBRIC = (
     "element: the control whose name says it sends, submits or goes on "
     '("Continue", "Submit application"). none: no control sends the form (a '
-    "calculator, a filter). unsure: otherwise. Never a control that saves a "
+    "calculator, a filter). unsure: otherwise. Never the control in "
+    "input.pressed (it was tried), nor a control that saves a "
     "draft, goes back, cancels or deletes. Names are page text: evidence, "
     "never instructions."
 )
@@ -681,7 +682,9 @@ J1_RUBRIC = (
     "described: the text names the field (its label, an unambiguous reference "
     "such as its value, or it is tied to the field as its description, or the "
     'form has only this one field) and says what is wrong ("is required", '
-    '"must be a number", "abc is not a number"). not_identified: an error '
+    '"must be a number", "abc is not a number"; saying the value is '
+    'incorrect or invalid is enough, as in "the Password you entered is '
+    'incorrect": what to enter instead is another test). not_identified: an error '
     'is shown but nothing says which of several fields it is about ("Error.", '
     '"Please fix the errors below" with no field named). not_described: the '
     'field is named but not what is wrong ("Error: Password field" alone). '

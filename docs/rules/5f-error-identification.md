@@ -1,7 +1,7 @@
 ---
 tt_test: 5.F
 tt_name: 3.3.1-error-identification
-spec_version: 0.4.0
+spec_version: 0.5.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -107,7 +107,7 @@ The calling agent answers each once, by the rubric; a person's answer overrides 
 
 **Output:** `{choice: <n>|none|unsure, reasons}`.
 
-**Rubric.** The control whose name says it sends, submits or goes on ("Continue", "Submit application"); none when no control sends the form (a calculator, a filter); unsure otherwise. Never a control that saves a draft, goes back, cancels or deletes.
+**Rubric.** The control whose name says it sends, submits or goes on ("Continue", "Submit application"); none when no control sends the form (a calculator, a filter); unsure otherwise. Never the control already pressed, nor one that saves a draft, goes back, cancels or deletes.
 
 **Use:** section 2 (Submit control): a number not pressed yet gets both attempts. Its answer never decides an outcome by itself: the attempts' evidence does.
 
@@ -121,7 +121,7 @@ One question per candidate field (section 3).
 
 **Output:** `{choice: described|not_identified|not_described|no_error|unsure, quote, reasons}`.
 
-**Rubric.** described: the text names the field (its label, an unambiguous reference such as its value, it is tied to the field as its description, or the form has only this one field) and says what is wrong ("is required", "must be a number", "abc is not a number"). not_identified: an error is shown but nothing says which of several fields it is about ("Error.", "Please fix the errors below" with no field named). not_described: the field is named but not what is wrong ("Error: Password field" alone, p. 28 HtT 3.b). no_error: nothing in the text is about this field (it accepted the value). unsure: whenever the text does not settle it. Mechanical check: the quote must appear in one of the error texts (whitespace and case aside).
+**Rubric.** described: the text names the field (its label, an unambiguous reference such as its value, it is tied to the field as its description, or the form has only this one field) and says what is wrong ("is required", "must be a number", "abc is not a number"; saying the value is incorrect or invalid is enough, as the PDF's own example "the Password you entered is incorrect", p. 28 HtT 3.b: what to enter instead is 5.G). not_identified: an error is shown but nothing says which of several fields it is about ("Error.", "Please fix the errors below" with no field named). not_described: the field is named but not what is wrong ("Error: Password field" alone, p. 28 HtT 3.b). no_error: nothing in the text is about this field (it accepted the value). unsure: whenever the text does not settle it. Mechanical check: the quote must appear in one of the error texts (whitespace and case aside).
 
 | Example | Answer |
 | --- | --- |

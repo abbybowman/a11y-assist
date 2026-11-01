@@ -21,6 +21,32 @@ because fixture names describe the expected answer ("key-in-comment-only").
 The answer key (`/tmp/eval/state.json`) is outside the packet tree. Agents
 are told to open nothing else and to list every file they opened.
 
+## Run 5, 2026-11-01: 5.F and 5.G (draft specs), their packets only
+
+`prepare /tmp/eval 5.F,5.G` (the new optional test list). 28 of 5.F's and
+5.G's 36 cases ask questions (11 custom pages and the 7 TC10.D Baseline
+cases, each for both tests). Leak grep (local hosts, fixture names, case
+IDs): no match.
+
+**First agent** (Sonnet, about 87,000 tokens, 74 s): 25/26 scored match,
+no false PASS. The miss, 5.F f10 ("Date of birth: invalid entry."): the
+agent answered not_described (FAIL), but the PDF's own example of a
+description is "the Password you entered is incorrect" (p. 28 HtT 3.b).
+J1's rubric now says that saying the value is incorrect or invalid is
+enough (what to enter instead is 5.G); J0's rubric now excludes the
+control already pressed (the agent asked). 5.F spec 0.5.0.
+
+**Second agent** on the rebuilt packets (about 95,000 tokens, 77 s, then 8 s
+for the two round-2 packets after J0's rerun): 28/28 match, no false PASS
+(5.F: 4 FAIL, 9 PASS, 1 DNA; 5.G: 3 FAIL, 9 PASS, 1 DNA, plus the f11
+pair after J0 picked "Send my question"). It opened only packet files; it
+wrote one scratch file outside the packets (`/tmp/dump.txt`, removed),
+as an agent did in run 1. Borderline calls it listed: instruction-style
+messages ("Enter your full name", "City: enter the city ...") judged
+described (G83: a text description identifying the field not completed);
+"Error: not a number." on an empty number field judged described (5.F) and
+guides (5.G).
+
 ## Run 4, 2026-11-01: 5.D On input (draft spec 0.5.0), its packets only
 
 `judge_eval.py` now includes 5.D's custom fixtures and Baseline cases, and
