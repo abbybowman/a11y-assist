@@ -21,6 +21,18 @@ because fixture names describe the expected answer ("key-in-comment-only").
 The answer key (`/tmp/eval/state.json`) is outside the packet tree. Agents
 are told to open nothing else and to list every file they opened.
 
+## Run 7, 2026-11-01: 5.A and 5.C (draft specs 0.4.0 and 0.3.0), their packets only
+
+`prepare /tmp/eval 5.A,5.C`; f12 runs with 4.F (its pass R reveals the
+field), and packets hold only the case's own test's questions. 16 of the
+50 cases ask questions (5.C decides most pages mechanically); leak grep
+clean. One fresh Sonnet agent (about 89,000 tokens, 44 s): 16/16 match, no
+false PASS, no follow-up round. It opened only packet files and wrote no
+scratch file (it printed and wrote with inline Python). Borderline calls
+it listed: a field named only by its table header judged complete; a red
+"*" on a field without `required` judged missing; on the floating-label
+page it read the small "ZIP code" label in the image as the label.
+
 ## Run 6, 2026-11-01: 5.F and 5.G at 1.0.0, their packets only
 
 After Abby's review: a plain "Save" is a submit control again (f09 back to

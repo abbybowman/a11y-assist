@@ -17,9 +17,9 @@ refused at once with a `no_time_limit` option
 ([solutions/time-budget.md](solutions/time-budget.md)).
 
 Next: 5.A and 5.C in full (visual labels; ANDI's output, as a Trusted
-Tester reads it; no scanners first), planned in
-[plans/2026-11-01-forms-5a-5c.md](plans/2026-11-01-forms-5a-5c.md) with specs
-drafted, no questions open; then the multi-page batch
+Tester reads it; no scanners first), built as drafts
+([plans/2026-11-01-forms-5a-5c.md](plans/2026-11-01-forms-5a-5c.md); judge
+eval 16/16), waiting for 1.0.0 approval; then the multi-page batch
 ([plans/2026-11-01-multi-page.md](plans/2026-11-01-multi-page.md)).
 
 Per-test leftovers live in each `docs/rules/<id>-build-tasks.md` (mostly

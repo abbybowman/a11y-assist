@@ -128,10 +128,11 @@ src/a11y_assist/
   policy.py     URL allowlist decision (pure)
   browser.py    Chrome launch, fresh contexts, NavigationGuard
   capture.py    HAR record + replay
-  andi.py       local ANDI injection
+  andi.py       local ANDI injection; andi_output() reads its per-element analysis
   traverse.py   key passes, CDP focus reading, settle rule, inventory (no outcomes)
   observe.py    what an action changes (Effect): 4.A, 4.B, 4.F and 5.D
   forms.py      form fields shared by 5.D, 5.F, 5.G: field stops, arrival, page reads
+  labels.py     pass L for 5.A and 5.C: form components, visible labels, ANDI output
   walk.py       the shared keyboard walk (P1 Tab, P2 Shift+Tab), once per page
   engine.py     shared first-match tables and page rows G1-G5
   checks/       one module per TT test, registered in checks/__init__.py;
@@ -142,6 +143,8 @@ src/a11y_assist/
     t4d.py      4.D focus visible: on/off images and styles, widget items
     t4e.py      4.E on focus: context signals, confirmation replays
     t4f.py      4.F focus order: order signals, opening triggers, dialogs
+    t5a.py      5.A label provided: visible label, J1 by looking
+    t5c.py      5.C programmatic label: ANDI output vs what is shown, J1
     t5d.py      5.D on input: fill pass F, own-widget changes, J1-J3
     t5f.py      5.F error identification: error pass E (shared with 5.G), notice, J0-J2
     t5g.py      5.G error suggestion: reads 5.F's pass, J1
@@ -167,7 +170,7 @@ docs/solutions/ lessons that save the next test time
 docs/sources/   TT 5.1.3 PDF (the authority), SHA-256 in its README;
                 tt-5.1.3/ its Markdown + tt.json copy (made once; see README)
 third_party/    ANDI 29.2.2, jQuery 3.7.1, PROVENANCE.json
-tests/fixtures/ no_trap.html (general evidence); 4a/ … 4f/, 5d/, 5f/ fNN-short-name.html
+tests/fixtures/ no_trap.html (general evidence); 4a/ … 4f/, 5a/, 5d/, 5f/ fNN-short-name.html
                 (custom fixtures per test); act/ (vendored W3C ACT cases,
                 manifest.json, sync_act.py); baseline/ (vendored Section 508
                 Baseline Alignment cases, manifest.json, sync_baseline.py);
