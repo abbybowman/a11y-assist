@@ -1,8 +1,8 @@
 # Build tasks: 5.A and 5.C
 
 Specs [5a-label-provided.md](5a-label-provided.md) and
-[5c-programmatic-label.md](5c-programmatic-label.md) are drafts (5.A 0.4.0, 5.C 0.3.0), built as `checks/t5a.py` and
-`checks/t5c.py` on the shared `labels.py` (pass L), registered in `tests/drafts.py`.
+[5c-programmatic-label.md](5c-programmatic-label.md) 1.0.0 are built as `checks/t5a.py` and `checks/t5c.py` on the shared
+`labels.py` (pass L), registered. Judge eval: evals/README.md run 7.
 Green with scripted answers: 26 TC10.A/TC10.E pairs and 13 custom pages
 (`tests/test_fixtures_5a.py`, both tests in one call).
 Order of work: [plans/2026-11-01-forms-5a-5c.md](../plans/2026-11-01-forms-5a-5c.md).

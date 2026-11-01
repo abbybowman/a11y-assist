@@ -142,7 +142,14 @@ async def test_no_test_is_reported_not_tested(settings):
     built = {t.value for t in REGISTRY}
     # The page's one email field is not checked by anything (no form, no
     # script): no automatic error detection, so 5.F and 5.G do not apply.
-    expected = {"5.F": "DNA", "5.G": "DNA"}
+    # Its iframe holds a button that pass L does not read (frames are not
+    # read yet), so 5.A and 5.C say a person must check it, never PASS.
+    expected = {
+        "5.F": "DNA",
+        "5.G": "DNA",
+        "5.A": "NEEDS_REVIEW",
+        "5.C": "NEEDS_REVIEW",
+    }
     for t in built:
         assert by_id[t]["outcome"] == expected.get(t, "PASS"), (t, by_id[t]["summary"])
     for f in [f for t, f in by_id.items() if t not in built]:
@@ -341,7 +348,7 @@ async def test_explain_before_a_run(settings):
     assert "tries the keys a person would" in text  # what this tool does
     assert "NOT a certified" in text
     # Untested tests say so plainly.
-    assert "cannot run this test yet" in await _prompt({"about": "5.A"})
+    assert "cannot run this test yet" in await _prompt({"about": "5.B"})
 
 
 async def test_explain_finds_tests_by_words_criterion_or_name(settings):
