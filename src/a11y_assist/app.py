@@ -39,9 +39,9 @@ conformant".
 
 TOOL SELECTION GUIDE:
 - Check a page for keyboard or focus problems, or run TT tests on a URL
-  -> run_tt_tests (url; tests defaults to every implemented test)
+  -> a11y_run_tt_tests (url; tests defaults to every implemented test)
 - A run returned open questions, or a person wants to override an answer
-  -> answer_questions (run_id and one answer per question); repeat until
+  -> a11y_answer_questions (run_id and one answer per question); repeat until
   none are open
 - Explain what a TT test checks, or explain a run's results and fixes in
   plain language -> the explain prompt (about = test ID, WCAG criterion or

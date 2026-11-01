@@ -63,8 +63,8 @@ GSA MCP and AI Agent Hackathon
 
 ```mermaid
 flowchart LR
-  A[AI agent<br/>e.g. Claude Code] -->|run_tt_tests| S[A11y Assist<br/>MCP server]
-  A -->|answer_questions| S
+  A[AI agent<br/>e.g. Claude Code] -->|a11y_run_tt_tests| S[A11y Assist<br/>MCP server]
+  A -->|a11y_answer_questions| S
   S --> R[Record page once<br/>replay every pass]
   R --> W[Shared keyboard walk<br/>Tab, Shift+Tab]
   W --> C[One check per TT test<br/>rows from its spec]
@@ -75,7 +75,7 @@ flowchart LR
 
 **Notes:**
 
-- **Two broad tools.** `run_tt_tests` takes a URL and test IDs. `answer_questions` takes the agent's answers to open questions.
+- **Two broad tools.** `a11y_run_tt_tests` takes a URL and test IDs. `a11y_answer_questions` takes the agent's answers to open questions.
 - **Resources.** `tt://5.1.3/...` serves the TT text; `run://` serves a run's evidence while it is kept.
 - **Prompt.** `explain` covers a test or a result in plain language.
 - **Python stack.** FastMCP, Pydantic and Playwright, from the GSA template.

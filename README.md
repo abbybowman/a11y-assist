@@ -25,7 +25,7 @@ What works today:
 
 | Area | State |
 | --- | --- |
-| `run_tt_tests(url, tests=["4.C"])` | Runs the selected TT tests (4.A–4.F) and returns a typed result: findings with plain-language summaries, open questions (with the page text once), evidence as `run://` resources, and the full report for the user to save. One shared keyboard walk (Tab, Shift+Tab) per page feeds every keyboard check; 4.C adds its exit probes. A record per key press (stop identity, role and name from Chrome's accessibility tree, frames, shadow roots, focus events); screenshots at traps. Progress notifications while it runs; at most `RUN_LIMIT_S` (120 s) per call |
+| `a11y_run_tt_tests(url, tests=["4.C"])` | Runs the selected TT tests (4.A–4.F) and returns a typed result: findings with plain-language summaries, open questions (with the page text once), evidence as `run://` resources, and the full report for the user to save. One shared keyboard walk (Tab, Shift+Tab) per page feeds every keyboard check; 4.C adds its exit probes. A record per key press (stop identity, role and name from Chrome's accessibility tree, frames, shadow roots, focus events); screenshots at traps. Progress notifications while it runs; at most `RUN_LIMIT_S` (120 s) per call |
 | Tool errors | A URL outside the allowlist, a redirect out of it, a page that cannot load, or an unknown or expired run id is a tool error (isError) with no findings |
 | TT 5.1.3 as data | The whole PDF as Markdown plus `tt.json` (all 63 conditions with requirements and WCAG links), checked word for word against the PDF. Served as `tt://5.1.3/index`, `tt://5.1.3/tests/{id}` and `tt://5.1.3/parts/{part}`; every finding links its test (`reference`) and Understanding pages. See `docs/sources/README.md` |
 | `explain(about?, run_id?)` prompt | A command that explains Trusted Tester tests in plain language, before a run (what a test checks, what this tool does for it) or after (what was found, how to fix it). `about` takes a test ID, WCAG criterion, test name or words. Built on `explain.py`, which failure reports will reuse |
@@ -35,11 +35,11 @@ What works today:
 | Connection address checks | Chrome's only way out is a local proxy (`egress.py`) that resolves each host once, refuses it if any answer is a private, loopback, link-local, multicast, reserved or cloud-metadata address (IPv4-mapped and other alternate forms included) or the port is not 80/443, and connects to the address it checked, so DNS rebinding cannot get past it. Covers the page, iframes, subresources, WebSockets and every redirect hop. A refused page is a tool error; refused page parts are listed in the result's `errors` |
 | ANDI 29.2.2 | Vendored, injectable from local files, never loaded from ssa.gov. Not used by any test yet |
 | Findings for any active TT test | 4.A to 4.F (all of TT Test 4's keyboard and focus tests): PASS, FAIL, DOES NOT APPLY or NEEDS REVIEW per its spec, with the spec rows that produced it. Every other active TT 5.1.3 test: `NEEDS_REVIEW` with the note "This test could not be performed" (no spec yet). Never `NOT_TESTED`: the PDF allows it only where a test names it (p. 6) |
-| `answer_questions(run_id, answers)` | Records one answer per question (the calling agent's, or a person's override, which wins); presses documented keys in the recorded page and re-applies the spec. Suggested input values go to a person to try. Answers are facts, never outcomes |
+| `a11y_answer_questions(run_id, answers)` | Records one answer per question (the calling agent's, or a person's override, which wins); presses documented keys in the recorded page and re-applies the spec. Suggested input values go to a person to try. Answers are facts, never outcomes |
 | ApiJudge | Stub (`NotImplementedError`) |
 
 Planned: `read_report` (read an agency's existing ACR or SCRT report and
-recommend fixes and re-tests) and a `compare_to` option on `run_tt_tests` that
+recommend fixes and re-tests) and a `compare_to` option on `a11y_run_tt_tests` that
 takes a saved report (verify a fix). Guidance goes in resources or a prompt.
 Tools are broad and outcome-based, not one per test step.
 
@@ -111,7 +111,7 @@ Then ask, for example: "Run TT test 4.C on https://www.section508.gov/".
 
 ## Examples
 
-Three ways to call `run_tt_tests`, the main tool. Your agent makes these
+Three ways to call `a11y_run_tt_tests`, the main tool. Your agent makes these
 calls when you ask in plain words; they are shown as tool name and arguments.
 `tests/test_readme.py` checks every example below against the tool's schema,
 and runs example 3 end to end.
@@ -121,7 +121,7 @@ https://www.section508.gov/ for keyboard and focus problems."
 
 <!-- example -->
 ```json
-{"tool": "run_tt_tests", "arguments": {"url": "https://www.section508.gov/"}}
+{"tool": "a11y_run_tt_tests", "arguments": {"url": "https://www.section508.gov/"}}
 ```
 
 `tests` defaults to every implemented test (4.A–4.F). The result has one
@@ -134,7 +134,7 @@ https://www.section508.gov/, and is focus visible?"
 
 <!-- example -->
 ```json
-{"tool": "run_tt_tests", "arguments": {"url": "https://www.section508.gov/", "tests": ["4.C", "4.D"]}}
+{"tool": "a11y_run_tt_tests", "arguments": {"url": "https://www.section508.gov/", "tests": ["4.C", "4.D"]}}
 ```
 
 Any active TT 5.1.3 test ID is accepted; one with no rules yet comes back
@@ -146,7 +146,7 @@ links that pass focus among themselves forever:
 
 <!-- example -->
 ```json
-{"tool": "run_tt_tests", "arguments": {"url": "file:///ABSOLUTE/PATH/a11y-assist/tests/fixtures/4c/f06-script-loop.html", "tests": ["4.C"]}}
+{"tool": "a11y_run_tt_tests", "arguments": {"url": "file:///ABSOLUTE/PATH/a11y-assist/tests/fixtures/4c/f06-script-loop.html", "tests": ["4.C"]}}
 ```
 
 4.C comes back NEEDS REVIEW with one open question (`4.C-i1-J1`): does the
@@ -155,7 +155,7 @@ text it was given and answers:
 
 <!-- example -->
 ```json
-{"tool": "answer_questions", "arguments": {"run_id": "<run_id from the result>", "answers": [{"question_id": "4.C-i1-J1", "decided_by": "model", "rationale": "The page text names no key that moves focus out of the three looping links.", "j1": {"documented": "no"}}]}}
+{"tool": "a11y_answer_questions", "arguments": {"run_id": "<run_id from the result>", "answers": [{"question_id": "4.C-i1-J1", "decided_by": "model", "rationale": "The page text names no key that moves focus out of the three looping links.", "j1": {"documented": "no"}}]}}
 ```
 
 4.C is now FAIL: "Keyboard focus gets trapped on this page. Keyboard focus

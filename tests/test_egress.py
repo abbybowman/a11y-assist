@@ -166,7 +166,7 @@ def _dns(monkeypatch, answers):
 async def _run(url: str):
     async with Client(mcp) as client:
         return await client.call_tool(
-            "run_tt_tests", {"url": url, "tests": ["4.C"]}, raise_on_error=False
+            "a11y_run_tt_tests", {"url": url, "tests": ["4.C"]}, raise_on_error=False
         )
 
 

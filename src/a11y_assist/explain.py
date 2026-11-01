@@ -142,9 +142,9 @@ def build(about: str | None = None, report: Report | None = None) -> str:
             "important first: what was found, in the tool's own words; what it "
             "means for people using the page; how to fix it, based on the WCAG "
             "Understanding page linked below rather than memory; and how to "
-            "check the fix (run run_tt_tests again). For NEEDS_REVIEW, say "
+            "check the fix (run a11y_run_tt_tests again). For NEEDS_REVIEW, say "
             "exactly what a person should look at. If the user disagrees with a "
-            "judgment call, help them record it with answer_questions "
+            "judgment call, help them record it with a11y_answer_questions "
             "(decided_by 'human'). Keep passing tests to a line each."
         )
     else:
@@ -153,7 +153,7 @@ def build(about: str | None = None, report: Report | None = None) -> str:
             "testing; they are probably not an accessibility specialist. For each: "
             "what it checks and who it helps; how a Trusted Tester tests it, in "
             "brief; what this tool does automatically and what is left to a "
-            "person; and how to run it (run_tt_tests with the page URL; the host "
+            "person; and how to run it (a11y_run_tt_tests with the page URL; the host "
             "must be on the server's allowlist, by default .gov and .mil)."
         )
     parts = [task, RULES]

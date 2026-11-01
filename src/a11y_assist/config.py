@@ -71,7 +71,7 @@ class Settings(BaseSettings):
     # settle_quiet_ms: the settle rule's DOM-quiet window after each key press.
     settle_quiet_ms: int = Field(default=150, ge=50, le=1000)
     record_scroll_passes: int = Field(default=1, ge=0, le=50)
-    # Wall clock for one run_tt_tests call: short enough for HTTP proxies when
+    # Wall clock for one a11y_run_tt_tests call: short enough for HTTP proxies when
     # hosted. Tests not finished in time are NEEDS_REVIEW with the reason.
     run_limit_s: int = Field(default=120, ge=10)
     runs_dir: Path = REPO_ROOT / "runs"
@@ -88,7 +88,7 @@ class Settings(BaseSettings):
     rules_dir: Path = REPO_ROOT / "docs" / "rules"
 
     # ── Versions recorded in every report ─────────────────────────────────────
-    # "client": open questions go to the calling agent (answer_questions).
+    # "client": open questions go to the calling agent (a11y_answer_questions).
     # "api": NASA hosted model (not implemented yet).
     judge_backend: str = "client"
     # Identifier of the model that answers open questions, if any.

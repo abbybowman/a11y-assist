@@ -133,14 +133,15 @@ def _serve(handler):
 
 
 async def _answer_format() -> str:
-    """The answer_questions description and answers schema, as a client sees."""
+    """The a11y_answer_questions description and answers schema, as a client
+    sees."""
     from fastmcp import Client
 
     from a11y_assist.app import mcp
 
     async with Client(mcp) as c:
         tools = {t.name: t for t in await c.list_tools()}
-    a = tools["answer_questions"]
+    a = tools["a11y_answer_questions"]
     return (
         (a.description or "")
         + "\n\nanswers: "

@@ -72,12 +72,14 @@ by TT test ID. Package: `a11y_assist` (name is provisional).
   printed pages.
 - One tool per file in `src/a11y_assist/tools/`, registered in
   `tools/__init__.py`. Tools are broad and outcome-based, not one per step:
-  `run_tt_tests` and `answer_questions` now; `verify_fix` (an option on
-  run_tt_tests that takes a saved report), `read_report` (an agency's existing
+  `a11y_run_tt_tests` and `a11y_answer_questions` now (files
+  `run_tt_tests.py`, `answer_questions.py`); `verify_fix` (an option on
+  a11y_run_tt_tests that takes a saved report), `read_report` (an agency's existing
   ACR or SCRT report → recommended fixes) planned; guidance goes in resources
   or a prompt, not a tool. Never put "trusted_tester" in a tool name (it could
-  read as certification). Say "open questions" to users, not "judgments". Tool inputs are Pydantic-validated with precise
-  descriptions. The implemented-test list in `run_tt_tests`'s description and
+  read as certification). Every tool name starts with the service prefix
+  `a11y_` (GSA template: names stay unique beside other MCP servers). Say "open questions" to users, not "judgments". Tool inputs are Pydantic-validated with precise
+  descriptions. The implemented-test list in `a11y_run_tt_tests`' description and
   its default come from `checks.REGISTRY`; never hardcode them.
 - Keep tool output small: the full report is a `run://` resource
   (`report_uri`), never inline; evidence several questions share goes once in

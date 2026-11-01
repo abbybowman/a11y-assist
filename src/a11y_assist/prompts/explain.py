@@ -61,7 +61,7 @@ def register(mcp: FastMCP) -> None:
             Field(
                 default=None,
                 pattern=r"^[A-Za-z0-9_-]{1,64}$",
-                description="A run_id from run_tt_tests, to explain its results.",
+                description="A run_id from a11y_run_tt_tests, to explain its results.",
             ),
         ] = None,
     ) -> str:
