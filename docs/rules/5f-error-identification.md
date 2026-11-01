@@ -1,7 +1,7 @@
 ---
 tt_test: 5.F
 tt_name: 3.3.1-error-identification
-spec_version: 0.2.0
+spec_version: 0.3.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -51,7 +51,7 @@ The tool gives each page one 5.F outcome: PASS, FAIL, DOES NOT APPLY or NEEDS RE
 
 An *instance* is a field that an attempt showed in error: it has an error indicator of its own (`aria-invalid`, a native validation message, a change of look, new text in its description), or the agent names it as the field a page-level message is about (J1). Fields the page never flagged are not instances (the page detected no error for them).
 
-An attempt's *notice* is how the user learns of its errors (Baseline 10.D "made aware"): a JS dialog; an open dialog or `role=alertdialog`; new text inside a live region (`aria-live` polite or assertive, `role=alert` or `role=status`) present before the attempt or added with the text; focus moved into the new text or onto a field whose description holds new text; or native validation (the browser shows its message and focuses the field). Whether an attempt with none of these fails is OPEN (Q1).
+An attempt's *notice* is how the user learns of its errors (Baseline 10.D "made aware"): a JS dialog; an open dialog or `role=alertdialog`; new text inside a live region (`aria-live` polite or assertive, `role=alert` or `role=status`) present before the attempt or added with the text; focus moved into the new text or onto a field whose description holds new text; or native validation (the browser shows its message and focuses the field). An attempt with none of these fails (M7): Baseline 10.D ("the user is made aware of the error"; TC10.D-2-fail-1) and Understanding 3.3.1 for WCAG 2.0, which Section 508 incorporates ("users are aware that an error has occurred"; screen reader users "will not know there was an error until they encounter one of the indicators"). The TT text itself asks only for text (p. 29 ER 1); announcing text without a focus move is otherwise WCAG 2.1's 4.1.3, outside Section 508.
 
 **3a. Instance rules (first match wins)**
 
@@ -64,7 +64,7 @@ An attempt's *notice* is how the user learns of its errors (Baseline 10.D "made 
 | M5 | J2 = unsure, or not answered | NEEDS REVIEW | Spec rule |
 | J1? | New text or a JS dialog appeared and J1 is not answered | NEEDS REVIEW | Open question |
 | M6 | J1 = identified and described, both quotes found in the error text, and the attempt had a notice | PASS | p. 29 ER 1; p. 28 HtT 3.a, 3.b; Baseline 10.D |
-| M7 | J1 = identified and described, quotes found, and the attempt had no notice | OPEN (Q1) | Baseline 10.D ("made aware"); TC10.D-2-fail-1 |
+| M7 | J1 = identified and described, quotes found, and the attempt had no notice | FAIL | Baseline 10.D ("made aware"); TC10.D-2-fail-1 |
 | M8 | J1 = not identified (the text does not say which field) or not described (it says only that something is wrong) | FAIL | p. 28 HtT 3.a, 3.b; TC10.D-2-fail-3 ("Error.") |
 | M9 | J1 = unsure, or a quote is not in the error text | NEEDS REVIEW | Spec rule |
 
@@ -91,7 +91,7 @@ An attempt's *notice* is how the user learns of its errors (Baseline 10.D "made 
 | A4 | "The form was sent to its server, and our copy of the page cannot show what the server answers. Please submit it with mistakes on the live site and check the error messages." |
 | M2 (note) | "The browser's own message points to <field> and explains the error; that is fine." |
 | M3 | "When <field> was wrong, the page only marked it (<how>), with no text saying what is wrong. To see it, load the page and press <keys>. If you disagree, tell your assistant." |
-| M7 (Q1 = FAIL) | "The page shows an error for <field> (\"<quote>\"), but nothing announces it: it is not read out, and focus does not move to it, so a screen reader user may not know it appeared. To see it, load the page and press <keys>. If you disagree, tell your assistant." |
+| M7 | "The page shows an error for <field> (\"<quote>\"), but nothing announces it: it is not read out, and focus does not move to it, so a screen reader user may not know it appeared. To see it, load the page and press <keys>. If you disagree, tell your assistant." |
 | M8 | "The error message \"<text>\" does not say <which field is wrong / what is wrong with <field>>. To see it, load the page and press <keys>. If you disagree, tell your assistant." |
 | M9, M5 | "An error appeared for <field>, and we could not tell whether its message names the field and explains the problem. Please look: load the page and press <keys>." |
 
@@ -142,17 +142,13 @@ The calling agent answers each once, by the rubric; a person's answer overrides 
 
 **Use:** M3–M5.
 
-**OPEN question for Abby:**
-
-- **Q1. An error message nothing announces (M7; TC10.D-2-fail-1).** The message names and describes the error and is visible, but it is not in a live region, no dialog opens, and focus does not move to it. Baseline 10.D expects FAIL ("the user is not made aware of the error"), as does Understanding 3.3.1 for WCAG 2.0 ("users are aware that an error has occurred"; screen reader users "will not know there was an error until they encounter one of the indicators"). The TT text asks only that the error be identified and described in text, and announcing new text without moving focus is WCAG 2.1's 4.1.3 Status Messages (its example: "5 errors on page" added to a form), which Section 508 (WCAG 2.0) does not include. Options: FAIL (Baseline), NEEDS REVIEW, or PASS (TT text only).
-
 ## 5. Edge cases
 
 V-numbers are browser checks in [5f-build-tasks.md](5f-build-tasks.md).
 
 | Case | Rule | Verify |
 | --- | --- | --- |
-| TC10.D-2-fail-1: "Error: not a number." at the top, no live region, no focus move; cleared by the next key press | M7 (Q1); text seen after the Tab counts | V1 |
+| TC10.D-2-fail-1: "Error: not a number." at the top, no live region, no focus move; cleared by the next key press | M7 FAIL; text seen after the Tab counts | V1 |
 | TC10.D-2-fail-2: only the field's background turns red | M3 (J2 = error), FAIL | — |
 | TC10.D-2-fail-3: two fields, "Error." in a live region | J1 not_identified, M8 FAIL | — |
 | TC10.D-all-pass-1: `alert("Error: abc is not a number.")` on the button, focus back to the field | J1 described, notice by JS dialog, M6 PASS | V2 |
