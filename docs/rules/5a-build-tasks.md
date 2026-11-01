@@ -3,7 +3,7 @@
 Specs [5a-label-provided.md](5a-label-provided.md) and
 [5c-programmatic-label.md](5c-programmatic-label.md) are drafts (5.A 0.4.0, 5.C 0.3.0), built as `checks/t5a.py` and
 `checks/t5c.py` on the shared `labels.py` (pass L), registered in `tests/drafts.py`.
-Green with scripted answers: 26 TC10.A/TC10.E pairs and 12 custom pages
+Green with scripted answers: 26 TC10.A/TC10.E pairs and 13 custom pages
 (`tests/test_fixtures_5a.py`, both tests in one call).
 Order of work: [plans/2026-11-01-forms-5a-5c.md](../plans/2026-11-01-forms-5a-5c.md).
 
@@ -30,6 +30,7 @@ the name only; say so in its `differs` note. Custom pages in
 | f10 floating label, focus-only instructions | 5.A read with focus |
 | f11 icon button with no name next to a field, and a menu button with no name | 5.C M3 FAIL (every button) |
 | f12 a disclosure revealing an "Other, please specify" field | Revealed fields read on 4.F's replay |
+| f13 a field below the fold | The image is taken after scrolling (viewport clip coordinates) |
 
 ## Browser behavior to verify in code
 
@@ -41,3 +42,11 @@ the name only; say so in its `differs` note. Custom pages in
 | V4 | A page CSP that blocks inline scripts stops ANDI; how it shows | A2 |
 | V6 | Checked for 4.F's pass R (f12): ANDI injected at the end of the replay analyses the revealed field. 5.D's fill pass: not covered by a fixture yet | Section 2 (revealed fields) |
 | V5 | Windows headed Chrome: every fixture gives the same outcome (cannot run from Linux) | All rows |
+
+## Left to do
+
+- Fields inside frames and shadow roots are not read (frames: a NEEDS
+  REVIEW note).
+- A field revealed by 5.D's fill pass: wired, not yet covered by a fixture.
+- V4 (a page CSP that blocks ANDI) and V5 (Windows headed Chrome).
+- Real government forms: how often nearby text sends a field to J1.
