@@ -104,6 +104,7 @@ flowchart LR
 - Time budget: under 60 s per page for Test 4, hard limit 120 s per call
 - A page too large for the limit is refused early; the user can choose to run it with no time limit
 - Replays reuse what the walk saw: realistic agency page 151 s → 97 s, same outcomes
+- Checks reuse each other's replays (4.A reads 4.D's arrow presses and 4.F's Enter presses): with 5.F and 5.G drafted, both realistic pages still fit (108 s and 92.5 s)
 
 **Notes:**
 

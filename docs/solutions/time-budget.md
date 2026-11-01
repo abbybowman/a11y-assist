@@ -65,3 +65,17 @@ window (`noise_ms=0`, reusing the first one's noise).
 call `ctx.out_of_time()` (not `time.monotonic() > ctx.deadline`): it records
 that work was cut, and only then does the result carry the "reached its time
 limit" note. A run that finishes inside the 10 s reserve has no note.
+
+**Checks reuse each other's replays (2026-11-01).** Adding the draft 5.F
+and 5.G put both budget pages at 111–113 s, past the 110 s soft deadline.
+Timing the replay functions with a scratch wrapper (no permanent timers)
+showed where: 4.A's arrow probe (11 s for one 4-tab tablist) duplicated
+4.D's pass W, and on the benefits form 4.A executed the ten parts of
+Chrome's native date inputs as custom controls (29 s). Now 4.D and 4.F
+collect first (`shares = 1`, `RunContext.cache`) and 4.A reuses their
+presses only when they cover exactly what it needs (every candidate item
+reached; Enter had an effect), else it replays as before: no outcome
+changed on any fixture. Date-input parts are native in 4.A (1.2.0, Abby's
+approval). Agency page 108 s, benefits form 92.5 s, all nine tests.
+Sharing that changes what a check visits (4.A's 20 arrow presses vs pass
+W's 5 items) stays a MINOR change; this kind does not.

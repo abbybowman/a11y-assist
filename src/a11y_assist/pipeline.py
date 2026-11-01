@@ -313,6 +313,9 @@ async def run_tt_tests(
         evidence_dir="evidence",
     )
     checks = [REGISTRY[t] for t in selected if t in REGISTRY]
+    # Checks whose replays others reuse (4.D's arrows, 4.F's Enter presses,
+    # for 4.A) collect first; findings keep the report's order.
+    checks.sort(key=lambda c: -getattr(c, "shares", 0))
     states: dict[TestId, Any] = {}
     walk: KeyboardWalk | None = None
 
