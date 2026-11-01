@@ -34,6 +34,27 @@ ANSWERS = {
         }
         for c in ("TC10.C-3-fail-1", "TC10.C-3-fail-2", "TC10.C-3-fail-3")
     },
+    # 5.F / 5.G (TC10.D): what a correct agent says about each error text.
+    ("TC10.D-2-fail-1", "5.F"): {
+        "J1": {"choice": "described", "quote": "Error: not a number."}
+    },
+    ("TC10.D-2-fail-1", "5.G"): {"J1": {"choice": "guides", "quote": "not a number"}},
+    ("TC10.D-2-fail-2", "5.F"): {"J2": {"choice": "error"}},
+    ("TC10.D-2-fail-2", "5.G"): {"J2": {"choice": "error"}},
+    ("TC10.D-2-fail-3", "5.F"): {"J1": {"choice": "not_identified"}},
+    ("TC10.D-2-fail-3", "5.G"): {"J1": {"choice": "no_guidance"}},
+    **{
+        (c, "5.F"): {"J1": {"choice": "described", "quote": "a number"}}
+        for c in ("TC10.D-all-pass-1",)
+    },
+    **{
+        (c, "5.F"): {"J1": {"choice": "described", "quote": "Error: not a number."}}
+        for c in ("TC10.D-all-pass-2", "TC10.D-all-pass-3")
+    },
+    **{
+        (c, "5.G"): {"J1": {"choice": "guides", "quote": "number"}}
+        for c in ("TC10.D-all-pass-1", "TC10.D-all-pass-2", "TC10.D-all-pass-3")
+    },
 }
 
 

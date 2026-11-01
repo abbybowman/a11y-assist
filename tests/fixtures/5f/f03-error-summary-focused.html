@@ -1,0 +1,22 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>F03 Change of address</title>
+<style>#summary{border:3px solid #b00;padding:8px} #summary[hidden]{display:none}</style></head><body>
+<h1>Change of address</h1>
+<div id="summary" tabindex="-1" hidden><h2>There is a problem</h2><ul id="list"></ul></div>
+<form id="f" novalidate>
+<p><label for="name">Full name</label> <input id="name"></p>
+<p><label for="zip">ZIP code (5 digits)</label> <input id="zip"></p>
+<p><button type="submit">Continue</button></p>
+</form>
+<script>
+document.getElementById("f").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const errs = [];
+  if (!document.getElementById("name").value.trim()) errs.push("Enter your full name");
+  if (!/^\d{5}$/.test(document.getElementById("zip").value)) errs.push("Enter a ZIP code with 5 digits, like 20500");
+  const s = document.getElementById("summary"), l = document.getElementById("list");
+  l.innerHTML = "";
+  for (const t of errs) { const li = document.createElement("li"); li.textContent = t; l.appendChild(li); }
+  s.hidden = errs.length === 0;
+  if (errs.length) s.focus();
+});
+</script></body></html>

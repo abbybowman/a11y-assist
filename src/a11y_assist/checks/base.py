@@ -46,7 +46,7 @@ smallest, or t5d.py for a form test):
 from __future__ import annotations
 
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, ClassVar, Protocol
 
@@ -68,6 +68,9 @@ class RunContext:
     rel: Path  # run folder (evidence paths are relative to it)
     plan: ReplayPlan | None = None  # from the walk, once it has run
     timed_out: bool = False  # a check stopped work for the run limit
+    # Evidence one check collects for another in the same call (5.F's error
+    # pass, which 5.G reads): keyed by the collector's name.
+    cache: dict[str, Any] = field(default_factory=dict)
 
     def out_of_time(self) -> bool:
         """Past the checks' deadline (4.C spec section 2, Run limits). Use it

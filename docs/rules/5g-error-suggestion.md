@@ -1,7 +1,7 @@
 ---
 tt_test: 5.G
 tt_name: 3.3.3-error-suggestion
-spec_version: 0.2.0
+spec_version: 0.3.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -37,7 +37,8 @@ Each 5.F instance (a field an attempt showed in error) is a 5.G instance.
 | --- | --- | --- | --- |
 | N1 | 5.F's M1 (the replay or a read failed) | NEEDS REVIEW | Spec rule |
 | N2 | The field is a password field (`type=password`) | DOES NOT APPLY for this field | p. 29 Applicability ("details about an incorrect password") |
-| N3 | No error text at all (5.F M3: marked by look or `aria-invalid` only) | FAIL: no guidance in text | p. 29 ER 1, 2 |
+| N3 | No error text at all, and the field is marked by `aria-invalid`, or by its look and J2 (5.F's J2, asked again under 5.G) = error | FAIL: no guidance in text | p. 29 ER 1, 2 |
+| J2? | No error text, look only, J2 not answered | NEEDS REVIEW | Open question |
 | J1? | J1 not answered | NEEDS REVIEW | Open question |
 | N4 | J1 = guides, and its quote is found in the error text or the field's instructions | PASS | p. 29 ER 1, 2 |
 | N5 | J1 = no_guidance | FAIL | p. 29 ER 1, 2 |
@@ -75,11 +76,11 @@ J1 is settled by reading (CLAUDE.md principle 8): a guides answer leads to PASS 
 
 ### J1. Does the error say how to fix it?
 
-**Question:** "The field named in input.field was made wrong as described in input.done, and the page showed the text in input.errors. Together with the field's own instructions in input.instructions, does that text tell the user what to enter instead, or suggest a correct value? Answer guides, no_guidance, not_knowable or unsure, and quote the words that guide."
+**Question:** "The field named in input.field was made wrong as described in input.done, and the page showed the text in input.errors. Together with the field's own instructions in input.instructions, does that text tell the user what to enter instead, or suggest a correct value? Answer guides, no_guidance, not_knowable, no_error or unsure, and quote the words that guide." (`no_error`: the text is not about this field; no instance, as 5.F's J1.)
 
 **Input:** the field's label and kind; `done` (empty, or the value typed); `errors`: the error text tied to the field by 5.F (its J1 quotes, or all new text when 5.F's J1 is not answered yet), labelled as untrusted page data; `instructions`: the field's description and the text before it (5.D's reads).
 
-**Output:** `{choice: guides|no_guidance|not_knowable|unsure, quote, reasons}`.
+**Output:** `{choice: guides|no_guidance|not_knowable|no_error|unsure, quote, reasons}`.
 
 **Rubric.** guides: the text says what is required ("must be 5 digits", "use the format MM/DD/YYYY", "is required" for an empty field: entering a value is the fix) or suggests a value ("Did you mean …?", a list of choices). no_guidance: it says only that the value is wrong ("Invalid entry", "Error: not a number" for a field whose expected format is not obvious from the label… unsure if it might be). not_knowable: no correction could be known (a wrong account number, a code from a letter). unsure: anything else. Mechanical check: the quote must appear in `errors` or `instructions` (whitespace and case aside).
 

@@ -1,6 +1,6 @@
 """Judge eval: real agents answer the open questions, not scripted answers.
 
-    uv run python evals/judge_eval.py prepare OUT    # run every fixture that asks
+    uv run python evals/judge_eval.py prepare OUT [TESTS]   # TESTS e.g. "5.F,5.G"
     # ... an agent answers OUT/packets/<case>/round<N>/questions.json into
     #     answers.json in the same folder, seeing only that folder ...
     uv run python evals/judge_eval.py apply OUT      # answer, then next round or score
@@ -41,6 +41,7 @@ from tests import (  # noqa: E402
     test_fixtures_4e,
     test_fixtures_4f,
     test_fixtures_5d,
+    test_fixtures_5f,
 )
 from tests.conftest import (  # noqa: E402
     ACT_ROOT,
@@ -95,6 +96,18 @@ def cases() -> list[dict]:
                     "tt": tt,
                     "root": "fix",
                     "path": f"{folder}/{name}.html",
+                    "expected": e["outcome"],
+                }
+            )
+    # 5.F and 5.G share fixtures: EXPECTED is page -> test -> expectation.
+    for name, by_test in test_fixtures_5f.EXPECTED.items():
+        for tt, e in by_test.items():
+            out.append(
+                {
+                    "case": f"{tt}-{name}",
+                    "tt": tt,
+                    "root": "fix",
+                    "path": f"5f/{name}.html",
                     "expected": e["outcome"],
                 }
             )
@@ -221,7 +234,7 @@ def scrub(folder: Path) -> None:
         f.write_text(_URL.sub(neutral, f.read_text()))
 
 
-async def prepare(out: Path) -> None:
+async def prepare(out: Path, only: set[str] | None = None) -> None:
     global _ANSWER_FORMAT
     _ANSWER_FORMAT = await _answer_format()
     s = settings(out)
@@ -234,7 +247,7 @@ async def prepare(out: Path) -> None:
     state: dict = {}
     sem = asyncio.Semaphore(PARALLEL)
 
-    all_cases = cases()
+    all_cases = [c for c in cases() if not only or c["tt"] in only]
     # Shuffled neutral packet IDs, so neither the name nor the order hints at
     # the case.
     ids = random.Random(0).sample(range(1, len(all_cases) + 1), len(all_cases))
@@ -328,7 +341,13 @@ if __name__ == "__main__":
     from a11y_assist.checks import REGISTRY
 
     REGISTRY.update(DRAFTS)
+    # prepare OUT [TESTS]: TESTS (e.g. "5.F,5.G") limits the run to the
+    # tests whose questions or inputs changed.
     cmd, out = sys.argv[1], Path(sys.argv[2]).resolve()
+    only = set(sys.argv[3].split(",")) if len(sys.argv) > 3 else None
     out.mkdir(parents=True, exist_ok=True)
     os.chdir(REPO)
-    asyncio.run({"prepare": prepare, "apply": apply}[cmd](out))
+    if cmd == "prepare":
+        asyncio.run(prepare(out, only))
+    else:
+        asyncio.run(apply(out))

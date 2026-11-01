@@ -1,0 +1,15 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>F10 Benefit check</title>
+<style>.err{color:#b00}</style></head><body>
+<h1>Benefit check</h1>
+<form id="f" novalidate>
+<p role="alert" id="msg"></p>
+<p><label for="dob">Date of birth</label> <input id="dob"></p>
+<p><button type="submit">Check</button></p>
+</form>
+<script>
+document.getElementById("f").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const ok = /^\d{2}\/\d{2}\/\d{4}$/.test(document.getElementById("dob").value);
+  document.getElementById("msg").textContent = ok ? "" : "Date of birth: invalid entry.";
+});
+</script></body></html>
