@@ -354,9 +354,12 @@ class Versions(BaseModel):
         )
     )
     judging_model: str
-    run_settings: dict[str, int] = Field(
+    run_settings: dict[str, bool | int] = Field(
         default_factory=dict,
-        description="Spec run limits from server config (settle, scroll, time).",
+        description=(
+            "Spec run limits from server config (settle, scroll, time), and "
+            "whether the caller turned the time limit off for this run."
+        ),
     )
 
 

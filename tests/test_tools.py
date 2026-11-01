@@ -44,6 +44,14 @@ async def test_tools_are_listed():
     assert not {"collect_keyboard_evidence", "submit_judgments"} & names
 
 
+async def test_no_time_limit_is_an_opt_in_input():
+    async with Client(mcp) as client:
+        [tool] = [t for t in await client.list_tools() if t.name == "a11y_run_tt_tests"]
+    prop = tool.inputSchema["properties"]["no_time_limit"]
+    assert prop["type"] == "boolean" and prop["default"] is False
+    assert "no_time_limit=true" in tool.description
+
+
 async def test_run_tt_tests_on_http_page(settings, server):
     out = await _call(
         "a11y_run_tt_tests", {"url": f"{server.base}/no_trap.html", "tests": ["4.C"]}
@@ -78,6 +86,7 @@ async def test_run_tt_tests_on_http_page(settings, server):
         "settle_quiet_ms": settings.settle_quiet_ms,
         "record_scroll_passes": settings.record_scroll_passes,
         "run_limit_s": settings.run_limit_s,
+        "no_time_limit": False,
     }
 
     steps = [json.loads(line) for line in (run_dir / "steps.jsonl").open()]

@@ -808,20 +808,58 @@ async def open_session(
     return s
 
 
+class WalkTooLong(Exception):  # noqa: N818 (a stop, not a failure)
+    """P1's pace shows the walk cannot end before the run's deadline (4.C spec
+    section 2, Run limits). Nothing is tested: the run is refused."""
+
+    def __init__(self, candidates: int, presses: int, estimate_s: float):
+        self.candidates, self.presses, self.estimate_s = candidates, presses, estimate_s
+        super().__init__(f"walk estimate {estimate_s:.0f} s")
+
+
+# Early stop: after PACE_WARM presses, P1's pace times the inventory (or the
+# presses so far, if more) times WALK_FACTOR (P2 costs about half of P1: 4.D's
+# images are taken in P1) must end before the deadline.
+PACE_WARM = 20
+WALK_FACTOR = 1.5
+
+
+@dataclass
+class Pace:
+    deadline: float
+    started: float | None = None
+
+    def check(self, presses: int, candidates: int) -> None:
+        now = time.monotonic()
+        if self.started is None:
+            self.started = now
+            return
+        if presses < PACE_WARM:
+            return
+        n = max(candidates, presses)
+        estimate = (now - self.started) / presses * n * WALK_FACTOR
+        if self.started + estimate > self.deadline:
+            raise WalkTooLong(n, presses, estimate)
+
+
 async def drive(
     s: Session,
     key: str,
     cap: int,
     detector: Detector = detect_p1_end,
     deadline: float | None = None,
+    pace: Pace | None = None,
 ) -> tuple[str, list[str], list[Step]]:
     """Press `key` until the detector ends it, navigation, the cap or the
-    deadline (time.monotonic()). Returns (end, trap stop keys, own steps)."""
+    deadline (time.monotonic()). Returns (end, trap stop keys, own steps).
+    `pace` (P1 only) raises WalkTooLong as soon as the walk cannot finish."""
     start = len(s.traversal.steps)
     first_key = None
     for _ in range(cap):
         if deadline is not None and time.monotonic() > deadline:
             return "time", [], s.traversal.steps[start:]
+        if pace is not None:
+            pace.check(len(s.traversal.steps) - start, s.inventory.candidates)
         step = await s.traversal.press(key)
         own = s.traversal.steps[start:]
         if navigated(step, s.start_url, s.start_pages):
@@ -844,6 +882,7 @@ async def run_pass(
     rel_base: Path | None = None,
     cap: int | None = None,
     hooks: list[StepHook] | None = None,
+    pace: Pace | None = None,
 ) -> PassResult:
     """Fresh load, then press `key` until a wrap, a trap event, navigation, the
     cap or the deadline. A trap event gets one screenshot."""
@@ -858,7 +897,7 @@ async def run_pass(
         start_pages=s.start_pages,
     )
     try:
-        end, trap, _ = await drive(s, key, cap, detect_p1_end, deadline)
+        end, trap, _ = await drive(s, key, cap, detect_p1_end, deadline, pace)
         if end in ("stuck", "loop"):
             await s.traversal.shoot(name)
         end_inv = (await dom_inventory(s.page)).candidates
@@ -870,6 +909,8 @@ async def run_pass(
             inventory_end=end_inv,
             **base,
         )
+    except WalkTooLong:
+        raise
     except Exception as exc:  # record and stop; never guess
         return PassResult(steps=s.traversal.steps, end="error", error=repr(exc), **base)
     finally:

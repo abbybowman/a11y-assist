@@ -100,7 +100,8 @@ flowchart LR
 
 - One keyboard walk per page feeds every Test 4 check
 - Each check declares the extra evidence it needs
-- Time budget: under 60 s per page for Test 4, hard limit 120 s
+- Time budget: under 60 s per page for Test 4, hard limit 120 s per call
+- A page too large for the limit is refused early; the user can choose to run it with no time limit
 
 **Notes:**
 

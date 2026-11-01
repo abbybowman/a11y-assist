@@ -15,9 +15,13 @@ NO_DOCS = {"documented": "no"}
 
 
 async def run_4c(
-    settings, url: str, j1: dict | None = None, j2: dict | None = None
+    settings,
+    url: str,
+    j1: dict | None = None,
+    j2: dict | None = None,
+    no_time_limit: bool = False,
 ) -> dict[str, Any]:
-    out = await run_tt_tests(settings, url, [TestId.T4C])
+    out = await run_tt_tests(settings, url, [TestId.T4C], no_time_limit=no_time_limit)
     assert out.errors == [], out.errors
     report = out.report
     for _ in range(3):

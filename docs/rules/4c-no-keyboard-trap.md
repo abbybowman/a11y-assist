@@ -1,7 +1,7 @@
 ---
 tt_test: 4.C
 tt_name: 2.1.2-no-keyboard-trap
-spec_version: 1.5.1
+spec_version: 1.6.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -59,7 +59,11 @@ There is no P5. Content behind disclosure controls (menus, accordions, dialogs o
 
 **Why P6 is enough.** An element P2 leaves backward can be left by Shift+Tab, so it passes M2 or M3; the same holds for P1 and Tab. Only stops that neither pass reaches need the bypass, and those exist only when both passes end in different traps.
 
-**Run limits.** `run_limit_s` (default 120 s) per page for the whole run. `settle_quiet_ms` (default 150) is the settle rule's quiet window; `record_scroll_passes` (default 1) is the recorder's scroll count. All three live in server config and every report records their values. Ctrl+Tab is sent only if V4 shows the page receives it. A pass or probe that hits a cap or the run limit is *incomplete*.
+**Run limits.** `run_limit_s` (default 120 s) per page for the whole run, counted from the start of the call. `settle_quiet_ms` (default 150) is the settle rule's quiet window; `record_scroll_passes` (default 1) is the recorder's scroll count. All three live in server config and every report records their values. Ctrl+Tab is sent only if V4 shows the page receives it. A pass or probe that hits a cap or the run limit is *incomplete*. (1.6.0, time budget 2026-11-01:)
+
+- Checks start no new work in the last 10 s of the limit, so the report is written in time. A walk or check still running 2 s before the limit is stopped; its tests are NEEDS REVIEW ("The run did not complete"), never PASS. A run that hit the limit says so and names the way to finish it (`no_time_limit`).
+- **Early stop.** After P1's first 20 presses, if P1's pace per press × the inventory (or the presses so far, if more) × 1.5 (P2 costs about half of P1) would end past the limit, the walk cannot finish: the run stops at once and nothing is tested (a tool error, no run folder). The message gives the inventory and the estimate and offers `no_time_limit` or another page. Measured: 4.C F34 (600 links) is refused after about 5 s; under the old rule it ran out of time at 378 of ~1,200 presses and every test was NEEDS REVIEW.
+- **`no_time_limit`** (a tool input, off by default) runs without the limit and without the early stop, when the user chooses it for a large page. The report records it (`run_settings.no_time_limit`); answering that run's questions runs without the limit too.
 
 ## 3. Mechanical checks
 

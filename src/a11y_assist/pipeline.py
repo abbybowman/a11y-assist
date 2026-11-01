@@ -18,6 +18,8 @@ Nothing here decides an outcome: checks do, from their specs.
 
 from __future__ import annotations
 
+import asyncio
+import math
 import shutil
 import time
 from collections.abc import Awaitable, Callable
@@ -50,11 +52,22 @@ from a11y_assist.policy import check_url
 from a11y_assist.redact import safe_error
 from a11y_assist.resources.runs import run_uri
 from a11y_assist.runlog import RunRecorder, expires_at, prune_runs
-from a11y_assist.traverse import metered
+from a11y_assist.traverse import Pace, WalkTooLong, metered
 from a11y_assist.versions import collect_versions
 from a11y_assist.walk import KeyboardWalk, walk_page
 
 NO_SPEC_REASON = "No rules exist for this test yet, so it was not run."
+
+# The run limit (4.C spec section 2, Run limits). Checks stop starting new work
+# RESERVE_S before the limit; a phase still running HARD_MARGIN_S before it is
+# cancelled (its tests are NEEDS REVIEW), leaving time to write the report.
+RESERVE_S = 10
+HARD_MARGIN_S = 2
+TIME_NOTE = (
+    "The run reached its time limit ({limit} s) before every test finished; "
+    "what was not finished is NEEDS REVIEW. To finish it, run again with "
+    "no_time_limit=true (the call can then take several minutes)."
+)
 
 Progress = Callable[[float, float | None, str], Awaitable[None]]
 
@@ -82,15 +95,48 @@ def _opener(get_browser, settings: Settings, har: Path, final_url: str, run):
     return new_page
 
 
-def _context(settings: Settings, run: RunRecorder, get_browser, final_url: str):
+def _context(
+    settings: Settings,
+    run: RunRecorder,
+    get_browser,
+    final_url: str,
+    deadline: float,
+):
     return RunContext(
         new_page=_opener(
             get_browser, settings, run.evidence_dir / "page.har.zip", final_url, run
         ),
         quiet_ms=settings.settle_quiet_ms,
-        deadline=time.monotonic() + settings.run_limit_s,
+        deadline=deadline,
         shots=run.evidence_dir / "shots",
         rel=run.dir,
+    )
+
+
+def _soft_deadline(start: float, settings: Settings, no_time_limit: bool) -> float:
+    return math.inf if no_time_limit else start + settings.run_limit_s - RESERVE_S
+
+
+async def _bounded(aw, hard: float):
+    """Await `aw`, cancelling it at `hard` (TimeoutError)."""
+    if hard == math.inf:
+        return await aw
+    left = hard - time.monotonic()
+    if left <= 0:
+        aw.close()
+        raise TimeoutError
+    return await asyncio.wait_for(aw, left)
+
+
+def _too_long(exc: WalkTooLong, limit: int) -> str:
+    minutes = max(1, round(exc.estimate_s / 60))
+    return (
+        f"This page has about {exc.candidates} places the keyboard can reach. At "
+        f"the pace of the first {exc.presses} key presses, walking it with Tab "
+        f"and Shift+Tab alone would take about {minutes} min, more than one call "
+        f"allows ({limit} s). Nothing was tested. To test it anyway, call again "
+        "with no_time_limit=true (the call will take that long or more), or "
+        "test a smaller page."
     )
 
 
@@ -232,11 +278,15 @@ async def run_tt_tests(
     url: str,
     tests: list[TestId],
     progress: Progress | None = None,
+    no_time_limit: bool = False,
 ) -> RunResult:
     async def say(step: float, message: str) -> None:
         if progress is not None:
             await progress(step, 4, message)
 
+    t_start = time.monotonic()
+    soft = _soft_deadline(t_start, settings, no_time_limit)
+    hard = math.inf if no_time_limit else t_start + settings.run_limit_s - HARD_MARGIN_S
     decision = check_url(url, settings.allowed_domains, settings.dev_mode)
     if not decision.allowed:
         raise RunRefused(f"URL not allowed: {decision.reason}")
@@ -249,7 +299,7 @@ async def run_tt_tests(
         target=url,
         tests=[t.value for t in selected],
         started_at=utcnow(),
-        versions=collect_versions(settings, None),
+        versions=collect_versions(settings, None, no_time_limit),
         judge_backend=settings.judge_backend,
         evidence_dir="evidence",
     )
@@ -264,7 +314,7 @@ async def run_tt_tests(
             return browser
 
         try:
-            report.versions = collect_versions(settings, browser)
+            report.versions = collect_versions(settings, browser, no_time_limit)
             run.log("browser_launched", version=browser.version)
             await say(0, "Recording the page")
             har = run.evidence_dir / "page.har.zip"
@@ -294,25 +344,49 @@ async def run_tt_tests(
                 redirects=cap.redirects,
                 seconds=round(time.monotonic() - t0, 2),
             )
-            ctx = _context(settings, run, get_browser, cap.final_url)
+            ctx = _context(settings, run, get_browser, cap.final_url, soft)
             if any(c.uses_walk for c in checks):
                 await say(1, "Walking the page with Tab and Shift+Tab")
-                with metered() as cost:
-                    walk = await walk_page(
-                        ctx.new_page,
-                        ctx.quiet_ms,
-                        ctx.deadline,
-                        ctx.shots,
-                        ctx.rel,
-                        _walk_extras(checks),
+                pace = None if no_time_limit else Pace(soft)
+                try:
+                    with metered() as cost:
+                        walk = await _bounded(
+                            walk_page(
+                                ctx.new_page,
+                                ctx.quiet_ms,
+                                ctx.deadline,
+                                ctx.shots,
+                                ctx.rel,
+                                _walk_extras(checks),
+                                pace,
+                            ),
+                            hard,
+                        )
+                except WalkTooLong as exc:
+                    # Stop and say so instead of running out of time: the
+                    # caller chooses no_time_limit or another page.
+                    shutil.rmtree(run.dir, ignore_errors=True)
+                    raise RunRefused(_too_long(exc, settings.run_limit_s)) from None
+                except TimeoutError:
+                    report.errors.append(
+                        "The keyboard walk did not finish within the time limit."
                     )
-                run.write_json(run.evidence_dir / "walk.json", walk)
-                run.log("walk", **_walk_summary(walk), cost=asdict(cost))
+                    run.log("walk", "error", error="time limit", cost=asdict(cost))
+                if walk is not None:
+                    run.write_json(run.evidence_dir / "walk.json", walk)
+                    run.log("walk", **_walk_summary(walk), cost=asdict(cost))
             for c in checks:
+                if c.uses_walk and walk is None:
+                    continue  # NEEDS REVIEW: the run did not complete (errors say why)
                 await say(2, f"Checking {c.test_id.value}")
                 try:
                     with metered() as cost:
-                        state = await c.collect(ctx, walk)
+                        state = await _bounded(c.collect(ctx, walk), hard)
+                except TimeoutError:
+                    msg = "the run reached its time limit before this test finished"
+                    run.log("check_error", "error", test=c.test_id.value, error=msg)
+                    report.errors.append(f"{c.test_id.value}: {msg}")
+                    continue
                 except Exception as exc:
                     err = safe_error(exc)
                     run.log("check_error", "error", test=c.test_id.value, error=err)
@@ -321,6 +395,8 @@ async def run_tt_tests(
                 states[c.test_id] = state
                 run.write_json(run.evidence_dir / evidence_name(c.test_id), state)
                 run.log("collected", test=c.test_id.value, cost=asdict(cost))
+            if time.monotonic() > soft:
+                report.errors.append(TIME_NOTE.format(limit=settings.run_limit_s))
         finally:
             await browser.close()
 
@@ -365,7 +441,14 @@ async def answer_questions(
     errors: list[str] = []
     browser = _LazyBrowser(settings)
     try:
-        ctx = _context(settings, run, browser.get, report.final_url or report.target)
+        no_limit = bool(report.versions.run_settings.get("no_time_limit"))
+        ctx = _context(
+            settings,
+            run,
+            browser.get,
+            report.final_url or report.target,
+            _soft_deadline(time.monotonic(), settings, no_limit),
+        )
         for t, state in states.items():
             try:
                 errors += await REGISTRY[t].resume(ctx, state, report)

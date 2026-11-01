@@ -9,6 +9,7 @@ compares the images; only evaluate() and the row tables decide outcomes.
 
 from __future__ import annotations
 
+import time
 from pathlib import Path
 from typing import Any
 
@@ -569,6 +570,11 @@ async def _widget_pass(
         )
         widgets = widgets[:WIDGET_MAX]
     for i, wstep in widgets:
+        if time.monotonic() > ctx.deadline:
+            st.incomplete.append(
+                "The run time limit was reached before every widget's items were checked."
+            )
+            return
         for arrow in ("ArrowDown", "ArrowRight"):
             hook = FocusHook(f"W{i + 1}{arrow[5]}", set(by_subject), item_mode=True)
             s = await open_session(ctx.new_page, ctx.quiet_ms, ctx.shots, ctx.rel)

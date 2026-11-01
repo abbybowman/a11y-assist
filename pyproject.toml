@@ -48,7 +48,7 @@ select = ["E", "F", "I"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
-# F34 (600 links) takes ~10 minutes under the settle rule: run it with -m slow.
+# F34 (600 links) with the time limit off takes minutes: run it with -m slow.
 markers = ["slow: long-running fixture, excluded by default"]
 # Tests run in parallel (pytest-xdist): one worker per CPU. Each test has its
 # own run folder, servers and browser; ACT scores are written per worker.

@@ -19,7 +19,7 @@ from pathlib import Path
 from pydantic import BaseModel
 
 from a11y_assist.models import PassResult
-from a11y_assist.traverse import NewPage, StepHook, run_pass
+from a11y_assist.traverse import NewPage, Pace, StepHook, run_pass
 
 
 class KeyboardWalk(BaseModel):
@@ -50,9 +50,11 @@ async def walk_page(
     shots: Path | None = None,
     rel: Path | None = None,
     extras: list[ExtraFactory] | None = None,
+    pace: Pace | None = None,
 ) -> KeyboardWalk:
     """P1 then P2. `extras` are the union of the selected checks' walk extras;
-    running 4.C alone passes none."""
+    running 4.C alone passes none. With `pace`, P1 raises WalkTooLong as soon
+    as its pace shows the walk cannot finish before the deadline."""
     extras = extras or []
     p1 = await run_pass(
         "P1",
@@ -63,6 +65,7 @@ async def walk_page(
         shots,
         rel,
         hooks=[f("P1", None) for f in extras],
+        pace=pace,
     )
     p2 = await run_pass(
         "P2",

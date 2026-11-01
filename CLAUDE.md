@@ -93,7 +93,8 @@ by TT test ID. Package: `a11y_assist` (name is provisional).
   paths, run state is short-lived (results belong in the user's codebase: the
   client reads `report_uri` and saves it before `expires_at`), and one tool
   call stays within `RUN_LIMIT_S`
-  (default 120 s) so it survives HTTP proxy timeouts.
+  (default 120 s) so it survives HTTP proxy timeouts, unless the caller sets
+  `no_time_limit` for a page the run refused as too large (the user's choice).
 - Hackathon docs: when a TT test, spec version, evaluation method or
   security control changes, update `docs/hackathon/evaluation.md` and the
   matching slide in `docs/hackathon/deck.md` in the same commit. Remove a
