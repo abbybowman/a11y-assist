@@ -82,6 +82,51 @@ CASES = {
         {"5.D": "DNA"},
         "",
     ),
+    # 5.F Error identification (3.3.1), Baseline test 10.D; 5.G (3.3.3)
+    # continues from it (docs/rules/5f-*, 5g-*). No 10.F (3.3.3) cases exist.
+    "TC10.D-2-fail-1": (
+        "/testfiles/TF10/10.D-2-fail-1.html",
+        "FAIL",
+        {"5.F": "FAIL", "5.G": "PASS"},
+        '5.G: Baseline judges 3.3.1 only; "Error: not a number." tells the '
+        "user to enter a number.",
+    ),
+    "TC10.D-2-fail-2": (
+        "/testfiles/TF10/10.D-2-fail-2.html",
+        "FAIL",
+        {"5.F": "FAIL", "5.G": "FAIL"},
+        "",
+    ),
+    "TC10.D-2-fail-3": (
+        "/testfiles/TF10/10.D-2-fail-3.html",
+        "FAIL",
+        {"5.F": "FAIL", "5.G": "FAIL"},
+        "",
+    ),
+    "TC10.D-all-pass-1": (
+        "/testfiles/TF10/10.D-all-pass-1.html",
+        "PASS",
+        {"5.F": "PASS", "5.G": "PASS"},
+        "",
+    ),
+    "TC10.D-all-pass-2": (
+        "/testfiles/TF10/10.D-all-pass-2.html",
+        "PASS",
+        {"5.F": "PASS", "5.G": "PASS"},
+        "",
+    ),
+    "TC10.D-all-pass-3": (
+        "/testfiles/TF10/10.D-all-pass-3.html",
+        "PASS",
+        {"5.F": "PASS", "5.G": "PASS"},
+        "",
+    ),
+    "TC10.D-ic-dna-1": (
+        "/testfiles/TF10/10.D-ic-dna-1.html",
+        "DNA",
+        {"5.F": "DNA", "5.G": "DNA"},
+        "",
+    ),
 }
 
 
