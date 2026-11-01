@@ -1,7 +1,7 @@
 ---
 tt_test: 5.A
 tt_name: 3.3.2-label-provided
-spec_version: 0.1.0
+spec_version: 0.2.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -103,7 +103,7 @@ J1 is settled by looking (CLAUDE.md principle 8): its labeled answer leads to PA
 | Instructions shown only while focused (a tip) | Read with focus: in the image text, J1 |
 | Label hidden with the visually-hidden pattern | Not visible: J1 (Understanding 3.3.2: `aria-label` or hidden text alone fails) |
 | Field in a table, labelled by its column header | J1 (the header is visible text in the image) |
-| Hidden at load, revealed by interaction | As 5.C section 5 (Q5 there) |
+| Hidden at load, revealed by interaction | Read on the replay that revealed it (5.C section 2) |
 | Field inside a frame or a shadow root | Read in its own document; frames the tool cannot read are M1 |
 
 ## 6. What a FAIL records
