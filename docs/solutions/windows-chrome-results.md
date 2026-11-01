@@ -33,9 +33,13 @@ with no one touching it. All of them reproduced.
   `test_egress.py::test_iframe_and_subresources_pointing_inside_are_refused`
   records no "non-public" refusal, and
   `test_rebinding_mid_run_is_refused` sees one DNS lookup instead of two.
-  Not yet known: whether installed Chrome sent the requests some other way
-  (the guard was bypassed), or never made them (the test did not exercise
-  the guard).
+  **No bypass:** a rerun with `pytest -l` showed the sentinel server
+  (127.0.0.2) got no hits in either test. Installed Chrome never made the
+  requests: the servers saw only the top page (`/frames.html`,
+  `/rebind.html`), with no iframe, image, script or later `fetch`. So in
+  headed Chrome 156 these tests do not exercise the guard. Why Chrome skips
+  the requests is not yet known; Chrome's own block on public pages reaching
+  private addresses is one guess, unchecked.
 - **4.A ACT case 8f9b5bf5 (rule 0ssw9k), Run B only:** PASS where ACT
   expects DNA ("Spec G4. no instances").
 
