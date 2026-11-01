@@ -117,6 +117,14 @@ class Stop(BaseModel):
         default=None, description="Composite widget (menubar, grid...) holding it."
     )
     field: str | None = Field(default=None, description='"text", "select", "checkbox".')
+    control: str | None = Field(
+        default=None,
+        description='Form control kind 5.D completes: "text", "select", "listbox", '
+        '"checkbox", "switch", "radio", "combobox", "slider", "spinbutton".',
+    )
+    readonly: bool = False
+    disabled: bool = False
+    group: str | None = Field(default=None, description="Radio group key.")
     collapsed: bool = Field(
         default=False, description="A disclosure control with aria-expanded=false."
     )
@@ -166,6 +174,9 @@ class PassResult(BaseModel):
     cap: int
     inventory: int
     inventory_end: int | None = None
+    form_fields: int = Field(
+        default=0, description="Form fields in the DOM inventory at load (5.D)."
+    )
     failed_requests: int = Field(
         default=0, description="Requests the recorded page could not answer."
     )

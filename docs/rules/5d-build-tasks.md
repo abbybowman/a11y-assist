@@ -6,17 +6,16 @@ it goes to 1.0.0 when its check is built and its fixtures pass. Plan:
 
 ## Code
 
-- Stops: `stop.field` today is text, select or checkbox. Add radio (with its
-  group key: form and `name`, or the radiogroup), switch, combobox, slider and spinbutton
-  (custom widgets with a value), and the disabled and read-only flags.
-- DOM inventory: count form fields (not disabled), for A1/A2 and the early
-  stop over `FIELD_MAX`.
+Built: stops carry `control` (5.D's field kind), `readonly`, `disabled` and
+the radio `group` (4.C's `field` keeps its three kinds, so 4.C's J2 is
+unchanged); the DOM inventory counts `form_fields` (radio groups once) and
+P1 records it; the init script logs form submissions
+(`traverse.submissions`), and `observe(..., submits=True)` adds the effect
+"submit" (off for 4.A and 4.B, whose specs do not read it).
+
 - Pipeline: the early stop for more than `FIELD_MAX` fields when 5.D is
   selected, beside `WalkTooLong`, with a time estimate; `no_time_limit`
   also lifts `FIELD_MAX`.
-- Submission evidence: the init script logs `submit` events (trusted or not)
-  and `HTMLFormElement.submit()` / `requestSubmit()` calls, read like the
-  focus log.
 - `checks/t5d.py`: pass F, rows as `engine.Row` tables, J1–J3, the plain
   sentences; register it. `TestId` 5.D already exists.
 
