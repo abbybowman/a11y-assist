@@ -110,6 +110,7 @@ def _context(
         deadline=deadline,
         shots=run.evidence_dir / "shots",
         rel=run.dir,
+        third_party=settings.third_party_dir,
     )
 
 
@@ -314,7 +315,8 @@ async def run_tt_tests(
     )
     checks = [REGISTRY[t] for t in selected if t in REGISTRY]
     # Checks whose replays others reuse (4.D's arrows, 4.F's Enter presses,
-    # for 4.A) collect first; findings keep the report's order.
+    # for 4.A) collect first; 5.A and 5.C (shares -1) collect last, after the
+    # replays that may reveal fields for them. Findings keep the report's order.
     checks.sort(key=lambda c: -getattr(c, "shares", 0))
     states: dict[TestId, Any] = {}
     walk: KeyboardWalk | None = None
@@ -357,6 +359,7 @@ async def run_tt_tests(
                 seconds=round(time.monotonic() - t0, 2),
             )
             ctx = _context(settings, run, get_browser, cap.final_url, soft)
+            ctx.selected = frozenset(c.test_id.value for c in checks)
             if any(c.uses_walk for c in checks):
                 await say(1, "Walking the page with Tab and Shift+Tab")
                 caps = [c.cap for c in checks if getattr(c, "cap", None)]

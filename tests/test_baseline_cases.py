@@ -34,6 +34,18 @@ ANSWERS = {
         }
         for c in ("TC10.C-3-fail-1", "TC10.C-3-fail-2", "TC10.C-3-fail-3")
     },
+    # 5.A (visual label) and 5.C (announced text) on TC10.A / TC10.E.
+    ("TC10.A-1-fail-1", "5.A"): {"J1": {"choice": "labeled", "quote": "First Name:"}},
+    **{
+        (c, "5.A"): {"J1": {"choice": "labeled", "quote": q}}
+        for c, q in (
+            ("TC10.A-all-pass-3", "Last Name:"),
+            ("TC10.A-all-pass-4", "Middle Name:"),
+            ("TC10.A-all-pass-5", "Company Name"),
+            ("TC10.A-all-pass-6", "Official Name"),
+        )
+    },
+    ("TC10.E-1-fail-1", "5.A"): {"J1": {"choice": "not_labeled"}},
     # 5.F / 5.G (TC10.D): what a correct agent says about each error text.
     ("TC10.D-2-fail-1", "5.F"): {
         "J1": {"choice": "described", "quote": "Error: not a number."}

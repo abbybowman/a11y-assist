@@ -77,3 +77,58 @@ async def inject_andi(
     await page.add_script_tag(path=str(third_party_dir / "andi" / "andi.js"))
     await page.wait_for_selector("#ANDI508", state="attached", timeout=timeout_ms)
     return await page.evaluate("window.andiVersionNumber")
+
+
+# ANDI's per-element analysis, read after inject_andi() (5.C; plan
+# 2026-11-01-forms-5a-5c, ANDI spike). ANDI keeps it in jQuery data on each
+# element it analyses (`data-andi508-index`): accName, accDesc, accGroup as
+# display HTML, and alert lists. Display markup is removed (its id badges,
+# such as "#cn2" before described text); an alert's message is its link's
+# aria-label. Read in the main world, where ANDI's jQuery data lives.
+ANDI_OUTPUT_JS = (
+    "() => {"
+    + """
+  if (!window.jQuery || !document.querySelector('#ANDI508')) return null;
+  const clean = (h) => {
+    if (!h) return '';
+    const t = document.createElement('template');
+    t.innerHTML = String(h);
+    t.content.querySelectorAll('.ANDI508-display-id').forEach((e) => e.remove());
+    return (t.content.textContent || '').replace(/\\s+/g, ' ').trim();
+  };
+  const alerts = (a) => (a || []).map((x) => {
+    const m = /aria-label='(?:danger|warning|caution): (.*?)(?: Select to Open| ')/.exec(String(x));
+    return m ? m[1] : clean(x);
+  });
+  const seg = (n) => {
+    const root = n.getRootNode();
+    if (n.id && root.querySelectorAll('#' + CSS.escape(n.id)).length === 1) return { s: '#' + CSS.escape(n.id), unique: true };
+    const tag = n.tagName.toLowerCase(), p = n.parentElement;
+    if (!p) return { s: tag, unique: false };
+    const same = Array.from(p.children).filter((c) => c.tagName === n.tagName);
+    return { s: same.length > 1 ? `${tag}:nth-of-type(${same.indexOf(n) + 1})` : tag, unique: false };
+  };
+  const path = (n) => {
+    const parts = [];
+    for (let cur = n; cur && cur.nodeType === 1; cur = cur.parentElement) {
+      const { s, unique } = seg(cur); parts.unshift(s);
+      if (unique || !cur.parentElement) break;
+    }
+    return parts.join(' > ');
+  };
+  return Array.from(document.querySelectorAll('[data-andi508-index]')).map((el) => {
+    const d = window.jQuery(el).data('andi508') || {};
+    return { css: path(el), name: clean(d.accName), desc: clean(d.accDesc), group: clean(d.accGroup),
+             dangers: alerts(d.dangers), warnings: alerts(d.warnings) };
+  });
+}"""
+)
+
+
+async def andi_output(page: Page) -> list[dict] | None:
+    """ANDI's output per analysed element, keyed by CSS path (the walk's
+    path form, top document). None when ANDI is not running on the page."""
+    try:
+        return await page.evaluate(ANDI_OUTPUT_JS)
+    except Exception:
+        return None
