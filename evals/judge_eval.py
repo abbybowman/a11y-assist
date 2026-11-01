@@ -40,6 +40,7 @@ from tests import (  # noqa: E402
     test_fixtures_4c,
     test_fixtures_4e,
     test_fixtures_4f,
+    test_fixtures_5a,
     test_fixtures_5d,
     test_fixtures_5f,
 )
@@ -99,18 +100,24 @@ def cases() -> list[dict]:
                     "expected": e["outcome"],
                 }
             )
-    # 5.F and 5.G share fixtures: EXPECTED is page -> test -> expectation.
-    for name, by_test in test_fixtures_5f.EXPECTED.items():
-        for tt, e in by_test.items():
-            out.append(
-                {
-                    "case": f"{tt}-{name}",
-                    "tt": tt,
-                    "root": "fix",
-                    "path": f"5f/{name}.html",
-                    "expected": e["outcome"],
-                }
-            )
+    # 5.F/5.G and 5.A/5.C share fixtures: EXPECTED is page -> test ->
+    # expectation, with an optional "with": tests that must run alongside
+    # (4.F's pass R reveals 5.A/5.C's f12 field).
+    for mod, folder in ((test_fixtures_5f, "5f"), (test_fixtures_5a, "5a")):
+        for name, by_test in mod.EXPECTED.items():
+            for tt, e in by_test.items():
+                if tt == "with":
+                    continue
+                out.append(
+                    {
+                        "case": f"{tt}-{name}",
+                        "tt": tt,
+                        "root": "fix",
+                        "path": f"{folder}/{name}.html",
+                        "expected": e["outcome"],
+                        "with": by_test.get("with", []),
+                    }
+                )
     act = json.loads((ACT_ROOT / "manifest.json").read_text())["cases"]
     for c in act:
         if c["tt_test"] in ("4.A", "4.C"):
@@ -197,7 +204,11 @@ def _write_packet(out: Path, case: dict, run_id: str, rnd: int, res) -> None:
             return {k: rewrite(x) for k, x in v.items()}
         return v
 
-    qs = [rewrite(q.model_dump(mode="json")) for q in res.open_questions]
+    qs = [
+        rewrite(q.model_dump(mode="json"))
+        for q in res.open_questions
+        if q.test_id.value == case["tt"]
+    ]
     (d / "questions.json").write_text(
         json.dumps(
             {
@@ -257,9 +268,11 @@ async def prepare(out: Path, only: set[str] | None = None) -> None:
     async def one(c: dict) -> None:
         async with sem:
             res = await run_tt_tests(
-                s, f"{roots[c['root']]}/{c['path']}", [TestId(c["tt"])]
+                s,
+                f"{roots[c['root']]}/{c['path']}",
+                [TestId(t) for t in c.get("with", [])] + [TestId(c["tt"])],
             )
-        if res.open_questions:
+        if [q for q in res.open_questions if q.test_id.value == c["tt"]]:
             _write_packet(out, c, res.run_id, 1, res)
             state[c["case"]] = {**c, "run_id": res.run_id, "round": 1, "status": "open"}
 
@@ -298,7 +311,8 @@ async def apply(out: Path) -> None:
             r.model_dump(mode="json") if hasattr(r, "model_dump") else r
             for r in res.rejected
         ]
-        if res.open_questions and not rejected and c["round"] < 3:
+        own = [q for q in res.open_questions if q.test_id.value == c["tt"]]
+        if own and not rejected and c["round"] < 3:
             c["round"] += 1
             _write_packet(out, c, c["run_id"], c["round"], res)
             continue
@@ -311,7 +325,7 @@ async def apply(out: Path) -> None:
             "match": fd.outcome.value == c["expected"],
             "rows": fd.rows,
             "rejected": rejected,
-            "still_open": [q.question_id for q in res.open_questions],
+            "still_open": [q.question_id for q in own],
             "answers": [
                 {
                     "q": r.answer.question_id,

@@ -9,10 +9,12 @@ tables decide outcomes.
 
 from __future__ import annotations
 
+import json
 from typing import Any
 
 from pydantic import BaseModel, Field
 
+from a11y_assist import labels
 from a11y_assist.checks.base import RunContext
 from a11y_assist.engine import Row, first_match
 from a11y_assist.models import (
@@ -367,6 +369,22 @@ async def _reveal(
         except Exception as exc:
             st.incomplete.append(f"Opening a menu or dialog failed to run: {exc!r}")
         finally:
+            # Form fields this opened, for 5.A and 5.C (their spec, section 2):
+            # read last on this replay, only when they run in this call.
+            container = trig.info.get("container")
+            if container and labels.wanted(ctx):
+                try:
+                    has = await s.traversal.reader.evaluate_top(
+                        "(() => { const c = document.querySelector("
+                        + json.dumps(container)
+                        + "); return !!(c && c.querySelector('input:not([type=hidden]),select,textarea')); })()"
+                    )
+                    if has:
+                        await labels.read_revealed(
+                            ctx, s, f'press Enter on "{trig.name or "the button"}"'
+                        )
+                except Exception:
+                    pass
             await s.close()
 
 

@@ -147,6 +147,8 @@ FOCUS_JS = (
     const p = n.parentElement;
     if (!p || ['SCRIPT', 'STYLE', 'NOSCRIPT', 'OPTION', 'TEXTAREA'].includes(p.tagName)) continue;
     if (p.closest('#ANDI508') || el.contains(p) || inOther(p) || !shown(p)) continue;
+    // Section headings need no association (5.C p. 27 Note 5): not field text.
+    if (p.closest('h1,h2,h3,h4,h5,h6,[role=heading]')) continue;
     const t = n.textContent.replace(/\\s+/g, ' ').trim();
     if (!t) continue;
     const range = doc.createRange(); range.selectNodeContents(n);
@@ -155,9 +157,19 @@ FOCUS_JS = (
     near.push({ t, d: Math.hypot((b.left + b.right) / 2 - cx, (b.top + b.bottom) / 2 - cy) });
   }
   near.sort((a, b) => a.d - b.d);
+  // Visible labels of other fields in the region: a set of fields (a phone
+  // number in three boxes) may share one label (F82); 5.A's J1 may quote them.
+  const nbr = [];
+  for (const o of els) {
+    if (o === el) continue;
+    for (const l of labelEls(o)) {
+      const t = txt(l);
+      if (t && shown(l) && inReg(l.getBoundingClientRect()) && !nbr.includes(t)) nbr.push(t);
+    }
+  }
   return {
     focused: doc.activeElement === el,
-    labels, nearby: near.map((x) => x.t),
+    labels, nearby: near.map((x) => x.t), nearby_other: nbr.slice(0, 6),
     placeholder_shown: !!el.getAttribute('placeholder') && !el.value,
     clip: { x: reg.l + scrollX, y: reg.t + scrollY, width: Math.max(1, reg.r - reg.l), height: Math.max(1, reg.b - reg.t) },
   };
@@ -191,6 +203,7 @@ class Comp(BaseModel):
     focused: bool | None = None
     label_shown: list[dict[str, Any]] = Field(default_factory=list)
     nearby: list[str] = Field(default_factory=list)
+    nearby_other: list[str] = Field(default_factory=list)  # other fields' labels
     placeholder_shown: bool = False
     image: str | None = None
     andi: dict[str, Any] | None = None  # name, desc, group, dangers, warnings
@@ -243,6 +256,19 @@ async def read_session(
             f"The form fields could not be read ({type(exc).__name__})."
         )
         return out
+    # Forms inside frames are not read yet: say so, never treat them as absent.
+    framed = 0
+    for fr in page.frames[1:]:
+        try:
+            framed += await fr.evaluate(
+                "document.querySelectorAll('input:not([type=hidden]),select,textarea,button').length"
+            )
+        except Exception:
+            continue
+    if framed:
+        out.incomplete.append(
+            f"{framed} form field(s) or button(s) inside frames were not checked."
+        )
     for c in got or []:
         out.components.append(
             Comp(
@@ -280,6 +306,7 @@ async def read_session(
             near.append(t)
             total += len(t)
         c.nearby = near
+        c.nearby_other = r.get("nearby_other") or []
         if images:
             try:
                 ctx.shots.mkdir(parents=True, exist_ok=True)
@@ -293,6 +320,11 @@ async def read_session(
     # ANDI last: it changes the page.
     if ctx.third_party is not None:
         try:
+            # Mark each component before ANDI wraps the page (its wrapper
+            # changes CSS paths that do not start at an id): match by mark.
+            await s.traversal.reader.evaluate_top(
+                "(window.__a11yLabelEls || []).forEach((e, i) => e.setAttribute('data-a11y-c', String(i)))"
+            )
             out.andi_aborted = await install_andi_routes(
                 s.traversal.context, ctx.third_party
             )
@@ -301,9 +333,9 @@ async def read_session(
             rows = await andi_output(page)
             if rows is not None:
                 out.andi_ran = True
-                by_css = {r["css"]: r for r in rows}
-                for c in out.components:
-                    c.andi = by_css.get(c.css)
+                by_mark = {r.get("mark"): r for r in rows if r.get("mark") is not None}
+                for i, c in enumerate(out.components):
+                    c.andi = by_mark.get(str(i))
         except Exception as exc:
             out.notes.append(f"ANDI could not run on this page ({type(exc).__name__}).")
     return out

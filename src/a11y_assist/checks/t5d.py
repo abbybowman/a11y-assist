@@ -15,6 +15,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
+from a11y_assist import labels
 from a11y_assist.checks.base import RunContext
 from a11y_assist.engine import Row, first_match
 from a11y_assist.forms import (
@@ -519,6 +520,13 @@ async def collect(ctx: RunContext, walk: KeyboardWalk) -> State5D:
             i += 1
     finally:
         if s is not None:
+            # Fields the fill pass revealed, for 5.A and 5.C (their spec,
+            # section 2): read last on this replay, only when they run.
+            if any(f.index < 0 for f in fields) and labels.wanted(ctx):
+                try:
+                    await labels.read_revealed(ctx, s, "fill in the fields before it")
+                except Exception:
+                    pass
             await s.close()
     st.fields = fields
     return st

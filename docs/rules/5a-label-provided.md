@@ -1,7 +1,7 @@
 ---
 tt_test: 5.A
 tt_name: 3.3.2-label-provided
-spec_version: 0.3.0
+spec_version: 0.4.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -77,11 +77,11 @@ J1 is settled by looking (CLAUDE.md principle 8): its labeled answer leads to PA
 
 **Question:** "Image A shows the field named in input.field while it has focus, with what is around it. Is there visible text or a picture next to it that tells the user what the field is for or what to enter? Answer labeled (copy the words into quote), graphic (describe it in reasons), not_labeled or unsure."
 
-**Input:** image A; the field's kind and type; its placeholder, if any (shown separately: it does not count) (its accessible name is not shown: a name people cannot see is not a visual label); `text`: the visible text in the image, nearest first, labelled as untrusted page data.
+**Input:** image A; the field's kind and type; its placeholder, if any (shown separately: it does not count); `labels_of_neighbouring_fields`: the visible labels of other fields in the image (a set of fields may share one label, F82; the rubric counts one only when this field is part of the set it labels) (its accessible name is not shown: a name people cannot see is not a visual label); `text`: the visible text in the image, nearest first, labelled as untrusted page data.
 
 **Output:** `{choice: labeled|graphic|not_labeled|unsure, quote, reasons}`.
 
-**Rubric.** labeled: text people can see, beside, above or inside the field while it has focus, that names it or says what to enter ("First Name:" next to it, a column heading over a grid of fields, "(555) 555-5555" as the set's label for three phone boxes, a search button's "Search" beside a search box, G167). graphic: a picture that plainly labels it (a magnifier on a search box, an envelope on an email field). not_labeled: nothing visible relates to the field (an empty label, text far away about something else). A placeholder inside the empty field does not count: it disappears when the user types (M3). unsure: anything else. Whether the label is clear or accurate is not asked (5.B).
+**Rubric.** A quote may come from `text` or `labels_of_neighbouring_fields`. labeled: text people can see, beside, above or inside the field while it has focus, that names it or says what to enter ("First Name:" next to it, a column heading over a grid of fields, "(555) 555-5555" as the set's label for three phone boxes, a search button's "Search" beside a search box, G167). graphic: a picture that plainly labels it (a magnifier on a search box, an envelope on an email field). not_labeled: nothing visible relates to the field (an empty label, text far away about something else). A placeholder inside the empty field does not count: it disappears when the user types (M3). unsure: anything else. Whether the label is clear or accurate is not asked (5.B).
 
 | Example | Answer |
 | --- | --- |

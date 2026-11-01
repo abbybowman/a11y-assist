@@ -41,7 +41,7 @@ def _j(st: State5A, c: Comp) -> str | None:
 
 def _quote_ok(st: State5A, c: Comp) -> bool:
     q = (st.j.get(f"c{c.n}-J1") or {}).get("quote", "")
-    return quote_in(q, c.nearby)
+    return quote_in(q, c.nearby + c.nearby_other)
 
 
 def instance_rows(st: State5A) -> list[Row]:
@@ -88,14 +88,18 @@ J1_QUESTION = (
     "Image A shows the field in input.field while it has focus, with what is "
     "around it. Is there visible text or a picture next to it that tells the "
     "user what the field is for or what to enter? Answer labeled (copy the "
-    "words from input.text into quote), graphic (describe it in reasons), "
+    "words from input.text or input.labels_of_neighbouring_fields into quote), "
+    "graphic (describe it in reasons), "
     "not_labeled or unsure."
 )
 J1_RUBRIC = (
     "labeled: text people can see, beside, above or inside the field while it "
     'has focus, that names it or says what to enter ("First Name:" next to it, '
     "a column heading over a grid of fields, one label for a set of phone "
-    'number boxes, a "Search" button beside a search box). graphic: a picture '
+    'number boxes, a "Search" button beside a search box). A label in '
+    "input.labels_of_neighbouring_fields counts only when this field is part "
+    "of the set it labels (the second and third boxes of one phone number). "
+    "graphic: a picture "
     "that plainly labels it (a magnifier on a search box). not_labeled: nothing "
     "visible relates to the field. A placeholder inside the empty field "
     "(input.field.placeholder) does not count: it disappears when the user "
@@ -129,6 +133,7 @@ def questions_for(st: State5A, evidence_refs: list[str]) -> list[OpenQuestion]:
                         "placeholder": c.placeholder or None,
                     },
                     "text": c.nearby,
+                    "labels_of_neighbouring_fields": c.nearby_other,
                     "image_a": images[0] if images else None,
                 },
                 evidence_paths=evidence_refs + images,
