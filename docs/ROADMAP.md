@@ -8,8 +8,11 @@ spec, CLAUDE.md or `docs/solutions/` where it belongs.
 
 Built (spec 1.0.0+, check registered, fixtures green): 4.A, 4.B, 4.C, 4.D,
 4.E, 4.F. Judge eval (fresh agents, no scripted answers): 43/44 fixtures, no
-false PASS ([evals/README.md](../evals/README.md)). Next: the time budget
-(below), then choose the next TT test group.
+false PASS ([evals/README.md](../evals/README.md)). The time budget is
+done: all of 4.A–4.F fit one 120 s call on realistic multi-section pages
+(97 s and 83 s), pages too large to walk are refused early with a
+`no_time_limit` option ([plans/2026-11-01-time-budget.md](plans/2026-11-01-time-budget.md)).
+Next: choose the next TT test group.
 
 Per-test leftovers live in each `docs/rules/<id>-build-tasks.md` (mostly
 browser checks on Windows headed Chrome, which this Linux container cannot
@@ -17,17 +20,20 @@ run).
 
 ## Soon
 
-- **Time budget across Test 4.** One `a11y_run_tt_tests` call must finish in
-  `RUN_LIMIT_S` (120 s), and every implemented test now runs by default.
-  Measured so far: a 100-link page takes 53 s for the walk plus 4.D. Measure
-  all of 4.A–4.F together on that page (4.A adds hover, click and execute
-  replays), and run the 600-link fixture (4.C F34, `pytest -m slow`), which
-  has never run under the 120 s limit (expected: NEEDS REVIEW "ran out of
-  time"). Then cut, starting with shared replays (next item).
-- **Share replays.** 4.C's widget check (P4), 4.D's widget pass W and 4.A's
-  arrow probes replay to the same stops; 4.A's execute check and 4.F's pass R
-  both press Enter on triggers; 4.C could also read 4.F's pass R (traps inside
-  revealed content).
+- **Share replays (deferred).** 4.C's widget check (P4), 4.D's widget pass
+  W and 4.A's arrow probes replay to the same widget stops; 4.A's execute
+  check and 4.F's pass R both press Enter on custom triggers; 4.C could also
+  read 4.F's pass R (traps inside revealed content). With quick replay
+  prefixes this saves only a few seconds per widget (it was 17 s + 18 s on
+  the agency page before them), and sharing 4.A's arrows with pass W is a
+  MINOR change to 4.A (pass W visits fewer items). Build it only when a
+  realistic page is over the limit again; measure with
+  `evals/time_budget.py`.
+- **Large pages.** Pages over roughly 300 stops cannot be walked in one
+  120 s call (F34, 600 links, is refused after ~5 s). Options if this
+  matters for real sites: resumable runs (walk in one call, checks in the
+  next), or walking P1 and P2 in parallel (headed Chrome focus in a
+  background window needs checking on Windows first).
 - **Confirm 4.B alternatives by pressing them.** The last judge-eval mismatch
   (4.B f02): the agent could not tell whether the named alternative does what
   the timed press does. Press it normally on a fresh replay and compare its
