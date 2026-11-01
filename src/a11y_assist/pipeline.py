@@ -21,6 +21,7 @@ from __future__ import annotations
 import shutil
 import time
 from collections.abc import Awaitable, Callable
+from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
@@ -49,6 +50,7 @@ from a11y_assist.policy import check_url
 from a11y_assist.redact import safe_error
 from a11y_assist.resources.runs import run_uri
 from a11y_assist.runlog import RunRecorder, expires_at, prune_runs
+from a11y_assist.traverse import metered
 from a11y_assist.versions import collect_versions
 from a11y_assist.walk import KeyboardWalk, walk_page
 
@@ -266,6 +268,7 @@ async def run_tt_tests(
             run.log("browser_launched", version=browser.version)
             await say(0, "Recording the page")
             har = run.evidence_dir / "page.har.zip"
+            t0 = time.monotonic()
             try:
                 cap = await record(browser, settings, url, har, run.log, proxy)
             except Exception as exc:
@@ -285,24 +288,31 @@ async def run_tt_tests(
                     "Some page content was not loaded because its host resolves "
                     f"to a non-public address: {blocked}"
                 )
-            run.log("captured", final_url=cap.final_url, redirects=cap.redirects)
+            run.log(
+                "captured",
+                final_url=cap.final_url,
+                redirects=cap.redirects,
+                seconds=round(time.monotonic() - t0, 2),
+            )
             ctx = _context(settings, run, get_browser, cap.final_url)
             if any(c.uses_walk for c in checks):
                 await say(1, "Walking the page with Tab and Shift+Tab")
-                walk = await walk_page(
-                    ctx.new_page,
-                    ctx.quiet_ms,
-                    ctx.deadline,
-                    ctx.shots,
-                    ctx.rel,
-                    _walk_extras(checks),
-                )
+                with metered() as cost:
+                    walk = await walk_page(
+                        ctx.new_page,
+                        ctx.quiet_ms,
+                        ctx.deadline,
+                        ctx.shots,
+                        ctx.rel,
+                        _walk_extras(checks),
+                    )
                 run.write_json(run.evidence_dir / "walk.json", walk)
-                run.log("walk", **_walk_summary(walk))
+                run.log("walk", **_walk_summary(walk), cost=asdict(cost))
             for c in checks:
                 await say(2, f"Checking {c.test_id.value}")
                 try:
-                    state = await c.collect(ctx, walk)
+                    with metered() as cost:
+                        state = await c.collect(ctx, walk)
                 except Exception as exc:
                     err = safe_error(exc)
                     run.log("check_error", "error", test=c.test_id.value, error=err)
@@ -310,7 +320,7 @@ async def run_tt_tests(
                     continue
                 states[c.test_id] = state
                 run.write_json(run.evidence_dir / evidence_name(c.test_id), state)
-                run.log("collected", test=c.test_id.value)
+                run.log("collected", test=c.test_id.value, cost=asdict(cost))
         finally:
             await browser.close()
 

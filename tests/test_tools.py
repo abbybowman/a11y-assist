@@ -84,6 +84,15 @@ async def test_run_tt_tests_on_http_page(settings, server):
     names = [s["step"] for s in steps]
     assert names[0] == "run_start" and names[-1] == "run_end"
     assert "captured" in names and "walk" in names and "collected" in names
+    # Each phase's cost, to decide where the time budget goes (evals/time_budget.py).
+    [walk] = [s for s in steps if s["step"] == "walk"]
+    assert walk["detail"]["cost"]["loads"] == 2
+    assert walk["detail"]["cost"]["presses"] == (
+        out["walk"]["P1"]["presses"] + out["walk"]["P2"]["presses"]
+    )
+    for s in steps:
+        if s["step"] == "collected":
+            assert set(s["detail"]["cost"]) == {"loads", "presses", "seconds"}
 
 
 async def test_collect_on_file_fixture_in_dev_mode(settings):
