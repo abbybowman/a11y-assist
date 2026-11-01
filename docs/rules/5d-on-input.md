@@ -1,7 +1,7 @@
 ---
 tt_test: 5.D
 tt_name: 3.2.2-on-input
-spec_version: 0.5.0
+spec_version: 1.0.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -100,7 +100,7 @@ Each completed field is an *instance*. After the Tab that leaves a field, focus 
 | G4 | Every field P1 reached was completed, and every instance is PASS or no instance | PASS |
 | G5 | Anything else | NEEDS REVIEW |
 
-**Plain-language sentences.** Row IDs stay in the evidence trace. `<field>` is the field's label and kind in plain words; `<keys>` is how to reproduce it from a fresh load ("Tab 6 times, type Test, then Tab").
+**Plain-language sentences.** Row IDs stay in the evidence trace; M14 instances (nothing happened) are not listed. `<field>` is the field's label and kind in plain words; `<keys>` is how to reproduce it from a fresh load ("Tab 6 times, type Test, then Tab").
 
 | Row | Sentence |
 | --- | --- |
@@ -111,10 +111,13 @@ Each completed field is an *instance*. After the Tab that leaves a field, focus 
 | A2 | "The page has form fields, but we could not reach any of them with the keyboard. Please check by hand." |
 | M1 | "Something happened when we filled in <field> that we could not read reliably. Please check it: load the page and press <keys>." |
 | M2 | "We could not change <field> with the keyboard, so we could not check it. Please try it by hand." |
+| M3 | "<field> did not accept the value we tried; a question about a value it accepts is still open." |
+| J1? | "When we filled in <field>, <change in plain words>; a question about it is still open. To see it, load the page and press <keys>." |
 | M9 (navigation) | "Filling in <field> and tabbing away takes the user to another page without warning. To see it, load the page and press <keys>. If you disagree, tell your assistant." |
 | M9 (new page) | "Filling in <field> opens a new window or tab without warning. To see it, load the page and press <keys>. If you disagree, tell your assistant." |
 | M9 (submitted) | "Filling in <field> and tabbing away sends the form without warning. To see it, load the page and press <keys>. If you disagree, tell your assistant." |
 | M9 (focus) | "Filling in <field> moves keyboard focus on its own to <element>, without warning. To see it, load the page and press <keys>. If you disagree, tell your assistant." |
+| M9 (content, after J2) | "Filling in <field> changes the page in a way that takes over what the user is doing (<J2 reasons>), without warning. To see it, load the page and press <keys>. If you disagree, tell your assistant." |
 | M8 (note) | "Filling in <field> <change in plain words>, but the page says so beforehand (\"<J1 quote>\"), so that is fine." |
 | M10 | "Filling in <field> <change in plain words>, and we could not tell whether the page warns about it first. Please look: load the page and press <keys>." |
 | M11 (note) | "Filling in <field> changes part of the page (<J2 reasons>); that only adds content, so it is fine." |
@@ -180,15 +183,16 @@ Only cases that need a rule of their own; everything else follows sections 2–3
 
 | Case | Rule | Verify |
 | --- | --- | --- |
-| A form submission in the recorded page | The replay answers only recorded requests, so a submission reaches no server; the `submit` event and the request attempt are the evidence (M4) | V1 |
+| A form submission in the recorded page | The replay answers only recorded requests, so a submission reaches no server; the `submit` event and the request attempt are the evidence (M4) | Checked: F03, F09, F10 |
 | Select on Mac (ArrowDown opens the list) | Results are for the browser and platform the report records; a value that did not change is M2 | V2 |
 | Date and time inputs | Typed as digits in the field's order; a value that did not stick goes to J3 | V3 |
 | Field inside an iframe or a shadow root | Completed like any stop (stop identity across frames, 4.C) | V4 |
 | A field revealed by an earlier field | Completed in turn when focus reaches it (section 2, step 1); counts toward `FIELD_MAX` | — |
 | Read-only and disabled fields | Not fields (p. 25: disabled elements excluded; read-only values cannot be changed) | — |
 | Search field that searches on Enter | Not a change on input: 5.D never presses Enter | — |
-| `contenteditable` regions | Not fields (the PDF lists form elements); note for a person when the page has them | — |
-| Change of context on focus, before any change | 4.E's matter; an M6 whose focus move also happens on focus alone is noted for 4.E | — |
+| `contenteditable` regions | Not fields (the PDF lists form elements) | — |
+| Change of context on focus, before any change | 4.E's matter (4.E checks every stop the walk reaches) | — |
+| A form submission that navigates away | The submission is logged on the page that leaves, so the change may read as "went to another address" instead of "sent the form": both are M4 | Checked: F10 |
 
 ## 6. What a FAIL records
 

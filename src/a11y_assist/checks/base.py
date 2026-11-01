@@ -4,12 +4,17 @@ One module per TT test (e.g. checks/t4c.py), registered in checks/__init__.py.
 A check never decides an outcome outside its rules spec (CLAUDE.md principle
 2): `evaluate` applies the spec's rows to the evidence, and nothing else does.
 
-Adding a check (4.D, 4.E and 4.F were built this way; copy t4e.py, the
-smallest):
-  1. Draft docs/rules/<id>-<name>.md from _template.md at 0.1.0: only what
-     the TT PDF asks a tester to do; reuse the walk, walk extras and the
-     existing collectors before adding passes; one plain sentence per row.
-     Cross-check unclear points against W3C Understanding and ACT + DHS.
+Adding a check (4.D, 4.E, 4.F and 5.D were built this way; copy t4e.py, the
+smallest, or t5d.py for a form test):
+  1. Research first (CLAUDE.md): the TT text, W3C Understanding and its
+     techniques, ACT rules and DHS's verdicts, the ICT Testing Baseline
+     test and its Baseline Alignment cases; read the vendored pages before
+     writing rules (5.D's TC10.C-3-fail-2 changed a rule). Then draft
+     docs/rules/<id>-<name>.md from _template.md at 0.1.0: only what the TT
+     PDF asks a tester to do; reuse the walk, walk extras and the existing
+     collectors (observe.py, ctx.replay, stop.control) before adding passes;
+     one plain sentence per row; cite the sources; mark OPEN only what they
+     leave open.
   2. Ask Abby the open points as multiple-choice questions; write each
      answer into the rule it decides. No decision log.
   3. Fixtures: vendored ACT cases first (tests/fixtures/act/sync_act.py),
@@ -17,8 +22,12 @@ smallest):
      in the test file or manifest, never in a page. Rows no page triggers
      reliably get unit tests on hand-built state.
   4. Write checks/t<id>.py: a Check below, walk extras as StepHooks, rows
-     as engine.Row tables copied from the spec. Register it in
-     checks/__init__.py. Run it with tests/harness.py run_check().
+     as engine.Row tables copied from the spec. While the spec is a draft,
+     register it only in tests/drafts.py (a draft gives no outcome from the
+     server); move it to checks/__init__.py at 1.0.0. Run it with
+     tests/harness.py run_check(). Use ctx.replay for replays and
+     ctx.out_of_time() before each one; a page whose items exceed a cap the
+     check declares (`cap`) is refused at the first load.
      Open questions: link files as run:// (never run-folder paths), put
      evidence several questions share in shared_inputs(state), and give the
      agent what its rubric asks about (an eval found a rubric judged on half

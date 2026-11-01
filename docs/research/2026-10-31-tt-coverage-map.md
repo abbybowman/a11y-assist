@@ -116,7 +116,7 @@ first. For partial tests, what is ranked is the part scanners miss.
 | 2 | 4.A Keyboard access | H | L | Every mouse-operable control reached and operated by keyboard. **Built.** |
 | 3 | 4.D Focus visible | H | L/M | Before/after images per stop. **Built.** |
 | 4 | 4.E On focus | M | L | Watch for URL change, new window, focus moving. **Built.** |
-| 5 | 5.D On input | M | L | Change each field; watch for the same context-change signals. |
+| 5 | 5.D On input | M | L | Change each field; watch for the same context-change signals. **Built.** |
 | 6 | 4.F Focus order | H | M | Focus sequence against layout; modal containment. **Built.** |
 | 7 | 9.B Consistent navigation | H | L | Order of repeated navigation across pages. |
 | 8 | 9.C Consistent identification | H | L/M | Same-function components across pages, compare names. |
@@ -198,9 +198,10 @@ open sourcing.
 
 - The keyboard and focus group took ranks 1 to 6 with 5.D: no scanner
   coverage, high human time, mostly binary outcomes. Built.
-- Next natural groups: 5.D and 9.A (single page, reuse the walk and 4.A's
-  and 4.E's observers); multi-page 9.B and 9.C; then visual versus code
-  (10.B–10.D, 14.x, 15.A, 18.A), after the ANDI spike.
+- 5.D is built (2026-11-01). Next natural groups: the other form tests
+  (5.F, 5.G, 5.A/5.C leftovers, reusing 5.D's fill pass); multi-page 9.A,
+  9.B and 9.C; then visual versus code (10.B–10.D, 14.x, 15.A, 18.A),
+  after the ANDI spike.
 - Let scanners own the 3 reliable tests and the scanned half of the 21
   partial ones; import their results as evidence, never as a PASS on their
   own.

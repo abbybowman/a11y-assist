@@ -4,19 +4,22 @@ What is left to build, newest priorities first. A living list, not a log:
 delete an item once it is built, and put any decision it needed into the
 spec, CLAUDE.md or `docs/solutions/` where it belongs.
 
-## Now: TT Test 4 is complete
+## Now: Test 4 and 5.D are built
 
 Built (spec 1.0.0+, check registered, fixtures green): 4.A, 4.B, 4.C, 4.D,
-4.E, 4.F. Judge eval (fresh agents, no scripted answers): 43/44 fixtures, no
-false PASS ([evals/README.md](../evals/README.md)). The time budget is
-done: all of 4.A–4.F fit one 120 s call on realistic multi-section pages
-(97 s and 83 s), pages too large to walk are refused early with a
-`no_time_limit` option ([plans/2026-11-01-time-budget.md](plans/2026-11-01-time-budget.md)).
-Next: 5.D On input ([plans/2026-11-01-5d-on-input.md](plans/2026-11-01-5d-on-input.md),
-spec [rules/5d-on-input.md](rules/5d-on-input.md) 0.2.0), chosen from the
-coverage map ([research/2026-10-31-tt-coverage-map.md](research/2026-10-31-tt-coverage-map.md)).
-Then the other form tests (5.F, 5.G, the 5.A/5.C leftovers) or the
-multi-page batch.
+4.E, 4.F and 5.D (On input). Judge eval (fresh agents, no scripted
+answers): 43/44 Test 4 fixtures and 14/14 for 5.D, no false PASS
+([evals/README.md](../evals/README.md)). Every implemented test fits one
+120 s call on realistic multi-section pages (108–111 s); pages too large to
+walk, or with more than 40 form fields, are refused at once with a
+`no_time_limit` option ([solutions/time-budget.md](solutions/time-budget.md)).
+
+Next: choose between the other form tests (5.F and 5.G error
+identification and suggestion, 5.A and 5.C leftovers, which reuse 5.D's
+fill pass and field reads) and the multi-page batch
+([plans/2026-11-01-multi-page.md](plans/2026-11-01-multi-page.md)), using
+the coverage map ([research/2026-10-31-tt-coverage-map.md](research/2026-10-31-tt-coverage-map.md))
+and CLAUDE.md's research rule.
 
 Per-test leftovers live in each `docs/rules/<id>-build-tasks.md` (mostly
 browser checks on Windows headed Chrome, which this Linux container cannot
