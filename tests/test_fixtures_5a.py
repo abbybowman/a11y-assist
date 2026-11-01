@@ -101,6 +101,11 @@ EXPECTED: dict[str, dict] = {
         "5.A": {"outcome": "PASS", "rows": ["M2"]},
         "5.C": {"outcome": "FAIL", "rows": ["M3", "M3", "M5"]},
     },
+    # Its image must be taken after scrolling (viewport clip coordinates).
+    "f13-field-below-the-fold": {
+        "5.A": {"outcome": "PASS", "rows": ["M2"]},
+        "5.C": {"outcome": "PASS", "rows": ["M5", "M5"]},
+    },
     # Pass R (4.F) opens the disclosure; the "Other" field it reveals is read
     # on that replay.
     "f12-revealed-other-field": {
