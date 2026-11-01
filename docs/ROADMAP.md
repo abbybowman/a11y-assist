@@ -40,11 +40,18 @@ run).
 - **"Test a page" prompt** for operators who are not Trusted Testers: run,
   answer questions (one subagent for all of them), summarize, read
   `report_uri` and offer to save it.
-- **Agent evals, the rest.** The judge eval covers answering questions. Still
-  to cover: a model driving the tools end to end (right calls, outcomes
-  relayed in the tool's words, no "certified" or "compliant", reports saved),
-  other models (Haiku as a cheap consumer, Opus), and a check that fails when
-  an eval agent opens files outside its packet.
+- **Agent-level eval: on hold** (plan: [plans/2026-10-31-agent-eval.md](plans/2026-10-31-agent-eval.md)).
+  A model drives the tools end to end; outcomes scored by exact match in
+  code, wording by a judge model; no-tool baseline; 5 repeats. Decided:
+  Sonnet 5.x agent and Opus 5.5 judge as Claude Code subagents for
+  development; NASA Ask Sage models for the scored runs, from the author's
+  NASA laptop (key in `.env`, never committed); Phoenix later. Waiting on
+  (1) DHS Trusted Tester training-course pages for the question set, and
+  whether DHS's terms allow saving copies, and (2) the Ask Sage model list.
+  Also still to cover: a check that fails when an eval agent opens files
+  outside its packet.
+- **Network-level egress rules** on any host that runs the server, as a
+  second layer behind the egress proxy (GSA template). Deployment work.
 
 ## Later
 

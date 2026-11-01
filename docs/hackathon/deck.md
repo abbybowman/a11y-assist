@@ -160,7 +160,7 @@ flowchart LR
 
 - We didn't write our own answer key, because that would measure agreement with ourselves.
 - **[FILL: whether open questions were answered by a script or by Claude in the scored run.]**
-- **[PENDING]** Agent-level evaluation with a no-tool baseline.
+- **[PENDING]** Agent-level evaluation with a no-tool baseline: DHS training-course pages as questions, NASA-hosted models, outcomes scored in code and wording by a judge model.
 
 ---
 
