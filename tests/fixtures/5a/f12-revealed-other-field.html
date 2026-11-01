@@ -1,0 +1,10 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>F12 Contact preferences</title></head><body>
+<h1>Contact preferences</h1>
+<form onsubmit="return false"><p><label for="em">Email</label> <input id="em"></p>
+<p><button type="button" aria-expanded="false" aria-controls="more" id="add">Add another way to reach you</button></p>
+<div id="more" hidden><p>Other: <input id="oth"></p></div>
+<p><button>Save</button></p></form>
+<script>
+const b = document.getElementById("add"), m = document.getElementById("more");
+b.addEventListener("click", () => { m.hidden = !m.hidden; b.setAttribute("aria-expanded", String(!m.hidden)); });
+</script></body></html>

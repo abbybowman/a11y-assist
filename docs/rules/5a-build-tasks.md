@@ -1,7 +1,10 @@
 # Build tasks: 5.A and 5.C
 
 Specs [5a-label-provided.md](5a-label-provided.md) and
-[5c-programmatic-label.md](5c-programmatic-label.md) are drafts (5.A 0.3.0, 5.C 0.2.0).
+[5c-programmatic-label.md](5c-programmatic-label.md) are drafts (5.A 0.4.0, 5.C 0.3.0), built as `checks/t5a.py` and
+`checks/t5c.py` on the shared `labels.py` (pass L), registered in `tests/drafts.py`.
+Green with scripted answers: 26 TC10.A/TC10.E pairs and 12 custom pages
+(`tests/test_fixtures_5a.py`, both tests in one call).
 Order of work: [plans/2026-11-01-forms-5a-5c.md](../plans/2026-11-01-forms-5a-5c.md).
 
 ## Fixtures
@@ -33,8 +36,8 @@ the name only; say so in its `differs` note. Custom pages in
 | ID | Verify | Rules that depend on it |
 | --- | --- | --- |
 | V1 | ANDI's `accName` for placeholder (checked in the spike), `title`, `aria-label`, `aria-labelledby` and label/for (TC10.A) | M3, M5 |
-| V2 | ANDI reports a fieldset legend or radiogroup label (`accGroup`) | Programmatic text, M5 |
-| V3 | Table header text for a field in a cell: from ANDI or computed from the table | M5, J1 |
+| V2 | Checked (Linux headless Chromium, 2026-11-01): ANDI reports a fieldset legend as `accGroup` (f06) | Programmatic text, M5 |
+| V3 | Checked: ANDI does not report table headers for a field in a cell; the tool computes them from the table (f08) | M5, J1 |
 | V4 | A page CSP that blocks inline scripts stops ANDI; how it shows | A2 |
-| V6 | ANDI injected at the end of a 4.F or 5.D replay analyses the revealed fields | Section 2 (revealed fields) |
+| V6 | Checked for 4.F's pass R (f12): ANDI injected at the end of the replay analyses the revealed field. 5.D's fill pass: not covered by a fixture yet | Section 2 (revealed fields) |
 | V5 | Windows headed Chrome: every fixture gives the same outcome (cannot run from Linux) | All rows |

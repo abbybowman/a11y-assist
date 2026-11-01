@@ -54,7 +54,10 @@ def label_of(c: Comp) -> str:
         or c.title
         or ""
     )
-    name = re.sub(r"\s+", " ", name).strip() or "a field"
+    name = re.sub(r"\s+", " ", name).strip()
+    if not name:
+        near = next((t for t in [*c.nearby_other, *c.nearby] if words(t)), "")
+        return f'the {c.kind} near "{near}"' if near else f"an unnamed {c.kind}"
     name = name if len(name) <= 60 else name[:57] + "..."
     return f'"{name}" ({c.kind})'
 

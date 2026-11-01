@@ -15,7 +15,7 @@ from a11y_assist.models import TestId
 
 from .conftest import BASELINE_ROOT
 from .drafts import DRAFTS
-from .harness import run_check
+from .harness import run_check, run_tests
 
 MANIFEST = json.loads((BASELINE_ROOT / "manifest.json").read_text())
 CASES = {c["id"]: c for c in MANIFEST["cases"]}
@@ -76,18 +76,44 @@ def test_files_match_their_hashes():
     assert {c["path"] for c in CASES.values()} <= set(MANIFEST["files"])
 
 
-@pytest.mark.parametrize(("case_id", "tt"), PAIRS)
-async def test_case(case_id, tt, settings, baseline_server, monkeypatch):
-    if TestId(tt) not in REGISTRY and TestId(tt) not in DRAFTS:
-        pytest.skip(f"no {tt} check yet (being built)")
-    if TestId(tt) in DRAFTS:  # a draft spec: registered for its tests only
-        monkeypatch.setitem(REGISTRY, TestId(tt), DRAFTS[TestId(tt)])
+# Tests that share one collection pass run in one call, as a client runs
+# them (and halving the browser runs keeps the suite's timing guards honest).
+SHARED = ({"5.A", "5.C"}, {"5.F", "5.G"})
+
+
+def _runs() -> list[tuple[str, tuple[str, ...]]]:
+    out = []
+    for cid, c in sorted(CASES.items()):
+        left = set(c["expected"])
+        for grp in SHARED:
+            if grp <= left:
+                out.append((cid, tuple(sorted(grp))))
+                left -= grp
+        out += [(cid, (t,)) for t in sorted(left)]
+    return out
+
+
+@pytest.mark.parametrize(("case_id", "tts"), _runs())
+async def test_case(case_id, tts, settings, baseline_server, monkeypatch):
+    for tt in tts:
+        if TestId(tt) not in REGISTRY and TestId(tt) not in DRAFTS:
+            pytest.skip(f"no {tt} check yet (being built)")
+        if TestId(tt) in DRAFTS:  # a draft spec: registered for its tests only
+            monkeypatch.setitem(REGISTRY, TestId(tt), DRAFTS[TestId(tt)])
     case = CASES[case_id]
-    got = await run_check(
-        settings,
-        f"{baseline_server}/{case['path']}",
-        TestId(tt),
-        ANSWERS.get((case_id, tt)),
-    )
-    f = got["finding"]
-    assert f.outcome.value == case["expected"][tt], (f.rationale, f.summary)
+    url = f"{baseline_server}/{case['path']}"
+    if len(tts) == 1:
+        got = {
+            tts[0]: (
+                await run_check(
+                    settings, url, TestId(tts[0]), ANSWERS.get((case_id, tts[0]))
+                )
+            )["finding"]
+        }
+    else:
+        got = await run_tests(
+            settings, url, tts, {t: ANSWERS.get((case_id, t)) or {} for t in tts}
+        )
+    for tt in tts:
+        f = got[tt]
+        assert f.outcome.value == case["expected"][tt], (tt, f.rationale, f.summary)

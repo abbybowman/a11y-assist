@@ -118,7 +118,7 @@ ANDI_OUTPUT_JS = (
   };
   return Array.from(document.querySelectorAll('[data-andi508-index]')).map((el) => {
     const d = window.jQuery(el).data('andi508') || {};
-    return { css: path(el), name: clean(d.accName), desc: clean(d.accDesc), group: clean(d.accGroup),
+    return { css: path(el), mark: el.getAttribute('data-a11y-c'), name: clean(d.accName), desc: clean(d.accDesc), group: clean(d.accGroup),
              dangers: alerts(d.dangers), warnings: alerts(d.warnings) };
   });
 }"""
