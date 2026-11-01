@@ -32,3 +32,6 @@ htmlcov/
 # Run output (evidence, HAR files, screenshots, reports)
 runs/
 tests/.act_scores/
+
+# Other temp files
+temp/
