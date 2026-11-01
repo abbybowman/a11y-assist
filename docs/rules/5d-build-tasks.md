@@ -6,9 +6,8 @@ it goes to 1.0.0 when its check is built and its fixtures pass. Plan:
 
 ## Code
 
-Built: stops carry `control` (5.D's field kind), `readonly`, `disabled` and
-the radio `group` (4.C's `field` keeps its three kinds, so 4.C's J2 is
-unchanged); the DOM inventory counts `form_fields` (radio groups once) and
+Built: stops carry `control` (the form control kind, which 4.C's J2 reads
+too), `readonly`, `disabled` and the radio `group`; the DOM inventory counts `form_fields` (radio groups once) and
 P1 records it; the init script logs form submissions
 (`traverse.submissions`), and `observe(..., submits=True)` adds the effect
 "submit" (off for 4.A and 4.B, whose specs do not read it).

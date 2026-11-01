@@ -180,12 +180,8 @@ _DESCRIBE_FN = (
   if (host) widget = path(host);
   else if (tag === 'input' && this.type === 'radio' && this.name) widget = 'radio:' + this.name;
   const type = (this.type || '').toLowerCase();
-  let field = null;
-  if (tag === 'select') field = 'select';
-  else if (tag === 'textarea' || (tag === 'input' && !['button','submit','reset','image','checkbox','radio','range','color','file','hidden'].includes(type))) field = 'text';
-  else if (tag === 'input' && type === 'checkbox') field = 'checkbox';
-  // The form control kind 5.D completes (its spec, Terms: field). Separate
-  // from `field`, which 4.C's J2 reads and keeps its three kinds.
+  // The form control kind: 4.C's J2 (a section that needs input) and 5.D's
+  // fields (its spec, Terms) both read it.
   const ROLE_CONTROL = { textbox: 'text', searchbox: 'text', combobox: 'combobox', checkbox: 'checkbox',
     switch: 'switch', radio: 'radio', slider: 'slider', spinbutton: 'spinbutton' };
   let control = null;
@@ -212,7 +208,7 @@ _DESCRIBE_FN = (
   const modal = !!dlg && ((dlg.tagName === 'DIALOG' && dlg.matches(':modal')) || dlg.getAttribute('aria-modal') === 'true');
   return { css: path(this), tag, x: r.x, y: r.y, w: r.width, h: r.height,
            isBody: this === document.body || this === document.documentElement,
-           widget, field, control, readonly, disabled, group, collapsed, modal };
+           widget, control, readonly, disabled, group, collapsed, modal };
 }"""
 )
 
@@ -645,7 +641,6 @@ class FocusReader:
             in_viewport=in_vp,
             frame_url=frame_url,
             widget=(" >> ".join([*chain, info["widget"]]) if info["widget"] else None),
-            field=info["field"],
             control=info.get("control"),
             readonly=bool(info.get("readonly")),
             disabled=bool(info.get("disabled")),
