@@ -15,8 +15,12 @@ P1 records it; the init script logs form submissions
 - Pipeline: the early stop for more than `FIELD_MAX` fields when 5.D is
   selected, beside `WalkTooLong`, with a time estimate; `no_time_limit`
   also lifts `FIELD_MAX`.
-- `checks/t5d.py`: pass F, rows as `engine.Row` tables, J1–J3, the plain
-  sentences; register it. `TestId` 5.D already exists.
+- `checks/t5d.py` is built (pass F, rows, J1–J3, sentences) as a draft,
+  registered only by `tests/drafts.py`; move it into `checks/__init__.py` at
+  1.0.0. All 14 custom fixtures and the 5 Baseline cases give their expected
+  outcome with scripted answers.
+- Unit tests on hand-built state for rows no page triggers reliably (M1,
+  M2, M10 with a quote not in the text, M13).
 
 ## Fixtures
 

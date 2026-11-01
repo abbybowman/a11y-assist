@@ -1,5 +1,6 @@
 """5.D (3.2.2-on-input) on custom fixtures (the Baseline Alignment TC10.C
-cases are in test_baseline_cases.py), plus behavior tests that each page
+cases are in test_baseline_cases.py; 5.D is a draft, registered by
+tests/drafts.py), plus behavior tests that each page
 does what it is meant to in Chrome. Expected outcomes live here, never in a
 page."""
 
@@ -9,10 +10,10 @@ import re
 
 import pytest
 
-from a11y_assist.checks import REGISTRY
 from a11y_assist.models import TestId
 
 from .conftest import FIXTURES
+from .drafts import drafts  # noqa: F401 (a fixture)
 from .harness import instance_rows, run_check
 
 TOLD = {"J1": {"choice": "told"}}
@@ -60,7 +61,7 @@ EXPECTED: dict[str, dict] = {
     "f10-zip-submits-when-valid": {
         "outcome": "FAIL",
         "rows": ["M9"],
-        "answers": {"J3": {"value": "20500"}, **NOT_TOLD},
+        "answers": {"J3": {"choice": "value", "value": "20500"}, **NOT_TOLD},
     },
     "f11-jump-menu-notice-after": {
         "outcome": "FAIL",
@@ -84,9 +85,7 @@ def test_every_fixture_is_listed():
 
 
 @pytest.mark.parametrize("name", sorted(EXPECTED) + sorted(REUSED))
-async def test_outcome(name, settings, server):
-    if TestId.T5D not in REGISTRY:
-        pytest.skip("5.D has no check yet")
+async def test_outcome(name, settings, server, drafts):  # noqa: F811
     e = EXPECTED.get(name) or REUSED[name]
     path = name if name.endswith(".html") else f"{name}.html"
     got = await run_check(
