@@ -49,3 +49,22 @@ before the next `press`, or it waits the settle rule's 1 s re-read
 **Draft checks stay out of the registry.** A 0.y.z spec gives no outcome,
 so `checks/t5d.py` lived in `tests/drafts.py` (registered per test, and by
 `evals/judge_eval.py` and `evals/time_budget.py --drafts`) until 1.0.0.
+
+**Read "before" on the fresh load, not after the replay (5.F).** A replay
+to a button Tabs past the fields first, and pages that validate on leaving
+a field (TC10.D-2-fail-2) already show the error by then, so a before/after
+comparison saw nothing. Pass E reads on the load before any key, then
+Tabs to its target (`_arrive` with the walk's quick presses).
+
+**Error messages and how they are announced (5.F).** JS `alert` text is
+not in the DOM: record it with `page.on("dialog")` and dismiss it (any
+listener must handle the dialog, or the page hangs). Native validation
+fires `invalid` per field and blocks the submit; the browser's message is
+`validationMessage` (headless draws no bubble). A live region counts as an
+announcement only if it existed before the text appeared. `traverse`
+now logs `invalid` events and whether a page handler cancelled a submit.
+
+**Tests that open a browser twice per page add load.** The 5.F/5.G
+fixtures first ran each test separately; under `-n 8` 4.D's f10 (a 65 s
+guard) tipped over. One call for both tests halves the runs and tests the
+shared path (`ctx.cache`).
