@@ -65,6 +65,10 @@ def settings(out: Path) -> Settings:
         ],
         runs_dir=out / "runs",
         run_ttl_hours=48,
+        # The fixture servers listen on 127.0.0.1; the egress proxy refuses
+        # local addresses unless listed (as in tests/conftest.py). Without
+        # this, recording hangs (docs/solutions/egress-proxy.md).
+        dev_allowed_addresses=["127.0.0.1/32"],
     )
 
 

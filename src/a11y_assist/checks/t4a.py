@@ -581,7 +581,7 @@ async def collect(ctx: RunContext, walk: KeyboardWalk) -> State4A:
             await s.page.mouse.move(pt["x"], pt["y"])
             await settle(s.page, ctx.quiet_ms)
             _, now = await _scan(s, stops_arg, False, False)
-            for k in _visible_unreached(now) - baseline:
+            for k in sorted(_visible_unreached(now) - baseline):  # repeatable order
                 revealed.setdefault(k, sr.n)
             await s.page.mouse.move(0, 0)
             await settle(s.page, ctx.quiet_ms)

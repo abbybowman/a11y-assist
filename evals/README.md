@@ -21,6 +21,19 @@ because fixture names describe the expected answer ("key-in-comment-only").
 The answer key (`/tmp/eval/state.json`) is outside the packet tree. Agents
 are told to open nothing else and to list every file they opened.
 
+## 2026-11-01: time budget, no agent run needed
+
+The time-budget changes (quick replay prefixes, the screenshot pause, the run
+limit; 4.C 1.7.0) touch how evidence is collected, so the packets were
+rebuilt with the code before and after and compared file by file: 44 pages
+ask questions in both, and every packet is identical except one (4.A
+hover-only menu), where two revealed menu items were listed in swapped
+order. That order came from iterating a set of strings (Python's hash
+randomization differs per process), in the old code too; it is now sorted.
+No question or evidence changed, so no agent answered. `prepare` also needed
+`dev_allowed_addresses` for the fixture servers: the egress proxy refused
+127.0.0.1 and recording hung. Packets take about 3.5 minutes to build.
+
 ## Run 2, 2026-10-31: after the fixes, one subagent for everything
 
 Same fixtures after the fixes from run 1 (4.A 1.1.0, 4.B 1.1.0, 4.C 1.5.1,
