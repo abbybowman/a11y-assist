@@ -1,7 +1,7 @@
 ---
 tt_test: 5.D
 tt_name: 3.2.2-on-input
-spec_version: 0.4.0
+spec_version: 0.5.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -30,7 +30,7 @@ The tool gives each page one 5.D outcome: PASS, FAIL, DOES NOT APPLY or NEEDS RE
 
 **Fill pass F** (5.D's own; HtT 1–3, and the Baseline's "Enter data in all form fields, and exit (tab out of) the field", as F36's procedure: enter data in every field from the top, then the last, and exit it). One replay to the first field (4.C spec section 2), then, for each field in P1 order:
 
-1. Arrive: press Tab until focus is on the field. A field revealed by an earlier field (not in P1) that focus reaches on the way is completed too, in turn.
+1. Arrive: press Tab until focus is on the field; presses the walk saw quiet are quick, except the one that lands on the field (4.C spec section 2, replays). A field revealed by an earlier field (not in P1) that focus reaches on the way is completed too, in turn.
 2. Read the field (kind, type, `inputmode`, `maxlength`, form, `name`, value or checked state, its own widget) and the page text that precedes it in reading order back to the start of its form (or the previous heading when there is no form), at most 1,500 characters.
 3. Complete, observed (the shared `observe`, with submissions): the keys below. A change of context can come from the change itself (a select that moves focus, TC10.C-3-fail-3).
 4. Leave, observed: press Tab, again while focus is still on the field's own widget (a date input's parts), at most 5 times. A change of context can come from leaving (blur), whatever the value (TC10.C-3-fail-1, -fail-2).
@@ -60,9 +60,9 @@ Typed values are cut to `maxlength`. Every value used is recorded.
 
 **A value the page rejects.** When a typed value does not stay (the value read back differs from the value typed) or the page marks the field invalid after leaving it (`aria-invalid="true"`, or `:invalid` for a field with constraints), the field gets J3: the agent proposes a value from the field's label and nearby instructions, and the field is completed once more with it on its own replay (earlier fields refilled, as above). This catches pages whose change of context happens only on a valid value (a ZIP code that submits on 5 digits). A rejected value is still a change of the field's value: the field counts as completed either way.
 
-**Time budget:** pass F is one load plus about two settled presses and two observes per field (more for radio groups) (about 0.5–1 s a field on a fixture page; to measure with `evals/time_budget.py` while building); each change of context or J3 answer adds one replay. The whole run stays within `run_limit_s` (4.C spec section 2, Run limits): no field starts after the checks' deadline.
+**Time budget:** pass F is one load plus about two settled presses and two observes per field (more for radio groups); leaving a field reuses the noise window its completion just measured. Measured (Linux, headless, all of 4.A–4.F and 5.D): 22 s for the benefits form's 21 fields (about 1.1 s a field), 8.5 s on the agency home page; both pages finish every test within the 120 s limit (108.8 s and 107.8 s). Each change of context or J3 answer adds one replay. The whole run stays within `run_limit_s` (4.C spec section 2, Run limits): no field starts after the checks' deadline.
 
-**Run limits.** At most `FIELD_MAX` (40) fields per page; a radio group counts once. Each option of a radio group is chosen because a page can react to one option only, or to leaving the group from it (TC10.C-3-fail-2 opens a window when focus leaves the last option). The fields are counted on the run's first load (the DOM inventory counts form fields too); when 5.D is selected, the time limit is on and the page has more than `FIELD_MAX`, the run stops before anything is tested, as the walk's early stop does (4.C spec section 2): a tool error giving the number of fields and a time estimate (the walk's estimate plus the fields at the measured cost per field), offering `no_time_limit`, which also lifts `FIELD_MAX`, or another page.
+**Run limits.** At most `FIELD_MAX` (40) fields per page; a radio group counts once. Each option of a radio group is chosen because a page can react to one option only, or to leaving the group from it (TC10.C-3-fail-2 opens a window when focus leaves the last option). The fields are counted on the run's first load (the DOM inventory counts form fields too); when 5.D is selected, the time limit is on and the page has more than `FIELD_MAX`, the run stops before anything is tested, as the walk's early stop does (4.C spec section 2): a tool error giving the number of fields and a time estimate (the walk at a default 0.3 s a press, plus the fields at the measured 1.1 s each), offering `no_time_limit`, which also lifts `FIELD_MAX`, leaving 5.D out of the tests, or another page.
 
 ## 3. Mechanical checks
 

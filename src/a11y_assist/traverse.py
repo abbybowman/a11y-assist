@@ -788,6 +788,13 @@ class Traversal:
         self._last_mutations, self._last_focus_total = m, f
         await _focus_events(self.page, self._seen_focus)
 
+    async def resync(self) -> None:
+        """Take the focus and mutation logs as they are now, after keys were
+        pressed outside press() (5.D's observed actions), so the next press
+        does not re-read the previous step for a change it did not cause."""
+        m, f, _, _ = await _read_logs(self.page)
+        self._last_mutations, self._last_focus_total = m, f
+
     async def press(self, key: str, quick: bool = False) -> Step:
         """Press `key`, settle and read. `quick` (replay prefixes only, see
         replay()) skips the quiet window: two animation frames, then read."""
@@ -930,6 +937,31 @@ class WalkTooLong(Exception):  # noqa: N818 (a stop, not a failure)
         super().__init__(f"walk estimate {estimate_s:.0f} s")
 
 
+@dataclass(frozen=True)
+class Cap:
+    """A check's limit on items in the DOM inventory (5.D: FIELD_MAX form
+    fields). Over it, the run stops before testing (4.C spec section 2, Run
+    limits) instead of leaving most of the items unchecked."""
+
+    attr: str  # Inventory attribute, e.g. "form_fields"
+    limit: int
+    seconds_each: float  # measured cost per item, for the time estimate
+    test: str  # TT test ID, e.g. "5.D"
+    noun: str  # plain words, e.g. "form fields"
+
+
+class TooManyItems(WalkTooLong):
+    """More items than a check's cap; nothing is tested."""
+
+    def __init__(self, cap: Cap, count: int, candidates: int, estimate_s: float):
+        self.cap, self.count = cap, count
+        super().__init__(candidates, 0, estimate_s)
+
+
+# A press's cost before any pace is measured (Linux, headless; ~0.2-0.4 s with
+# the walk's extras), for the estimate of a run refused at its first load.
+DEFAULT_PRESS_S = 0.3
+
 # Early stop: after PACE_WARM presses, P1's pace times the inventory (or the
 # presses so far, if more) times WALK_FACTOR (P2 costs about half of P1: 4.D's
 # images are taken in P1) must end before the deadline.
@@ -941,11 +973,21 @@ WALK_FACTOR = 1.5
 class Pace:
     deadline: float
     started: float | None = None
+    caps: list[Cap] = field(default_factory=list)
 
-    def check(self, presses: int, candidates: int) -> None:
+    def check(
+        self, presses: int, candidates: int, inv: Inventory | None = None
+    ) -> None:
         now = time.monotonic()
         if self.started is None:
             self.started = now
+            for cap in self.caps:  # known at the first load: stop at once
+                count = getattr(inv, cap.attr, 0) if inv is not None else 0
+                if count > cap.limit:
+                    walk = DEFAULT_PRESS_S * candidates * WALK_FACTOR
+                    raise TooManyItems(
+                        cap, count, candidates, walk + count * cap.seconds_each
+                    )
             return
         if presses < PACE_WARM:
             return
@@ -1062,7 +1104,9 @@ async def drive(
         if deadline is not None and time.monotonic() > deadline:
             return "time", [], s.traversal.steps[start:]
         if pace is not None:
-            pace.check(len(s.traversal.steps) - start, s.inventory.candidates)
+            pace.check(
+                len(s.traversal.steps) - start, s.inventory.candidates, s.inventory
+            )
         step = await s.traversal.press(key)
         own = s.traversal.steps[start:]
         if navigated(step, s.start_url, s.start_pages):

@@ -65,17 +65,20 @@ async def observe(
     act: Callable[[], Awaitable[None]],
     own: str | None,
     submits: bool = False,
+    noise_ms: int = NOISE_MS,
 ) -> Effect:
     """What an action changes (spec: Terms, effect). `own` is the path key of
     the element acted on: focus moving onto it (a click) is not an effect.
     `submits` (5.D) also records form submissions as the effect "submit";
-    off for 4.A and 4.B, whose specs do not read it."""
+    off for 4.A and 4.B, whose specs do not read it. `noise_ms` 0 skips the
+    noise window (5.D's leave step reuses the one its completion measured)."""
     page = s.page
     await settle(page, quiet_ms)
     before = await snapshot(s)
     sub0 = len(await submissions(page)) if submits else 0
     m0, *_ = await _read_logs(page)
-    await page.wait_for_timeout(NOISE_MS)
+    if noise_ms:
+        await page.wait_for_timeout(noise_ms)
     m1, *_ = await _read_logs(page)
     await act()
     await settle(page, quiet_ms)

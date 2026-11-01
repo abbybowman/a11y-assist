@@ -37,3 +37,17 @@ phase still running 2 s before it is cancelled (NEEDS REVIEW). Check
 `ctx.deadline` before each replay in any new loop. P1's pace after 20
 presses decides early whether the walk can finish; if not, the run is
 refused and the caller may choose `no_time_limit`.
+
+**Keys pressed outside `Traversal.press` cost a second each later.** 5.D
+presses keys through `observe` (its observed actions), so the next
+`Traversal.press` saw a focus change since its last read and waited the
+settle rule's 1,000 ms re-read window: 0.7 s per field arrival. Call
+`traversal.resync()` after pressing keys yourself. Arrivals between fields
+also use quick presses where the walk saw them quiet (agency page: 5.D
+16 s to 8.5 s), and an observe right after another can skip the noise
+window (`noise_ms=0`, reusing the first one's noise).
+
+**The time-limit note says what was cut, not when the run ended.** Checks
+call `ctx.out_of_time()` (not `time.monotonic() > ctx.deadline`): it records
+that work was cut, and only then does the result carry the "reached its time
+limit" note. A run that finishes inside the 10 s reserve has no note.

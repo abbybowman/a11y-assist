@@ -161,8 +161,10 @@ class Collector:
         shots=None,
         rel=None,
         plan: ReplayPlan | None = None,
+        mark=None,
     ):
         self.plan = plan
+        self.mark = mark  # records that the run limit cut work short
         self.new_page = new_page
         self.quiet_ms = quiet_ms
         self.deadline = deadline
@@ -172,6 +174,8 @@ class Collector:
 
     def out_of_time(self) -> bool:
         if time.monotonic() > self.deadline:
+            if self.mark:
+                self.mark()
             msg = "The run time limit was reached before every check finished."
             if msg not in self.state.incomplete:
                 self.state.incomplete.append(msg)
@@ -452,6 +456,8 @@ class Collector:
                         s.traversal.steps,
                     )
                 elif end in ("cap", "time", "error"):
+                    if end == "time" and self.mark:
+                        self.mark()
                     self.state.incomplete.append(
                         f"Checking an arrow-key widget did not finish ({end})."
                     )
@@ -495,6 +501,8 @@ class Collector:
                         "paths": top_paths,
                     }
             elif end in ("cap", "time", "error", "navigation"):
+                if end == "time" and self.mark:
+                    self.mark()
                 self.state.incomplete.append(
                     f"Walking the part of the page after a trap (reached by clicking past it) did not finish ({end})."
                 )
@@ -510,7 +518,13 @@ class Collector:
 async def collect(ctx: RunContext, walk: KeyboardWalk) -> State4C:
     """P1 and P2 come from the shared keyboard walk; P3, P4 and P6 run here."""
     c = Collector(
-        ctx.new_page, ctx.quiet_ms, ctx.deadline, ctx.shots, ctx.rel, ctx.plan
+        ctx.new_page,
+        ctx.quiet_ms,
+        ctx.deadline,
+        ctx.shots,
+        ctx.rel,
+        ctx.plan,
+        lambda: setattr(ctx, "timed_out", True),
     )
     p1, p2 = walk.p1, walk.p2
     c.cap = max(p1.cap, p2.cap)
@@ -1180,7 +1194,13 @@ class Check4C:
         if not todo:
             return []
         c = Collector(
-            ctx.new_page, ctx.quiet_ms, ctx.deadline, ctx.shots, ctx.rel, ctx.plan
+            ctx.new_page,
+            ctx.quiet_ms,
+            ctx.deadline,
+            ctx.shots,
+            ctx.rel,
+            ctx.plan,
+            lambda: setattr(ctx, "timed_out", True),
         )
         c.state = state
         c.cap = max(state.p1.get("cap") or 50, state.p2.get("cap") or 50)

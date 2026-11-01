@@ -11,7 +11,6 @@ decide outcomes.
 from __future__ import annotations
 
 import re
-import time
 from typing import Any
 
 from pydantic import BaseModel, Field
@@ -29,10 +28,13 @@ from a11y_assist.models import (
     TestId,
 )
 from a11y_assist.observe import Effect, observe
-from a11y_assist.traverse import PATH_JS, Session, screenshot
+from a11y_assist.traverse import PATH_JS, Cap, ReplayPlan, Session, screenshot
 from a11y_assist.walk import KeyboardWalk
 
 FIELD_MAX = 40
+# Per-field cost of pass F, for the early stop's estimate (measured with
+# evals/time_budget.py; see docs/solutions/time-budget.md).
+FIELD_SECONDS = 1.1  # benefits form: 22.5 s for 21 fields (2026-11-01)
 RADIO_MAX = 10
 ARRIVE_SLACK = 10  # extra Tab presses allowed when arriving at a field
 BEFORE_CHARS = 1500
@@ -349,15 +351,35 @@ async def _read(s: Session) -> Stop:
     return st
 
 
-async def _arrive(s: Session, f: Field5D, limit: int) -> Stop | None:
-    """Tab until focus is on the field (or one of its radio group)."""
+def _on(st: Stop, f: Field5D) -> bool:
+    return st.kind == "element" and (
+        st.path_key == f.path_key or bool(f.group and st.group == f.group)
+    )
+
+
+async def _arrive(
+    s: Session, f: Field5D, limit: int, plan: ReplayPlan | None = None
+) -> Stop | None:
+    """Tab until focus is on the field (or one of its radio group). Presses the
+    walk saw quiet (4.C spec section 2, replays) are quick, except the one the
+    walk says lands on the field; arrival is checked on every press."""
+    await s.traversal.resync()
+    seen = plan.passes.get("Tab", []) if plan is not None else []
+    where = {p: j for j, (p, _) in reversed(list(enumerate(seen)))}
     st = await _read(s)
     for _ in range(limit + 1):
-        if st.kind == "element" and (
-            st.path_key == f.path_key or (f.group and st.group == f.group)
-        ):
+        if _on(st, f):
             return st
-        step = await s.traversal.press("Tab")
+        j = where.get(st.path_key)
+        nxt = j + 1 if j is not None else None
+        quick = (
+            nxt is not None
+            and nxt < len(seen)
+            and seen[nxt][1]
+            and nxt != f.index
+            and seen[nxt][0] != f.path_key
+        )
+        step = await s.traversal.press("Tab", quick=quick)
         st = step.stop
     return None
 
@@ -488,7 +510,10 @@ async def _attempt(
                     break
                 await s.page.keyboard.press("Tab")
 
-        a.leave = await observe(s, ctx.quiet_ms, leave, None, submits=True)
+        # The completion's noise window just ran: reuse it for leaving.
+        a.leave = await observe(s, ctx.quiet_ms, leave, None, submits=True, noise_ms=0)
+        if a.complete:
+            a.leave.noise = max(e.noise for e in a.complete)
         if not _mechanical(a.leave):
             land = await _read(s)
             a.focus_after_leave = {
@@ -583,7 +608,7 @@ async def _session_for(
     for f in fields[:i]:
         if f.path_key in st.skip:
             continue
-        here = await _arrive(s, f, ARRIVE_SLACK + 5)
+        here = await _arrive(s, f, ARRIVE_SLACK + 5, ctx.plan)
         if here is None:
             continue
         info = await s.traversal.reader.call(here, FIELD_FN) or {}
@@ -612,7 +637,9 @@ async def run_field(
     if s is None:
         s, refilled = await _session_for(ctx, st, fields, i)
     inst.refilled = inst.refilled or refilled
-    here = await _arrive(s, f, ARRIVE_SLACK + (f.index if f.index >= 0 else 0))
+    here = await _arrive(
+        s, f, ARRIVE_SLACK + (f.index if f.index >= 0 else 0), ctx.plan
+    )
     if here is None:
         inst.arrived = False
         await s.close()
@@ -667,23 +694,28 @@ async def collect(ctx: RunContext, walk: KeyboardWalk) -> State5D:
         inventory_fields=walk.p1.form_fields,
     )
     fields = _fields(walk)
+    limit = FIELD_MAX if ctx.deadline != float("inf") else len(fields)
     known = {s.stop.path_key for s in walk.p1.steps if s.stop.kind == "element"}
-    if len(fields) > FIELD_MAX:
+    if len(fields) > limit:
         st.incomplete.append(
-            f"The page has {len(fields)} form fields; only the first {FIELD_MAX} were filled in."
+            f"The page has {len(fields)} form fields; only the first {limit} were filled in."
         )
-        fields = fields[:FIELD_MAX]
+        fields = fields[:limit]
     s: Session | None = None
     i = 0
     try:
         while i < len(fields):
-            if time.monotonic() > ctx.deadline:
+            if ctx.out_of_time():
                 st.incomplete.append(
                     "The run time limit was reached before every form field was filled in."
                 )
                 break
             s, inst = await run_field(ctx, st, fields, i, s)
-            if s is not None and inst.last is not None and len(fields) < FIELD_MAX:
+            if (
+                s is not None
+                and inst.last is not None
+                and len(fields) < max(limit, FIELD_MAX)
+            ):
                 _revealed(st, fields, i, inst, known)
             i += 1
     finally:
@@ -1120,6 +1152,12 @@ class Check5D:
 
     def walk_extras(self) -> list:
         return []
+
+    @property
+    def cap(self) -> Cap:
+        """Over FIELD_MAX form fields the run stops before testing (spec
+        section 2, Run limits); no_time_limit lifts it."""
+        return Cap("form_fields", FIELD_MAX, FIELD_SECONDS, "5.D", "form fields")
 
     async def collect(self, ctx: RunContext, walk: KeyboardWalk | None) -> State5D:
         assert walk is not None

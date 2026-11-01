@@ -9,7 +9,6 @@ tables decide outcomes.
 
 from __future__ import annotations
 
-import time
 from typing import Any
 
 from pydantic import BaseModel, Field
@@ -293,7 +292,7 @@ async def _reveal(
     ctx: RunContext, st: State4F, triggers: list[tuple[int, StopInfo]]
 ) -> None:
     for n, (i, trig) in enumerate(triggers, start=1):
-        if time.monotonic() > ctx.deadline:
+        if ctx.out_of_time():
             st.incomplete.append(
                 "The run time limit was reached before every menu or dialog was opened."
             )

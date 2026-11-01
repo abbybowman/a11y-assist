@@ -1,6 +1,6 @@
 # Build tasks: 5.D
 
-Spec [5d-on-input.md](5d-on-input.md) 0.4.0 is a draft with no OPEN items;
+Spec [5d-on-input.md](5d-on-input.md) 0.5.0 is a draft with no OPEN items;
 it goes to 1.0.0 when its check is built and its fixtures pass. Plan:
 [plans/2026-11-01-5d-on-input.md](../plans/2026-11-01-5d-on-input.md).
 
@@ -12,9 +12,8 @@ P1 records it; the init script logs form submissions
 (`traverse.submissions`), and `observe(..., submits=True)` adds the effect
 "submit" (off for 4.A and 4.B, whose specs do not read it).
 
-- Pipeline: the early stop for more than `FIELD_MAX` fields when 5.D is
-  selected, beside `WalkTooLong`, with a time estimate; `no_time_limit`
-  also lifts `FIELD_MAX`.
+- Built: the early stop over `FIELD_MAX` (a check's `cap`, checked at the
+  first load; `TooManyItems`), lifted by `no_time_limit`.
 - `checks/t5d.py` is built (pass F, rows, J1–J3, sentences) as a draft,
   registered only by `tests/drafts.py`; move it into `checks/__init__.py` at
   1.0.0. All 14 custom fixtures and the 5 Baseline cases give their expected

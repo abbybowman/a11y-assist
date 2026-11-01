@@ -36,6 +36,7 @@ smallest):
 
 from __future__ import annotations
 
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, ClassVar, Protocol
@@ -57,6 +58,16 @@ class RunContext:
     shots: Path  # screenshot folder
     rel: Path  # run folder (evidence paths are relative to it)
     plan: ReplayPlan | None = None  # from the walk, once it has run
+    timed_out: bool = False  # a check stopped work for the run limit
+
+    def out_of_time(self) -> bool:
+        """Past the checks' deadline (4.C spec section 2, Run limits). Use it
+        before every replay; a True answer is recorded, so the result says
+        the run limit cut something short."""
+        if time.monotonic() > self.deadline:
+            self.timed_out = True
+            return True
+        return False
 
     async def replay(
         self, keys: list[str], shots: bool = False, hooks: list | None = None

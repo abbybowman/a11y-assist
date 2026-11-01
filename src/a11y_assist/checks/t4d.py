@@ -9,7 +9,6 @@ compares the images; only evaluate() and the row tables decide outcomes.
 
 from __future__ import annotations
 
-import time
 from pathlib import Path
 from typing import Any
 
@@ -575,7 +574,7 @@ async def _widget_pass(
         )
         widgets = widgets[:WIDGET_MAX]
     for i, wstep in widgets:
-        if time.monotonic() > ctx.deadline:
+        if ctx.out_of_time():
             st.incomplete.append(
                 "The run time limit was reached before every widget's items were checked."
             )
