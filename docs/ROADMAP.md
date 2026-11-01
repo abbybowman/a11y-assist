@@ -4,23 +4,24 @@ What is left to build, newest priorities first. A living list, not a log:
 delete an item once it is built, and put any decision it needed into the
 spec, CLAUDE.md or `docs/solutions/` where it belongs.
 
-## Now: Test 4, 5.D, 5.F and 5.G are built
+## Now: Test 4 and 5.A, 5.C, 5.D, 5.F, 5.G are built
 
 Built (spec 1.0.0+, check registered, fixtures green): 4.A, 4.B, 4.C, 4.D,
-4.E, 4.F, 5.D (On input), 5.F (Error identification) and 5.G (Error
+4.E, 4.F, 5.A (Label provided), 5.C (Programmatic label, from ANDI's
+output), 5.D (On input), 5.F (Error identification) and 5.G (Error
 suggestion). Judge eval (fresh agents, no scripted answers): 43/44 Test 4
-fixtures, 14/14 for 5.D, and all 5.F/5.G packets, no false PASS
+fixtures and every 5.x packet, no false PASS
 ([evals/README.md](../evals/README.md)). Every implemented test fits one
-120 s call on the realistic pages in `tests/fixtures/budget/` (about 109 s
-and 92 s); pages too large to walk, or with more than 40 form fields, are
-refused at once with a `no_time_limit` option
+120 s call on the realistic pages in `tests/fixtures/budget/` (about 110 s
+and 97 s: the agency page has no margin left, so the next test must find
+time elsewhere); pages too large to walk, or with more than 40 form
+fields, are refused at once with a `no_time_limit` option
 ([solutions/time-budget.md](solutions/time-budget.md)).
 
-Next: 5.A and 5.C in full (visual labels; ANDI's output, as a Trusted
-Tester reads it; no scanners first), built as drafts
-([plans/2026-11-01-forms-5a-5c.md](plans/2026-11-01-forms-5a-5c.md); judge
-eval 16/16), waiting for 1.0.0 approval; then the multi-page batch
-([plans/2026-11-01-multi-page.md](plans/2026-11-01-multi-page.md)).
+Next: 5.B (label descriptive) and 5.H (error prevention) would complete
+Test 5; or the multi-page batch
+([plans/2026-11-01-multi-page.md](plans/2026-11-01-multi-page.md)). Choose
+with the coverage map and CLAUDE.md's research rule.
 
 Per-test leftovers live in each `docs/rules/<id>-build-tasks.md` (mostly
 browser checks on Windows headed Chrome, which this Linux container cannot
@@ -84,8 +85,9 @@ run).
   Licenses: axe-core MPL 2.0 (unmodified files, keep notice), HTML_CodeSniffer
   BSD 3-Clause (keep notice); NASA release review before open sourcing.
   Scanner output is evidence for spec rows; a clean scan never means PASS.
-- **ANDI per-element data.** A spike: can names, descriptions, table headers
-  and contrast be read out of ANDI's state in the page? TT prescribes ANDI for
+- **ANDI per-element data, beyond forms.** Names, descriptions and group
+  labels are read for 5.C (`andi.andi_output`; ANDI does not report table
+  headers). Next to try: contrast and image output for 7.x and 13.C. TT prescribes ANDI for
   about 20 tests, so matching its output matters there. Not needed for Test 4
   (4.F's note: use keyboard order, not ANDI's).
 - **`read_report`**: read an agency's existing ACR or SCRT report (passed in

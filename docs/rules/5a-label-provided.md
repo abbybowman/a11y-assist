@@ -1,14 +1,14 @@
 ---
 tt_test: 5.A
 tt_name: 3.3.2-label-provided
-spec_version: 0.4.0
+spec_version: 1.0.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
 
 # Rules spec: Test 5.A (3.3.2-label-provided)
 
-The tool gives each page one 5.A outcome: PASS, FAIL, DOES NOT APPLY or NEEDS REVIEW. It never emits NOT TESTED (p. 6). Draft: no outcome until 1.0.0.
+The tool gives each page one 5.A outcome: PASS, FAIL, DOES NOT APPLY or NEEDS REVIEW. It never emits NOT TESTED (p. 6).
 
 **Citations.** Printed pages of TT 5.1.3 (text also in `tt://5.1.3/tests/5.A`). Forms Identify Content, p. 25: identify form elements with ANDI focusable elements ("buttons, text fields, radio buttons, checkboxes, read-only fields, and multi-select lists") and their instructions and cues; exclude disabled elements; none: DOES NOT APPLY to 5.A–5.H. 5.A, p. 25: DNA if no form elements or all disabled (Applicability); "determine if each form element provides visual labels or instructions" (HtT 1); PASS if "visual labels or instructions are provided for each form element" (ER 1). Notes: the label or instruction "must be visible when the form field has focus"; it "can be graphical or textual"; accuracy is 5.B; programmatic association is 5.C.
 

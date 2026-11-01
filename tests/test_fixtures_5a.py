@@ -1,7 +1,7 @@
 """5.A (3.3.2) and 5.C (1.3.1, 4.1.2) on custom fixtures (the Baseline
-Alignment TC10.A and TC10.E cases are in test_baseline_cases.py; both specs
-are drafts, registered by tests/drafts.py). Expected outcomes and scripted
-answers (what a correct agent would say) live here, never in a page."""
+Alignment TC10.A and TC10.E cases are in test_baseline_cases.py). Expected
+outcomes and scripted answers (what a correct agent would say) live here,
+never in a page."""
 
 from __future__ import annotations
 

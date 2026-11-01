@@ -1,14 +1,14 @@
 ---
 tt_test: 5.C
 tt_name: 1.3.1-programmatic-label
-spec_version: 0.3.0
+spec_version: 1.0.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
 
 # Rules spec: Test 5.C (1.3.1-programmatic-label)
 
-The tool gives each page one 5.C outcome: PASS, FAIL, DOES NOT APPLY or NEEDS REVIEW. It never emits NOT TESTED (p. 6). Draft: no outcome until 1.0.0.
+The tool gives each page one 5.C outcome: PASS, FAIL, DOES NOT APPLY or NEEDS REVIEW. It never emits NOT TESTED (p. 6).
 
 **Citations.** Printed pages of TT 5.1.3 (text also in `tt://5.1.3/tests/5.C`). Identify Content, p. 25 (shared with 5.A). 5.C, p. 26: Condition "The combination of the accessible name, accessible description, and other programmatic associations (e.g., table column and/or row associations) describes each input field and includes all relevant instructions and cues (textual and graphical)"; DNA if no form elements (Applicability); launch ANDI focusable elements and review its output for each focusable form element (HtT 1–3); if the ANDI output does not adequately define the element, review other programmatic associations such as table headings or location in a hierarchical list (HtT 4); a vague purpose may be enough where the vagueness is intended (HtT 4.a). p. 27: PASS if the ANDI output includes all relevant instructions and cues, "including when fields are required" (ER 1), or other programmatic associations provide them (ER 2), or a combination does (ER 3), or the programmatically determined context and the ANDI output describe its purpose (ER 4). Notes: the test also covers 4.1.2; changes after interaction are included; tables and content-structure tests may be needed; "at minimum, radio buttons and checkboxes should be programmatically associated with their question and response"; section headings need no association "unless there is significant risk of confusion".
 
