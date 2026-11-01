@@ -14,7 +14,9 @@ answers): 43/44 Test 4 fixtures and 14/14 for 5.D, no false PASS
 walk, or with more than 40 form fields, are refused at once with a
 `no_time_limit` option ([solutions/time-budget.md](solutions/time-budget.md)).
 
-Next: choose between the other form tests (5.F and 5.G error
+Next (chosen 2026-11-01): 5.F and 5.G, then the 5.A and 5.C leftovers
+([plans/2026-11-01-forms-5f-5g.md](plans/2026-11-01-forms-5f-5g.md); specs at
+0.1.0). Was: choose between the other form tests (5.F and 5.G error
 identification and suggestion, 5.A and 5.C leftovers, which reuse 5.D's
 fill pass and field reads) and the multi-page batch
 ([plans/2026-11-01-multi-page.md](plans/2026-11-01-multi-page.md)), using
