@@ -17,7 +17,7 @@ walk, or with more than 40 form fields, are refused at once with a
 Next: 5.F and 5.G (error identification and suggestion), then the 5.A
 and 5.C leftovers, reusing 5.D's field reads
 ([plans/2026-11-01-forms-5f-5g.md](plans/2026-11-01-forms-5f-5g.md); specs
-at 0.1.0, four questions open). The multi-page batch follows
+at 0.2.0, one question open). The multi-page batch follows
 ([plans/2026-11-01-multi-page.md](plans/2026-11-01-multi-page.md)).
 
 Per-test leftovers live in each `docs/rules/<id>-build-tasks.md` (mostly

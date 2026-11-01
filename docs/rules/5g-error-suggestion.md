@@ -1,7 +1,7 @@
 ---
 tt_test: 5.G
 tt_name: 3.3.3-error-suggestion
-spec_version: 0.1.0
+spec_version: 0.2.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -36,12 +36,12 @@ Each 5.F instance (a field an attempt showed in error) is a 5.G instance.
 | # | Evidence pattern | Instance outcome | Source |
 | --- | --- | --- | --- |
 | N1 | 5.F's M1 (the replay or a read failed) | NEEDS REVIEW | Spec rule |
-| N2 | The field is a password field (`type=password`) | DOES NOT APPLY for this field (Q4) | p. 29 Applicability ("details about an incorrect password") |
+| N2 | The field is a password field (`type=password`) | DOES NOT APPLY for this field | p. 29 Applicability ("details about an incorrect password") |
 | N3 | No error text at all (5.F M3: marked by look or `aria-invalid` only) | FAIL: no guidance in text | p. 29 ER 1, 2 |
 | J1? | J1 not answered | NEEDS REVIEW | Open question |
 | N4 | J1 = guides, and its quote is found in the error text or the field's instructions | PASS | p. 29 ER 1, 2 |
 | N5 | J1 = no_guidance | FAIL | p. 29 ER 1, 2 |
-| N6 | J1 = not_knowable | Q4 | p. 29 Applicability |
+| N6 | J1 = not_knowable | NEEDS REVIEW: a person confirms no correction could be known (a wrong not_knowable would hide a FAIL) | p. 29 Applicability; principle 3 |
 | N7 | J1 = unsure, or the quote is not found | NEEDS REVIEW | Spec rule |
 
 **3b. Page outcome (first match wins)**
@@ -66,6 +66,7 @@ Each 5.F instance (a field an attempt showed in error) is a 5.G instance.
 | N2 (note) | "<field> is a password field; saying more about what was wrong could help someone guess it, so no hint is needed." |
 | N3 | "When <field> was wrong, the page only marked it, with no text saying how to fix it. To see it, load the page and press <keys>. If you disagree, tell your assistant." |
 | N5 | "The error for <field> (\"<text>\") does not say what to enter instead. To see it, load the page and press <keys>. If you disagree, tell your assistant." |
+| N6 | "We could not tell whether a correct value for <field> could be known. Please look: load the page and press <keys>." |
 | N7 | "We could not tell whether the error for <field> says how to fix it. Please look: load the page and press <keys>." |
 
 ## 4. Judgment questions
@@ -90,10 +91,6 @@ J1 is settled by reading (CLAUDE.md principle 8): a guides answer leads to PASS 
 | "The confirmation code is incorrect" | not_knowable |
 
 **Use:** N4–N7.
-
-**OPEN question for Abby:**
-
-- **Q4. "Not knowable" and password fields (N2, N6).** The PDF makes both DOES NOT APPLY for the field. (a) Password fields DOES NOT APPLY mechanically (the PDF's own example); the agent's not_knowable goes to a person, NEEDS REVIEW (recommended: a wrong not_knowable hides a FAIL, as a false PASS would); (b) both DOES NOT APPLY, the agent's reasons shown; (c) both NEEDS REVIEW.
 
 ## 5. Edge cases
 
