@@ -104,7 +104,7 @@ flowchart LR
 - Time budget: under 60 s per page for Test 4, hard limit 120 s per call
 - A page too large for the limit is refused early; the user can choose to run it with no time limit
 - Replays reuse what the walk saw: realistic agency page 151 s → 97 s, same outcomes
-- Checks reuse each other's replays (4.A reads 4.D's arrow presses and 4.F's Enter presses): with 5.F and 5.G drafted, both realistic pages still fit (108 s and 92.5 s)
+- Checks reuse each other's replays (4.A reads 4.D's arrow presses and 4.F's Enter presses): with 5.F and 5.G added, both realistic pages still fit (108.6 s and 92.4 s)
 
 **Notes:**
 
@@ -228,5 +228,5 @@ flowchart LR
 - Real-site holdout with a second certified tester
 - A published side-by-side on real .gov pages: certified testers, A11y Assist and five scanners
 - Export drafts to DHS's SCRT format so a certified tester can review and finish them
-- Built after Test 4: 5.D On input (forms that change context when filled in)
+- Built after Test 4: 5.D On input (forms that change context when filled in), 5.F Error identification and 5.G Error suggestion (forms whose errors are not named, explained, announced or fixable)
 - Then: more form tests, headings, reading order — where scanners fall short

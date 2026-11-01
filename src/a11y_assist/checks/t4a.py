@@ -444,6 +444,14 @@ async def collect(ctx: RunContext, walk: KeyboardWalk) -> State4A:
     all_stops = {
         s.stop.path_key for p in (p1, p2) for s in p.steps if s.stop.kind == "element"
     }
+    # Focus on a part of a native date or time input reaches that input
+    # (spec 1.2.0, Terms): the parts sit in the input's own shadow root.
+    all_stops |= {
+        _host_key(s.stop)
+        for p in (p1, p2)
+        for s in p.steps
+        if s.stop.kind == "element" and s.stop.control == "date" and s.stop.group
+    }
     stops_arg = [list(_split(k)) for k in sorted(all_stops)]
     hit_all = walk.stops == 0
 
@@ -621,7 +629,9 @@ async def collect(ctx: RunContext, walk: KeyboardWalk) -> State4A:
     # T: titles.
     text = ""
     titled = [(sr, (_hook(p1, sr) or {}).get("title")) for sr in st.stop_list]
-    titled = [(sr, t) for sr, t in titled if t]
+    # Titles inside a native date input are the browser's own ("Show date
+    # picker"), not the page's (spec 1.2.0).
+    titled = [(sr, t) for sr, t in titled if t and not _native_part(p1, sr)]
     if titled:
         s = await open_session(ctx.new_page, ctx.quiet_ms)
         try:
@@ -653,6 +663,13 @@ def _native_part(p1: PassResult, sr: StopRef) -> bool:
     part of a native control (spec 1.2.0, Terms; 5.D V3)."""
     stop = p1.steps[sr.index].stop
     return stop.control == "date" and bool(stop.group)
+
+
+def _host_key(stop) -> str:
+    """The path key of the native input a date part belongs to: its group
+    is "input:<path>" after the frame chain."""
+    *chain, last = stop.group.split(" >> ")
+    return " >> ".join([*chain, last.removeprefix("input:")])
 
 
 def _hook(p1: PassResult, sr: StopRef) -> dict | None:

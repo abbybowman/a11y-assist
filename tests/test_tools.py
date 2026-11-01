@@ -140,8 +140,11 @@ async def test_no_test_is_reported_not_tested(settings):
     from a11y_assist.checks import REGISTRY
 
     built = {t.value for t in REGISTRY}
+    # The page's one email field is not checked by anything (no form, no
+    # script): no automatic error detection, so 5.F and 5.G do not apply.
+    expected = {"5.F": "DNA", "5.G": "DNA"}
     for t in built:
-        assert by_id[t]["outcome"] == "PASS", (t, by_id[t]["summary"])
+        assert by_id[t]["outcome"] == expected.get(t, "PASS"), (t, by_id[t]["summary"])
     for f in [f for t, f in by_id.items() if t not in built]:
         assert f["outcome"] == "NEEDS_REVIEW"
         assert f["note"] == "This test could not be performed"
