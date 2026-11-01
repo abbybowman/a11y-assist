@@ -21,14 +21,21 @@ together, so a Run B-only difference cannot be pinned on either one alone.
 A person used the laptop during Run B, so every Run B difference was rerun
 with no one touching it. All of them reproduced.
 
-**Real Windows differences (reproduced; open).**
+**Fixed: new windows were missed on Windows (a 5.D false PASS).**
+Baseline TC10.C-3-fail-2 gave PASS ("filled in each of the 1 form fields
+... none ... opened a window") in both Windows runs, where Linux gives FAIL,
+and our `5d/f04-radio-opens-window` gave PASS in Run A. `observe.observe`
+counted `context.pages` after the settle, and on Windows a new page can
+join that list late, or never: the federal page's popup goes to a blocked
+external URL. A longer settle window (`SETTLE_QUIET_MS=600`) fixed f04 but
+not the federal case. The fix records pages the tested page opens as the
+browser creates them (CDP `Target.targetCreated` with the page as opener),
+with the count kept as a second signal. Both cases now FAIL correctly on
+Windows; the full Run A suite gives the same scores, with nothing else
+changed. `tests/test_observe.py` (a window that opens and closes at once)
+fails on the old code on any OS, so Linux CI keeps the fix.
 
-- **5.D false PASS on the federal radio case.** Baseline
-  TC10.C-3-fail-2 gives PASS ("filled in each of the 1 form fields ...
-  none ... opened a window") in both Windows runs; Linux gives FAIL. That
-  page opens a window on blur of the *last* radio option. Our fixture
-  `5d/f04-radio-opens-window` (window opens on change) gives PASS in Run A
-  only, and FAIL correctly in Run B and on Linux.
+**Real Windows differences (reproduced; open).**
 - **Egress guard tests, Run B only.**
   `test_egress.py::test_iframe_and_subresources_pointing_inside_are_refused`
   records no "non-public" refusal, and
@@ -59,8 +66,9 @@ with no one touching it. All of them reproduced.
 **What this settles.** Each build-task file's "headed Chrome on Windows:
 every fixture gives the same outcome" item is now answered for its test.
 4.C, 4.D, 4.E and 4.F: yes, every fixture and ACT case. 4.B: yes. 4.A: yes
-except ACT 8f9b5bf5. 5.D: no (TC10.C-3-fail-2). The individual browser
-checks in `tests/browser/` (4.C V1 to V15) passed in Run B. Items no test
+except ACT 8f9b5bf5. 5.D: yes after the new-window fix (headless full
+suite, and a headed run of the 4.A, 4.B, 5.D and Baseline tests). The
+individual browser checks in `tests/browser/` (4.C V1 to V15) passed in Run B. Items no test
 covers, such as 4.B V1 (repeated keydown on a held key) and 4.D V8 (cost
 per stop), are still open.
 
@@ -71,3 +79,12 @@ keep opening and closing in front of other work, and a stray click moves
 keyboard focus, which these tests measure. Stay off the machine during a
 headed run, or try a second Windows virtual desktop first (not yet tried).
 Rerun any headed failure alone, hands off, before believing it.
+
+**One unexplained headed hang.** The first headed run after the new-window
+fix stopped for 50 minutes on 5.D `f10-zip-submits-when-valid` (the form
+submits and the page navigates). It did not happen again: f10 alone passed
+with and without CDP time limits, and the full headed rerun of those 112
+tests finished in 12 minutes. The observer now abandons any of its CDP calls
+after 2 s (`observe.CDP_TIMEOUT_S`), and the page count decides alone.
+Run long headed checks under a hard stop (`timeout 1500 ...`) with `-v`, so a
+hang names its test instead of stalling.

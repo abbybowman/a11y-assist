@@ -7,6 +7,7 @@ outcome is each check's rules.
 
 from __future__ import annotations
 
+import asyncio
 from collections.abc import Awaitable, Callable
 from typing import Any
 
@@ -17,6 +18,11 @@ from a11y_assist.traverse import Session, _read_logs, settle, submissions
 # Before the action, the page is watched this long; DOM changes in it are
 # page noise (animation), so an effect of only DOM changes is unreliable.
 NOISE_MS = 300
+
+# A browser call that has not answered by then is abandoned (headed Chrome can
+# leave one waiting when the action navigates the page); the page count then
+# decides alone, as before.
+CDP_TIMEOUT_S = 2.0
 
 
 class Effect(BaseModel):
@@ -59,6 +65,46 @@ async def snapshot(s: Session) -> dict[str, Any]:
     }
 
 
+class _Opened:
+    """Pages the tested page opens, as the browser creates them. Counting
+    context.pages after the settle can miss one on Windows, where a new page
+    joins the list later; the browser's own event cannot be missed or
+    spoofed by page script."""
+
+    def __init__(self, s: Session):
+        self._s = s
+        self._cdp: Any = None
+        self.ids: set[str] = set()
+
+    async def __aenter__(self) -> _Opened:
+        def wait(call: Awaitable[Any]) -> Awaitable[Any]:
+            return asyncio.wait_for(call, CDP_TIMEOUT_S)
+
+        try:
+            cdp = await wait(self._s.traversal.context.new_cdp_session(self._s.page))
+            self._cdp = cdp
+            info = await wait(cdp.send("Target.getTargetInfo"))
+            own = info["targetInfo"]["targetId"]
+
+            def created(ev: dict) -> None:
+                info = ev.get("targetInfo", {})
+                if info.get("type") == "page" and info.get("openerId") == own:
+                    self.ids.add(info["targetId"])
+
+            cdp.on("Target.targetCreated", created)
+            await wait(cdp.send("Target.setDiscoverTargets", {"discover": True}))
+        except Exception:
+            pass  # the page count below still applies
+        return self
+
+    async def __aexit__(self, *exc: object) -> None:
+        if self._cdp is not None:
+            try:
+                await asyncio.wait_for(self._cdp.detach(), CDP_TIMEOUT_S)
+            except Exception:
+                pass
+
+
 async def observe(
     s: Session,
     quiet_ms: int,
@@ -80,11 +126,16 @@ async def observe(
     if noise_ms:
         await page.wait_for_timeout(noise_ms)
     m1, *_ = await _read_logs(page)
-    await act()
-    await settle(page, quiet_ms)
-    after = await snapshot(s)
-    sub1 = len(await submissions(page)) if submits else 0
-    m2, *_ = await _read_logs(page)
+    async with _Opened(s) as opened:
+        # Enabling discovery reports pages that already exist; only pages
+        # created after this point are the action's.
+        earlier = set(opened.ids)
+        await act()
+        await settle(page, quiet_ms)
+        after = await snapshot(s)
+        sub1 = len(await submissions(page)) if submits else 0
+        m2, *_ = await _read_logs(page)
+        new_windows = opened.ids - earlier
     e = Effect(mutations=max(0, m2 - m1), noise=max(0, m1 - m0))
     if after["url"] != before["url"]:
         e.kinds.append("navigation")
@@ -93,7 +144,7 @@ async def observe(
         e.kinds.append("frame_navigation")
     if sub1 > sub0:
         e.kinds.append("submit")
-    if after["pages"] > before["pages"]:
+    if new_windows or after["pages"] > before["pages"]:
         e.kinds.append("new_page")
     if after["dialogs"] != before["dialogs"]:
         e.kinds.append("dialog")
