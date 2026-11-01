@@ -18,7 +18,9 @@ unsettled; it never decides where focus is.
 from __future__ import annotations
 
 import time
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Iterator
+from contextlib import contextmanager
+from contextvars import ContextVar
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Protocol
@@ -31,6 +33,39 @@ from a11y_assist.models import BoundingBox, PassResult, Step, Stop
 CAP_PER_CANDIDATE = 3
 CAP_BASE = 50
 CAP_MAX = 3000
+
+
+@dataclass
+class Meter:
+    """Cost of one phase of a run (the walk, one check's collect): page loads,
+    key presses and wall time. Logged to steps.jsonl to decide where a run's
+    time goes (docs/solutions/time-budget.md); never evidence."""
+
+    loads: int = 0
+    presses: int = 0
+    seconds: float = 0.0
+
+
+METER: ContextVar[Meter | None] = ContextVar("a11y_meter", default=None)
+
+
+@contextmanager
+def metered() -> Iterator[Meter]:
+    m = Meter()
+    token = METER.set(m)
+    t0 = time.monotonic()
+    try:
+        yield m
+    finally:
+        m.seconds = round(time.monotonic() - t0, 2)
+        METER.reset(token)
+
+
+def _count(attr: str) -> None:
+    m = METER.get()
+    if m is not None:
+        setattr(m, attr, getattr(m, attr) + 1)
+
 
 # Settle rule (4.C spec section 2). The quiet window is settings.settle_quiet_ms.
 SETTLE_MAX_MS = 1500
@@ -664,6 +699,7 @@ class Traversal:
                 }
             )
             _, self._last_focus_total, _, _ = await _read_logs(self.page)
+        _count("presses")
         await self.page.keyboard.press(key)
         settled = await settle(self.page, self.quiet_ms)
         stop, has_focus = await self.reader.read()
@@ -761,6 +797,7 @@ async def open_session(
     rel_base: Path | None = None,
     hooks: list[StepHook] | None = None,
 ) -> Session:
+    _count("loads")
     context, page = await new_page()
     inv = await dom_inventory(page)
     t = Traversal(context, page, quiet_ms, shots_dir, rel_base, list(hooks or []))
