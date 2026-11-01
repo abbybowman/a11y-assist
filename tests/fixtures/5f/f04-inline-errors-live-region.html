@@ -1,0 +1,26 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>F04 Sign up for updates</title>
+<style>.err{color:#b00;display:block}</style></head><body>
+<h1>Sign up for updates</h1>
+<form id="f" novalidate>
+<p role="status" id="status"></p>
+<p><label for="email">Email address</label> <input id="email" aria-describedby="email-err"><span class="err" id="email-err"></span></p>
+<p><label for="phone">Phone number</label> <input id="phone" aria-describedby="phone-err"><span class="err" id="phone-err"></span></p>
+<p><button type="submit">Sign up</button></p>
+</form>
+<script>
+document.getElementById("f").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const email = document.getElementById("email"), phone = document.getElementById("phone");
+  const checks = [
+    [email, /^[^@\s]+@[^@\s]+\.[a-z]+$/i.test(email.value), "Email address: enter an address like name@example.com"],
+    [phone, /^\d{10}$/.test(phone.value.replace(/\D/g, "")), "Phone number: enter 10 digits, like 202 555 0100"],
+  ];
+  let n = 0;
+  for (const [el, ok, msg] of checks) {
+    document.getElementById(el.id + "-err").textContent = ok ? "" : msg;
+    el.setAttribute("aria-invalid", ok ? "false" : "true");
+    if (!ok) n++;
+  }
+  document.getElementById("status").textContent = n ? `${n} error(s): see the messages below each field.` : "";
+});
+</script></body></html>

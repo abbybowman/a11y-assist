@@ -1,0 +1,11 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>F09 Newsletter</title>
+<style>input.ok{border:2px solid #080;background:#efe}</style></head><body>
+<h1>Newsletter</h1>
+<div>
+<p><label for="nick">Nickname</label> <input id="nick"></p>
+<p><button type="button">Update</button></p>
+</div>
+<script>
+const n = document.getElementById("nick");
+n.addEventListener("blur", () => n.classList.toggle("ok", n.value.trim() !== ""));
+</script></body></html>
