@@ -11,6 +11,7 @@ import pytest
 
 from a11y_assist.checks import t4a, t4b
 from a11y_assist.models import TestId
+from a11y_assist.observe import Effect
 
 from .conftest import FIXTURES
 from .harness import instance_rows, run_check
@@ -60,8 +61,8 @@ async def test_outcome(name, settings, server):
 
 # ── Rules on recorded evidence ───────────────────────────────────────────────
 
-EFF = t4a.Effect(kinds=["dom"], mutations=1).model_dump()
-NONE = t4a.Effect().model_dump()
+EFF = Effect(kinds=["dom"], mutations=1).model_dump()
+NONE = Effect().model_dump()
 
 
 def _state(**kw) -> t4b.State4B:

@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import re
 import time
-from collections.abc import Awaitable, Callable
 from typing import Any
 
 from pydantic import BaseModel, Field
@@ -30,11 +29,11 @@ from a11y_assist.models import (
     Step,
     TestId,
 )
+from a11y_assist.observe import Effect, observe
 from a11y_assist.traverse import (
     PATH_JS,
     Session,
     Traversal,
-    _read_logs,
     open_session,
     page_text,
     screenshot,
@@ -48,7 +47,6 @@ CLICK_MAX = 10
 EXECUTE_MAX = 10
 ARROW_MAX = 5
 ARROW_PRESSES = 20
-NOISE_MS = 300
 HOOK = "keys4a"
 
 CLICK_TYPES = {"click", "mousedown", "mouseup", "dblclick", "pointerdown", "pointerup"}
@@ -292,21 +290,6 @@ def stop_hook(pass_name: str, prior: PassResult | None) -> StopHook:
 # ── Evidence ─────────────────────────────────────────────────────────────────
 
 
-class Effect(BaseModel):
-    kinds: list[str] = Field(default_factory=list)
-    mutations: int = 0
-    noise: int = 0
-    url: str | None = None  # where a navigation went
-
-    @property
-    def any(self) -> bool:
-        return bool(self.kinds)
-
-    @property
-    def unreliable(self) -> bool:
-        return self.noise > 0 and self.kinds == ["dom"]
-
-
 class Inst4A(BaseModel):
     id: str
     kind: str  # K | X | T | U
@@ -373,63 +356,6 @@ def _stop_list(p1: PassResult) -> list[StopRef]:
             )
         )
     return out
-
-
-async def snapshot(s: Session) -> dict[str, Any]:
-    page = s.page
-    focus = None
-    try:
-        st, _ = await s.traversal.reader.read()
-        focus = st.path_key
-    except Exception:
-        pass
-    try:
-        dialogs = await page.evaluate(
-            "() => Array.from(document.querySelectorAll('dialog[open],[role=dialog],[role=alertdialog]'))"
-            ".filter((e) => e.checkVisibility()).length"
-        )
-    except Exception:
-        dialogs = None
-    return {
-        "url": page.url,
-        "frames": sorted(f.url for f in page.frames),
-        "pages": len(s.traversal.context.pages),
-        "focus": focus,
-        "dialogs": dialogs,
-    }
-
-
-async def observe(
-    s: Session, quiet_ms: int, act: Callable[[], Awaitable[None]], own: str | None
-) -> Effect:
-    """What an action changes (spec: Terms, effect). `own` is the path key of
-    the element acted on: focus moving onto it (a click) is not an effect."""
-    page = s.page
-    await settle(page, quiet_ms)
-    before = await snapshot(s)
-    m0, *_ = await _read_logs(page)
-    await page.wait_for_timeout(NOISE_MS)
-    m1, *_ = await _read_logs(page)
-    await act()
-    await settle(page, quiet_ms)
-    after = await snapshot(s)
-    m2, *_ = await _read_logs(page)
-    e = Effect(mutations=max(0, m2 - m1), noise=max(0, m1 - m0))
-    if after["url"] != before["url"]:
-        e.kinds.append("navigation")
-        e.url = after["url"]
-    elif after["frames"] != before["frames"]:
-        e.kinds.append("frame_navigation")
-    if after["pages"] > before["pages"]:
-        e.kinds.append("new_page")
-    if after["dialogs"] != before["dialogs"]:
-        e.kinds.append("dialog")
-    f = after["focus"]
-    if f != before["focus"] and not (own and f and f.startswith(own)):
-        e.kinds.append("focus")
-    if e.mutations > 0:
-        e.kinds.append("dom")
-    return e
 
 
 async def _frame_ctx(s: Session) -> dict[str, tuple[Any, int]]:

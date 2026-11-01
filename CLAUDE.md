@@ -130,6 +130,7 @@ src/a11y_assist/
   capture.py    HAR record + replay
   andi.py       local ANDI injection
   traverse.py   key passes, CDP focus reading, settle rule, inventory (no outcomes)
+  observe.py    what an action changes (Effect): 4.A, 4.B and 5.D
   walk.py       the shared keyboard walk (P1 Tab, P2 Shift+Tab), once per page
   engine.py     shared first-match tables and page rows G1-G5
   checks/       one module per TT test, registered in checks/__init__.py;
