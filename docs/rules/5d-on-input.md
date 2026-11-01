@@ -1,7 +1,7 @@
 ---
 tt_test: 5.D
 tt_name: 3.2.2-on-input
-spec_version: 0.2.0
+spec_version: 0.3.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -32,8 +32,11 @@ The tool gives each page one 5.D outcome: PASS, FAIL, DOES NOT APPLY or NEEDS RE
 
 1. Arrive: press Tab until focus is on the field. A field revealed by an earlier field (not in P1) that focus reaches on the way is completed too, in turn.
 2. Read the field (kind, type, `inputmode`, `maxlength`, form, `name`, value or checked state, its own widget) and the page text that precedes it in reading order back to the start of its form (or the previous heading when there is no form), at most 1,500 characters.
-3. Complete and leave, observed as one action (4.A's `observe`): complete the field (below), then press Tab once.
-4. Read the value or state again: it changed (completed) or not.
+3. Complete, observed (the shared `observe`, with submissions): the keys below. A change of context can come from the change itself (a select that moves focus, TC10.C-3-fail-3).
+4. Leave, observed: press Tab once. A change of context can come from leaving (blur), whatever the value (TC10.C-3-fail-1, -fail-2).
+5. Read the value or state again: it changed (completed) or not.
+
+An instance's effects are those of steps 3 and 4 together; each records which step it came from.
 
 Completing a field, by kind:
 
@@ -46,7 +49,7 @@ Completing a field, by kind:
 | `date` | type the digits in the field's order | 15 January 2026 (V3) |
 | Textarea, combobox | as text | `Test` |
 | Checkbox, switch | Space | — |
-| Radio group | ArrowDown, then ArrowUp if focus stayed (the last option) | — |
+| Radio group | ArrowDown through every option, each press observed as step 3, then step 4 from the last option; ArrowUp first when focus starts on the last option. At most `RADIO_MAX` (10) options, the rest a note | — |
 | Select | ArrowDown on the closed select (V2) | — |
 | Slider, spinbutton (custom widgets) | ArrowRight, then ArrowUp if the value did not change | — |
 
@@ -57,9 +60,9 @@ Typed values are cut to `maxlength`. Every value used is recorded.
 
 **A value the page rejects.** When a typed value does not stay (the value read back differs from the value typed) or the page marks the field invalid after leaving it (`aria-invalid="true"`, or `:invalid` for a field with constraints), the field gets J3: the agent proposes a value from the field's label and nearby instructions, and the field is completed once more with it on its own replay (earlier fields refilled, as above). This catches pages whose change of context happens only on a valid value (a ZIP code that submits on 5 digits). A rejected value is still a change of the field's value: the field counts as completed either way.
 
-**Time budget:** pass F is one load plus about two settled presses and one observe per field (about 0.5–1 s a field on a fixture page; to measure with `evals/time_budget.py` while building); each change of context or J3 answer adds one replay. The whole run stays within `run_limit_s` (4.C spec section 2, Run limits): no field starts after the checks' deadline.
+**Time budget:** pass F is one load plus about two settled presses and two observes per field (more for radio groups) (about 0.5–1 s a field on a fixture page; to measure with `evals/time_budget.py` while building); each change of context or J3 answer adds one replay. The whole run stays within `run_limit_s` (4.C spec section 2, Run limits): no field starts after the checks' deadline.
 
-**Run limits.** At most `FIELD_MAX` (40) fields per page. The fields are counted on the run's first load (the DOM inventory counts form fields too); when 5.D is selected, the time limit is on and the page has more than `FIELD_MAX`, the run stops before anything is tested, as the walk's early stop does (4.C spec section 2): a tool error giving the number of fields and a time estimate (the walk's estimate plus the fields at the measured cost per field), offering `no_time_limit`, which also lifts `FIELD_MAX`, or another page.
+**Run limits.** At most `FIELD_MAX` (40) fields per page; a radio group counts once. Each option of a radio group is chosen because a page can react to one option only, or to leaving the group from it (TC10.C-3-fail-2 opens a window when focus leaves the last option). The fields are counted on the run's first load (the DOM inventory counts form fields too); when 5.D is selected, the time limit is on and the page has more than `FIELD_MAX`, the run stops before anything is tested, as the walk's early stop does (4.C spec section 2): a tool error giving the number of fields and a time estimate (the walk's estimate plus the fields at the measured cost per field), offering `no_time_limit`, which also lifts `FIELD_MAX`, or another page.
 
 ## 3. Mechanical checks
 
@@ -75,13 +78,13 @@ Each completed field is an *instance*. After the Tab that leaves a field, focus 
 | M4 | The top URL changed, the page reloaded or a form was submitted | Ask J1 (J1?, M8–M10) | p. 27 HtT 4 (user agent, viewport; "a form automatically submitted when exiting a field"); F36 |
 | M5 | A new page or window opened | Ask J1 | p. 27 HtT 4 ("a new window launched when a radio button is selected"); F37 |
 | M6 | Focus went elsewhere (not where expected) | Ask J1 | p. 27 HtT 4 (focus); Understanding 3.2.2 (auto-advancing fields are a change of focus) |
-| M7 | No change above, but a dialog appeared or the DOM changed outside the field's own widget | Ask J2 (M11–M13) | p. 27 HtT 4 ("content that changes the meaning of the page") |
+| M7 | No change above, but a dialog appeared or the DOM changed outside the field's own widget | Ask J2 and J1 together (M11–M13) | p. 27 HtT 4 ("content that changes the meaning of the page") |
 | J1? | J1 not answered yet | NEEDS REVIEW | Open question |
 | M8 | J1 = told, and its quote is found in the preceding text | No instance (the user was notified) | p. 27 HtT 4.a.i; G13 |
 | M9 | J1 = not told | FAIL | p. 27 ER 1 |
 | M10 | J1 = unsure, or told but the quote is not in the preceding text | NEEDS REVIEW | Spec rule |
 | M11 | J2 = content only | PASS | Definition of change of context, Note; Understanding 3.2.2 (revealing related fields keeps "the basic context") |
-| M12 | J2 = changes the context | Ask J1, as M4 | p. 27 HtT 4 |
+| M12 | J2 = changes the context | J1 decides, as M4 (J1?, M8–M10) | p. 27 HtT 4; TC10.C-3-fail-1 (the form replaced by "Form Submitted" on leaving a field) |
 | M13 | J2 = unsure, or not answered yet | NEEDS REVIEW | Spec rule |
 | M14 | No effect, or effects only inside the field's own widget (an autocomplete list, its own error message, another button of its radio group) | PASS | p. 27 ER 1 |
 
@@ -139,7 +142,7 @@ J1 and J2 are questions a careful tester settles by reading and looking (CLAUDE.
 | A select labelled "State" that navigates, no other text | not_told |
 | "Fields may update as you type" above a field that submits the form | unsure |
 
-**Use:** M4–M6 and M12 ask; M8–M10 consume the answer.
+**Use:** M4–M6 ask it; M7 asks it with J2, in the same round; M8–M10 consume the answer.
 
 ### J2. Does this change only add content?
 
@@ -157,7 +160,7 @@ J1 and J2 are questions a careful tester settles by reading and looking (CLAUDE.
 | Choosing "Business" replaces the whole form with a different one | changes_context |
 | A dialog appears whose purpose is unclear | unsure |
 
-**Use:** M7 asks; M11–M13 consume the answer.
+**Use:** M7 asks (with J1); M11–M13 consume the answer, and J1's answer is used only after M12.
 
 ### J3. A value the field accepts
 
