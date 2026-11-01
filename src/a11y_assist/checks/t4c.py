@@ -32,6 +32,7 @@ from a11y_assist.models import (
 )
 from a11y_assist.traverse import (
     NewPage,
+    ReplayPlan,
     Session,
     bypass,
     detect_continuation,
@@ -40,6 +41,7 @@ from a11y_assist.traverse import (
     navigated,
     open_session,
     page_text,
+    replay,
 )
 from a11y_assist.walk import KeyboardWalk
 
@@ -152,8 +154,15 @@ def _members_at_end(steps: list[Step], end: str) -> list[str]:
 
 class Collector:
     def __init__(
-        self, new_page: NewPage, quiet_ms: int, deadline: float, shots=None, rel=None
+        self,
+        new_page: NewPage,
+        quiet_ms: int,
+        deadline: float,
+        shots=None,
+        rel=None,
+        plan: ReplayPlan | None = None,
     ):
+        self.plan = plan
         self.new_page = new_page
         self.quiet_ms = quiet_ms
         self.deadline = deadline
@@ -171,6 +180,22 @@ class Collector:
 
     async def session(self) -> Session:
         return await open_session(self.new_page, self.quiet_ms, self.shots, self.rel)
+
+    async def session_at(self, inst: Inst | None, keys: list[str]) -> Session:
+        """A fresh load replayed to `keys` (after the bypass that reached
+        `inst`). Without a bypass the replay can use the walk's plan
+        (traverse.replay: quick presses where the walk saw no change)."""
+        if inst is not None and inst.via:
+            s = await self.session()
+            try:
+                await self.replay(s, inst, keys)
+            except BaseException:
+                await s.close()
+                raise
+            return s
+        return await replay(
+            self.new_page, self.quiet_ms, keys, self.plan, self.shots, self.rel
+        )
 
     async def replay(self, s: Session, inst: Inst | None, keys: list[str]) -> None:
         """Replay keys from a fresh load (after the bypass that reached `inst`)."""
@@ -264,7 +289,7 @@ class Collector:
         """Replay `prefix`, press `keys`, then up to `within` presses of
         `direction` until a stop outside the trap. Exit: outside, and the trap
         does not happen again within the check presses (spec section 3)."""
-        s = await self.session()
+        s: Session | None = None
 
         def is_outside(step: Step) -> bool:
             return (
@@ -275,7 +300,7 @@ class Collector:
             return navigated(step, s.start_url, s.start_pages)
 
         try:
-            await self.replay(s, inst, prefix)
+            s = await self.session_at(inst, prefix)
             start = len(s.traversal.steps)
             pressed: list[str] = []
             for k in keys:
@@ -346,7 +371,8 @@ class Collector:
                 name=name, outside=False, exit=False, end="error", keys=prefix + keys
             )
         finally:
-            await s.close()
+            if s is not None:
+                await s.close()
 
     async def p3(self, inst: Inst) -> None:
         """Mechanical exit probes, in table 3a order; stop at the first exit."""
@@ -406,9 +432,9 @@ class Collector:
                     return "left", []
                 return detect_p1_end(own, None)
 
-            s = await self.session()
+            s = None
             try:
-                await self.replay(s, None, prefix)
+                s = await self.session_at(None, prefix)
                 await s.traversal.press(arrow)
                 end, _, own = await drive(
                     s, "Tab", self.cap, left_widget, self.deadline
@@ -431,7 +457,8 @@ class Collector:
                     f"Checking an arrow-key widget failed to run: {exc!r}"
                 )
             finally:
-                await s.close()
+                if s is not None:
+                    await s.close()
 
     async def p6(self, inst: Inst) -> None:
         """Bypass P1's trap with the mouse, then resume Tab (spec section 6)."""
@@ -442,9 +469,9 @@ class Collector:
                 if info.get("css_path")
             }
         )
-        s = await self.session()
+        s = None
         try:
-            await self.replay(s, inst, inst.prefix)
+            s = await self.session_at(inst, inst.prefix)
             how = await bypass(s.page, top_paths)
             inst.bypass = how
             if how is None:
@@ -473,12 +500,15 @@ class Collector:
                 f"Clicking past a trap to reach the rest of the page failed: {exc!r}"
             )
         finally:
-            await s.close()
+            if s is not None:
+                await s.close()
 
 
 async def collect(ctx: RunContext, walk: KeyboardWalk) -> State4C:
     """P1 and P2 come from the shared keyboard walk; P3, P4 and P6 run here."""
-    c = Collector(ctx.new_page, ctx.quiet_ms, ctx.deadline, ctx.shots, ctx.rel)
+    c = Collector(
+        ctx.new_page, ctx.quiet_ms, ctx.deadline, ctx.shots, ctx.rel, ctx.plan
+    )
     p1, p2 = walk.p1, walk.p2
     c.cap = max(p1.cap, p2.cap)
     steps = [s for p in (p1, p2) for s in p.steps]
@@ -1146,7 +1176,9 @@ class Check4C:
         todo = apply_answers(state, report)
         if not todo:
             return []
-        c = Collector(ctx.new_page, ctx.quiet_ms, ctx.deadline, ctx.shots, ctx.rel)
+        c = Collector(
+            ctx.new_page, ctx.quiet_ms, ctx.deadline, ctx.shots, ctx.rel, ctx.plan
+        )
         c.state = state
         c.cap = max(state.p1.get("cap") or 50, state.p2.get("cap") or 50)
         try:

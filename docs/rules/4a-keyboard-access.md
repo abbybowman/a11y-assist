@@ -1,7 +1,7 @@
 ---
 tt_test: 4.A
 tt_name: 2.1.1-keyboard-access
-spec_version: 1.1.1
+spec_version: 1.1.2
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -55,7 +55,7 @@ A page with zero stops and only pointer targets applies: everything on it is mou
 | `ARROW_MAX` | 5 widgets, 20 presses per arrow | Arrow probe |
 | `NOISE_MS` | 300 ms | Effect |
 
-**Time budget:** the pointer and hover scans are one load plus about 0.1 s per hovered stop; each click, execute or arrow probe is one fresh replay (about 2–5 s on a fixture page). Typical government pages with native controls only cost under 10 s. The whole run stays within `run_limit_s`; work not done in time is G3.
+**Time budget:** the pointer and hover scans are one load plus about 0.1 s per hovered stop; each click, execute or arrow probe is one fresh replay (about 2–5 s on a fixture page). Typical government pages with native controls only cost under 10 s. Replays to a stop use the 4.C replay rule (4.C spec section 2, 1.7.0; 1.1.2): measured on a realistic agency home page, 4.A's 13 replays take 32 s, down from 51 s. The whole run stays within `run_limit_s`; work not done in time is G3.
 
 ## 3. Mechanical checks
 

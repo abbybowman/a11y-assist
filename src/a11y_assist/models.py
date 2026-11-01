@@ -144,6 +144,11 @@ class Step(BaseModel):
         description="A focus change after the settle window was seen, so the step "
         "was re-read with the 1,000 ms window.",
     )
+    quick: bool = Field(
+        default=False,
+        description="A replay-prefix press read without the quiet window, because "
+        "the walk saw this press change nothing (4.C spec section 2).",
+    )
     extras: dict[str, Any] = Field(
         default_factory=dict,
         description="Walk extras a check asked for (e.g. images, styles), by name.",

@@ -27,7 +27,7 @@ from a11y_assist.models import (
     Step,
     TestId,
 )
-from a11y_assist.traverse import Traversal, open_session
+from a11y_assist.traverse import Traversal, open_session, screenshot
 from a11y_assist.walk import KeyboardWalk
 
 MAX_REPLAYS = 10
@@ -114,7 +114,7 @@ class ContextHook:
                 label = f"4e-{self.pass_name}"
                 path = t.shots_dir / f"{label}-{len(t.steps):04d}-after.png"
                 t.shots_dir.mkdir(parents=True, exist_ok=True)
-                await t.page.screenshot(path=str(path), animations="disabled")
+                await screenshot(t.page, path=str(path), animations="disabled")
                 out["after_shot"] = (
                     path.resolve().relative_to(t.rel_base.resolve()).as_posix()
                 )
@@ -329,10 +329,11 @@ async def _reproduce(ctx: RunContext, inst: Inst4E) -> bool:
 
 async def _control(ctx: RunContext, inst: Inst4E) -> bool:
     """Same keys except the last, then wait: does the page change anyway?"""
-    s = await open_session(ctx.new_page, ctx.quiet_ms)
     try:
-        for k in inst.keys[:-1]:
-            await s.traversal.press(k)
+        s = await ctx.replay(inst.keys[:-1])
+    except Exception:
+        return False
+    try:
         url, pages = s.page.url, len(s.traversal.context.pages)
         await asyncio.sleep(CONTROL_WAIT_MS / 1000)
         return (
@@ -346,13 +347,14 @@ async def _control(ctx: RunContext, inst: Inst4E) -> bool:
 
 
 async def _before_shot(ctx: RunContext, inst: Inst4E) -> str | None:
-    s = await open_session(ctx.new_page, ctx.quiet_ms, ctx.shots, ctx.rel)
     try:
-        for k in inst.keys[:-1]:
-            await s.traversal.press(k)
+        s = await ctx.replay(inst.keys[:-1], shots=True)
+    except Exception:
+        return None
+    try:
         ctx.shots.mkdir(parents=True, exist_ok=True)
         path = ctx.shots / f"4e-{inst.id}-before.png"
-        await s.page.screenshot(path=str(path), animations="disabled")
+        await screenshot(s.page, path=str(path), animations="disabled")
         return path.resolve().relative_to(ctx.rel.resolve()).as_posix()
     except Exception:
         return None

@@ -101,7 +101,13 @@ async def test_run_tt_tests_on_http_page(settings, server):
     )
     for s in steps:
         if s["step"] == "collected":
-            assert set(s["detail"]["cost"]) == {"loads", "presses", "seconds"}
+            assert set(s["detail"]["cost"]) == {
+                "loads",
+                "presses",
+                "quick",
+                "slow_redos",
+                "seconds",
+            }
 
 
 async def test_collect_on_file_fixture_in_dev_mode(settings):

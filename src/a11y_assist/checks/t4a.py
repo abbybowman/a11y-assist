@@ -37,6 +37,7 @@ from a11y_assist.traverse import (
     _read_logs,
     open_session,
     page_text,
+    screenshot,
     settle,
 )
 from a11y_assist.walk import KeyboardWalk
@@ -490,10 +491,7 @@ def _visible_unreached(results) -> set[str]:
 
 
 async def _replay(ctx: RunContext, keys: list[str]) -> Session:
-    s = await open_session(ctx.new_page, ctx.quiet_ms)
-    for k in keys:
-        await s.traversal.press(k)
-    return s
+    return await ctx.replay(keys)
 
 
 def _out_of_time(ctx: RunContext) -> bool:
@@ -532,7 +530,7 @@ async def collect(ctx: RunContext, walk: KeyboardWalk) -> State4A:
         st.browser = s.page.context.browser.version if s.page.context.browser else None
         ctx.shots.mkdir(parents=True, exist_ok=True)
         shot = ctx.shots / "4a-page.png"
-        await s.page.screenshot(path=str(shot), full_page=True, animations="disabled")
+        await screenshot(s.page, path=str(shot), full_page=True, animations="disabled")
         st.shot = shot.resolve().relative_to(ctx.rel.resolve()).as_posix()
         await _mark_listeners(s)
         n_frames, results = await _scan(s, stops_arg, True, hit_all)

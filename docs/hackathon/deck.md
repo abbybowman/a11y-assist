@@ -102,6 +102,7 @@ flowchart LR
 - Each check declares the extra evidence it needs
 - Time budget: under 60 s per page for Test 4, hard limit 120 s per call
 - A page too large for the limit is refused early; the user can choose to run it with no time limit
+- Replays reuse what the walk saw: realistic agency page 151 s → 97 s, same outcomes
 
 **Notes:**
 

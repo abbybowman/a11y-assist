@@ -39,3 +39,33 @@ and 4.D then ran 19 s past the limit.
 ## Proposed cuts
 
 Asked as multiple-choice questions; answers recorded in the specs.
+
+Decided (Abby, 2026-11-01):
+
+1. **Quick replay prefix:** build it, MINOR on 4.C (1.7.0, settle rule);
+   the other specs note it.
+2. **Share replays:** deferred; re-measure after 1 and 3.
+3. **Run limit:** a 10 s reserve, then a hard stop; anything cut short is
+   NEEDS REVIEW (4.C 1.6.0, 4.D and 4.E 1.1.0).
+4. **Large pages:** stop and say so as soon as the walk's pace shows it
+   cannot finish; an opt-in `no_time_limit` input lets the caller test the
+   page in full (4.C 1.6.0).
+
+## After the cuts
+
+Building 1 found the real cause: Playwright adds and removes a style
+element for every screenshot, so with 4.D's images in the walk every step
+looked changed. No replay press could be quick, and 4.D took its noise read
+at every stop. The mutation log is now paused around the tool's own shots.
+
+| Page | Before | After | Walk | 4.A | 4.C | 4.D | 4.F |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 4.D F10, 100 links | 60 s | 63 s | 57 s | 4 s | 0.3 | 0.4 | 0 |
+| budget/agency-home | 153 s | **97 s** | 46 s | 32 s | 3 s | 8 s | 8 s |
+| budget/benefits-form | 158 s (uncapped) | **83 s** | 32 s | 33 s | 4 s | 4 s | 9 s |
+| 4.C F34, 600 links | ran out at 120 s | refused after ~5 s | | | | | |
+
+All outcomes unchanged, no slow redo on any page. F10 gains nothing (its
+shots happen not to mutate the DOM) and pays ~2 s for the pause. Sharing
+replays would now save a few seconds per widget, so it stays deferred
+(roadmap).

@@ -10,10 +10,15 @@ import pytest
 from a11y_assist.browser import new_context
 from a11y_assist.traverse import (
     INIT_JS,
+    ReplayPlan,
     Traversal,
+    _read_logs,
     detect_p1_end,
     dom_inventory,
+    metered,
+    replay,
     run_pass,
+    screenshot,
     tab_press_cap,
 )
 
@@ -227,3 +232,74 @@ async def test_traversal_records_focus_events(browser, settings):
         ("focusin", "btn"),
     ]
     await ctx.close()
+
+
+# ── Replays to walk stops (4.C spec section 2, settle rule) ──────────────────
+
+
+async def test_replay_plan_marks_quiet_presses_and_keeps_the_last_settled(
+    browser, settings
+):
+    p = await _pass(browser, settings, _fixture("no_trap.html"))
+    plan = ReplayPlan.of(p)
+    keys = ["Tab"] * 4
+    # Plain links and buttons change nothing: quick, except the last press.
+    assert plan.flags(keys) == [True, True, True, False]
+    assert plan.expect(keys, 3) == p.steps[3].stop.path_key
+    # Only the leading run of the pass's key: never past an Enter.
+    assert plan.flags(["Tab", "Tab", "Enter"]) == [True, False, False]
+    assert plan.expect(["Tab", "Enter"], 1) is None
+    assert plan.flags(["Shift+Tab", "Shift+Tab"]) == [False, False]  # no P2
+    # A press that changed the page is always fully settled.
+    changed = p.model_copy(
+        update={"steps": [p.steps[0].model_copy(update={"mutations": 2})] + p.steps[1:]}
+    )
+    assert ReplayPlan.of(changed).flags(keys) == [False, True, True, False]
+
+
+async def test_replay_ends_where_the_walk_did_or_is_redone_settled(browser, settings):
+    opener = _opener(browser, settings, _fixture("no_trap.html"))
+    p = await run_pass("P1", opener, "Tab", 50)
+    keys = ["Tab"] * 5
+    with metered() as m:
+        s = await replay(opener, 50, keys, ReplayPlan.of(p))
+        try:
+            assert [st.quick for st in s.traversal.steps] == [True] * 4 + [False]
+            assert s.traversal.steps[-1].stop.path_key == p.steps[4].stop.path_key
+        finally:
+            await s.close()
+    assert (m.loads, m.quick, m.slow_redos) == (1, 4, 0)
+
+    # Focus not where the walk had it after a quick press: redone, all settled.
+    wrong = ReplayPlan.of(p)
+    seen = wrong.passes["Tab"]
+    seen[2] = ("not-the-walk's-stop", True)
+    with metered() as m:
+        s = await replay(opener, 50, keys, wrong)
+        try:
+            assert not any(st.quick for st in s.traversal.steps)
+            assert s.traversal.steps[-1].stop.path_key == p.steps[4].stop.path_key
+        finally:
+            await s.close()
+    assert (m.loads, m.slow_redos) == (2, 1)
+
+
+async def test_own_screenshots_are_not_page_mutations(browser, settings):
+    """Playwright adds and removes a style element for every screenshot; the
+    log must not count that as the page changing (it marked every step of a
+    walk with 4.D's images as changed)."""
+    ctx, page = await _opener(browser, settings, _fixture("no_trap.html"))()
+    try:
+        await page.wait_for_timeout(100)
+        before = (await _read_logs(page))[0]
+        await screenshot(page, clip={"x": 0, "y": 0, "width": 50, "height": 50})
+        await page.wait_for_timeout(50)
+        assert (await _read_logs(page))[0] == before
+        # Page changes are still counted, including ones pending at the shot.
+        await page.evaluate("document.body.append(document.createElement('p'))")
+        await screenshot(page, clip={"x": 0, "y": 0, "width": 50, "height": 50})
+        await page.evaluate("document.body.append(document.createElement('p'))")
+        await page.wait_for_timeout(50)
+        assert (await _read_logs(page))[0] == before + 2
+    finally:
+        await ctx.close()
