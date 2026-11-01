@@ -1,7 +1,7 @@
 ---
 tt_test: 5.D
 tt_name: 3.2.2-on-input
-spec_version: 0.3.0
+spec_version: 0.4.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -14,7 +14,7 @@ The tool gives each page one 5.D outcome: PASS, FAIL, DOES NOT APPLY or NEEDS RE
 
 **Other sources.** [Understanding 3.2.2](https://www.w3.org/WAI/WCAG22/Understanding/on-input.html) and the definition of *change of context* ("a change of content is not always a change of context"; "activating a link or a button does not" change a setting); [G13](https://www.w3.org/WAI/WCAG22/Techniques/general/G13) (the notice precedes the control in reading order); failures [F36](https://www.w3.org/WAI/WCAG22/Techniques/failures/F36) (a form submitted when its last field is given a value or left) and [F37](https://www.w3.org/WAI/WCAG22/Techniques/failures/F37) (a radio, checkbox or select opening a new window); the ICT Testing Baseline 3.1 test [10.C-OnInput](https://ictbaseline.access-board.gov/web-baselines/10Forms/) ("Enter data in all form fields, and exit (tab out of) the field") and its Baseline Alignment cases TC10.C. No ACT rule covers 3.2.2, and DHS publishes no ACT results for it. These inform rules and fixtures; the PDF stays the authority.
 
-**Terms.** *Stop*, passes P1 and P2, stop identity, the settle rule and replays to a stop are defined in [4c-no-keyboard-trap.md](4c-no-keyboard-trap.md) (Terms, section 2). An *effect* (navigation, frame navigation, new page, dialog, focus change, DOM change) is defined in [4a-keyboard-access.md](4a-keyboard-access.md) (Terms). A *field* is a stop that is a text field (`input` of a text-entry type, `textarea`, role textbox, searchbox or combobox), a select (`select`, role listbox when it is a single control), a checkbox or switch, a radio button, or a custom widget with a value (role slider or spinbutton), and is not disabled or read-only. Radio buttons with the same `name` in the same form (or the same role radiogroup) are one field. A field's *own widget* is the field, the elements it names in `aria-controls`, `aria-owns`, `list`, `aria-describedby` and `aria-errormessage`, and for a radio group its other buttons. A *change of context* is one of: the top URL changes (ignoring the fragment) or the page reloads; a new page or window opens; a form is submitted (a `submit` event, or a form submission request, whether or not the recording can answer it); focus goes somewhere other than the expected stop (section 3).
+**Terms.** *Stop*, passes P1 and P2, stop identity, the settle rule and replays to a stop are defined in [4c-no-keyboard-trap.md](4c-no-keyboard-trap.md) (Terms, section 2). An *effect* (navigation, frame navigation, new page, dialog, focus change, DOM change) is defined in [4a-keyboard-access.md](4a-keyboard-access.md) (Terms). A *field* is a stop that is a text field (`input` of a text-entry type, `textarea`, role textbox, searchbox or combobox), a select (`select`, role listbox when it is a single control), a checkbox or switch, a radio button, a date or time input, or a custom widget with a value (role slider or spinbutton), and is not disabled or read-only. Chrome focuses a date input's parts (month, day, year, picker button) one by one, inside the input's own shadow root; they are one field, read through the input (V3). Radio buttons with the same `name` in the same form (or the same role radiogroup) are one field. A field's *own widget* is the field, the elements it names in `aria-controls`, `aria-owns`, `list`, `aria-describedby` and `aria-errormessage`, and for a radio group its other buttons. A *change of context* is one of: the top URL changes (ignoring the fragment) or the page reloads; a new page or window opens; a form is submitted (a `submit` event, or a form submission request, whether or not the recording can answer it); focus goes somewhere other than the expected stop (section 3).
 
 ## 1. Applicability
 
@@ -33,7 +33,7 @@ The tool gives each page one 5.D outcome: PASS, FAIL, DOES NOT APPLY or NEEDS RE
 1. Arrive: press Tab until focus is on the field. A field revealed by an earlier field (not in P1) that focus reaches on the way is completed too, in turn.
 2. Read the field (kind, type, `inputmode`, `maxlength`, form, `name`, value or checked state, its own widget) and the page text that precedes it in reading order back to the start of its form (or the previous heading when there is no form), at most 1,500 characters.
 3. Complete, observed (the shared `observe`, with submissions): the keys below. A change of context can come from the change itself (a select that moves focus, TC10.C-3-fail-3).
-4. Leave, observed: press Tab once. A change of context can come from leaving (blur), whatever the value (TC10.C-3-fail-1, -fail-2).
+4. Leave, observed: press Tab, again while focus is still on the field's own widget (a date input's parts), at most 5 times. A change of context can come from leaving (blur), whatever the value (TC10.C-3-fail-1, -fail-2).
 5. Read the value or state again: it changed (completed) or not.
 
 An instance's effects are those of steps 3 and 4 together; each records which step it came from.
@@ -46,7 +46,7 @@ Completing a field, by kind:
 | `email` | as text | `test@example.gov` |
 | `tel`, `number`, `inputmode=numeric` | as text | `12345` |
 | `url` | as text | `https://example.gov` |
-| `date` | type the digits in the field's order | 15 January 2026 (V3) |
+| `date` and other date and time inputs | type the digits in the field's order (`01152026`); Chrome moves from part to part. The value reads back in ISO form, so a date counts as rejected only when it is empty or invalid | 15 January 2026 (V3) |
 | Textarea, combobox | as text | `Test` |
 | Checkbox, switch | Space | — |
 | Radio group | ArrowDown through every option, each press observed as step 3, then step 4 from the last option; ArrowUp first when focus starts on the last option. At most `RADIO_MAX` (10) options, the rest a note | — |
@@ -56,7 +56,7 @@ Completing a field, by kind:
 Typed values are cut to `maxlength`. Every value used is recorded.
 
 
-**When a change of context happens** (rows M4–M7), pass F continues on a fresh replay: complete every earlier field again, in order, except the fields that caused a change of context, unobserved; then resume at the next field. A form that submits only once every field is filled is then still reached.
+**When a change of context happens** (rows M4–M6), pass F continues on a fresh replay: complete every earlier field again, in order, except the fields that caused a change of context, unobserved; then resume at the next field. A form that submits only once every field is filled is then still reached. After a change of content (M7) the pass continues on the same load, so fields it revealed are completed in turn.
 
 **A value the page rejects.** When a typed value does not stay (the value read back differs from the value typed) or the page marks the field invalid after leaving it (`aria-invalid="true"`, or `:invalid` for a field with constraints), the field gets J3: the agent proposes a value from the field's label and nearby instructions, and the field is completed once more with it on its own replay (earlier fields refilled, as above). This catches pages whose change of context happens only on a valid value (a ZIP code that submits on 5 digits). A rejected value is still a change of the field's value: the field counts as completed either way.
 

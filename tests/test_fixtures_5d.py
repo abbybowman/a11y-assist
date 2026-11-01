@@ -10,7 +10,10 @@ import re
 
 import pytest
 
+from a11y_assist.checks import t5d
+from a11y_assist.engine import first_match
 from a11y_assist.models import TestId
+from a11y_assist.observe import Effect
 
 from .conftest import FIXTURES
 from .drafts import drafts  # noqa: F401 (a fixture)
@@ -188,3 +191,68 @@ async def test_f13_spinbutton_updates_total_only(page):
     await p.keyboard.press("ArrowUp")
     assert await p.text_content("#total") == "Total: 2 copies"
     assert "f13" in p.url
+
+
+# ── Rules on recorded evidence (rows no page triggers reliably) ──────────────
+
+
+def _inst(**kw) -> t5d.Inst5D:
+    field = t5d.Field5D(n=1, index=0, path_key="#f", css_path="#f", control="select")
+    attempt = kw.pop("attempt", {})
+    return t5d.Inst5D(
+        id="f1",
+        field=field,
+        info={"label": "State", "before": "Choosing a state  takes you to its page."},
+        attempts=[t5d.Attempt(**attempt)] if attempt is not None else [],
+        **kw,
+    )
+
+
+def _row(inst: t5d.Inst5D) -> str:
+    return first_match(t5d.INSTANCE_ROWS, inst).id
+
+
+NAV = {"complete": [Effect(kinds=["navigation"])], "completed": True}
+
+
+def test_rows_on_recorded_evidence():
+    assert _row(_inst(arrived=False, attempt=None)) == "M1"
+    assert _row(_inst(attempt={"completed": False})) == "M2"
+    assert _row(_inst(attempt=NAV)) == "J1?"
+    # J1's quote is checked against the text before the field, whitespace and
+    # case aside; a quote that is not there is not a notice.
+    told = {"choice": "told", "quote": "choosing a state takes you to its PAGE."}
+    assert _row(_inst(attempt=NAV, j1=told)) == "M8"
+    made_up = {"choice": "told", "quote": "You will be redirected."}
+    assert _row(_inst(attempt=NAV, j1=made_up)) == "M10"
+    assert _row(_inst(attempt=NAV, j1={"choice": "unsure"})) == "M10"
+    assert _row(_inst(attempt=NAV, j1={"choice": "not_told"})) == "M9"
+    content = {
+        "complete": [Effect(kinds=["dom"], mutations=3)],
+        "outside_changed": True,
+    }
+    assert _row(_inst(attempt=content)) == "M13"  # J2 not answered yet
+    assert _row(_inst(attempt=content, j2={"choice": "unsure"})) == "M13"
+    assert _row(_inst(attempt=content, j2={"choice": "content_only"})) == "M11"
+    taken = {"choice": "changes_context"}
+    assert _row(_inst(attempt=content, j2=taken)) == "J1?"
+    assert _row(_inst(attempt=content, j2=taken, j1={"choice": "not_told"})) == "M9"
+    # Page noise during the action, and only DOM changes: unreliable.
+    noisy = {
+        "complete": [Effect(kinds=["dom"], mutations=2, noise=3)],
+        "outside_changed": True,
+    }
+    assert _row(_inst(attempt=noisy)) == "M1"
+    # Nothing happened.
+    assert _row(_inst(attempt={"complete": [Effect()], "completed": True})) == "M14"
+
+
+def test_rejected_value_asks_j3_then_stands_when_unsure():
+    rejected = {
+        "complete": [Effect()],
+        "completed": True,
+        "rejected": True,
+        "value": "Test",
+    }
+    assert _row(_inst(attempt=rejected)) == "M3"
+    assert _row(_inst(attempt=rejected, j3={"choice": "unsure"})) == "M14"

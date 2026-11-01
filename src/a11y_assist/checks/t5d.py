@@ -68,7 +68,18 @@ _OWN_JS = """
   const inOwn = (n) => { for (const o of own) if (o === n || o.contains(n)) return true; return false; };
 """
 
-FIELD_FN = (
+# A date input's parts are focused inside its own shadow root: read the input.
+_ON_HOST = (
+    "function () { const h = this.getRootNode().host; "
+    "const el = h && h.tagName === 'INPUT' ? h : this; return (BODY).call(el); }"
+)
+
+
+def _on_host(fn: str) -> str:
+    return _ON_HOST.replace("BODY", fn)
+
+
+FIELD_FN = _on_host(
     "function () {"
     + PATH_JS
     + _OWN_JS
@@ -121,7 +132,7 @@ FIELD_FN = (
 
 # A signature of everything visible outside the field's own widget in its
 # document: visible text and the number of visible dialogs.
-SIG_FN = (
+SIG_FN = _on_host(
     "function () {"
     + _OWN_JS
     + """
@@ -362,6 +373,8 @@ def _complete_keys(f: Field5D, info: dict[str, Any]) -> list[str]:
         return ["ArrowDown"]
     if c in ("slider", "spinbutton"):
         return ["ArrowRight"]
+    if c == "date":
+        return ["type"]  # digits in the field's order; Chrome moves part to part
     return ["Control+A", "type"]
 
 
@@ -390,7 +403,10 @@ async def _shot(ctx: RunContext, s: Session, name: str) -> str | None:
 
 def _own(info: dict[str, Any], st: Stop) -> bool:
     """Focus is on the field's own widget (its frame and one of its paths)."""
-    return st.kind == "element" and st.css_path in (info.get("own") or [])
+    own = info.get("own") or []
+    return st.kind == "element" and any(
+        st.css_path == o or (st.css_path or "").startswith(o + " ") for o in own
+    )
 
 
 async def _attempt(
@@ -462,9 +478,17 @@ async def _attempt(
         sig1 = await reader.call(cur, SIG_FN)
         if sig0 is not None and sig1 is not None and sig1 != sig0:
             a.outside_changed = True
-        a.leave = await observe(
-            s, ctx.quiet_ms, lambda: s.page.keyboard.press("Tab"), None, submits=True
-        )
+
+        async def leave() -> None:
+            # Tab until focus leaves the field's own widget (a date input's
+            # parts and picker take one Tab each).
+            await s.page.keyboard.press("Tab")
+            for _ in range(5):
+                if not _own(info, await _read(s)):
+                    break
+                await s.page.keyboard.press("Tab")
+
+        a.leave = await observe(s, ctx.quiet_ms, leave, None, submits=True)
         if not _mechanical(a.leave):
             land = await _read(s)
             a.focus_after_leave = {
@@ -481,8 +505,14 @@ async def _attempt(
             a.leave_expected = await _expected(s, f, land)
             back = await reader.call(cur, FIELD_FN)  # the field, after leaving
             if back is not None:
+                # A date reads back in ISO form (2026-01-15), not as typed.
+                differs = (
+                    not back.get("value")
+                    if f.control == "date"
+                    else back.get("value") != a.value
+                )
                 a.rejected = a.value is not None and (
-                    back.get("value") != a.value or bool(back.get("invalid"))
+                    differs or bool(back.get("invalid"))
                 )
                 sig2 = await reader.call(cur, SIG_FN)
                 if sig0 is not None and sig2 is not None and sig2 != sig0:

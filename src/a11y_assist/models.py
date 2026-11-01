@@ -119,11 +119,14 @@ class Stop(BaseModel):
     control: str | None = Field(
         default=None,
         description='Form control kind (4.C J2, 5.D): "text", "select", "listbox", '
-        '"checkbox", "switch", "radio", "combobox", "slider", "spinbutton".',
+        '"checkbox", "switch", "radio", "combobox", "slider", "spinbutton", "date".',
     )
     readonly: bool = False
     disabled: bool = False
-    group: str | None = Field(default=None, description="Radio group key.")
+    group: str | None = Field(
+        default=None,
+        description="Radio group, or the date input whose parts take focus one by one.",
+    )
     collapsed: bool = Field(
         default=False, description="A disclosure control with aria-expanded=false."
     )

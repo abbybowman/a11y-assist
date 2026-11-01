@@ -316,6 +316,13 @@ async def test_form_controls_on_stops_and_in_the_inventory(browser, settings):
     }
     button = by_id.pop("f > button")
     assert button.control is None
+    # A date input's parts take focus one by one in its shadow root: one
+    # control, grouped by the input.
+    parts = {
+        k: by_id.pop(k) for k in list(by_id) if k.startswith(("date-time", "picker"))
+    }
+    assert len(parts) == 4 and {v.control for v in parts.values()} == {"date"}
+    assert {v.group for v in parts.values()} == {"input:#start"}
     assert {k: v.control for k, v in by_id.items()} == {
         "name": "text",
         "email": "text",
@@ -329,9 +336,9 @@ async def test_form_controls_on_stops_and_in_the_inventory(browser, settings):
     }
     assert by_id["code"].readonly and not by_id["name"].readonly
     assert by_id["s1"].group and by_id["s1"].group.endswith(":size")
-    # name, email, size (one group), news, state, notes, vol, dark; not the
-    # read-only or disabled fields, not the button.
-    assert p.form_fields == 8
+    # name, email, size (one group), news, state, notes, start, vol, dark;
+    # not the read-only or disabled fields, not the button.
+    assert p.form_fields == 9
 
 
 async def test_form_submissions_are_logged_in_every_frame(browser, settings):
