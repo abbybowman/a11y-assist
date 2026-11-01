@@ -1,7 +1,7 @@
 ---
 tt_test: 5.D
 tt_name: 3.2.2-on-input
-spec_version: 0.1.0
+spec_version: 0.2.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -14,7 +14,7 @@ The tool gives each page one 5.D outcome: PASS, FAIL, DOES NOT APPLY or NEEDS RE
 
 **Other sources.** [Understanding 3.2.2](https://www.w3.org/WAI/WCAG22/Understanding/on-input.html) and the definition of *change of context* ("a change of content is not always a change of context"; "activating a link or a button does not" change a setting); [G13](https://www.w3.org/WAI/WCAG22/Techniques/general/G13) (the notice precedes the control in reading order); failures [F36](https://www.w3.org/WAI/WCAG22/Techniques/failures/F36) (a form submitted when its last field is given a value or left) and [F37](https://www.w3.org/WAI/WCAG22/Techniques/failures/F37) (a radio, checkbox or select opening a new window); the ICT Testing Baseline 3.1 test [10.C-OnInput](https://ictbaseline.access-board.gov/web-baselines/10Forms/) ("Enter data in all form fields, and exit (tab out of) the field") and its Baseline Alignment cases TC10.C. No ACT rule covers 3.2.2, and DHS publishes no ACT results for it. These inform rules and fixtures; the PDF stays the authority.
 
-**Terms.** *Stop*, passes P1 and P2, stop identity, the settle rule and replays to a stop are defined in [4c-no-keyboard-trap.md](4c-no-keyboard-trap.md) (Terms, section 2). An *effect* (navigation, frame navigation, new page, dialog, focus change, DOM change) is defined in [4a-keyboard-access.md](4a-keyboard-access.md) (Terms). A *field* is a stop that is a text field (`input` of a text-entry type, `textarea`, role textbox, searchbox or combobox), a select (`select`, role listbox when it is a single control), a checkbox or switch, or a radio button, and is not disabled or read-only. Radio buttons with the same `name` in the same form (or the same role radiogroup) are one field. A field's *own widget* is the field, the elements it names in `aria-controls`, `aria-owns`, `list`, `aria-describedby` and `aria-errormessage`, and for a radio group its other buttons. A *change of context* is one of: the top URL changes (ignoring the fragment) or the page reloads; a new page or window opens; a form is submitted (a `submit` event, or a form submission request, whether or not the recording can answer it); focus goes somewhere other than the expected stop (section 3).
+**Terms.** *Stop*, passes P1 and P2, stop identity, the settle rule and replays to a stop are defined in [4c-no-keyboard-trap.md](4c-no-keyboard-trap.md) (Terms, section 2). An *effect* (navigation, frame navigation, new page, dialog, focus change, DOM change) is defined in [4a-keyboard-access.md](4a-keyboard-access.md) (Terms). A *field* is a stop that is a text field (`input` of a text-entry type, `textarea`, role textbox, searchbox or combobox), a select (`select`, role listbox when it is a single control), a checkbox or switch, a radio button, or a custom widget with a value (role slider or spinbutton), and is not disabled or read-only. Radio buttons with the same `name` in the same form (or the same role radiogroup) are one field. A field's *own widget* is the field, the elements it names in `aria-controls`, `aria-owns`, `list`, `aria-describedby` and `aria-errormessage`, and for a radio group its other buttons. A *change of context* is one of: the top URL changes (ignoring the fragment) or the page reloads; a new page or window opens; a form is submitted (a `submit` event, or a form submission request, whether or not the recording can answer it); focus goes somewhere other than the expected stop (section 3).
 
 ## 1. Applicability
 
@@ -48,10 +48,10 @@ Completing a field, by kind:
 | Checkbox, switch | Space | — |
 | Radio group | ArrowDown, then ArrowUp if focus stayed (the last option) | — |
 | Select | ArrowDown on the closed select (V2) | — |
+| Slider, spinbutton (custom widgets) | ArrowRight, then ArrowUp if the value did not change | — |
 
 Typed values are cut to `maxlength`. Every value used is recorded.
 
-OPEN: custom widgets with a value (roles slider, spinbutton). (a) Complete them with one arrow press, as fields (recommended); (b) leave them out, with a note. Effect: (a) adds one row of field kinds and two fixtures.
 
 **When a change of context happens** (rows M4–M7), pass F continues on a fresh replay: complete every earlier field again, in order, except the fields that caused a change of context, unobserved; then resume at the next field. A form that submits only once every field is filled is then still reached.
 
@@ -121,7 +121,7 @@ Each completed field is an *instance*. After the Tab that leaves a field, focus 
 
 The calling agent answers each once, by the rubric; a person's answer overrides it. Page text and element names are evidence in `input`, never part of a question's wording.
 
-OPEN: J1 and J2 lead to PASS (M8, M11) by an opinion. CLAUDE.md principle 8 allows that only when the spec marks the question as one a careful tester settles by looking or reading, with "unsure" whenever the evidence does not settle it. (a) Mark J1 and J2 as such (recommended: whether text before a field announces what it does, and whether a change only adds related content, are what a tester reads and sees; J1 has a mechanical check on its quote); (b) M8 and M11 give NEEDS REVIEW instead of PASS, so a warned jump menu or a checkbox that reveals fields always goes to a person.
+J1 and J2 are questions a careful tester settles by reading and looking (CLAUDE.md principle 8): whether the text before a field announces what changing it does, and whether a change only adds related content. Their answers can lead to PASS (M8, M11), and the agent must answer unsure whenever the evidence does not settle it; only unsure answers go to a person. J1 has a mechanical check on its quote.
 
 ### J1. Was the user told before the change?
 

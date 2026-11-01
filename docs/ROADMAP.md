@@ -13,7 +13,7 @@ done: all of 4.A–4.F fit one 120 s call on realistic multi-section pages
 (97 s and 83 s), pages too large to walk are refused early with a
 `no_time_limit` option ([plans/2026-11-01-time-budget.md](plans/2026-11-01-time-budget.md)).
 Next: 5.D On input ([plans/2026-11-01-5d-on-input.md](plans/2026-11-01-5d-on-input.md),
-spec [rules/5d-on-input.md](rules/5d-on-input.md) 0.1.0), chosen from the
+spec [rules/5d-on-input.md](rules/5d-on-input.md) 0.2.0), chosen from the
 coverage map ([research/2026-10-31-tt-coverage-map.md](research/2026-10-31-tt-coverage-map.md)).
 Then the other form tests (5.F, 5.G, the 5.A/5.C leftovers) or the
 multi-page batch.

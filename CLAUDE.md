@@ -54,7 +54,7 @@ by TT test ID. Package: `a11y_assist` (name is provisional).
    with no jargon or spec codes (row IDs stay in the evidence trace). A
    person's answer overrides the agent's. An opinion leads to PASS only when a
    key press or another mechanical check confirms it, or when the spec marks
-   the question as one a careful tester settles by looking (4.E J1, 4.F J1); the agent
+   the question as one a careful tester settles by looking (4.E J1, 4.F J1, 5.D J1 and J2); the agent
    must then answer "unsure" whenever the evidence does not settle it, and only
    those go to a person.
 
