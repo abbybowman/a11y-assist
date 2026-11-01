@@ -53,16 +53,17 @@ run).
 - **"Test a page" prompt** for operators who are not Trusted Testers: run,
   answer questions (one subagent for all of them), summarize, read
   `report_uri` and offer to save it.
-- **Agent-level eval: on hold** (plan: [plans/2026-10-31-agent-eval.md](plans/2026-10-31-agent-eval.md)).
-  A model drives the tools end to end; outcomes scored by exact match in
-  code, wording by a judge model; no-tool baseline; 5 repeats. Decided:
-  Sonnet 5.x agent and Opus 5.5 judge as Claude Code subagents for
-  development; NASA Ask Sage models for the scored runs, from the author's
-  NASA laptop (key in `.env`, never committed); Phoenix later. Waiting on
-  (1) DHS Trusted Tester training-course pages for the question set, and
-  whether DHS's terms allow saving copies, and (2) the Ask Sage model list.
-  Also still to cover: a check that fails when an eval agent opens files
-  outside its packet.
+- **Agent-level eval** (plan: [plans/2026-10-31-agent-eval.md](plans/2026-10-31-agent-eval.md)).
+  A model drives the tools end to end against a Playwright MCP baseline;
+  outcomes scored in code with fixed weights, wording by a judge from
+  another model family; 5 repeats. Next: build the harness on the
+  development set with Sonnet 5.5 Gov through Ask Sage (route checked
+  2026-11-01). Abby is choosing and blind-labeling real .gov pages, split
+  by site; seeded faults cover keyboard traps. Open: DHS training pages
+  (DHS's terms and the hackathon's "publicly available" rule), the GPT and
+  Gemini routes, and how real pages are frozen for both arms. Also still
+  to cover: a check that fails when a judge-eval agent opens files outside
+  its packet (agent-eval agents get no file tools).
 - **Network-level egress rules** on any host that runs the server, as a
   second layer behind the egress proxy (GSA template). Deployment work.
 
