@@ -14,14 +14,11 @@ answers): 43/44 Test 4 fixtures and 14/14 for 5.D, no false PASS
 walk, or with more than 40 form fields, are refused at once with a
 `no_time_limit` option ([solutions/time-budget.md](solutions/time-budget.md)).
 
-Next (chosen 2026-11-01): 5.F and 5.G, then the 5.A and 5.C leftovers
-([plans/2026-11-01-forms-5f-5g.md](plans/2026-11-01-forms-5f-5g.md); specs at
-0.1.0). Was: choose between the other form tests (5.F and 5.G error
-identification and suggestion, 5.A and 5.C leftovers, which reuse 5.D's
-fill pass and field reads) and the multi-page batch
-([plans/2026-11-01-multi-page.md](plans/2026-11-01-multi-page.md)), using
-the coverage map ([research/2026-10-31-tt-coverage-map.md](research/2026-10-31-tt-coverage-map.md))
-and CLAUDE.md's research rule.
+Next: 5.F and 5.G (error identification and suggestion), then the 5.A
+and 5.C leftovers, reusing 5.D's field reads
+([plans/2026-11-01-forms-5f-5g.md](plans/2026-11-01-forms-5f-5g.md); specs
+at 0.1.0, four questions open). The multi-page batch follows
+([plans/2026-11-01-multi-page.md](plans/2026-11-01-multi-page.md)).
 
 Per-test leftovers live in each `docs/rules/<id>-build-tasks.md` (mostly
 browser checks on Windows headed Chrome, which this Linux container cannot
