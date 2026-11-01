@@ -127,6 +127,90 @@ CASES = {
         {"5.F": "DNA", "5.G": "DNA"},
         "",
     ),
+    # 5.A (3.3.2, Baseline 10.E) and 5.C (1.3.1/4.1.2, Baseline 10.A),
+    # docs/rules/5a-*, 5c-*. Baseline judges one test per case; the other
+    # test's expectation is ours.
+    "TC10.A-1-fail-1": (
+        "/testfiles/TF10/10.A-1-fail-1.html",
+        "FAIL",
+        {"5.A": "PASS", "5.C": "FAIL"},
+        '5.A: Baseline judges the name only; "First Name:" is visible beside '
+        "the field.",
+    ),
+    "TC10.A-all-pass-1": (
+        "/testfiles/TF10/10.A-all-pass-1.html",
+        "PASS",
+        {"5.A": "FAIL", "5.C": "PASS"},
+        "5.A: Baseline judges the name only; a placeholder alone is not a visual "
+        "label (5.A spec M3; W3C forms tutorial; w3c/wcag#4918).",
+    ),
+    "TC10.A-all-pass-2": (
+        "/testfiles/TF10/10.A-all-pass-2.html",
+        "PASS",
+        {"5.A": "PASS", "5.C": "PASS"},
+        "",
+    ),
+    "TC10.A-all-pass-3": (
+        "/testfiles/TF10/10.A-all-pass-3.html",
+        "PASS",
+        {"5.A": "PASS", "5.C": "PASS"},
+        "",
+    ),
+    "TC10.A-all-pass-4": (
+        "/testfiles/TF10/10.A-all-pass-4.html",
+        "PASS",
+        {"5.A": "PASS", "5.C": "PASS"},
+        "",
+    ),
+    "TC10.A-all-pass-5": (
+        "/testfiles/TF10/10.A-all-pass-5.html",
+        "PASS",
+        {"5.A": "PASS", "5.C": "PASS"},
+        "",
+    ),
+    "TC10.A-all-pass-6": (
+        "/testfiles/TF10/10.A-all-pass-6.html",
+        "PASS",
+        {"5.A": "PASS", "5.C": "PASS"},
+        "",
+    ),
+    "TC10.A-ic-dna-1": (
+        "/testfiles/TF10/10.A-ic-dna-1.html",
+        "DNA",
+        {"5.A": "DNA", "5.C": "DNA"},
+        "",
+    ),
+    "TC10.A-ic-dna-2": (
+        "/testfiles/TF10/10.A-ic-dna-2.html",
+        "DNA",
+        {"5.A": "DNA", "5.C": "DNA"},
+        "",
+    ),
+    "TC10.E-1-fail-1": (
+        "/testfiles/TF10/10.E-1-fail-1.html",
+        "FAIL",
+        {"5.A": "FAIL", "5.C": "FAIL"},
+        "",
+    ),
+    "TC10.E-1-pass-1": (
+        "/testfiles/TF10/10.E-1-pass-1.html",
+        "PASS",
+        {"5.A": "PASS", "5.C": "PASS"},
+        '5.C: the name repeats the visible label; whether "The sky is blue" '
+        "describes the field is 5.B's (5.C spec M5).",
+    ),
+    "TC10.E-1-pass-2": (
+        "/testfiles/TF10/10.E-1-pass-2.html",
+        "PASS",
+        {"5.A": "PASS", "5.C": "PASS"},
+        "",
+    ),
+    "TC10.E-1-pass-3": (
+        "/testfiles/TF10/10.E-1-pass-3.html",
+        "PASS",
+        {"5.A": "PASS", "5.C": "PASS"},
+        "",
+    ),
 }
 
 

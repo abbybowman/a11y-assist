@@ -71,6 +71,8 @@ class RunContext:
     # Evidence one check collects for another in the same call (5.F's error
     # pass, which 5.G reads): keyed by the collector's name.
     cache: dict[str, Any] = field(default_factory=dict)
+    third_party: Path | None = None  # vendored ANDI (andi.install_andi_routes)
+    selected: frozenset[str] = frozenset()  # TT test IDs in this call ("5.A")
 
     def out_of_time(self) -> bool:
         """Past the checks' deadline (4.C spec section 2, Run limits). Use it
