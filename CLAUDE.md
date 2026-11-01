@@ -158,13 +158,15 @@ third_party/    ANDI 29.2.2, jQuery 3.7.1, PROVENANCE.json
 tests/fixtures/ no_trap.html (general evidence); 4a/ … 4f/ fNN-short-name.html
                 (custom fixtures per test); act/ (vendored W3C ACT cases,
                 manifest.json, sync_act.py); baseline/ (vendored Section 508
-                Baseline Alignment cases, manifest.json, sync_baseline.py)
+                Baseline Alignment cases, manifest.json, sync_baseline.py);
+                budget/ (realistic multi-section pages for timing only)
 tests/harness.py     end-to-end runs of any check with scripted answers (test data);
                      harness_4c.py does the same for 4.C's j1/j2 questions
 tests/scoring.py     DHS / ACT agreement printed after every test run (per worker files)
 tests/test_baseline_cases.py   every (case, TT test) pair in fixtures/baseline/manifest.json
 evals/          judge eval: fresh agents answer the open questions from isolated
-                packets; judge_eval.py, README.md (results of each run)
+                packets; judge_eval.py, README.md (results of each run);
+                time_budget.py (each phase's cost from steps.jsonl)
 runs/           output (git-ignored)
 ```
 
@@ -176,9 +178,10 @@ uv run pytest                    # Playwright Chromium, headless, one worker per
                                  # (4 CPUs: ~5.5 min; serial was ~20 min)
 uv run pytest -n 8               # tests mostly wait, so 2x CPUs is faster (~3.5 min)
 uv run pytest -n0 tests/test_fixtures_4e.py -k f03   # one fixture while building
-uv run pytest -m slow            # long fixtures (F34, ~10 min)
+uv run pytest -m slow            # long fixtures (F34 with no_time_limit, ~4.5 min)
 uv run python evals/judge_eval.py prepare /tmp/eval   # judge eval packets ...
 uv run python evals/judge_eval.py apply /tmp/eval     # ... after one agent answers them
+uv run python evals/time_budget.py budget/agency-home.html   # where a run's time goes
 TEST_BROWSER_CHANNEL=chrome TEST_HEADED=1 uv run pytest   # installed Chrome, visible
 uv run ruff check . && uv run ruff format --check .
 uv run a11y-assist               # stdio MCP server
