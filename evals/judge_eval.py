@@ -40,6 +40,7 @@ from tests import (  # noqa: E402
     test_fixtures_4c,
     test_fixtures_4e,
     test_fixtures_4f,
+    test_fixtures_5d,
 )
 from tests.conftest import (  # noqa: E402
     ACT_ROOT,
@@ -48,6 +49,7 @@ from tests.conftest import (  # noqa: E402
     _ActHandler,
     _BaselineHandler,
 )
+from tests.drafts import DRAFTS  # noqa: E402
 
 PARALLEL = 4
 
@@ -82,6 +84,7 @@ def cases() -> list[dict]:
         (test_fixtures_4c, "4.C", "4c"),
         (test_fixtures_4e, "4.E", "4e"),
         (test_fixtures_4f, "4.F", "4f"),
+        (test_fixtures_5d, "5.D", "5d"),
     ):
         for name, e in mod.EXPECTED.items():
             if e.get("slow"):
@@ -321,6 +324,10 @@ async def apply(out: Path) -> None:
 
 
 if __name__ == "__main__":
+    # Checks whose spec is still a draft are evaluated too (tests/drafts.py).
+    from a11y_assist.checks import REGISTRY
+
+    REGISTRY.update(DRAFTS)
     cmd, out = sys.argv[1], Path(sys.argv[2]).resolve()
     out.mkdir(parents=True, exist_ok=True)
     os.chdir(REPO)
