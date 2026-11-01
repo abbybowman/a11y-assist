@@ -14,6 +14,7 @@ from a11y_assist.checks import REGISTRY
 from a11y_assist.models import TestId
 
 from .conftest import BASELINE_ROOT
+from .drafts import DRAFTS
 from .harness import run_check
 
 MANIFEST = json.loads((BASELINE_ROOT / "manifest.json").read_text())
@@ -25,6 +26,14 @@ ANSWERS = {
     ("TC01.A-1-fail-1", "4.A"): {"J1": {"choice": "no_alternative"}},
     # Stops on TC01.A-2: user name, password, Log in, Request Password Reset.
     ("TC01.A-2-fail-1", "4.B"): {"J1": {**HOLD, "element": 4}},
+    # 5.D: nothing on these pages warns about the change.
+    **{
+        (c, "5.D"): {
+            "J1": {"choice": "not_told"},
+            "J2": {"choice": "changes_context"},
+        }
+        for c in ("TC10.C-3-fail-1", "TC10.C-3-fail-2", "TC10.C-3-fail-3")
+    },
 }
 
 
@@ -35,9 +44,9 @@ def test_files_match_their_hashes():
 
 
 @pytest.mark.parametrize(("case_id", "tt"), PAIRS)
-async def test_case(case_id, tt, settings, baseline_server):
-    if TestId(tt) not in REGISTRY:
-        pytest.skip(f"{tt} has no check yet (vendored ahead of its build)")
+async def test_case(case_id, tt, settings, baseline_server, monkeypatch):
+    if TestId(tt) in DRAFTS:  # a draft spec: registered for its tests only
+        monkeypatch.setitem(REGISTRY, TestId(tt), DRAFTS[TestId(tt)])
     case = CASES[case_id]
     got = await run_check(
         settings,

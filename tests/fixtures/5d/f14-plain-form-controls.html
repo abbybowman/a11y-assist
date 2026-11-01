@@ -12,4 +12,18 @@
 <div role="switch" id="dark" tabindex="0" aria-checked="false" aria-label="Dark mode"></div>
 <button type="submit">Send</button>
 </form>
+<script>
+const vol = document.getElementById("vol"), dark = document.getElementById("dark");
+vol.addEventListener("keydown", (e) => {
+  const d = { ArrowRight: 1, ArrowUp: 1, ArrowLeft: -1, ArrowDown: -1 }[e.key];
+  if (!d) return;
+  e.preventDefault();
+  vol.setAttribute("aria-valuenow", String(Math.max(0, Math.min(10, Number(vol.getAttribute("aria-valuenow")) + d))));
+});
+dark.addEventListener("keydown", (e) => {
+  if (e.key !== " " && e.key !== "Enter") return;
+  e.preventDefault();
+  dark.setAttribute("aria-checked", String(dark.getAttribute("aria-checked") !== "true"));
+});
+</script>
 </body></html>

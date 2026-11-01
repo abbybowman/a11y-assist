@@ -325,6 +325,13 @@ class ChoiceAnswer(BaseModel):
     presses: int | None = Field(
         default=None, ge=2, le=5, description="How many quick presses are needed."
     )
+    # 5.D J1 (told) and J3 (a value the field accepts).
+    quote: str | None = Field(
+        default=None, max_length=500, description="The exact words that say so."
+    )
+    value: str | None = Field(
+        default=None, max_length=200, description="A value to enter in the field."
+    )
 
 
 class Answer(BaseModel):
