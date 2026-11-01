@@ -33,8 +33,8 @@ where the walk had it (4.C spec section 2). A replay that must observe what
 each press changes (4.E's reproduce replay) presses fully instead.
 
 **The run limit.** Checks stop starting work 10 s before `RUN_LIMIT_S`; a
-phase still running 2 s before it is cancelled (NEEDS REVIEW). Check
-`ctx.deadline` before each replay in any new loop. P1's pace after 20
+phase still running 2 s before it is cancelled (NEEDS REVIEW). Call
+`ctx.out_of_time()` before each replay in any new loop. P1's pace after 20
 presses decides early whether the walk can finish; if not, the run is
 refused and the caller may choose `no_time_limit`.
 

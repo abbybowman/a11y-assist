@@ -21,6 +21,27 @@ because fixture names describe the expected answer ("key-in-comment-only").
 The answer key (`/tmp/eval/state.json`) is outside the packet tree. Agents
 are told to open nothing else and to list every file they opened.
 
+## Run 4, 2026-11-01: 5.D On input (draft spec 0.5.0), its packets only
+
+`judge_eval.py` now includes 5.D's custom fixtures and Baseline cases, and
+registers draft checks (`tests/drafts.py`). 14 of 5.D's 19 cases ask
+questions. One fresh Sonnet subagent answered those 14 (about 79,000
+tokens, 28 s), then the one follow-up round (F10: after its J3 value the
+retry asks J1). It opened nothing outside them.
+
+| Result | |
+| --- | --- |
+| Match | 14/14 (9 FAIL, 3 PASS, Baseline TC10.C-3-fail-1/2/3 FAIL) |
+| False PASS | none |
+| J1 told (quotes found in the text before the field) | F02, F06 |
+| J2 content only (images) | F07 (checkbox reveals mailing fields) |
+| J3 value | F10: "12345" for a 5-digit ZIP pattern, then J1 not_told |
+
+Note for the spec: after F10's retry the change reads "the page went to
+another address", not "the form was sent": the submission was logged on
+the page that then navigated away, so the count after it starts from zero.
+Both are changes of context (M4); only the wording differs.
+
 ## Run 3, 2026-11-01: 4.C 1.8.0 (J2 for every form control), changed packets only
 
 4.C's J2 now covers every form control kind, not only text, select and
