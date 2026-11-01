@@ -103,6 +103,83 @@
     "5.D": "DNA"
    },
    "differs": ""
+  },
+  {
+   "id": "TC10.D-2-fail-1",
+   "summary": "https://baselinealignment.section508.gov/testcases/TC10.D-2-fail-1.html",
+   "path": "testfiles/TF10/10.D-2-fail-1.html",
+   "baseline_expected": "FAIL",
+   "expected": {
+    "5.F": "FAIL",
+    "5.G": "PASS"
+   },
+   "differs": "5.G: Baseline judges 3.3.1 only; \"Error: not a number.\" tells the user to enter a number."
+  },
+  {
+   "id": "TC10.D-2-fail-2",
+   "summary": "https://baselinealignment.section508.gov/testcases/TC10.D-2-fail-2.html",
+   "path": "testfiles/TF10/10.D-2-fail-2.html",
+   "baseline_expected": "FAIL",
+   "expected": {
+    "5.F": "FAIL",
+    "5.G": "FAIL"
+   },
+   "differs": ""
+  },
+  {
+   "id": "TC10.D-2-fail-3",
+   "summary": "https://baselinealignment.section508.gov/testcases/TC10.D-2-fail-3.html",
+   "path": "testfiles/TF10/10.D-2-fail-3.html",
+   "baseline_expected": "FAIL",
+   "expected": {
+    "5.F": "FAIL",
+    "5.G": "FAIL"
+   },
+   "differs": ""
+  },
+  {
+   "id": "TC10.D-all-pass-1",
+   "summary": "https://baselinealignment.section508.gov/testcases/TC10.D-all-pass-1.html",
+   "path": "testfiles/TF10/10.D-all-pass-1.html",
+   "baseline_expected": "PASS",
+   "expected": {
+    "5.F": "PASS",
+    "5.G": "PASS"
+   },
+   "differs": ""
+  },
+  {
+   "id": "TC10.D-all-pass-2",
+   "summary": "https://baselinealignment.section508.gov/testcases/TC10.D-all-pass-2.html",
+   "path": "testfiles/TF10/10.D-all-pass-2.html",
+   "baseline_expected": "PASS",
+   "expected": {
+    "5.F": "PASS",
+    "5.G": "PASS"
+   },
+   "differs": ""
+  },
+  {
+   "id": "TC10.D-all-pass-3",
+   "summary": "https://baselinealignment.section508.gov/testcases/TC10.D-all-pass-3.html",
+   "path": "testfiles/TF10/10.D-all-pass-3.html",
+   "baseline_expected": "PASS",
+   "expected": {
+    "5.F": "PASS",
+    "5.G": "PASS"
+   },
+   "differs": ""
+  },
+  {
+   "id": "TC10.D-ic-dna-1",
+   "summary": "https://baselinealignment.section508.gov/testcases/TC10.D-ic-dna-1.html",
+   "path": "testfiles/TF10/10.D-ic-dna-1.html",
+   "baseline_expected": "DNA",
+   "expected": {
+    "5.F": "DNA",
+    "5.G": "DNA"
+   },
+   "differs": ""
   }
  ],
  "files": {
@@ -114,6 +191,13 @@
   "testfiles/TF10/10.C-3-fail-2.html": "fc7a54ac1eed98a3626705aff3727002a28f5a6faf5eb135522b07d2db867c12",
   "testfiles/TF10/10.C-3-fail-3.html": "2043c9bf8793c954fa8a2a5f6eab600cf6237e3461a04d38cd50841841e03b62",
   "testfiles/TF10/10.C-all-pass-1.html": "f68e032e25f4abb32a4f6610acc692484dab2d2c5cd3a6b42110935b732e8036",
-  "testfiles/TF10/10.C-ic-dna-1.html": "18c391426fd623bfc32bc37bd979df3cf4d8723f98bc322a93d8bb7a7b2c583e"
+  "testfiles/TF10/10.C-ic-dna-1.html": "18c391426fd623bfc32bc37bd979df3cf4d8723f98bc322a93d8bb7a7b2c583e",
+  "testfiles/TF10/10.D-2-fail-1.html": "cb5977d2133228380b2441d76944523d3f9bb180980a96fbe24f3fa53a7289a1",
+  "testfiles/TF10/10.D-2-fail-2.html": "60cac1e050f6bdbf251db43b9c59a355243a0f28e8c82d1ecaca5ab09c61c429",
+  "testfiles/TF10/10.D-2-fail-3.html": "370fbd3a88ac7c2db42a322dc55602c29d6a8d05ce6e406fc94cb7dfeac95e9e",
+  "testfiles/TF10/10.D-all-pass-1.html": "f828a322a7e67ce4c621ff086bb5f7d9dbc34aca4370257bb81747ae43850734",
+  "testfiles/TF10/10.D-all-pass-2.html": "720db85bddbb2f7e296d5ef8fcbe5eb3a5646a736d949e66940da103e2deb747",
+  "testfiles/TF10/10.D-all-pass-3.html": "f7ce4e12fc313041bc9be326e400d5ecc084ae1d851b8900cf554e01a0b5b672",
+  "testfiles/TF10/10.D-ic-dna-1.html": "2e51e974c873c5177fc810a2f6b5a1a0618c004ffb1f9a5925e4851a46156cbc"
  }
 }

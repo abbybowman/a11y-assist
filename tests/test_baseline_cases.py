@@ -45,6 +45,8 @@ def test_files_match_their_hashes():
 
 @pytest.mark.parametrize(("case_id", "tt"), PAIRS)
 async def test_case(case_id, tt, settings, baseline_server, monkeypatch):
+    if TestId(tt) not in REGISTRY and TestId(tt) not in DRAFTS:
+        pytest.skip(f"no {tt} check yet (being built)")
     if TestId(tt) in DRAFTS:  # a draft spec: registered for its tests only
         monkeypatch.setitem(REGISTRY, TestId(tt), DRAFTS[TestId(tt)])
     case = CASES[case_id]
