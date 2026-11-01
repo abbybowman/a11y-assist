@@ -14,6 +14,20 @@ after the press's own focus event), and about 70% of presses were replays
 Tabbing back to a stop. Page loads, CDP reads and context creation are
 small (as in [fresh-load-per-probe.md](fresh-load-per-probe.md)).
 
+**Measured** (Linux, headless; all implemented tests; before → after the
+cuts of 2026-11-01, every outcome unchanged):
+
+| Page | Before | After (4.A–4.F) | With 5.D |
+| --- | --- | --- | --- |
+| 4.D F10, 100 links | 60 s | 63 s | 63 s (no fields) |
+| budget/agency-home (≈80 stops, 8 fields) | 153 s | 97 s | 108 s |
+| budget/benefits-form (≈60 stops, 21 fields) | 158 s | 83 s | 109 s |
+| 4.C F34, 600 links | ran out at 120 s | refused after ~5 s | refused |
+
+Sharing replays (4.A arrows with 4.D's pass W, 4.A execute with 4.F's pass
+R) would now save a few seconds per widget; it stays on the roadmap until a
+realistic page is over the limit again.
+
 **The trap: our own screenshots are DOM mutations.** Playwright adds and
 removes a style element for every `page.screenshot` (caret hiding), so the
 mutation log saw a change at every walk step that had 4.D's images, on

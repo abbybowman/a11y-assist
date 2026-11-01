@@ -141,6 +141,7 @@ src/a11y_assist/
     t4d.py      4.D focus visible: on/off images and styles, widget items
     t4e.py      4.E on focus: context signals, confirmation replays
     t4f.py      4.F focus order: order signals, opening triggers, dialogs
+    t5d.py      5.D on input: fill pass F, own-widget changes, J1-J3
   judgment.py   Judge interface: ClientJudge, ApiJudge (stub); answer recording
   pipeline.py   run_tt_tests / answer_questions orchestration (generic)
   runlog.py     runs/<run_id>/ folder, steps.jsonl
@@ -163,11 +164,12 @@ docs/solutions/ lessons that save the next test time
 docs/sources/   TT 5.1.3 PDF (the authority), SHA-256 in its README;
                 tt-5.1.3/ its Markdown + tt.json copy (made once; see README)
 third_party/    ANDI 29.2.2, jQuery 3.7.1, PROVENANCE.json
-tests/fixtures/ no_trap.html (general evidence); 4a/ … 4f/ fNN-short-name.html
+tests/fixtures/ no_trap.html (general evidence); 4a/ … 4f/, 5d/ fNN-short-name.html
                 (custom fixtures per test); act/ (vendored W3C ACT cases,
                 manifest.json, sync_act.py); baseline/ (vendored Section 508
                 Baseline Alignment cases, manifest.json, sync_baseline.py);
                 budget/ (realistic multi-section pages for timing only)
+tests/drafts.py      checks whose spec is a draft: registered for tests only
 tests/harness.py     end-to-end runs of any check with scripted answers (test data);
                      harness_4c.py does the same for 4.C's j1/j2 questions
 tests/scoring.py     DHS / ACT agreement printed after every test run (per worker files)

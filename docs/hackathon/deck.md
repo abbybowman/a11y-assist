@@ -99,7 +99,7 @@ flowchart LR
 
 **On the slide**
 
-- One keyboard walk per page feeds every Test 4 check
+- One keyboard walk per page feeds every Test 4 check, and 5.D On input
 - Each check declares the extra evidence it needs
 - Time budget: under 60 s per page for Test 4, hard limit 120 s per call
 - A page too large for the limit is refused early; the user can choose to run it with no time limit
@@ -227,4 +227,5 @@ flowchart LR
 - Real-site holdout with a second certified tester
 - A published side-by-side on real .gov pages: certified testers, A11y Assist and five scanners
 - Export drafts to DHS's SCRT format so a certified tester can review and finish them
-- Then: forms, headings, reading order — where scanners fall short
+- Built after Test 4: 5.D On input (forms that change context when filled in)
+- Then: more form tests, headings, reading order — where scanners fall short
