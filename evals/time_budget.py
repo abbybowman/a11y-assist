@@ -6,6 +6,7 @@ key presses). Measurement only; it decides nothing.
     uv run python evals/time_budget.py 4d/f10-100-links.html budget/agency-home.html
     uv run python evals/time_budget.py --no-time-limit 4c/f34-600-links.html
 
+--drafts also runs the checks whose spec is still a draft (tests/drafts.py).
 --limit sets RUN_LIMIT_S for the run (default 120, the tool's own);
 --no-time-limit runs as the tool's no_time_limit does (what an uncapped run
 costs). "quick" counts replay-prefix presses without the quiet window,
@@ -123,7 +124,13 @@ async def main(argv: list[str]) -> None:
     ap.add_argument("pages", nargs="+")
     ap.add_argument("--limit", type=int, default=120)
     ap.add_argument("--no-time-limit", action="store_true")
+    ap.add_argument("--drafts", action="store_true")
     args = ap.parse_args(argv)
+    if args.drafts:
+        sys.path.insert(0, str(FIXTURES.parent.parent))
+        from tests.drafts import DRAFTS
+
+        REGISTRY.update(DRAFTS)
     egress.RESOLVER = _offline
     base = _serve()
     with tempfile.TemporaryDirectory() as tmp:

@@ -11,7 +11,6 @@ decide outcomes; collectors record facts.
 from __future__ import annotations
 
 import re
-import time
 from typing import Any
 
 from pydantic import BaseModel, Field
@@ -421,7 +420,7 @@ async def _replay(ctx: RunContext, keys: list[str]) -> Session:
 
 
 def _out_of_time(ctx: RunContext) -> bool:
-    return time.monotonic() > ctx.deadline
+    return ctx.out_of_time()
 
 
 async def collect(ctx: RunContext, walk: KeyboardWalk) -> State4A:

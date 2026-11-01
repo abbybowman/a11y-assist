@@ -52,7 +52,7 @@ from a11y_assist.policy import check_url
 from a11y_assist.redact import safe_error
 from a11y_assist.resources.runs import run_uri
 from a11y_assist.runlog import RunRecorder, expires_at, prune_runs
-from a11y_assist.traverse import Pace, ReplayPlan, WalkTooLong, metered
+from a11y_assist.traverse import Pace, ReplayPlan, TooManyItems, WalkTooLong, metered
 from a11y_assist.versions import collect_versions
 from a11y_assist.walk import KeyboardWalk, walk_page
 
@@ -130,6 +130,15 @@ async def _bounded(aw, hard: float):
 
 def _too_long(exc: WalkTooLong, limit: int) -> str:
     minutes = max(1, round(exc.estimate_s / 60))
+    if isinstance(exc, TooManyItems):
+        c = exc.cap
+        return (
+            f"This page has {exc.count} {c.noun}; one call checks at most "
+            f"{c.limit} for test {c.test}, so most of them would be left for a "
+            f"person. Nothing was tested. To test them all, call again with "
+            f"no_time_limit=true (about {minutes} min or more), or leave {c.test} "
+            "out of the tests, or test a smaller page."
+        )
     return (
         f"This page has about {exc.candidates} places the keyboard can reach. At "
         f"the pace of the first {exc.presses} key presses, walking it with Tab "
@@ -347,7 +356,8 @@ async def run_tt_tests(
             ctx = _context(settings, run, get_browser, cap.final_url, soft)
             if any(c.uses_walk for c in checks):
                 await say(1, "Walking the page with Tab and Shift+Tab")
-                pace = None if no_time_limit else Pace(soft)
+                caps = [c.cap for c in checks if getattr(c, "cap", None)]
+                pace = None if no_time_limit else Pace(soft, caps=caps)
                 try:
                     with metered() as cost:
                         walk = await _bounded(
@@ -396,7 +406,11 @@ async def run_tt_tests(
                 states[c.test_id] = state
                 run.write_json(run.evidence_dir / evidence_name(c.test_id), state)
                 run.log("collected", test=c.test_id.value, cost=asdict(cost))
-            if time.monotonic() > soft:
+            # Only when something was cut short: work that finished inside the
+            # reserve needs no note.
+            walk_cut = walk is not None and "time" in (walk.p1.end, walk.p2.end)
+            hard_cut = any("time limit" in e for e in report.errors)
+            if ctx.timed_out or walk_cut or hard_cut:
                 report.errors.append(TIME_NOTE.format(limit=settings.run_limit_s))
         finally:
             await browser.close()

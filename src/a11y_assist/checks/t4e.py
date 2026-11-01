@@ -9,7 +9,6 @@ control replay. Only evaluate() and the row tables decide outcomes.
 from __future__ import annotations
 
 import asyncio
-import time
 from typing import Any
 
 from pydantic import BaseModel, Field
@@ -291,7 +290,7 @@ async def collect(ctx: RunContext, walk: KeyboardWalk) -> State4E:
                 "were confirmed."
             )
             break
-        if time.monotonic() > ctx.deadline:
+        if ctx.out_of_time():
             st.incomplete.append(
                 "The run time limit was reached before every possible change of "
                 "context was confirmed."
