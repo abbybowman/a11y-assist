@@ -23,10 +23,11 @@ Where the time goes (agency-home, sub-steps timed by wrapping functions):
 - The settle wait: 545 calls, 102 s of 153 s (≈190 ms per press: two
   animation frames plus the 150 ms quiet window after the press's own focus
   event).
-- Replays that Tab back to a stop before doing their one thing: 4.A 11
-  replays (141 presses, 33 s) + arrow probe (78 presses, 17 s) + execute
-  (56, 15 s); 4.D widget pass W (77, 18 s); 4.F reveal (54, 13 s). About 440
-  of the run's 600 presses are replay prefixes.
+- Replays that Tab back to a stop before doing their one thing: 4.A's 11
+  replays spend 141 presses (33 s) on Tab prefixes, inside its arrow probe
+  (78 presses, 17 s) and execute check (56, 15 s); 4.D widget pass W (77,
+  18 s); 4.F reveal (54, 13 s). 358 of the run's 518 presses are in check
+  replays, nearly all Tab prefixes.
 - 4.D's per-stop on/off images in the walk: 22 s (≈275 ms a stop).
 
 Holes in the limit (benefits-form ran 139 s): 4.A and 4.C check the deadline
