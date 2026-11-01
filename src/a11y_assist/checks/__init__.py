@@ -11,6 +11,8 @@ from a11y_assist.checks.t4d import Check4D
 from a11y_assist.checks.t4e import Check4E
 from a11y_assist.checks.t4f import Check4F
 from a11y_assist.checks.t5d import Check5D
+from a11y_assist.checks.t5f import Check5F
+from a11y_assist.checks.t5g import Check5G
 from a11y_assist.models import TestId
 
 REGISTRY: dict[TestId, Check] = {
@@ -23,6 +25,8 @@ REGISTRY: dict[TestId, Check] = {
         Check4E(),
         Check4F(),
         Check5D(),
+        Check5F(),
+        Check5G(),
     )
 }
 

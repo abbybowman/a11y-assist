@@ -9,12 +9,10 @@ import pytest
 
 from a11y_assist.checks import REGISTRY
 from a11y_assist.checks.base import Check
-from a11y_assist.checks.t5f import Check5F
-from a11y_assist.checks.t5g import Check5G
 from a11y_assist.models import TestId
 
-# 5.F and 5.G: specs at 0.x (docs/rules/5f-*, 5g-*).
-DRAFTS: dict[TestId, Check] = {TestId.T5F: Check5F(), TestId.T5G: Check5G()}
+# None now: 5.F and 5.G moved to the registry at 1.0.0 (2026-11-01).
+DRAFTS: dict[TestId, Check] = {}
 
 
 @pytest.fixture

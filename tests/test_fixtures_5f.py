@@ -1,7 +1,6 @@
 """5.F (3.3.1) and 5.G (3.3.3) on custom fixtures (the Baseline Alignment
-TC10.D cases are in test_baseline_cases.py; both specs are drafts,
-registered by tests/drafts.py). Expected outcomes and scripted answers (what
-a correct agent would say) live here, never in a page."""
+TC10.D cases are in test_baseline_cases.py). Expected outcomes and scripted
+answers (what a correct agent would say) live here, never in a page."""
 
 from __future__ import annotations
 
@@ -140,6 +139,41 @@ EXPECTED: dict[str, dict[str, dict]] = {
                 **PICK_SEND,
                 "J1": {"choice": "guides", "quote": "like name@example.com"},
             },
+        },
+    },
+    "f12-save-sends": {
+        "5.F": {
+            "outcome": "PASS",
+            "rows": ["M6", "M6"],
+            "answers": {"J1": {"choice": "described", "quote": "Phone number: enter"}},
+        },
+        "5.G": {
+            "outcome": "PASS",
+            "rows": ["N4", "N4"],
+            "answers": {"J1": {"choice": "guides", "quote": "enter 10 digits"}},
+        },
+    },
+    # Native date fields get a date outside their range (spec 0.6.0).
+    "f13-date-after-max": {
+        "5.F": {"outcome": "PASS", "rows": ["M2", "M2"]},
+        "5.G": {
+            "outcome": "PASS",
+            "rows": ["N4", "N4"],
+            # One scripted quote for both errors: the field's label, from
+            # input.instructions (the check accepts a quote from either).
+            "answers": {"J1": {"choice": "guides", "quote": "Date of the change"}},
+        },
+    },
+    "f14-birth-date-in-future": {
+        "5.F": {
+            "outcome": "PASS",
+            "rows": ["M6", "M6"],
+            "answers": {"J1": {"choice": "described", "quote": "Date of birth:"}},
+        },
+        "5.G": {
+            "outcome": "PASS",
+            "rows": ["N4", "N4"],
+            "answers": {"J1": {"choice": "guides", "quote": "Date of birth:"}},
         },
     },
 }

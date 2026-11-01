@@ -45,14 +45,16 @@ WRONG_VALUE = "abc"
 FORM_MAX = 5
 FIELD_MAX = 40  # as 5.D (the run's early stop is 5.D's cap)
 TEXT_KINDS = {"text", "combobox"}  # stop.control values typed into
+# A plain "Save" often sends a form; "Save draft", "Save for later" and
+# "Save and exit" do not, and are caught by their other words.
 SKIP_WORDS = re.compile(
-    r"\b(save|draft|later|back|previous|prev|cancel|reset|clear|delete|remove|"
-    r"sign out|log out|logout|print)\b",
+    r"\b(draft|later|progress|exit|back|previous|prev|cancel|reset|clear|"
+    r"delete|remove|sign out|log out|logout|print)\b",
     re.I,
 )
 SUBMIT_WORDS = re.compile(
     r"\b(submit|send|continue|next|apply|sign in|log in|login|register|search|"
-    r"validate|check|verify|save and continue|done|finish|go)\b",
+    r"validate|check|verify|save|done|finish|go)\b",
     re.I,
 )
 
@@ -109,7 +111,8 @@ READ_JS = (
              vmsg: el.validationMessage || '',
              look: [cs.borderTopColor, cs.borderTopStyle, cs.backgroundColor, cs.outlineColor, cs.outlineStyle].join(' '),
              label: label(el), type: (el.type || '').toLowerCase(), described: d.slice(0, 500),
-             maxlength: el.maxLength > 0 ? el.maxLength : null };
+             maxlength: el.maxLength > 0 ? el.maxLength : null,
+             min: el.getAttribute('min'), max: el.getAttribute('max') };
   });
   const a = doc.activeElement;
   const dialogs = Array.from(doc.querySelectorAll(DLG)).filter(vis).length;
@@ -156,6 +159,17 @@ FORMS_JS = (
 )
 
 
+def _css(f: Field5D) -> str | None:
+    """The CSS path page reads use: a date field's walk stop is its first
+    part, inside the input's own shadow root, so read the input (its group
+    is "input:<path>"). Fields in frames are not read (spec section 2)."""
+    if f.frame_chain:
+        return None
+    if f.control == "date" and f.group and f.group.startswith("input:"):
+        return f.group.removeprefix("input:")
+    return f.css_path
+
+
 async def _top(s: Session, js: str, arg: Any) -> Any:
     try:
         return await s.traversal.reader.evaluate_top(f"{js}({json.dumps(arg)})")
@@ -180,6 +194,7 @@ class Form5F(BaseModel):
     key: str  # form owner's path, "" for fields outside any form
     fields: list[int]  # Field5D.n, every field of the form
     text: list[int]  # the text fields attempt 2 types into
+    dates: list[int] = Field(default_factory=list)  # native type=date fields
     buttons: list[Btn] = Field(default_factory=list)
     submit: int | None = None  # Btn.n chosen by the rules of section 2
     tried: list[int] = Field(default_factory=list)  # Btn.n pressed so far
@@ -203,7 +218,8 @@ class AttemptE(BaseModel):
     reached: bool = True
     error: str | None = None
     keys: str = ""  # how to reproduce, in plain words
-    typed: list[int] = Field(default_factory=list)  # Field5D.n given WRONG_VALUE
+    typed: list[int] = Field(default_factory=list)  # Field5D.n made wrong in attempt 2
+    values: dict[str, str] = Field(default_factory=dict)  # n -> what was entered
     base: Read | None = None
     reads: list[Read] = Field(default_factory=list)
     js: list[str] = Field(default_factory=list)  # JS dialog messages
@@ -224,6 +240,29 @@ class PassE(BaseModel):
     looks: dict[str, str] = Field(default_factory=dict)  # n -> look, unfocused, at load
     incomplete: list[str] = Field(default_factory=list)
     notes: list[str] = Field(default_factory=list)
+
+
+def wrong_date(min_: str | None, max_: str | None) -> tuple[str, str]:
+    """A date outside the field's range (spec section 2): a year past `max`,
+    else a year before `min`, else far in the future (Understanding 3.3.1:
+    "a birth date 2 years in the future"). Returns (digits in Chrome's
+    en-US field order, the date in words)."""
+    import datetime as dt
+
+    def parse(v: str | None) -> dt.date | None:
+        try:
+            return dt.date.fromisoformat(v) if v else None
+        except ValueError:
+            return None
+
+    lo, hi = parse(min_), parse(max_)
+    if hi:
+        d = hi.replace(year=hi.year + 1, day=min(hi.day, 28))
+    elif lo:
+        d = lo.replace(year=lo.year - 1, day=min(lo.day, 28))
+    else:
+        d = dt.date(2999, 1, 1)
+    return f"{d.month:02d}{d.day:02d}{d.year:04d}", d.strftime("%B %-d, %Y")
 
 
 def _choose(buttons: list[Btn]) -> int | None:
@@ -249,9 +288,7 @@ def _read_of(got: Any, moment: str, fields: list[Field5D]) -> Read:
 
 
 async def _read(s: Session, moment: str, fields: list[Field5D]) -> Read:
-    got = await _top(
-        s, READ_JS, [f.css_path if not f.frame_chain else None for f in fields]
-    )
+    got = await _top(s, READ_JS, [_css(f) for f in fields])
     return _read_of(got, moment, fields)
 
 
@@ -315,14 +352,14 @@ async def attempt(
     fields = ps.fields
     by_n = {f.n: f for f in fields}
     a = AttemptE(form=form.id, kind=kind, button=btn.n if btn else None)
-    text = [by_n[n] for n in form.text]
+    text = sorted([by_n[n] for n in form.text + form.dates], key=lambda f: f.index)
     if kind == 1 and btn is not None:
         start = btn.index or 0
     elif text:
         start = text[0].index
     else:
         a.reached = False
-        a.error = "no text field to type into"
+        a.error = "no text or date field to type into"
         return a
     # The before-read is on the fresh load, before any key: tabbing past a
     # field can already show its error (TC10.D validates on leaving).
@@ -356,17 +393,34 @@ async def attempt(
                     return a
                 info = await s.traversal.reader.call(here, FIELD_FN) or {}
                 ps.info.setdefault(str(f.n), {})["before"] = info.get("before", "")
-                ml = info.get("maxlength")
-                await s.page.keyboard.press("Control+A")
-                await s.page.keyboard.type(WRONG_VALUE[:ml] if ml else WRONG_VALUE)
+                if f.n in form.dates:
+                    fi = ps.info.get(str(f.n)) or {}
+                    digits, words = wrong_date(fi.get("min"), fi.get("max"))
+                    await s.page.keyboard.type(digits)
+                    a.values[str(f.n)] = f"entered the date {words}"
+                else:
+                    ml = info.get("maxlength")
+                    await s.page.keyboard.press("Control+A")
+                    await s.page.keyboard.type(WRONG_VALUE[:ml] if ml else WRONG_VALUE)
+                    a.values[str(f.n)] = f'typed "{WRONG_VALUE}"'
                 await s.traversal.resync()
                 a.typed.append(f.n)
                 if btn is None and f is text[-1]:
                     break  # Enter in this field submits (implicit submission)
-                await s.traversal.press("Tab")
+                step = await s.traversal.press("Tab")
+                for _ in range(5):  # a date input's parts: Tab until off it
+                    if not (f.group and step.stop.group == f.group):
+                        break
+                    step = await s.traversal.press("Tab")
                 a.reads.append(await _read(s, f"tab:{f.n}", fields))
             steps.append(
-                f'type "{WRONG_VALUE}" into each text field, pressing Tab after each'
+                f'type "{WRONG_VALUE}" into each text field'
+                + (
+                    " and a date outside the allowed range into each date field"
+                    if form.dates
+                    else ""
+                )
+                + ", pressing Tab after each"
             )
         if btn is not None:
             if kind == 2:
@@ -393,9 +447,7 @@ async def _forms(ctx: RunContext, ps: PassE, walk: KeyboardWalk) -> None:
     fields = ps.fields
     s = await ctx.replay(["Tab"] * (fields[0].index + 1))
     try:
-        got = await _top(
-            s, FORMS_JS, [f.css_path if not f.frame_chain else None for f in fields]
-        )
+        got = await _top(s, FORMS_JS, [_css(f) for f in fields])
         base = await _read(s, "load", fields)
     finally:
         await s.close()
@@ -405,7 +457,10 @@ async def _forms(ctx: RunContext, ps: PassE, walk: KeyboardWalk) -> None:
     for k, v in base.fields.items():
         if v:
             ps.info.setdefault(k, {}).update(
-                {x: v.get(x) for x in ("label", "type", "described", "maxlength")}
+                {
+                    x: v.get(x)
+                    for x in ("label", "type", "described", "maxlength", "min", "max")
+                }
             )
     stops = {
         st.stop.css_path: i
@@ -417,6 +472,11 @@ async def _forms(ctx: RunContext, ps: PassE, walk: KeyboardWalk) -> None:
         for st in walk.p1.steps
         if st.stop.kind == "element" and not st.stop.frame_chain
     }
+    mapped = {i for g in got.values() for i in g.get("fields", [])}
+    unread = [f for i, f in enumerate(fields) if i not in mapped and not f.frame_chain]
+    if unread:
+        # Never DOES NOT APPLY for fields the tool could not read.
+        ps.incomplete.append(f"{len(unread)} form field(s) could not be read.")
     framed = [f for f in fields if f.frame_chain]
     if framed:
         ps.incomplete.append(
@@ -441,6 +501,12 @@ async def _forms(ctx: RunContext, ps: PassE, walk: KeyboardWalk) -> None:
             key=key,
             fields=[f.n for f in members],
             text=[f.n for f in members if f.control in TEXT_KINDS],
+            dates=[
+                f.n
+                for f in members
+                if f.control == "date"
+                and (ps.info.get(str(f.n)) or {}).get("type") == "date"
+            ],
             buttons=btns,
         )
         form.submit = _choose(btns)
@@ -590,7 +656,7 @@ def notice(a: AttemptE, texts: list[ErrText]) -> bool:
 
 
 def _focus_on_field(r: Read, f: Field5D) -> bool:
-    return bool(r.focus and f.css_path and r.focus == f.css_path)
+    return bool(r.focus and _css(f) and r.focus == _css(f))
 
 
 def instances(ps: PassE) -> list[Inst5F]:
@@ -615,9 +681,11 @@ def instances(ps: PassE) -> list[Inst5F]:
                 label=info.get("label") or f.name or "",
                 kind=f.control,
                 type=info.get("type") or "",
-                done=f'typed "{WRONG_VALUE}"'
-                if a.kind == 2
-                else "left as loaded (empty)",
+                done=(
+                    a.values.get(str(n), f'typed "{WRONG_VALUE}"')
+                    if a.kind == 2
+                    else "left as loaded (empty)"
+                ),
                 page_text=page_text,
             )
             b = a.base.fields.get(str(n)) or {}
@@ -718,7 +786,7 @@ def _where_pressed(ps: PassE, a: AttemptE) -> str:
         else "pressed Enter in the last text field"
     )
     return (
-        ("typed into each text field, tabbing away after each, then " + tail)
+        ("made each text and date field wrong, tabbing away after each, then " + tail)
         if a.kind == 2
         else tail
     )
@@ -1109,7 +1177,7 @@ def evaluate(st: State5F, evidence_refs: list[str]) -> Finding:
         trace += ["A3", "G1"]
         return finding(
             Outcome.DNA,
-            "We left required fields empty and typed letters into fields that expect a format, then tried to send the form, and the page did not check for errors, so this test does not apply.",
+            "We left required fields empty and typed letters into fields that expect a format and dates outside the allowed range into date fields, then tried to send the form, and the page did not check for errors, so this test does not apply.",
             trace,
         )
     if any(o is Outcome.FAIL for _, o in results):
@@ -1119,7 +1187,7 @@ def evaluate(st: State5F, evidence_refs: list[str]) -> Finding:
         gid, outcome, head = "G3", Outcome.NEEDS_REVIEW, REVIEW_HEAD
     elif results:
         gid, outcome = "G4", Outcome.PASS
-        head = "We left required fields empty and typed letters into fields that expect a format, then tried to send the form. Each error the page found was named and explained in text."
+        head = "We left required fields empty and typed letters into fields that expect a format and dates outside the allowed range into date fields, then tried to send the form. Each error the page found was named and explained in text."
     else:
         gid, outcome, head = "G5", Outcome.NEEDS_REVIEW, REVIEW_HEAD
     trace.append(gid)
@@ -1136,7 +1204,7 @@ def evaluate(st: State5F, evidence_refs: list[str]) -> Finding:
 
 
 class Check5F:
-    """5.F as a check (checks/base.py); a draft until its spec is 1.0.0."""
+    """5.F as a registered check (checks/base.py)."""
 
     test_id = TestId.T5F
     state_type = State5F
@@ -1147,7 +1215,7 @@ class Check5F:
         "number, date, phone or email format), tabbing away after each, and "
         "presses the button again. It reads what appears: messages on the "
         "page, alert boxes, the browser's own messages, fields marked in red. "
-        "It asks whether each message names the field and says what is wrong, "
+        "Date fields get a date outside the allowed range. It asks whether each message names the field and says what is wrong, "
         "and checks that the message is announced (read out, or focus moved to "
         "it). Nothing is sent anywhere: the page is a recording, so errors only "
         "a server would find need a person on the live site."

@@ -21,6 +21,21 @@ because fixture names describe the expected answer ("key-in-comment-only").
 The answer key (`/tmp/eval/state.json`) is outside the packet tree. Agents
 are told to open nothing else and to list every file they opened.
 
+## Run 6, 2026-11-01: 5.F and 5.G at 1.0.0, their packets only
+
+After Abby's review: a plain "Save" is a submit control again (f09 back to
+"Save", f12 new), native date fields get a date outside their range in
+attempt 2 (f13 `max`, f14 a birth date checked by script), and a date
+field is read through its input (it had been dropped from its form: a
+false DNA). 33 of 5.F's and 5.G's 42 cases ask questions; leak grep clean.
+One fresh Sonnet agent (about 94,000 tokens, 171 s; then 9 s for f11's two
+round-2 packets after J0's rerun): 33/33 match, no false PASS. It opened
+only packet files; it wrote a scratch file (`/tmp/dump.txt`) and deleted
+it, against its instructions, as agents did in runs 1 and 5. Borderline
+calls it listed: instruction-style messages ("City: enter the city ...")
+judged described; a valid "abc" name with only the ZIP code's error listed
+judged no_error.
+
 ## 2026-11-01: shared replays and 4.A 1.2.0, no agent run needed
 
 4.A now reuses 4.D's pass W arrows and 4.F's pass R Enter presses, and

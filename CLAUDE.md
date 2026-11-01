@@ -54,7 +54,7 @@ by TT test ID. Package: `a11y_assist` (name is provisional).
    with no jargon or spec codes (row IDs stay in the evidence trace). A
    person's answer overrides the agent's. An opinion leads to PASS only when a
    key press or another mechanical check confirms it, or when the spec marks
-   the question as one a careful tester settles by looking (4.E J1, 4.F J1, 5.D J1 and J2); the agent
+   the question as one a careful tester settles by looking (4.E J1, 4.F J1, 5.D J1 and J2, 5.F J1, 5.G J1); the agent
    must then answer "unsure" whenever the evidence does not settle it, and only
    those go to a person.
 
@@ -130,7 +130,8 @@ src/a11y_assist/
   capture.py    HAR record + replay
   andi.py       local ANDI injection
   traverse.py   key passes, CDP focus reading, settle rule, inventory (no outcomes)
-  observe.py    what an action changes (Effect): 4.A, 4.B and 5.D
+  observe.py    what an action changes (Effect): 4.A, 4.B, 4.F and 5.D
+  forms.py      form fields shared by 5.D, 5.F, 5.G: field stops, arrival, page reads
   walk.py       the shared keyboard walk (P1 Tab, P2 Shift+Tab), once per page
   engine.py     shared first-match tables and page rows G1-G5
   checks/       one module per TT test, registered in checks/__init__.py;
@@ -142,6 +143,8 @@ src/a11y_assist/
     t4e.py      4.E on focus: context signals, confirmation replays
     t4f.py      4.F focus order: order signals, opening triggers, dialogs
     t5d.py      5.D on input: fill pass F, own-widget changes, J1-J3
+    t5f.py      5.F error identification: error pass E (shared with 5.G), notice, J0-J2
+    t5g.py      5.G error suggestion: reads 5.F's pass, J1
   judgment.py   Judge interface: ClientJudge, ApiJudge (stub); answer recording
   pipeline.py   run_tt_tests / answer_questions orchestration (generic)
   runlog.py     runs/<run_id>/ folder, steps.jsonl
@@ -164,7 +167,7 @@ docs/solutions/ lessons that save the next test time
 docs/sources/   TT 5.1.3 PDF (the authority), SHA-256 in its README;
                 tt-5.1.3/ its Markdown + tt.json copy (made once; see README)
 third_party/    ANDI 29.2.2, jQuery 3.7.1, PROVENANCE.json
-tests/fixtures/ no_trap.html (general evidence); 4a/ … 4f/, 5d/ fNN-short-name.html
+tests/fixtures/ no_trap.html (general evidence); 4a/ … 4f/, 5d/, 5f/ fNN-short-name.html
                 (custom fixtures per test); act/ (vendored W3C ACT cases,
                 manifest.json, sync_act.py); baseline/ (vendored Section 508
                 Baseline Alignment cases, manifest.json, sync_baseline.py);

@@ -1,14 +1,14 @@
 ---
 tt_test: 5.G
 tt_name: 3.3.3-error-suggestion
-spec_version: 0.3.0
+spec_version: 1.0.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
 
 # Rules spec: Test 5.G (3.3.3-error-suggestion)
 
-The tool gives each page one 5.G outcome: PASS, FAIL, DOES NOT APPLY or NEEDS REVIEW. It never emits NOT TESTED (p. 6). Draft: no outcome until 1.0.0.
+The tool gives each page one 5.G outcome: PASS, FAIL, DOES NOT APPLY or NEEDS REVIEW. It never emits NOT TESTED (p. 6).
 
 **Citations.** Printed pages of TT 5.1.3 (text also in `tt://5.1.3/tests/5.G`). Identify Content, p. 28 (shared with 5.F). 5.G, p. 29: DOES NOT APPLY if there is no automatic error detection, if "suggestions for correction cannot be provided because they are not knowable", or if "providing information about how to correct the error would jeopardize the security or purpose of the content, e.g., details about an incorrect password" (Applicability); "continue from Test 5.F" (HtT 1); "determine whether guidance provides sufficient details for how to correct the error and/or offers suggestions of corrected input" (HtT 2); PASS if "suggestions for corrected input are provided" (ER 1) or "the description contains adequate information for the user to know what is required to fix the error" (ER 2).
 

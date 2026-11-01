@@ -1,0 +1,16 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>F14 Your details</title></head><body>
+<h1>Your details</h1>
+<form id="f" novalidate>
+<p role="alert" id="msg"></p>
+<p><label for="dob">Date of birth</label> <input id="dob" type="date"></p>
+<p><button type="submit">Continue</button></p>
+</form>
+<script>
+document.getElementById("f").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const v = document.getElementById("dob").value, m = document.getElementById("msg");
+  if (!v) m.textContent = "Date of birth: enter your date of birth.";
+  else if (new Date(v) > new Date()) m.textContent = "Date of birth: the date must be today or earlier.";
+  else m.textContent = "";
+});
+</script></body></html>

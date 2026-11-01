@@ -33,6 +33,9 @@ EXPECTED: dict[str, dict] = {
         "choice": {"J1": {"choice": "alternative", "element": 1}},
     },
     "f07-same-address-link": {"outcome": "PASS", "rows": ["M3"]},
+    # Native date input parts are native (1.2.0): only the custom picker is
+    # executed.
+    "f13-native-date-and-custom-picker": {"outcome": "PASS", "rows": ["M8"]},
     "f08-title-only-format": {
         "outcome": "FAIL",
         "rows": ["M14"],

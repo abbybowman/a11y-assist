@@ -4,20 +4,22 @@ What is left to build, newest priorities first. A living list, not a log:
 delete an item once it is built, and put any decision it needed into the
 spec, CLAUDE.md or `docs/solutions/` where it belongs.
 
-## Now: Test 4 and 5.D are built
+## Now: Test 4, 5.D, 5.F and 5.G are built
 
 Built (spec 1.0.0+, check registered, fixtures green): 4.A, 4.B, 4.C, 4.D,
-4.E, 4.F and 5.D (On input). Judge eval (fresh agents, no scripted
-answers): 43/44 Test 4 fixtures and 14/14 for 5.D, no false PASS
+4.E, 4.F, 5.D (On input), 5.F (Error identification) and 5.G (Error
+suggestion). Judge eval (fresh agents, no scripted answers): 43/44 Test 4
+fixtures, 14/14 for 5.D, and all 5.F/5.G packets, no false PASS
 ([evals/README.md](../evals/README.md)). Every implemented test fits one
-120 s call on realistic multi-section pages (108–111 s); pages too large to
-walk, or with more than 40 form fields, are refused at once with a
-`no_time_limit` option ([solutions/time-budget.md](solutions/time-budget.md)).
+120 s call on the realistic pages in `tests/fixtures/budget/` (about 109 s
+and 92 s); pages too large to walk, or with more than 40 form fields, are
+refused at once with a `no_time_limit` option
+([solutions/time-budget.md](solutions/time-budget.md)).
 
-Next: 5.F and 5.G (error identification and suggestion), then the 5.A
-and 5.C leftovers, reusing 5.D's field reads
-([plans/2026-11-01-forms-5f-5g.md](plans/2026-11-01-forms-5f-5g.md); specs
-drafted, no questions open). The multi-page batch follows
+Next: the 5.A and 5.C leftovers (visible labels and instructions against
+accessible names, read from Chrome's accessibility tree; no scanners first),
+planned in [plans/2026-11-01-forms-5f-5g.md](plans/2026-11-01-forms-5f-5g.md)'s
+follow-up, then the multi-page batch
 ([plans/2026-11-01-multi-page.md](plans/2026-11-01-multi-page.md)).
 
 Per-test leftovers live in each `docs/rules/<id>-build-tasks.md` (mostly
