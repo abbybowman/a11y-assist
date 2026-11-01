@@ -16,10 +16,10 @@ and 92 s); pages too large to walk, or with more than 40 form fields, are
 refused at once with a `no_time_limit` option
 ([solutions/time-budget.md](solutions/time-budget.md)).
 
-Next: 5.A and 5.C in full (visual labels; ANDI's output cross-checked
-with Chrome's accessibility tree; no scanners first), planned in
+Next: 5.A and 5.C in full (visual labels; ANDI's output, as a Trusted
+Tester reads it; no scanners first), planned in
 [plans/2026-11-01-forms-5a-5c.md](plans/2026-11-01-forms-5a-5c.md) with specs
-at 0.1.0 and five questions open; then the multi-page batch
+at 0.2.0 and one question open (a placeholder as the only label); then the multi-page batch
 ([plans/2026-11-01-multi-page.md](plans/2026-11-01-multi-page.md)).
 
 Per-test leftovers live in each `docs/rules/<id>-build-tasks.md` (mostly

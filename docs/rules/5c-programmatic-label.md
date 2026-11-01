@@ -1,7 +1,7 @@
 ---
 tt_test: 5.C
 tt_name: 1.3.1-programmatic-label
-spec_version: 0.1.0
+spec_version: 0.2.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -14,14 +14,14 @@ The tool gives each page one 5.C outcome: PASS, FAIL, DOES NOT APPLY or NEEDS RE
 
 **Other sources.** [Understanding 1.3.1](https://www.w3.org/WAI/WCAG22/Understanding/info-and-relationships.html) and [4.1.2](https://www.w3.org/WAI/WCAG22/Understanding/name-role-value.html); sufficient techniques H44, H65 (title), H71 (fieldset and legend), H85, ARIA14, ARIA16, ARIA17 (grouping roles), G108, H91; failures [F68](https://www.w3.org/WAI/WCAG22/Techniques/failures/F68) (a control with no programmatically determined name), [F86](https://www.w3.org/WAI/WCAG22/Techniques/failures/F86) (a part of a multi-part field with no name), [F111](https://www.w3.org/WAI/WCAG22/Techniques/failures/F111) checks 1–2 (visible label, no accessible name; its check 3, label in name, is 2.5.3 and not in Section 508), F59 and F15 (custom controls without role or name). W3C ACT [e086e5](https://www.w3.org/WAI/standards-guidelines/act/rules/e086e5/) (form field has non-empty accessible name) and 97a4e1 (button has non-empty accessible name); DHS publishes no ACT results for either (it scored cc0f0a, label descriptive, under 5.B). Image buttons' names are 7.A's (TT 7.A uses ANDI focusable elements for images in focusable elements). ICT Testing Baseline 3.1 [10.A-FormName](https://ictbaseline.access-board.gov/web-baselines/10Forms/): all form components not hidden, "buttons, text fields, radio buttons, checkboxes, read-only fields, and multi-select lists"; the combination of accessible name and description is not empty (4.1.2); it describes the purpose (4.1.2); all relevant instructions and cues have a programmatic association, e.g. table headers (1.3.1). Baseline Alignment cases TC10.A (nine) and TC10.E (section 5). ANDI 29.2.2's per-element output is readable (plan, ANDI spike).
 
-**Terms.** *Form component*: a rendered, enabled element of the inventory: a field of any 5.D kind (including read-only fields), and a button (`button`, `input type=submit|reset|button`, role button) within Q2's scope; not `input type=hidden|image` (image buttons are 7.A), not `display:none` or `visibility:hidden` (TC10.A-ic-dna-1, -2). *ANDI output*: ANDI's `accName`, `accDesc` and `accGroup` for the element, with ANDI's display markup removed, and its alert messages. *Chrome output*: role, name and description from Chrome's accessibility tree (CDP `Accessibility.getPartialAXTree`). *Programmatic text*: the ANDI output plus other programmatic associations the PDF names: the group's legend or group label (`fieldset`/`legend`, role `group` or `radiogroup` with a name), the header cells of the table cell holding the component (`th` by row and column, `headers`), and the text of the list items enclosing it. *Nearby visible text*: the visible text pass L reads around the component (5.A section 2) and its group's visible legend or question, nearest first.
+**Terms.** *Form component*: a rendered, enabled element of the inventory: a field of any 5.D kind (including read-only fields), and every button on the page (`button`, `input type=submit|reset|button`, role button; Abby, 2026-11-01: the name check is mechanical, and no other TT test covers a text button's name); not `input type=hidden|image` (image buttons are 7.A), not `display:none` or `visibility:hidden` (TC10.A-ic-dna-1, -2). *ANDI output*: ANDI's `accName`, `accDesc` and `accGroup` for the element, with ANDI's display markup removed, and its alert messages. *Programmatic text*: the ANDI output (the PDF's evidence, and what a Trusted Tester reads; Abby, 2026-11-01) plus other programmatic associations the PDF names: the group's legend or group label (`fieldset`/`legend`, role `group` or `radiogroup` with a name), the header cells of the table cell holding the component (`th` by row and column, `headers`), and the text of the list items enclosing it. *Nearby visible text*: the visible text pass L reads around the component (5.A section 2) and its group's visible legend or question, nearest first.
 
 ## 1. Applicability
 
 | # | Evidence | Outcome | Source |
 | --- | --- | --- | --- |
 | A1 | The inventory has no form component | DOES NOT APPLY | p. 26 Applicability; TC10.A-ic-dna-1, -2 |
-| A2 | Pass L did not run, or ANDI could not run and Q3 makes that a NEEDS REVIEW | NEEDS REVIEW | Spec rule |
+| A2 | Pass L did not run, or ANDI could not run on the page (a Content-Security-Policy that blocks its script, an error) | NEEDS REVIEW: the PDF's evidence is missing | p. 26 HtT 1–3 |
 | A3 | Otherwise | Applies; go to section 3 | |
 
 ## 2. Evidence to collect
@@ -29,8 +29,10 @@ The tool gives each page one 5.C outcome: PASS, FAIL, DOES NOT APPLY or NEEDS RE
 **Pass L** (5.A and 5.C share it; once per call, `RunContext.cache`): one fresh load of the recording after the walk, so ANDI never touches the walk's evidence ([solutions/scanners-after-the-walk.md](../solutions/scanners-after-the-walk.md)).
 
 1. Inventory every form component in the top document, readable frames and open shadow roots, with its CSS path matched to the walk's stops where it is one (so instances name "Tab N times").
-2. Per component: Chrome output; the programmatic associations above; the visible-label candidates, placeholder, nearby visible text and, for data-entry fields, the focused image (5.A section 2).
-3. Inject the vendored ANDI (`andi.inject_andi`, served from `third_party/` only) and read its output for every component (`andi.andi_output`). ANDI analyses the elements its focusable-elements module covers; a component without ANDI output keeps Chrome output only (Q3).
+2. Per component: the programmatic associations above; the visible-label candidates, placeholder, nearby visible text and, for data-entry fields, the focused image (5.A section 2).
+3. Inject the vendored ANDI (`andi.inject_andi`, served from `third_party/` only) and read its output for every component (`andi.andi_output`). A component ANDI did not analyse has no ANDI output (M2).
+
+**Fields revealed by interaction** (p. 27 Note 2; Abby, 2026-11-01). Fields that appear during the run's existing replays (4.F's pass R opens disclosures; 5.D's fill pass reveals follow-up fields) are read on that replay, at its end: ANDI is injected there and the same reads are taken for the components that were not rendered at load. Fields only a path those passes do not take would reveal are not found; the finding says the check covers what the run opened.
 
 **Time budget:** one load, about 0.1 s per data-entry field (5.A's focus and image), ANDI's injection and analysis (about 2 s, spike), a few milliseconds per component for the reads. At most `COMPONENT_MAX` (60) components, the rest a NEEDS REVIEW note. The whole run stays within `run_limit_s`; nothing starts after the checks' deadline.
 
@@ -43,14 +45,14 @@ Each form component is an *instance*.
 | # | Evidence pattern | Instance outcome | Source |
 | --- | --- | --- | --- |
 | M1 | The component could not be read | NEEDS REVIEW | Spec rule |
-| M2 | Q3 applies: ANDI and Chrome disagree on whether the name and description are empty | OPEN (Q3) | Spec rule |
+| M2 | ANDI did not analyse the component (no ANDI output) | NEEDS REVIEW | p. 26 HtT 2–3 |
 | M3 | The programmatic text is empty (no name, no description, no group label, no table header, no list context) | FAIL | p. 27 ER 1–4 (nothing describes it); F68; Baseline 10.A check 1; TC10.A-1-fail-1, TC10.E-1-fail-1 |
 | M4 | A part of a multi-part field (consecutive text fields sharing one visible label, e.g. phone number boxes) has an empty name and description, though the set has a group label | FAIL | F86 |
-| M5 | Q4 (a): the programmatic text contains every word of the nearby visible text within the component's label region, including any required cue ("*", "required"), and, for a radio button or checkbox in a set of two or more, a group label | PASS | p. 27 ER 1, 3; Note 4 |
+| M5 | The programmatic text contains every word of the nearby visible text within the component's label region, including any required cue ("*", "required"), and, for a radio button or checkbox in a set of two or more, a group label | PASS: whether the wording describes the purpose is 5.B's (p. 25 Note 3; Abby, 2026-11-01), so TC10.E-1-pass-1's "The sky is blue" passes here and is 5.B's failure | p. 27 ER 1, 3; Note 4 |
 | J1? | Otherwise, J1 not answered | NEEDS REVIEW | Open question |
 | M6 | J1 = complete | PASS | p. 27 ER 1–4 |
 | M7 | J1 = missing, its quote found in the nearby visible text and not in the programmatic text | FAIL | p. 26 Condition ("includes all relevant instructions and cues"); p. 27 ER 1 ("including when fields are required"), Note 4 (radio and checkbox question) |
-| M8 | J1 = not_purpose | Q4 (b) only: FAIL | Baseline 10.A check 2; p. 26 Condition ("describes each input field") |
+| M8 | J1 = not_purpose | FAIL | Baseline 10.A check 2; p. 26 Condition ("describes each input field") |
 | M9 | J1 = unsure, or a quote that fails its check | NEEDS REVIEW | Spec rule |
 
 **Exceptions.** A purpose that is vague on purpose (p. 26 HtT 4.a, "Door 1, Door 2"): J1's rubric. Section headings need no association unless confusion is likely (p. 27 Note 5): J1's rubric.
@@ -84,9 +86,9 @@ J1 is settled by reading (CLAUDE.md principle 8): complete leads to PASS only wh
 
 ### J1. Does what is announced cover what people see?
 
-**Question:** "input.announced is everything assistive technology gets for the component in input.component: its name, description, group label, table headers and list context. input.visible is the text people see around it, and image A shows it. Does input.announced say what the component is for and include every instruction or cue in input.visible that belongs to it (required, format, the question a radio button or checkbox answers)? Answer complete, missing (copy the left-out words into quote), not_purpose or unsure."
+**Question:** "input.announced is everything assistive technology gets for the component in input.component: its name, description, group label, table headers and list context, as ANDI reports them. input.visible is the text people see around it, and image A shows it. Does input.announced say what the component is for and include every instruction or cue in input.visible that belongs to it (required, format, the question a radio button or checkbox answers)? Answer complete, missing (copy the left-out words into quote), not_purpose or unsure."
 
-**Input:** the component's role and kind; `announced` (the ANDI output and the associations, each labelled by source, and Chrome's name where it differs); `visible`, nearest first, labelled as untrusted page data; image A where pass L took one.
+**Input:** the component's role and kind; `announced` (the ANDI output and the associations, each labelled by source); `visible`, nearest first, labelled as untrusted page data; image A where pass L took one.
 
 **Output:** `{choice: complete|missing|not_purpose|unsure, quote, reasons}`.
 
@@ -101,20 +103,13 @@ J1 is settled by reading (CLAUDE.md principle 8): complete leads to PASS only wh
 
 **Use:** M6–M9.
 
-**OPEN questions for Abby:**
-
-- **Q2. Which buttons are 5.C components.** TT's Forms Identify Content and Baseline 10.A list buttons; Understanding 4.1.2 covers all user interface components; no other TT test checks a text button's name (6.A is links, 7.A image buttons). (a) Every button on the page (recommended: the name check is mechanical and cheap, and no other test covers a menu or dialog button's name); (b) only buttons in a form or next to a field (G167), plus submit, reset and button inputs; a menu toggle elsewhere is not 5.C.
-- **Q3. ANDI and Chrome.** The PDF prescribes ANDI's output; assistive technology gets Chrome's. They can differ (ANDI's own rules, a component ANDI does not analyse, a page whose Content-Security-Policy blocks ANDI's inline script). (a) Rows read ANDI's output; Chrome's is recorded beside it; where they disagree on empty or not, NEEDS REVIEW with both shown; with no ANDI output, Chrome's is used and the finding says so (recommended: follows the PDF, and never passes what either tool says is empty); (b) ANDI only: no ANDI output is NEEDS REVIEW; (c) Chrome only, ANDI recorded as a note.
-- **Q4. When the announced text already covers the visible label.** (a) Mechanical PASS (M5) when the programmatic text contains every word of the visible text in the component's label region, any required cue and, for options in a set, a group label; J1 only otherwise; whether the wording describes the purpose is 5.B's (TC10.E-1-pass-1, "The sky is blue", then passes 5.C and is 5.B's failure) (recommended: the PDF splits accuracy into 5.B, and this keeps a 40-field form to a few questions); (b) J1 for every component, and not_purpose fails 5.C as well (Baseline 10.A check 2).
-- **Q5. Fields that appear only after interaction** (p. 27 Note 2; also 5.A). Pass L reads what is rendered at load. (a) Fields revealed during the run (4.F's pass R opens disclosures; 5.D's fill pass reveals follow-up fields) get the same reads on that replay, without ANDI (Chrome output only, said in the finding), and are listed as instances (recommended: covers the common "Other: please specify" case without new passes); (b) they are a note for a person; (c) a new pass opening every disclosure before pass L.
-
 ## 5. Edge cases
 
 V-numbers are browser checks in [5a-build-tasks.md](5a-build-tasks.md).
 
 | Case | Rule | Verify |
 | --- | --- | --- |
-| Name from a placeholder only (TC10.A-all-pass-1) | Not empty: M5 or J1 | V1 (ANDI and Chrome both use it) |
+| Name from a placeholder only (TC10.A-all-pass-1) | Not empty: M5 or J1 | Checked in the spike (ANDI) |
 | Description only (TC10.A-all-pass-6) | Not empty; ANDI's warning recorded, no FAIL | Checked in the spike |
 | `title` only (TC10.A-all-pass-3) | Not empty | V1 |
 | Visible text not associated (TC10.A-1-fail-1) | M3 FAIL; 5.A PASS by J1 | Checked in the spike |
@@ -122,8 +117,9 @@ V-numbers are browser checks in [5a-build-tasks.md](5a-build-tasks.md).
 | Field in a data table under a column header | Table header in the programmatic text (p. 27 ER 2) | V3 |
 | Custom control (role checkbox, slider) | A component like any field (F59, F15) | — |
 | Read-only field | A component (p. 25; Baseline 10.A) | — |
-| Page whose CSP blocks ANDI | Q3 | V4 |
+| Page whose CSP blocks ANDI | A2 NEEDS REVIEW | V4 |
+| A field revealed by a disclosure or by filling a field | Read on that replay (section 2) | V6 |
 
 ## 6. What a FAIL records
 
-Location (URL, frame chain, CSS path, role), the ANDI output and Chrome output, the programmatic associations found, the nearby visible text, the J1 answer, image A, and how to reach it ("Tab 6 times").
+Location (URL, frame chain, CSS path, role), the ANDI output and its alerts, the programmatic associations found, the nearby visible text, the J1 answer, image A, and how to reach it ("Tab 6 times").

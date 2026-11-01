@@ -1,7 +1,7 @@
 # Build tasks: 5.A and 5.C
 
 Specs [5a-label-provided.md](5a-label-provided.md) and
-[5c-programmatic-label.md](5c-programmatic-label.md) are drafts (0.1.0).
+[5c-programmatic-label.md](5c-programmatic-label.md) are drafts (0.2.0).
 Order of work: [plans/2026-11-01-forms-5a-5c.md](../plans/2026-11-01-forms-5a-5c.md).
 
 ## Fixtures
@@ -23,15 +23,16 @@ programmatic side; TC10.E is 10.E, the visual side). Custom pages in
 | f08 fields in a table labelled by column headers | 5.C table association (ER 2); 5.A J1 |
 | f09 icon-only search box with a magnifier image | 5.A J1 graphic |
 | f10 floating label, focus-only instructions | 5.A read with focus |
-| f11 icon button with no name next to a field | 5.C M3 FAIL (Q2) |
-| f12 a disclosure revealing an "Other, please specify" field | Q5 |
+| f11 icon button with no name next to a field, and a menu button with no name | 5.C M3 FAIL (every button) |
+| f12 a disclosure revealing an "Other, please specify" field | Revealed fields read on 4.F's replay |
 
 ## Browser behavior to verify in code
 
 | ID | Verify | Rules that depend on it |
 | --- | --- | --- |
-| V1 | ANDI's `accName` and Chrome's name agree for placeholder, `title`, `aria-label`, `aria-labelledby` and label/for (TC10.A) | Q3, M3 |
-| V2 | ANDI reports a fieldset legend or radiogroup label (`accGroup`), and Chrome exposes it on the group | Programmatic text, M5 |
+| V1 | ANDI's `accName` for placeholder (checked in the spike), `title`, `aria-label`, `aria-labelledby` and label/for (TC10.A) | M3, M5 |
+| V2 | ANDI reports a fieldset legend or radiogroup label (`accGroup`) | Programmatic text, M5 |
 | V3 | Table header text for a field in a cell: from ANDI or computed from the table | M5, J1 |
-| V4 | A page CSP that blocks inline scripts stops ANDI; how it shows | Q3 |
+| V4 | A page CSP that blocks inline scripts stops ANDI; how it shows | A2 |
+| V6 | ANDI injected at the end of a 4.F or 5.D replay analyses the revealed fields | Section 2 (revealed fields) |
 | V5 | Windows headed Chrome: every fixture gives the same outcome (cannot run from Linux) | All rows |
