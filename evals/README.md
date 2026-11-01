@@ -21,6 +21,23 @@ because fixture names describe the expected answer ("key-in-comment-only").
 The answer key (`/tmp/eval/state.json`) is outside the packet tree. Agents
 are told to open nothing else and to list every file they opened.
 
+## Run 3, 2026-11-01: 4.C 1.8.0 (J2 for every form control), changed packets only
+
+4.C's J2 now covers every form control kind, not only text, select and
+checkbox. Packets rebuilt and compared with the time-budget run's: every
+packet's answer format changed in wording only (J2's `value` description),
+4.A f04's revealed items are now in sorted order, and three packets
+changed in substance. One fresh Sonnet subagent answered those three only
+(72,000 tokens, about 20 s; it opened nothing outside them):
+
+| Case | Change | Expected | Got |
+| --- | --- | --- | --- |
+| 4.C f20 player trap | now asks J2 (the volume slider is a control) | FAIL | FAIL (J2 no: a media player) |
+| 4.C f35 radio gate (new) | J2 for a radio-button gate | NEEDS REVIEW | NEEDS REVIEW (J2 yes: choose English) |
+| 4.C f17 editor | member kind now "text" in J1's input | FAIL | FAIL |
+
+3/3, no false PASS. The other 41 packets keep run 2's results.
+
 ## 2026-11-01: time budget, no agent run needed
 
 The time-budget changes (quick replay prefixes, the screenshot pause, the run
