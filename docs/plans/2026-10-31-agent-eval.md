@@ -1,7 +1,10 @@
 # Plan: agent-level evaluation (not built)
 
-Status: **draft for review.** Nothing here is built. Approve the question set
-and the model-access plan (sections 2 and 5) before any code is written.
+Status: **draft; decisions recorded 2026-11-01.** Nothing here is built.
+Models and access are decided (section 5); Phoenix waits (section 9). **The
+question set is on hold** until test pages from the DHS Trusted Tester
+training course are available. The shape in section 2 is approved; the
+exact list will be redrawn around those pages.
 
 ## 1. What it measures
 
@@ -28,7 +31,30 @@ temperature 0), adapted in four ways:
   the same question. That shows what the tool adds.
 - **Tokens, time and consistency** are recorded for every run, with 5 repeats.
 
-## 2. Question set (draft, 15 questions)
+## 2. Question set (on hold; shape approved)
+
+**What "questions" means here.** Not a standard benchmark. It's our own
+dataset, as the template's `mcp-eval` skill asks for: each item is one test
+page, a plain request a non-tester would type ("can a keyboard user get stuck
+on this page?"), and the one answer a certified tester would give. The same
+items are asked with the MCP server (tool arm) and with only the page's HTML
+(baseline arm).
+
+**Final pages: the DHS Trusted Tester training course.** They sit behind a
+login, so they're less likely to be in model training data or to have shaped
+our specs, and the course gives one answer per page per test. Before using
+them: check DHS's terms allow saving copies for testing, and freeze each page
+locally (the server never logs in, and runs must be repeatable). Until then,
+the draft below is a development set for building the harness.
+
+**Shape (approved):** two groups, reported separately. *Behavior* questions
+test what no answer key covers (answering an open question, saying "unsure",
+ignoring injected instructions, no "compliant" wording, reporting a refusal).
+*Answer-key* questions take the expected outcome from someone else: DHS's
+verdicts on ACT cases now, the training course's answers later. Roughly
+balanced PASS, FAIL and DOES NOT APPLY, so "FAIL to everything" scores badly.
+
+### Development draft (15 questions)
 
 Rules for every question: independent (one page, fresh run), read-only,
 one verifiable answer, stable (frozen fixture), and phrased the way a
@@ -100,23 +126,33 @@ tool-arm run, each with a one-line reason:
 
 The judge never sees the expected outcome and never scores it.
 
-## 5. Model access (decision needed)
+## 5. Model access (decided 2026-11-01)
 
-`AGENT_MODEL` and `JUDGE_MODEL` are separate settings, read from the root
-`.env` (the server itself needs no key). Options:
+| Phase | Where it runs | Agent | Judge | Access |
+| --- | --- | --- | --- | --- |
+| Development (now) | This Claude account | Sonnet 5.x | Opus 5.5 | Claude Code subagents, as in the judge eval |
+| Final scored runs | The author's NASA laptop, on NASA's network | From NASA's Ask Sage model list (to be chosen) | Same | NASA-hosted Ask Sage API |
 
-| Option | What it needs | Notes |
-| --- | --- | --- |
-| A. The template's gateway (USAi, OpenAI-compatible) | `USAI_API_KEY`, `USAI_BASE_URL` | Matches the template; LangChain + Phoenix tracing. Model list depends on what the gateway offers |
-| B. NASA-hosted models | An endpoint and key (the same one `ApiJudge` will use) | Keeps data inside NASA; not wired yet |
-| C. Anthropic API | `ANTHROPIC_API_KEY` | Simplest tool loop and token counts; data goes to Anthropic |
+**Keys never enter the repository.** The Ask Sage key goes in the root `.env`
+(git-ignored; checked with `git check-ignore`) or the environment, read as
+settings beside `AGENT_MODEL` and `JUDGE_MODEL`. The server itself needs no
+key: open questions go back to the calling agent (`JUDGE_BACKEND=client`).
+Only the eval harness calls a model API. (A key would reach the server only
+if `ApiJudge`, still a stub, were turned on.) The NASA endpoint works only
+inside NASA's network, so final runs happen on the laptop.
 
-**Recommendation:** a thin harness with its own tool loop (FastMCP `Client`
-over stdio, `cwd` = repo root) and one OpenAI-compatible client, so A, B
-and C are each a base URL and key. Phoenix tracing becomes optional rather
-than required, and results go to a JSONL file per run. Add Phoenix later if
-you want the UI. Suggested pairing: a mid-size model as the agent (most users
-won't run the largest one) and a different, stronger model as the judge.
+**Development runs use subagents, not an API key.** A Claude account isn't
+an API key, so for now the agent and judge run as Claude Code subagents, the
+way the judge eval did. Known limits, recorded with each development result:
+no temperature control, token counts as the subagent reports them (rounded),
+and isolation by instruction rather than by process.
+
+**Harness design.** One provider interface with two implementations: Claude
+Code subagents (development) and Ask Sage (final). Ask Sage's request format
+has to be checked from the laptop; it may not be OpenAI-compatible, so it
+gets its own small adapter rather than an assumed format. Everything else
+(questions, scoring, judge rubric, results) is shared, so development and
+final runs are scored the same way.
 
 ## 6. Runs, repeats and cost
 
@@ -157,6 +193,12 @@ evals/agent/
 
 ## 9. Open decisions
 
-1. Approve or change the 15 questions (and the 2–3 extra PASS cases).
-2. Which model access (A, B or C), and which `AGENT_MODEL` / `JUDGE_MODEL`.
-3. Phoenix now or later.
+1. **Open:** the final question set, once the DHS training-course pages are
+   in hand (and DHS's terms allow saving copies).
+2. **Open:** the Ask Sage agent and judge models, from the list the author
+   will bring from the NASA laptop.
+3. **Decided:** Sonnet 5.x agent and Opus 5.5 judge for development, through
+   this Claude account.
+4. **Decided:** Phoenix later, only once its trace UI is worth the setup.
+5. **Decided:** tools are prefixed `a11y_` (`a11y_run_tt_tests`,
+   `a11y_answer_questions`), so the eval measures the names that ship.
