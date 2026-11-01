@@ -66,6 +66,14 @@ run).
   its packet (agent-eval agents get no file tools).
 - **Network-level egress rules** on any host that runs the server, as a
   second layer behind the egress proxy (GSA template). Deployment work.
+- **Egress tests in installed Chrome.** In headed Chrome 156 on Windows,
+  `test_iframe_and_subresources_pointing_inside_are_refused` and
+  `test_rebinding_mid_run_is_refused` fail because Chrome never makes the
+  frame, subresource or later `fetch` requests, so the guard is not
+  exercised. Nothing leaked: the sentinel got no hits. The default headless
+  run still exercises the guard and passes. Find why Chrome skips them, so
+  both browsers test the guard
+  ([solutions/windows-chrome-results.md](solutions/windows-chrome-results.md)).
 
 ## Later
 
