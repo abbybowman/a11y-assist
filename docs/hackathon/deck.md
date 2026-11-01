@@ -163,7 +163,7 @@ flowchart LR
 
 - We didn't write our own answer key, because that would measure agreement with ourselves.
 - **[FILL: whether open questions were answered by a script or by Claude in the scored run.]**
-- **[PENDING]** Agent-level evaluation with a no-tool baseline: DHS training-course pages as questions, NASA-hosted models, outcomes scored in code and wording by a judge model.
+- **[PENDING]** Agent-level evaluation against a browser-agent baseline (same model with Playwright MCP): blind-labeled real .gov pages and seeded faults (DHS training-course pages if allowed), three model families through NASA's Ask Sage, outcomes scored in code and wording by a judge from another family.
 
 ---
 
