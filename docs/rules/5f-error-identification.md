@@ -1,7 +1,7 @@
 ---
 tt_test: 5.F
 tt_name: 3.3.1-error-identification
-spec_version: 0.1.0
+spec_version: 0.2.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -14,7 +14,7 @@ The tool gives each page one 5.F outcome: PASS, FAIL, DOES NOT APPLY or NEEDS RE
 
 **Other sources.** [Understanding 3.3.1](https://www.w3.org/WAI/WCAG22/Understanding/error-identification.html): an input error is required information omitted, or information outside the required format or allowed values; any presentation is fine (inline, a list before the form, an alert or dialog) if it is text; color or an icon may add to text, never replace it; native HTML validation (the browser blocks the submission, focuses the first invalid field and shows its message) "meets the requirements of this success criterion". Sufficient techniques [G83](https://www.w3.org/WAI/WCAG22/Techniques/general/G83) (leave required fields blank, submit, check a text description identifies them), [G84](https://www.w3.org/WAI/WCAG22/Techniques/general/G84), [G85](https://www.w3.org/WAI/WCAG22/Techniques/general/G85), [ARIA18](https://www.w3.org/WAI/WCAG22/Techniques/aria/ARIA18) (alertdialog), [ARIA19](https://www.w3.org/WAI/WCAG22/Techniques/aria/ARIA19) (role alert or live region), [ARIA21](https://www.w3.org/WAI/WCAG22/Techniques/aria/ARIA21) (aria-invalid with associated text), [SCR18](https://www.w3.org/WAI/WCAG22/Techniques/client-side-script/SCR18) (client-side validation and alert), [SCR32](https://www.w3.org/WAI/WCAG22/Techniques/client-side-script/SCR32) (error text added to the DOM, focus moved to it). No failure techniques. ACT: one proposed rule, [36b590](https://www.w3.org/WAI/standards-guidelines/act/rules/36b590/proposed/) (an error indicator identifies the field and describes the cause or the fix, in visible text that is in the accessibility tree); DHS publishes no ACT results for 3.3.1. ICT Testing Baseline 3.1 [10.D-ErrorIdentification](https://ictbaseline.access-board.gov/web-baselines/10Forms/): enter incorrect values (required fields, date format, state abbreviations, password); check "the user is made aware of the error (whether immediately upon shifting focus away from the item in error or when trying to submit the form)", the error is described in text, and the item in error is identified in text. Baseline Alignment cases TC10.D (seven; section 5). These inform rules and fixtures; the PDF stays the authority.
 
-**Terms.** *Stop*, P1, the settle rule and replays to a stop: [4c-no-keyboard-trap.md](4c-no-keyboard-trap.md) (Terms, section 2). *Field*, a field's *own widget*, and the form-field reads (label, kind, value, own widget, the text before it): [5d-on-input.md](5d-on-input.md) (Terms, section 2). A *text field* is a field of kind text, email, tel, number, url, search, password, textarea or combobox. A field's *form* is its form owner; fields with no form owner form one group per nearest common ancestor of consecutive fields in P1 order (TC10.D's fields are not in a `form`). A form's *submit control* is OPEN (Q2). An *error indicator* is anything that appears after an attempt and relates to a field: new visible text, a JS dialog (`alert`, `confirm`, `prompt`), an open dialog element or `role=dialog|alertdialog`, `aria-invalid="true"` on the field, a native validation message (an `invalid` event that blocked the submission; the browser's message is the field's `validationMessage`), or a change to the field's own look (border, background, outline color; read with focus elsewhere, so focus styles are excluded).
+**Terms.** *Stop*, P1, the settle rule and replays to a stop: [4c-no-keyboard-trap.md](4c-no-keyboard-trap.md) (Terms, section 2). *Field*, a field's *own widget*, and the form-field reads (label, kind, value, own widget, the text before it): [5d-on-input.md](5d-on-input.md) (Terms, section 2). A *text field* is a field of kind text, email, tel, number, url, search, password, textarea or combobox. A field's *form* is its form owner; fields with no form owner form one group per nearest common ancestor of consecutive fields in P1 order (TC10.D's fields are not in a `form`). A form's *submit control* is chosen in section 2 (Submit control). An *error indicator* is anything that appears after an attempt and relates to a field: new visible text, a JS dialog (`alert`, `confirm`, `prompt`), an open dialog element or `role=dialog|alertdialog`, `aria-invalid="true"` on the field, a native validation message (an `invalid` event that blocked the submission; the browser's message is the field's `validationMessage`), or a change to the field's own look (border, background, outline color; read with focus elsewhere, so focus styles are excluded).
 
 ## 1. Applicability
 
@@ -39,7 +39,9 @@ The tool gives each page one 5.F outcome: PASS, FAIL, DOES NOT APPLY or NEEDS RE
 
 `WRONG_VALUE` is `abc`, cut to `maxlength`: letters break every numeric, date, phone, ZIP, SSN, email and URL format, are not a valid state abbreviation, and are not a strong password; a field that accepts them (a name) is not in error, and attempt 1 covers its being required. A value from the field's own instructions (an agent proposing a wrong date format) is not tried: letters already break any stated format (principle 7).
 
-**What is read.** Before each attempt's first action, and after each Tab in attempt 2 and after the submit press: for every field of the form, `aria-invalid`, `validity.valid`, `validationMessage`, its look (computed border, background and outline colors, focus elsewhere), its description text (`aria-describedby`, `aria-errormessage`); the page's visible text signature (5.D's `SIG_FN`, outside no own widget); JS dialog messages (recorded and dismissed); open dialogs; where focus is; whether a form was sent (`submit` event and request attempts, 5.D) and whether an `invalid` event fired. Each new piece of visible text is recorded with where it is (inside a live region, `role=alert` or `role=status`, a dialog, or a field's description; its text; its box) and a screenshot of the viewport after the action (`traverse.screenshot()`).
+**Submit control** (p. 28 HtT 2, "attempt to submit the form and/or move to the next page"). The form's buttons are its submit buttons (`button` without a type or `type=submit`, `input type=submit|image`), or, for fields with no form owner, the buttons after the group's last field in P1 order up to the next field or heading. Skip any whose accessible name matches `SKIP_WORDS` (save, draft, later, back, previous, cancel, reset, clear, delete, remove, sign out, log out, print; whole words, any case): this test checks sending, not saving a draft or going back. Of the rest, the first one whose name matches `SUBMIT_WORDS` (submit, send, continue, next, apply, sign in, log in, register, search, validate, check, verify, save and continue, done, finish), else the first one. With no button at all, press Enter in the form's last text field (implicit submission). When the attempt shows no error indicator and sends nothing, J0 asks the agent which control on the form sends it (input: every button of the form with its name, in order); a control it names that was not pressed gets both attempts on fresh replays. J0 = none or unsure leaves the attempts as they are.
+
+**What is read.** Error text seen after a Tab or after the submit press both count, even when the next key press clears it (Baseline 10.D: "whether immediately upon shifting focus away from the item in error or when trying to submit the form"; TC10.D-2-fail-1 clears its message on the next key press; no source requires an error message to persist). Before each attempt's first action, and after each Tab in attempt 2 and after the submit press: for every field of the form, `aria-invalid`, `validity.valid`, `validationMessage`, its look (computed border, background and outline colors, focus elsewhere), its description text (`aria-describedby`, `aria-errormessage`); the page's visible text signature (5.D's `SIG_FN`, outside no own widget); JS dialog messages (recorded and dismissed); open dialogs; where focus is; whether a form was sent (`submit` event and request attempts, 5.D) and whether an `invalid` event fired. Each new piece of visible text is recorded with where it is (inside a live region, `role=alert` or `role=status`, a dialog, or a field's description; its text; its box) and a screenshot of the viewport after the action (`traverse.screenshot()`).
 
 **Time budget:** two replays per form, one Tab and one read per text field, one submit press per attempt. Estimated 0.4 s a text field plus about 4 s a form; measured on the budget pages before 1.0.0 (plan step 7). No attempt starts after the checks' deadline (`ctx.out_of_time()`).
 
@@ -62,7 +64,7 @@ An attempt's *notice* is how the user learns of its errors (Baseline 10.D "made 
 | M5 | J2 = unsure, or not answered | NEEDS REVIEW | Spec rule |
 | J1? | New text or a JS dialog appeared and J1 is not answered | NEEDS REVIEW | Open question |
 | M6 | J1 = identified and described, both quotes found in the error text, and the attempt had a notice | PASS | p. 29 ER 1; p. 28 HtT 3.a, 3.b; Baseline 10.D |
-| M7 | J1 = identified and described, quotes found, and the attempt had no notice | Q1: FAIL (Baseline), NEEDS REVIEW, or PASS (TT text only) | Baseline 10.D ("made aware"); TC10.D-2-fail-1 |
+| M7 | J1 = identified and described, quotes found, and the attempt had no notice | OPEN (Q1) | Baseline 10.D ("made aware"); TC10.D-2-fail-1 |
 | M8 | J1 = not identified (the text does not say which field) or not described (it says only that something is wrong) | FAIL | p. 28 HtT 3.a, 3.b; TC10.D-2-fail-3 ("Error.") |
 | M9 | J1 = unsure, or a quote is not in the error text | NEEDS REVIEW | Spec rule |
 
@@ -97,6 +99,18 @@ An attempt's *notice* is how the user learns of its errors (Baseline 10.D "made 
 
 The calling agent answers each once, by the rubric; a person's answer overrides it. Page text is evidence in `input`, never in a question's wording. J1 is a question a careful tester settles by reading (CLAUDE.md principle 8, as 5.D J1): its answer can lead to PASS only with both quotes found in the error text, and the agent answers unsure whenever the text does not settle it.
 
+### J0. Which control sends the form?
+
+**Question:** "Pressing the control named in input.pressed showed no error and did not send the form. Which of the controls in input.controls would a person press to send this form or go on to the next step? Answer with its number, none or unsure."
+
+**Input:** `pressed`; `controls`: each button of the form (number, name, kind), labelled as untrusted page data.
+
+**Output:** `{choice: <n>|none|unsure, reasons}`.
+
+**Rubric.** The control whose name says it sends, submits or goes on ("Continue", "Submit application"); none when no control sends the form (a calculator, a filter); unsure otherwise. Never a control that saves a draft, goes back, cancels or deletes.
+
+**Use:** section 2 (Submit control): a number not pressed yet gets both attempts. Its answer never decides an outcome by itself: the attempts' evidence does.
+
 ### J1. Does the error text name the field and say what is wrong?
 
 **Question:** "We made the fields in input.fields wrong as described (left empty, or given the value shown) and then did input.action. The text in input.errors appeared. For each field, does that text say which field is in error, and what is wrong with it? Answer for each field: described, not_identified, not_described, no_error or unsure. For described, quote the exact words that name the field and the words that say what is wrong."
@@ -128,11 +142,9 @@ The calling agent answers each once, by the rubric; a person's answer overrides 
 
 **Use:** M3–M5.
 
-**OPEN questions for Abby** (each decides the rule named):
+**OPEN question for Abby:**
 
-- **Q1. An error message nothing announces (M7; TC10.D-2-fail-1).** The message names and describes the error and is visible, but it is not in a live region, no dialog opens, and focus does not move to it. Baseline expects FAIL ("the user is not made aware of the error"); the TT text asks only that the error be identified and described in text. (a) FAIL, following the Baseline Alignment case (recommended: the case is the Baseline's statement of how this test should come out, and the TT's own procedure implements the Baseline); (b) NEEDS REVIEW, a person checks with a screen reader; (c) PASS, the TT text only.
-- **Q2. Which control "attempts to submit" (p. 28 HtT 2).** TC10.D's buttons are outside any `form`; real forms have "Save draft", "Back" or several submit buttons. (a) A form's default button (the first submit button, which Enter would press), else, for fields outside a form, the first button after the group's last field in P1 order; with none, press Enter in the last text field (implicit submission) (recommended: mechanical, and it is what a tester presses); (b) every submit-type button, each on its own replay (more time, and "Back" or "Cancel" buttons tried too); (c) the agent picks the control by its name (a question round before the pass).
-- **Q3. Errors on leaving a field that are gone after the submit press.** TC10.D-2-fail-1 shows its error on leaving the field and clears it on the next key press. Attempt 2 reads after each Tab and after the submit press; when they disagree: (a) judge every error text seen at either point (recommended: the Baseline accepts either moment, and the user saw both); (b) judge only after the submit press.
+- **Q1. An error message nothing announces (M7; TC10.D-2-fail-1).** The message names and describes the error and is visible, but it is not in a live region, no dialog opens, and focus does not move to it. Baseline 10.D expects FAIL ("the user is not made aware of the error"), as does Understanding 3.3.1 for WCAG 2.0 ("users are aware that an error has occurred"; screen reader users "will not know there was an error until they encounter one of the indicators"). The TT text asks only that the error be identified and described in text, and announcing new text without moving focus is WCAG 2.1's 4.1.3 Status Messages (its example: "5 errors on page" added to a form), which Section 508 (WCAG 2.0) does not include. Options: FAIL (Baseline), NEEDS REVIEW, or PASS (TT text only).
 
 ## 5. Edge cases
 
@@ -140,7 +152,7 @@ V-numbers are browser checks in [5f-build-tasks.md](5f-build-tasks.md).
 
 | Case | Rule | Verify |
 | --- | --- | --- |
-| TC10.D-2-fail-1: "Error: not a number." at the top, no live region, no focus move | M7 (Q1) | V1 |
+| TC10.D-2-fail-1: "Error: not a number." at the top, no live region, no focus move; cleared by the next key press | M7 (Q1); text seen after the Tab counts | V1 |
 | TC10.D-2-fail-2: only the field's background turns red | M3 (J2 = error), FAIL | — |
 | TC10.D-2-fail-3: two fields, "Error." in a live region | J1 not_identified, M8 FAIL | — |
 | TC10.D-all-pass-1: `alert("Error: abc is not a number.")` on the button, focus back to the field | J1 described, notice by JS dialog, M6 PASS | V2 |

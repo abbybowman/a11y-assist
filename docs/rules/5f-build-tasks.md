@@ -18,8 +18,8 @@ pages in `tests/fixtures/5f/` only for what they do not cover:
 | f04 inline errors in `aria-describedby`, announced by a live region | M6, notice by live region |
 | f05 field marked only by `aria-invalid` | M3 FAIL |
 | f06 password field with "Incorrect password" | 5.G N2 |
-| f07 several submit buttons ("Save draft", "Continue") | Q2 |
-| f08 errors on leaving fields only, none on submit | Q3 |
+| f07 several submit buttons ("Save draft", "Continue"); f11 a lone button named "Go" that does nothing and a "Send" link-styled button (J0) | Submit control, J0 |
+| f08 errors on leaving fields only, none on submit | Text after a Tab counts |
 | f09 a field that turns green (valid) after a value, nothing else | J2 not_error, A3 |
 | f10 "Invalid entry" with no format given | 5.G N5 |
 
