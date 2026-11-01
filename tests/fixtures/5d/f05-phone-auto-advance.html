@@ -1,0 +1,16 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>F05 Phone</title></head><body>
+<h1>Contact details</h1>
+<form onsubmit="return false">
+<fieldset><legend>Phone number</legend>
+<label for="p1">Area code</label> <input id="p1" type="tel" maxlength="3" size="3">
+<label for="p2">Prefix</label> <input id="p2" type="tel" maxlength="3" size="3">
+<label for="p3">Line</label> <input id="p3" type="tel" maxlength="4" size="4">
+</fieldset>
+<p><button type="submit">Save</button></p>
+</form>
+<script>
+const parts = ["p1", "p2", "p3"].map((id) => document.getElementById(id));
+parts.forEach((p, i) => p.addEventListener("input", () => {
+  if (p.value.length >= p.maxLength && parts[i + 1]) parts[i + 1].focus();
+}));
+</script></body></html>

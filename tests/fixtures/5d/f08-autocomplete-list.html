@@ -1,0 +1,20 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>F08 Agency search</title></head><body>
+<h1>Find an agency</h1>
+<form onsubmit="return false">
+<label for="agency">Agency</label>
+<input id="agency" role="combobox" aria-expanded="false" aria-controls="sugg" aria-autocomplete="list" autocomplete="off">
+<ul id="sugg" role="listbox" hidden></ul>
+<p><button type="submit">Search</button></p>
+</form>
+<script>
+const box = document.getElementById("agency"), list = document.getElementById("sugg");
+const NAMES = ["Test Agency", "Testing Office", "Treasury"];
+box.addEventListener("input", () => {
+  const v = box.value.toLowerCase();
+  list.innerHTML = NAMES.filter((n) => v && n.toLowerCase().startsWith(v))
+    .map((n) => `<li role="option">${n}</li>`).join("");
+  list.hidden = !list.children.length;
+  box.setAttribute("aria-expanded", String(!list.hidden));
+});
+box.addEventListener("blur", () => { list.hidden = true; box.setAttribute("aria-expanded", "false"); });
+</script></body></html>
