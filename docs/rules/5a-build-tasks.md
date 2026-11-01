@@ -1,14 +1,16 @@
 # Build tasks: 5.A and 5.C
 
 Specs [5a-label-provided.md](5a-label-provided.md) and
-[5c-programmatic-label.md](5c-programmatic-label.md) are drafts (0.2.0).
+[5c-programmatic-label.md](5c-programmatic-label.md) are drafts (5.A 0.3.0, 5.C 0.2.0).
 Order of work: [plans/2026-11-01-forms-5a-5c.md](../plans/2026-11-01-forms-5a-5c.md).
 
 ## Fixtures
 
 Vendored first: the nine TC10.A and four TC10.E Baseline Alignment cases,
 each with expected outcomes for both tests (TC10.A is Baseline 10.A, the
-programmatic side; TC10.E is 10.E, the visual side). Custom pages in
+programmatic side; TC10.E is 10.E, the visual side). TC10.A-all-pass-1
+(placeholder only) expects 5.C PASS and 5.A FAIL: the Baseline case judges
+the name only; say so in its `differs` note. Custom pages in
 `tests/fixtures/5a/` only for what they do not cover:
 
 | Fixture | Covers |
