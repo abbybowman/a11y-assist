@@ -1,0 +1,14 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>F04 Account</title></head><body>
+<h1>Your account</h1>
+<form onsubmit="return false">
+<fieldset><legend>Do you already have an account?</legend>
+<label><input type="radio" name="acct" value="no" id="no"> No</label>
+<label><input type="radio" name="acct" value="yes" id="yes"> Yes</label>
+</fieldset>
+<p><button type="submit">Next</button></p>
+</form>
+<script>
+document.getElementById("yes").addEventListener("change", (e) => {
+  if (e.target.checked) window.open("f01-other.html", "_blank");
+});
+</script></body></html>

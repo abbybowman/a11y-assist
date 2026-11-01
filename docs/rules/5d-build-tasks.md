@@ -20,8 +20,11 @@ P1 records it; the init script logs form submissions
 
 ## Fixtures
 
-Vendored first, then custom pages for gaps. Expected outcomes live in
-`tests/test_fixtures_5d.py` or the manifest, never in a page.
+Vendored first, then custom pages for gaps. Expected outcomes and scripted
+answers live in `tests/test_fixtures_5d.py` or the manifest, never in a
+page. F01–F14 are written (`tests/fixtures/5d/`, helpers `f01-other` and
+`f09-frame`); behavior tests in the same file check that each page does what
+it is meant to in plain Chrome. Outcome tests skip until the check exists.
 
 | ID | Page | Expected | Rows |
 | --- | --- | --- | --- |
@@ -42,6 +45,7 @@ Vendored first, then custom pages for gaps. Expected outcomes live in
 | F10 | ZIP field that submits only on a valid 5-digit value, with a pattern the fixed value fails | FAIL after J3 | M3, M4, M9 |
 | F12 | Custom slider (role slider) whose change reloads the page with new results | FAIL | M4, M9 |
 | F13 | Custom spinbutton that only updates a total beside it | PASS | M14 or M7, M11 |
+| F14 | Plain form with every kind of field, read-only and disabled fields, nothing happens | PASS | M14 |
 | F11 | Notice after the field, not before ("you will be taken to the page" below the select) | FAIL | M4, M9 |
 
 B1–B5 are vendored (`tests/fixtures/baseline/`, manifest expected 5.D

@@ -1,0 +1,18 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>F13 Order forms</title></head><body>
+<h1>Order printed forms</h1>
+<p><span id="qty-label">Copies</span>
+<span id="qty" role="spinbutton" tabindex="0" aria-labelledby="qty-label" aria-controls="total"
+  aria-valuemin="1" aria-valuemax="50" aria-valuenow="1">1</span></p>
+<p id="total">Total: 1 copy</p>
+<p><a href="#order">Order</a></p>
+<script>
+const q = document.getElementById("qty"), t = document.getElementById("total");
+q.addEventListener("keydown", (e) => {
+  const d = { ArrowUp: 1, ArrowRight: 1, ArrowDown: -1, ArrowLeft: -1 }[e.key];
+  if (!d) return;
+  e.preventDefault();
+  const v = Math.max(1, Math.min(50, Number(q.getAttribute("aria-valuenow")) + d));
+  q.setAttribute("aria-valuenow", String(v)); q.textContent = String(v);
+  t.textContent = "Total: " + v + (v === 1 ? " copy" : " copies");
+});
+</script></body></html>

@@ -308,7 +308,7 @@ async def test_own_screenshots_are_not_page_mutations(browser, settings):
 
 async def test_form_controls_on_stops_and_in_the_inventory(browser, settings):
     """Form control kinds (4.C's J2, 5.D's fields), read-only, radio group."""
-    p = await _pass(browser, settings, _fixture("5d/controls.html"))
+    p = await _pass(browser, settings, _fixture("5d/f14-plain-form-controls.html"))
     by_id = {
         s.stop.css_path.rsplit("#", 1)[-1]: s.stop
         for s in p.steps
@@ -337,7 +337,9 @@ async def test_form_controls_on_stops_and_in_the_inventory(browser, settings):
 async def test_form_submissions_are_logged_in_every_frame(browser, settings):
     """5.D's submission evidence: submit events and submit()/requestSubmit()
     calls (submit() fires no event)."""
-    ctx, page = await _opener(browser, settings, _fixture("5d/controls.html"))()
+    ctx, page = await _opener(
+        browser, settings, _fixture("5d/f14-plain-form-controls.html")
+    )()
     try:
         await page.evaluate(
             "() => { const f = document.getElementById('f');"

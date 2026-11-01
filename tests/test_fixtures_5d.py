@@ -1,0 +1,191 @@
+"""5.D (3.2.2-on-input) on custom fixtures (the Baseline Alignment TC10.C
+cases are in test_baseline_cases.py), plus behavior tests that each page
+does what it is meant to in Chrome. Expected outcomes live here, never in a
+page."""
+
+from __future__ import annotations
+
+import re
+
+import pytest
+
+from a11y_assist.checks import REGISTRY
+from a11y_assist.models import TestId
+
+from .conftest import FIXTURES
+from .harness import instance_rows, run_check
+
+TOLD = {"J1": {"choice": "told"}}
+NOT_TOLD = {"J1": {"choice": "not_told"}}
+
+# Scripted answers stand in for the calling agent (test data, never in a
+# page). J1 "told" answers carry the quote the mechanical check looks for.
+EXPECTED: dict[str, dict] = {
+    "f01-jump-menu": {"outcome": "FAIL", "rows": ["M9"], "answers": NOT_TOLD},
+    "f02-jump-menu-notice-before": {
+        "outcome": "PASS",
+        "rows": ["M8"],
+        "answers": {
+            "J1": {"choice": "told", "quote": "Choosing a state takes you to its page."}
+        },
+    },
+    "f03-submit-when-last-field-filled": {
+        "outcome": "FAIL",
+        "rows": ["M9"],
+        "answers": NOT_TOLD,
+    },
+    "f04-radio-opens-window": {"outcome": "FAIL", "rows": ["M9"], "answers": NOT_TOLD},
+    "f05-phone-auto-advance": {
+        "outcome": "FAIL",
+        "rows": ["M9", "M9"],
+        "answers": NOT_TOLD,
+    },
+    "f06-phone-auto-advance-notice": {
+        "outcome": "PASS",
+        "rows": ["M8", "M8"],
+        "answers": {
+            "J1": {
+                "choice": "told",
+                "quote": "moves to the next box when it is full",
+            }
+        },
+    },
+    "f07-checkbox-reveals-fields": {
+        "outcome": "PASS",
+        "rows": ["M11"],
+        "answers": {"J2": {"choice": "content_only"}, "J1": {"choice": "not_told"}},
+    },
+    "f08-autocomplete-list": {"outcome": "PASS", "rows": []},
+    "f09-field-in-iframe": {"outcome": "FAIL", "rows": ["M9"], "answers": NOT_TOLD},
+    "f10-zip-submits-when-valid": {
+        "outcome": "FAIL",
+        "rows": ["M9"],
+        "answers": {"J3": {"value": "20500"}, **NOT_TOLD},
+    },
+    "f11-jump-menu-notice-after": {
+        "outcome": "FAIL",
+        "rows": ["M9"],
+        "answers": NOT_TOLD,
+    },
+    "f12-slider-reloads": {"outcome": "FAIL", "rows": ["M9"], "answers": NOT_TOLD},
+    "f13-spinbutton-updates-total": {"outcome": "PASS", "rows": []},
+    "f14-plain-form-controls": {"outcome": "PASS", "rows": []},
+}
+HELPERS = {"f01-other", "f09-frame"}
+# Pages from other tests: no form fields at all.
+REUSED = {"../4d/f10-100-links.html": {"outcome": "DNA", "rows": []}}
+
+
+def test_every_fixture_is_listed():
+    names = {p.stem for p in (FIXTURES / "5d").glob("*.html")}
+    assert names == set(EXPECTED) | HELPERS
+    for n in names:
+        assert re.fullmatch(r"f\d{2}-[a-z0-9-]+", n), n
+
+
+@pytest.mark.parametrize("name", sorted(EXPECTED) + sorted(REUSED))
+async def test_outcome(name, settings, server):
+    if TestId.T5D not in REGISTRY:
+        pytest.skip("5.D has no check yet")
+    e = EXPECTED.get(name) or REUSED[name]
+    path = name if name.endswith(".html") else f"{name}.html"
+    got = await run_check(
+        settings, f"{server.base}/5d/{path}", TestId.T5D, e.get("answers")
+    )
+    f = got["finding"]
+    assert (f.outcome.value, instance_rows(f)) == (e["outcome"], e["rows"]), (
+        f.rationale,
+        f.summary,
+    )
+
+
+# ── The pages behave as designed (plain Chrome, no tool) ─────────────────────
+
+
+@pytest.fixture
+async def page(browser, settings, server):
+    ctx = await browser.new_context()
+    p = await ctx.new_page()
+
+    async def open_(name: str):
+        await p.goto(f"{server.base}/5d/{name}.html")
+        await p.wait_for_load_state("load")
+        return p
+
+    yield open_
+    await ctx.close()
+
+
+async def test_f01_jump_menu_navigates_on_arrow_down(page):
+    p = await page("f01-jump-menu")
+    await p.focus("#state")
+    async with p.expect_navigation():
+        await p.keyboard.press("ArrowDown")
+    assert p.url.endswith("f01-other.html?state=al")
+
+
+async def test_f03_submits_only_when_every_field_is_filled(page):
+    p = await page("f03-submit-when-last-field-filled")
+    await p.focus("#topic")
+    await p.keyboard.type("Test")
+    await p.keyboard.press("Tab")  # change fires; name and email empty
+    assert "f03" in p.url
+    await p.fill("#name", "Test")
+    await p.fill("#email", "test@example.gov")
+    await p.focus("#topic")
+    await p.keyboard.type("x")
+    async with p.expect_navigation():
+        await p.keyboard.press("Tab")
+    assert "f01-other.html" in p.url
+
+
+async def test_f04_choosing_yes_opens_a_window(page):
+    p = await page("f04-radio-opens-window")
+    await p.focus("#no")
+    async with p.context.expect_page():
+        await p.keyboard.press("ArrowDown")  # selects Yes
+
+
+async def test_f05_full_area_code_moves_focus(page):
+    p = await page("f05-phone-auto-advance")
+    await p.focus("#p1")
+    await p.keyboard.type("123")
+    assert await p.evaluate("document.activeElement.id") == "p2"
+
+
+async def test_f07_checkbox_reveals_mailing_fields(page):
+    p = await page("f07-checkbox-reveals-fields")
+    assert await p.is_hidden("#mstreet")
+    await p.focus("#diff")
+    await p.keyboard.press("Space")
+    assert await p.is_visible("#mstreet")
+
+
+async def test_f10_submits_only_on_a_valid_zip(page):
+    p = await page("f10-zip-submits-when-valid")
+    await p.focus("#zip")
+    await p.keyboard.type("Test")
+    await p.keyboard.press("Tab")
+    assert "f10" in p.url
+    assert await p.evaluate("!document.getElementById('zip').checkValidity()")
+    await p.fill("#zip", "")
+    await p.focus("#zip")
+    await p.keyboard.type("20500")
+    async with p.expect_navigation():
+        await p.keyboard.press("Tab")
+
+
+async def test_f12_slider_arrow_navigates(page):
+    p = await page("f12-slider-reloads")
+    await p.focus("#min")
+    async with p.expect_navigation():
+        await p.keyboard.press("ArrowRight")
+    assert p.url.endswith("min=20")
+
+
+async def test_f13_spinbutton_updates_total_only(page):
+    p = await page("f13-spinbutton-updates-total")
+    await p.focus("#qty")
+    await p.keyboard.press("ArrowUp")
+    assert await p.text_content("#total") == "Total: 2 copies"
+    assert "f13" in p.url
