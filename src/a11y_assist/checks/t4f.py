@@ -26,6 +26,7 @@ from a11y_assist.models import (
     Step,
     TestId,
 )
+from a11y_assist.observe import observe
 from a11y_assist.traverse import Traversal, open_session, screenshot
 from a11y_assist.walk import KeyboardWalk
 
@@ -298,11 +299,22 @@ async def _reveal(
             )
             return
         keys = ["Tab"] * (i + 1) + ["Enter"]
-        s = await ctx.replay(keys)
+        # Enter is pressed through the shared observe (as 4.A's execute
+        # check), and its effect kept for 4.A: one replay serves both.
+        s = await ctx.replay(keys[:-1])
         try:
-            step = s.traversal.steps[-1]
+            here, _ = await s.traversal.reader.read()
+            effect = await observe(
+                s,
+                ctx.quiet_ms,
+                lambda: s.page.keyboard.press("Enter"),
+                trig.path_key,
+            )
+            if here.path_key == trig.path_key and not effect.unreliable:
+                ctx.cache.setdefault("enter", {})[trig.path_key] = effect
+            await s.traversal.resync()
+            after, _ = await s.traversal.reader.read()
             container = trig.info.get("container")
-            after = step.stop
             if after.modal:
                 st.instances.append(await _dialog_check(ctx, keys, trig, n))
                 continue
@@ -327,7 +339,7 @@ async def _reveal(
                 kind="R",
                 label=_plain(trig),
                 keys=keys + ["Tab"],
-                unreliable=step.stop.unresolved or nxt.stop.unresolved,
+                unreliable=after.unresolved or nxt.stop.unresolved,
                 # What the agent needs to judge it (judge eval: without the
                 # opened content it could only answer unsure).
                 detail={
@@ -738,6 +750,7 @@ class Check4F:
     test_id = TestId.T4F
     state_type = State4F
     uses_walk = True
+    shares = 1  # collects before 4.A, which reuses its replays (ctx.cache)
     about = (
         "It uses the order of the Tab and Shift+Tab walks and checks it against "
         "the page: explicit tab positions, focus jumping back up the page or "

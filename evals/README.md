@@ -21,6 +21,14 @@ because fixture names describe the expected answer ("key-in-comment-only").
 The answer key (`/tmp/eval/state.json`) is outside the packet tree. Agents
 are told to open nothing else and to list every file they opened.
 
+## 2026-11-01: shared replays and 4.A 1.2.0, no agent run needed
+
+4.A now reuses 4.D's pass W arrows and 4.F's pass R Enter presses, and
+treats native date-input parts as native (4.A 1.2.0). Packets for every
+Test 4 fixture were built on main and on the branch and compared case by
+case (`questions.json`, run IDs normalised): all 45 that ask questions
+are identical, so no question or input changed.
+
 ## Run 5, 2026-11-01: 5.F and 5.G (draft specs), their packets only
 
 `prepare /tmp/eval 5.F,5.G` (the new optional test list). 28 of 5.F's and

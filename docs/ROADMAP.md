@@ -26,15 +26,12 @@ run).
 
 ## Soon
 
-- **Share replays (deferred).** 4.C's widget check (P4), 4.D's widget pass
-  W and 4.A's arrow probes replay to the same widget stops; 4.A's execute
-  check and 4.F's pass R both press Enter on custom triggers; 4.C could also
-  read 4.F's pass R (traps inside revealed content). With quick replay
-  prefixes this saves only a few seconds per widget (it was 17 s + 18 s on
-  the agency page before them), and sharing 4.A's arrows with pass W is a
-  MINOR change to 4.A (pass W visits fewer items). Build it only when a
-  realistic page is over the limit again; measure with
-  `evals/time_budget.py`.
+- **More shared replays (deferred).** 4.A now reuses 4.D's pass W arrows
+  and 4.F's pass R Enter presses when they cover what it needs
+  (docs/solutions/time-budget.md). Left: 4.C's widget check (P4) and pass W
+  at the same stops; 4.C reading pass R (traps inside revealed content);
+  5.D and 5.F both filling fields. Build when a realistic page is over the
+  limit again; the agency page is at 108 s of 110.
 - **Large pages.** Pages over roughly 300 stops cannot be walked in one
   120 s call (F34, 600 links, is refused after ~5 s). Options if this
   matters for real sites: resumable runs (walk in one call, checks in the
