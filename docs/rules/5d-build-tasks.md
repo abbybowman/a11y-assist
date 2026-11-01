@@ -1,6 +1,6 @@
 # Build tasks: 5.D
 
-Spec [5d-on-input.md](5d-on-input.md) 0.3.0 is a draft with no OPEN items;
+Spec [5d-on-input.md](5d-on-input.md) 0.4.0 is a draft with no OPEN items;
 it goes to 1.0.0 when its check is built and its fixtures pass. Plan:
 [plans/2026-11-01-5d-on-input.md](../plans/2026-11-01-5d-on-input.md).
 
@@ -19,8 +19,6 @@ P1 records it; the init script logs form submissions
   registered only by `tests/drafts.py`; move it into `checks/__init__.py` at
   1.0.0. All 14 custom fixtures and the 5 Baseline cases give their expected
   outcome with scripted answers.
-- Unit tests on hand-built state for rows no page triggers reliably (M1,
-  M2, M10 with a quote not in the text, M13).
 
 ## Fixtures
 
@@ -64,9 +62,9 @@ Font Awesome CSS only (missing offline; no effect on the rows).
 
 | ID | Verify | Rules that depend on it |
 | --- | --- | --- |
-| V6 | A popup to a host outside the allowlist (B2 opens access-board.gov; tests allow 127.0.0.1 only) still counts as a new page | M5 |
-| V1 | A form submission in the HAR replay: the `submit` event fires, the request fails without hanging (`docs/solutions/egress-proxy.md`), and the top URL may or may not change | M4 |
+| V6 | A popup to a host outside the allowlist still counts as a new page: yes (B2 opens access-board.gov, tests allow 127.0.0.1 only; FAIL by M5) | M5 |
+| V1 | A form submission in the HAR replay: the submission is logged and the run does not hang (F03, F09, F10; the top URL may or may not change) | M4 |
 | V2 | ArrowDown on a closed select changes its value and fires `change`: Linux headless Chromium yes (checked 2026-11-01); Windows headed Chrome not yet checked; Mac opens the list | Completing selects, M2 |
-| V3 | Typing digits into `date`, `time` and `datetime-local` inputs in Chrome sets the value | Completing dates, J3 |
-| V4 | Fields in same-origin and cross-origin iframes and shadow roots are completed and read back | Section 2 |
+| V3 | Typing digits into `date` inputs in Chrome sets the value: yes in Linux headless Chromium (F14, 2026-11-01). Chrome focuses the input's parts one by one in its shadow root (one field, `stop.group`). `time` and `datetime-local` not yet checked | Completing dates, J3 |
+| V4 | Fields in iframes and shadow roots are completed and read back: a same-origin iframe yes (F09); cross-origin iframes and shadow roots not yet checked | Section 2 |
 | V5 | Headed Chrome on Windows: every fixture gives the same outcome | All rows |

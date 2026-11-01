@@ -192,12 +192,21 @@ _DESCRIBE_FN = (
     if (type === 'checkbox') control = 'checkbox';
     else if (type === 'radio') control = 'radio';
     else if (type === 'range') control = 'slider';
+    else if (['date', 'time', 'datetime-local', 'month', 'week'].includes(type)) control = 'date';
     else if (!['button','submit','reset','image','color','file','hidden'].includes(type)) control = 'text';
+  }
+  // Chrome focuses the parts of a date or time input (month, day, year, the
+  // picker button) one by one, inside the input's own shadow root: they are
+  // one control, the input.
+  const uaHost = this.getRootNode().host;
+  if (uaHost && uaHost.tagName === 'INPUT' && ['date', 'time', 'datetime-local', 'month', 'week'].includes(uaHost.type)) {
+    control = 'date';
   }
   const readonly = this.readOnly === true || this.getAttribute('aria-readonly') === 'true';
   const disabled = this.disabled === true || this.getAttribute('aria-disabled') === 'true';
   let group = null;
-  if (control === 'radio') {
+  if (control === 'date' && uaHost && uaHost.tagName === 'INPUT') group = 'input:' + path(uaHost);
+  else if (control === 'radio') {
     const rg = this.closest('[role=radiogroup]');
     group = tag === 'input' && this.name ? 'radio:' + (this.form ? path(this.form) : '') + ':' + this.name
       : (rg ? path(rg) : null);
