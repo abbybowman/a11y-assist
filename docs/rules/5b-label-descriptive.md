@@ -1,7 +1,7 @@
 ---
 tt_test: 5.B
 tt_name: 2.4.6-label-descriptive
-spec_version: 0.1.0
+spec_version: 1.0.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -29,7 +29,7 @@ The tool gives each page one 5.B outcome: PASS, FAIL, DOES NOT APPLY or NEEDS RE
 
 Nothing of its own: pass L (shared with 5.A and 5.C; components now record their form). For each item: kind, type, the visible label text, up to three strings of visible text near it, its group label, required, placeholder (shown apart: not a label), the 5.A image of a field, a button's visible text.
 
-**Time budget:** none beyond pass L.
+**Time budget:** none beyond pass L (measured 0.0 s on both budget pages, 2026-11-02).
 
 ## 3. Mechanical checks
 
@@ -92,7 +92,7 @@ J1 is settled by looking (CLAUDE.md principle 8); the agent answers unsure whene
 | --- | --- |
 | A field labelled only by a placeholder | Not an item (A2 when it is the only field; 5.A FAILs it) |
 | A field labelled by an adjacent button ("Go") | The button's text is its near text; J1 judges it |
-| Icon-only button | Its picture is not in pass L; J1 sees its name and kind; unsure if it cannot tell |
+| Icon-only button | Not an item: no visible text to judge, and pass L takes no picture of buttons (Abby, 2026-11-02) |
 | Fields revealed by interaction | Read where 4.F or 5.D revealed them (pass L) |
 
 ## 6. What a FAIL records

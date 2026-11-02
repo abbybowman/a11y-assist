@@ -1,7 +1,7 @@
 ---
 tt_test: 5.H
 tt_name: 3.3.4-error-prevention
-spec_version: 0.1.0
+spec_version: 1.0.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -14,7 +14,7 @@ The tool gives each page one 5.H outcome: PASS, FAIL, DOES NOT APPLY or NEEDS RE
 
 **Other sources.** [Understanding 3.3.4](https://www.w3.org/WAI/WCAG22/Understanding/error-prevention-legal-financial-data.html): legal commitments are "transactions where the person incurs a legally binding obligation or benefit" (marriage license, stock trade, will, loan, contract); input errors include information "omitted by the user" or outside "the required data format or values"; examples: an order summary to inspect and confirm or change; a stock sale alert with cancel or confirm. [G98](https://www.w3.org/WAI/WCAG22/Techniques/general/G98) (review and confirm; return to previous steps; a summary before committing), [G99](https://www.w3.org/WAI/WCAG22/Techniques/general/G99) (deleted data can be recovered), [G164](https://www.w3.org/WAI/WCAG22/Techniques/general/G164) (a stated period to cancel or change an order), [G155](https://www.w3.org/WAI/WCAG22/Techniques/general/G155) (a confirm checkbox beside the submit button: unticked, the input is rejected and the user prompted to review), [G168](https://www.w3.org/WAI/WCAG22/Techniques/general/G168) (a confirmation request naming the action, which can be confirmed or cancelled). No ACT rule; no DHS data. ICT Testing Baseline 3.1 10.G-ErrorPrevention: "Complete the form components necessary to submit. Include errors"; at least one of reversible, checked, confirmed; advisory: a simple one-page form needs no other review. Baseline Alignment TC10.G (six one-page scripted order forms): Baseline expects PASS or FAIL on them; the TT makes a one-page form DNA, and the TT governs (Abby, 2026-11-02), so ours are DNA except where the page itself shows a step (TC10.G-2.c: "Add to Cart" shows a cart to review before "Submit Payment").
 
-**Terms.** *Error pass E*: [5f-error-identification.md](5f-error-identification.md) section 2 (HtT 1 exactly: attempt 1 presses the submit control as loaded, attempt 2 with wrong values; reads before and after). 5.H reads it from the run cache; it presses nothing of its own. A *consequence hint*: the tested page's text, a form's button names or field labels contain pay, payment, purchase, order, checkout, cart, buy, donate, transfer, credit card, card number, agree, terms, sign and submit, delete, remove, exam, quiz, test answers, legal, contract, or application. A form *shows a step* when submitting it shows another stage before the end (a summary or review with a further submit control, "Step 2 of 3", a "Next" or "Continue" control), or the page says it is one step of several. *Checked*: an attempt of pass E was not sent and the page showed an error (new error text, a JS alert, or native validation messages).
+**Terms.** *Error pass E*: [5f-error-identification.md](5f-error-identification.md) section 2 (HtT 1 exactly: attempt 1 presses the submit control as loaded, attempt 2 with wrong values; reads before and after). 5.H reads it from the run cache; it presses nothing of its own. A *consequence hint*: the tested page's text, a form's button names or field labels contain pay, payment, purchase, order, checkout, cart, buy, donate, transfer, credit card, card number, agree, terms, sign and submit, delete, remove, exam, quiz, test answers, legal, contract, or application. A form *shows a step* when submitting it shows another stage before the end (a summary or review with a further submit control, "Step 2 of 3", a "Next" or "Continue" control), or the page says it is one step of several. *Checked* (Abby, 2026-11-02): after a pass E submit the page showed new error text (error, invalid, required, must, incorrect, missing, "please enter/select/choose/provide"), an alert with such words, or native validation (`invalid` events).
 
 ## 1. Applicability
 
@@ -22,7 +22,7 @@ The tool gives each page one 5.H outcome: PASS, FAIL, DOES NOT APPLY or NEEDS RE
 | --- | --- | --- | --- |
 | A1 | Pass E found no form with a submit control | DOES NOT APPLY | p. 30 Identify Content |
 | A2 | Pass E did not run or could not read the forms | NEEDS REVIEW | Spec rule |
-| A3 | No consequence hint | DOES NOT APPLY, with a note naming what was looked for | p. 30 Applicability (Spec rule: no sign of legal, financial, data or test consequences) |
+| A3 | No consequence hint | DOES NOT APPLY, with a note naming what was looked for | p. 30 Applicability (Abby, 2026-11-02: no sign of legal, financial, data or test consequences) |
 | J1? | A hint, J1 not answered | NEEDS REVIEW | Open question |
 | A4 | J1 = not_consequential or one_page | DOES NOT APPLY | p. 30 Applicability (Abby, 2026-11-02: the TT governs over Baseline TC10.G) |
 | A5 | J1 = unsure | NEEDS REVIEW | Spec rule |
@@ -32,7 +32,7 @@ The tool gives each page one 5.H outcome: PASS, FAIL, DOES NOT APPLY or NEEDS RE
 
 Nothing of its own: error pass E (5.F; cached; run by 5.H if 5.F is not selected). For J1 and J2: the page's visible text (first 60 strings), each form's fields and buttons, and per attempt what appeared after submitting (new text, alerts, whether it was sent, where focus went), with pass E's before and after images.
 
-**Time budget:** none beyond pass E.
+**Time budget:** none beyond pass E (measured 0.1 s on both budget pages, 2026-11-02).
 
 ## 3. Mechanical checks
 
