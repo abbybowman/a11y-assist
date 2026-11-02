@@ -40,5 +40,5 @@ an agent can only give one answer, so one would always "mismatch".
 
 **Check the converted TT text before relying on it.** 9.B's PDF heading
 breaks over a line ("consistent- navigation"), so the first conversion gave
-9.B 9.A's steps and put 9.B's text into 9.C. 5.B, 7.C and 16.B have the
+9.B 9.A's steps and put 9.B's text into 9.C. 5.B had it too (fixed); 7.C and 16.B have the
 same problem (ROADMAP). Read the printed pages for each new test.
