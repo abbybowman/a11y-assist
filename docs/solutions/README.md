@@ -24,8 +24,8 @@ took more than an hour to understand; update it when the answer changes.
 | [parallel-tests.md](parallel-tests.md) | pytest-xdist; per-worker files for anything tests write in common |
 | [small-tool-output.md](small-tool-output.md) | Report as a `run://` link; shared evidence once per result |
 | [andi-output.md](andi-output.md) | Reading ANDI's per-element output; its wrapper changes CSS paths; viewport clips; scoping nearby text |
-| [form-fields.md](form-fields.md) | Read vendored cases first; one control kind per stop; Chrome's date-input parts; changes outside a field's own widget; submission log; draft checks; before-reads on the fresh load; alerts, native validation and live regions |
+| [form-fields.md](form-fields.md) | Read vendored cases first; one control kind per stop; Chrome's date-input parts; changes outside a field's own widget; submission log; draft checks; before-reads on the fresh load; alerts, native validation and live regions; read every listed technique before a rubric (5.H) |
 | [time-budget.md](time-budget.md) | Measure with `evals/time_budget.py`; the tool's own screenshots are DOM mutations; replay with `ctx.replay` |
 | [windows-chrome-results.md](windows-chrome-results.md) | First Windows runs (headless and headed Chrome 156) against Linux: 5.D false PASS, egress tests, one 4.A ACT case; load-only and harness-only failures; stay off the machine in headed runs |
 | [egress-proxy.md](egress-proxy.md) | `route.fetch` goes through the launch proxy; a CONNECT 403 is a response, not an error; HAR replay hangs on failed requests |
-| [multi-page.md](multi-page.md) | Other pages come from the caller; read content, not stops (ACT's text-only blocks); where a skip link lands; stop once bypassed; rules-only cases and the judge eval |
+| [multi-page.md](multi-page.md) | Other pages come from the caller; read content, not stops (ACT's text-only blocks); where a skip link lands; stop once bypassed; rules-only cases and the judge eval; 19.A's live search and suggested pages |

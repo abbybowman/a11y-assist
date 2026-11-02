@@ -69,6 +69,16 @@ fixtures first ran each test separately; under `-n 8` 4.D's f10 (a 65 s
 guard) tipped over. One call for both tests halves the runs and tests the
 shared path (`ctx.cache`).
 
+**Read every technique the plan lists before writing a rubric (5.H).** The
+5.H plan listed G155 (a required confirm checkbox) and G168 (an "Are you
+sure?" confirmation) without reading them; J2's rubric then had no place
+for either, and a form that confirms that way could have been a false
+FAIL. Reading them added both to J2 and two fixtures (judge eval run 11).
+Pass E dismisses JS dialogs, so a confirmation dialog reaches J2 as an
+alert message: questions about what happened after a submit must show
+`alerts`.
+
+
 **`invalid` does not bubble, so a cancelled one needs a listener on the
 field.** Pages cancel the `invalid` event to hide the browser's message and
 draw their own errors; the field still has a `validationMessage`, so 5.F

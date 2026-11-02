@@ -11,8 +11,9 @@ test ID. The package name is provisional.
 
 ## Status
 
-**Fourteen TT tests are implemented: 4.A–4.F (keyboard and focus), 5.A, 5.C,
-5.D, 5.F and 5.G (forms), and 9.A–9.C (pages of the same site). The other TT
+**Seventeen TT tests are implemented: 4.A–4.F (keyboard and focus), 5.A, 5.B, 5.C,
+5.D, 5.F, 5.G and 5.H (forms; all of Test 5, whose 5.E is obsolete), and 9.A–9.C and
+19.A (pages of the same site). The other TT
 tests are not.** Outcome logic comes only from
 the rules specs in [docs/rules/](docs/rules/), one file per TT test
 (`<id>-<short-name>.md`), checked against the TT 5.1.3 PDF in
@@ -26,7 +27,7 @@ What works today:
 
 | Area | State |
 | --- | --- |
-| `a11y_run_tt_tests(url, tests=["4.C"], other_pages=[...])` | Runs the selected TT tests (any of the implemented ones) and returns a typed result: findings with plain-language summaries, open questions (with the page text once), evidence as `run://` resources, and the full report for the user to save. One shared keyboard walk (Tab, Shift+Tab) per page feeds every keyboard check; 4.C adds its exit probes. A record per key press (stop identity, role and name from Chrome's accessibility tree, frames, shadow roots, focus events); screenshots at traps. 9.A–9.C also compare the page with up to 5 other pages of the same site that the caller names (`other_pages`; never taken from the page itself). Progress notifications while it runs; at most `RUN_LIMIT_S` (120 s) per call, plus `OTHER_PAGE_S` (20 s) for each other page |
+| `a11y_run_tt_tests(url, tests=["4.C"], other_pages=[...])` | Runs the selected TT tests (any of the implemented ones) and returns a typed result: findings with plain-language summaries, open questions (with the page text once), evidence as `run://` resources, and the full report for the user to save. One shared keyboard walk (Tab, Shift+Tab) per page feeds every keyboard check; 4.C adds its exit probes. A record per key press (stop identity, role and name from Chrome's accessibility tree, frames, shadow roots, focus events); screenshots at traps. 9.A–9.C and 19.A also compare the page with up to 5 other pages of the same site that the caller names (`other_pages`; never taken from the page itself). Progress notifications while it runs; at most `RUN_LIMIT_S` (120 s) per call, plus `OTHER_PAGE_S` (20 s) for each other page |
 | Tool errors | A URL outside the allowlist, a redirect out of it, a page that cannot load, or an unknown or expired run id is a tool error (isError) with no findings |
 | TT 5.1.3 as data | The whole PDF as Markdown plus `tt.json` (all 63 conditions with requirements and WCAG links), checked word for word against the PDF. Served as `tt://5.1.3/index`, `tt://5.1.3/tests/{id}` and `tt://5.1.3/parts/{part}`; every finding links its test (`reference`) and Understanding pages. See `docs/sources/README.md` |
 | `explain(about?, run_id?)` prompt | A command that explains Trusted Tester tests in plain language, before a run (what a test checks, what this tool does for it) or after (what was found, how to fix it). `about` takes a test ID, WCAG criterion, test name or words. Built on `explain.py`, which failure reports will reuse |
@@ -35,7 +36,7 @@ What works today:
 | Navigation allowlist | `.gov` and `.mil` by default, enforced on every top-level navigation and redirect hop; `file://` only in dev mode |
 | Connection address checks | Chrome's only way out is a local proxy (`egress.py`) that resolves each host once, refuses it if any answer is a private, loopback, link-local, multicast, reserved or cloud-metadata address (IPv4-mapped and other alternate forms included) or the port is not 80/443, and connects to the address it checked, so DNS rebinding cannot get past it. Covers the page, iframes, subresources, WebSockets and every redirect hop. A refused page is a tool error; refused page parts are listed in the result's `errors` |
 | ANDI 29.2.2 | Vendored, injected from local files, never loaded from ssa.gov. Used by 5.C (what screen readers announce for each form field) and 9.C (names across pages) |
-| Findings for any active TT test | The fourteen implemented tests: PASS, FAIL, DOES NOT APPLY or NEEDS REVIEW per its spec, with the spec rows that produced it. Every other active TT 5.1.3 test: `NEEDS_REVIEW` with the note "This test could not be performed" (no spec yet). Never `NOT_TESTED`: the PDF allows it only where a test names it (p. 6) |
+| Findings for any active TT test | The seventeen implemented tests: PASS, FAIL, DOES NOT APPLY or NEEDS REVIEW per its spec, with the spec rows that produced it. Every other active TT 5.1.3 test: `NEEDS_REVIEW` with the note "This test could not be performed" (no spec yet). Never `NOT_TESTED`: the PDF allows it only where a test names it (p. 6) |
 | `a11y_answer_questions(run_id, answers)` | Records one answer per question (the calling agent's, or a person's override, which wins); presses documented keys in the recorded page and re-applies the spec. Suggested input values go to a person to try. Answers are facts, never outcomes |
 | ApiJudge | Stub (`NotImplementedError`) |
 
@@ -131,7 +132,7 @@ https://www.section508.gov/ for keyboard and focus problems."
 {"tool": "a11y_run_tt_tests", "arguments": {"url": "https://www.section508.gov/"}}
 ```
 
-`tests` defaults to every implemented test. Without `other_pages`, 9.A–9.C
+`tests` defaults to every implemented test. Without `other_pages`, 9.A–9.C and 19.A
 come back NEEDS REVIEW (they need pages to compare). The result has one
 finding per test (PASS, FAIL, DOES NOT APPLY or NEEDS REVIEW, with a
 plain-language summary), any open questions, and `report_uri`, the full

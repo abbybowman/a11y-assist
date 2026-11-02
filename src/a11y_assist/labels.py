@@ -110,6 +110,7 @@ COMPONENTS_JS = (
     const r = el.getBoundingClientRect();
     return {
       i, css: path(el), tag, type, role, button, option, group, set_size,
+      form: (el.form || el.closest('form')) ? path(el.form || el.closest('form')) : '',
       readonly: el.readOnly === true || el.getAttribute('aria-readonly') === 'true',
       required: el.required === true || el.getAttribute('aria-required') === 'true',
       labels: labelEls(el).map(txt).filter(Boolean),
@@ -225,6 +226,7 @@ class Comp(BaseModel):
     button: bool = False
     option: bool = False
     group: str | None = None
+    form: str = ""  # form owner's path; "" outside any form (5.B)
     set_size: int = 1  # options under the same legend or group label
     readonly: bool = False
     required: bool = False
@@ -385,7 +387,7 @@ async def read_session(
 
 
 def wanted(ctx) -> bool:
-    return bool({"5.A", "5.C"} & set(ctx.selected))
+    return bool({"5.A", "5.B", "5.C"} & set(ctx.selected))
 
 
 async def read_revealed(ctx, s: Session, origin: str) -> None:

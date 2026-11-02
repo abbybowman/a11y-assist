@@ -150,17 +150,22 @@ async def test_no_test_is_reported_not_tested(settings):
         "5.G": "DNA",
         "5.A": "NEEDS_REVIEW",
         "5.C": "NEEDS_REVIEW",
+        "5.B": "NEEDS_REVIEW",  # its J1 is open, and the framed button
+        # 5.H's consequence hint matches "order" in "Not in tab order": J1
+        # is asked (docs/rules/5b-build-tasks.md, Left).
+        "5.H": "NEEDS_REVIEW",
         # No other pages given: not performed (9.A-9.C specs, A1).
         "9.A": "NEEDS_REVIEW",
         "9.B": "NEEDS_REVIEW",
         "9.C": "NEEDS_REVIEW",
+        "19.A": "NEEDS_REVIEW",
     }
     for t in built:
         assert by_id[t]["outcome"] == expected.get(t, "PASS"), (t, by_id[t]["summary"])
     for f in [f for t, f in by_id.items() if t not in built]:
         assert f["outcome"] == "NEEDS_REVIEW"
         assert f["note"] == "This test could not be performed"
-    for t in ("9.A", "9.B", "9.C"):
+    for t in ("9.A", "9.B", "9.C", "19.A"):
         assert by_id[t]["note"] == "This test could not be performed"
         assert "other_pages" in by_id[t]["summary"]
     for t in by_id:
@@ -356,7 +361,7 @@ async def test_explain_before_a_run(settings):
     assert "tries the keys a person would" in text  # what this tool does
     assert "NOT a certified" in text
     # Untested tests say so plainly.
-    assert "cannot run this test yet" in await _prompt({"about": "5.B"})
+    assert "cannot run this test yet" in await _prompt({"about": "14.B"})
 
 
 async def test_explain_finds_tests_by_words_criterion_or_name(settings):

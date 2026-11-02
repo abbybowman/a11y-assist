@@ -1,7 +1,7 @@
 ---
 tt_test: 4.A
 tt_name: 2.1.1-keyboard-access
-spec_version: 1.2.0
+spec_version: 1.2.1
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -34,7 +34,7 @@ A page with zero stops and only pointer targets applies: everything on it is mou
 
 **Pointer scan** (HtT 1.a; one fresh load after the walk). Every pointer target in the top document, every frame the tool can read and every open shadow root. A target is *reached* when it is a stop of P1 or P2, is inside a stop, contains a stop, or is an item of a composite widget (menu, menubar, tablist, listbox, grid, tree, treegrid, radiogroup, toolbar) that an arrow probe reaches from that widget's stop. The *arrow probe*: fresh replay to the widget's stop, then ArrowDown (or ArrowRight if focus did not move) up to 20 times, as 4.D pass W, then the opposite arrow; at most `ARROW_MAX` widgets. When 4.D's pass W, in the same call, reached every candidate of the widget with the same arrows from the same stop, those candidates are reached and no probe is made (1.2.0). Unreached targets are candidates.
 
-**Hover scan** (HtT 1.a, mouse; ER Note 1; same load as the pointer scan). Move the mouse onto each stop, at most `HOVER_MAX`, settle, and record pointer targets that became visible; move the mouse away. A revealed target is reached when the walk reached it (a menu that also opens on keyboard focus) or when pressing Enter on the hovered stop reveals it too (one fresh replay per hovered stop that revealed something, at most `REVEAL_REPLAYS`). Otherwise it is a candidate, recorded with the stop that reveals it.
+**Hover scan** (HtT 1.a, mouse; ER Note 1; same load as the pointer scan). Move the mouse onto each stop, at most `HOVER_MAX`, settle, and record pointer targets that became visible; move the mouse away. A revealed target is reached when the walk reached it (a menu that also opens on keyboard focus) or when pressing Enter on the hovered stop reveals it too (one fresh replay per hovered stop that revealed something, at most `REVEAL_REPLAYS`). When 4.F's pass R already pressed Enter on that stop in the same call (focus on it, on a fresh replay) and every target was visible after it, no replay is made (1.2.1; the evidence is the same press: the same replay, the same Enter, the same visibility test). Otherwise it is a candidate, recorded with the stop that reveals it.
 
 **Click check** (for each candidate that is not a native control, at most `CLICK_MAX`). Fresh load; hover its revealing stop if it has one; move the mouse onto the candidate; settle; click; record the effect. A native control is functional by definition (a link goes to its address) and needs no click.
 
