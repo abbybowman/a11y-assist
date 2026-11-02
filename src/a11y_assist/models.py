@@ -335,6 +335,12 @@ class ChoiceAnswer(BaseModel):
     value: str | None = Field(
         default=None, max_length=200, description="A value to enter in the field."
     )
+    # 5.B J1: the numbers of several items in one answer.
+    elements: list[int] | None = Field(
+        default=None,
+        max_length=200,
+        description="Numbers of the items the answer names (5.B J1).",
+    )
 
 
 class Answer(BaseModel):
