@@ -21,6 +21,33 @@ because fixture names describe the expected answer ("key-in-comment-only").
 The answer key (`/tmp/eval/state.json`) is outside the packet tree. Agents
 are told to open nothing else and to list every file they opened.
 
+## Run 10, 2026-11-02: 5.A 1.1.0 after the rubric fix, its packets only
+
+`prepare OUT 5.A`, fresh packets after run 9's two fixes. 13 of the cases
+ask questions (16 questions); leak grep clean. One fresh Sonnet agent, told
+to start no sub-agents (about 102,000 tokens, 2 min): 13/13 match, no false
+PASS, no follow-up round. It called the "Find" and "Subscribe" fields
+not_labeled ("names the action, not the field content"), the "Search"
+button's box labeled, and quoted "Official Name:" (now matched on its
+words). Least sure: the search box whose placeholder and button both say
+"Search". It opened only packet files and used only Read and Write.
+
+## Run 9, 2026-11-02: 5.A and 5.C 1.1.0 (PR #3 review fixes), their packets only
+
+`prepare OUT 5.A,5.C` after 5.A J1's input gained `buttons_next_to_it` and
+`question_of_the_set` (spec 1.1.0). 18 cases ask questions; leak grep clean.
+One fresh Sonnet agent (it split the work across four sub-agents of its
+own; about 49,000 tokens reported): **15/18, two false PASS.** With the
+buttons beside a field shown and the rubric's only example "a Search button
+beside a search box", it counted "Subscribe" (f01) and "Find" (f02) as
+labels. Fix: the rubric now says a button counts only when its words say
+what to type into the field, and names action words that do not. The third
+miss (TC10.A-all-pass-6, NEEDS REVIEW for PASS) was the quote check: the
+page shows "Official Name" and ":" as two pieces of text and the agent
+quoted "Official Name:"; a quote now also matches on its words (M4). The
+scripted tests could not see either problem: they answer as a correct judge
+would.
+
 ## Run 8, 2026-11-02: 9.A, 9.B and 9.C (draft specs 0.1.0), their packets only
 
 `prepare OUT 9.A,9.B,9.C`. Cases now carry other pages (`pages`: the ACT

@@ -64,7 +64,11 @@ def _j(st: State5A, c: Comp) -> str | None:
 def _quote_ok(st: State5A, c: Comp) -> bool:
     q = (st.j.get(f"c{c.n}-J1") or {}).get("quote", "")
     near = c.nearby_own if in_set(c) else c.nearby
-    return quote_in(q, near + c.nearby_other + c.nearby_buttons)
+    texts = near + c.nearby_other + c.nearby_buttons
+    # A label's punctuation can be its own piece of text ("Official Name"
+    # then ":"), so a quote also matches on its words.
+    w = words(q)
+    return quote_in(q, texts) or bool(w) and any(w <= words(t) for t in texts)
 
 
 def instance_rows(st: State5A) -> list[Row]:
@@ -126,7 +130,11 @@ J1_RUBRIC = (
     "labeled: text people can see, beside, above or inside the field while it "
     'has focus, that names it or says what to enter ("First Name:" next to it, '
     "a column heading over a grid of fields, one label for a set of phone "
-    'number boxes, a "Search" button beside a search box). A label in '
+    'number boxes, a "Search" button beside a search box). A button in '
+    "input.buttons_next_to_it counts only when its words say what to type into "
+    'the field ("Search" names search terms); words that only say what the '
+    'button does ("Go", "Find", "Submit", "Subscribe", "Send", "Continue") '
+    "do not, so a field with nothing else is not_labeled. A label in "
     "input.labels_of_neighbouring_fields counts only when this field is part "
     "of the set it labels (the second and third boxes of one phone number). "
     "For a radio button or checkbox, input.question_of_the_set (a legend over "
