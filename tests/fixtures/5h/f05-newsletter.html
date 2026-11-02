@@ -1,0 +1,4 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Newsletter</title></head><body>
+<main><h1>Get our newsletter</h1><form id="f"><p><label for="em">Email</label> <input id="em" name="em" type="email"></p><button type="submit">Subscribe</button></form><div id="out" hidden tabindex="-1"></div></main>
+<script>document.getElementById("f").addEventListener("submit",(e)=>{e.preventDefault();const o=document.getElementById("out");o.innerHTML="<p>Thanks, you are subscribed.</p>";o.hidden=false;document.getElementById("f").hidden=true;o.focus();});</script>
+</body></html>

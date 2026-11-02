@@ -10,9 +10,10 @@ import pytest
 from a11y_assist.checks import REGISTRY
 from a11y_assist.checks.base import Check
 from a11y_assist.checks.t5b import Check5B
+from a11y_assist.checks.t5h import Check5H
 from a11y_assist.models import TestId
 
-DRAFTS: dict[TestId, Check] = {c.test_id: c for c in (Check5B(),)}
+DRAFTS: dict[TestId, Check] = {c.test_id: c for c in (Check5B(), Check5H())}
 
 
 @pytest.fixture

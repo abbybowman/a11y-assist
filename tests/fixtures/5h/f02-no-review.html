@@ -1,0 +1,4 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Pay a fee: step 2 of 2</title></head><body>
+<main><h1>Pay your permit fee: step 2 of 2</h1><p>Your permit details were saved in step 1.</p><form id="f"><p><label for="nm">Name on card</label> <input id="nm" name="nm"></p><p><label for="amt">Amount in dollars</label> <input id="amt" name="amt"></p><button type="submit">Pay now</button></form><div id="out" hidden tabindex="-1"></div></main>
+<script>document.getElementById("f").addEventListener("submit",(e)=>{e.preventDefault();const o=document.getElementById("out");o.innerHTML="<h2>Payment complete</h2><p>Your card has been charged. All payments are non-refundable.</p>";o.hidden=false;document.getElementById("f").hidden=true;o.focus();});</script>
+</body></html>
