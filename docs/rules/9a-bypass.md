@@ -33,6 +33,8 @@ The tool gives each page one 9.A outcome: PASS, FAIL, DOES NOT APPLY or NEEDS RE
 | A4 | Repeated units exist but B is empty (they all come after the main content), or B is small: one control, or fewer than 4 words in all | NEEDS REVIEW, naming what repeats and where | p. 42 Identify Content (EXCLUDE, Note); Abby, 2026-11-02 (no outcome given by the TT for "nothing to bypass": NEEDS REVIEW) |
 | A5 | Otherwise | Applies; go to section 3 | |
 
+Small block, in numbers: B is one control, or B's units hold fewer than 4 words in all. Measured on the agency budget page with one other page: B is 30 units.
+
 ## 2. Evidence to collect
 
 **From the shared keyboard walk** (`walk.py`; [4c-no-keyboard-trap.md](4c-no-keyboard-trap.md) section 2): P1's stops, to find candidates (matched to units by CSS path) and the keys to reach them. Nothing per step. The walk runs only when other pages were given.
@@ -45,7 +47,9 @@ The tool gives each page one 9.A outcome: PASS, FAIL, DOES NOT APPLY or NEEDS RE
 - whether the page navigated away;
 - one Tab: the stop focus reaches next (Chrome moves the sequential focus starting point to a fragment target that cannot take focus; V1).
 
-**Documented keys** (Q3): only after J1 names a key, one fresh load, the key pressed from the top of the page, then the same reads.
+Candidates are tried in walk order and the tries stop as soon as the block is bypassed (more cannot change a PASS; the number left untried is recorded).
+
+**Documented keys** (Abby, 2026-11-02: tried only when the page documents them): only after J1 names a key, one fresh load, the key pressed from the top of the page, then the same reads.
 
 **Time budget:** the site read is one load and one DOM read per page (about 1 s each); candidate replays one each (about 1–2 s; usually one or two candidates). All of it runs only with other pages, within the time those pages add to the run limit (`OTHER_PAGE_S` each).
 
@@ -65,7 +69,7 @@ Each candidate is an *instance*. A candidate's *jump* is the set of units strict
 | M6 | A stop exists after the landing, and the next Tab reached a stop before the landing | Does not work (focus did not really move). With no stop after the landing the Tab wraps or leaves the page, which says nothing (HtT 3.b) | p. 43 ER 2, HtT 3.b |
 | M7 | The landing is at or before M | Works: covers its jump | G1; Baseline 4.A ("past the repetitive content only") |
 | M8 | The landing is past M and M is `main` or `h1` | Does not work: skips main content | p. 43 Note 2 |
-| J2? | The landing is past M, M is `first_unique`, J2 not answered | NEEDS REVIEW | Open question (Q2) |
+| J2? | The landing is past M, M is `first_unique`, J2 not answered | NEEDS REVIEW | Open question (Abby, 2026-11-02: an open question naming the landing and the items skipped) |
 | M9 | J2 = repeated | Works: covers its jump | p. 42 Identify Content ("same type of information") |
 | M10 | J2 = not_repeated | Does not work: skips content that is not repetitive | p. 43 Note 2 |
 | M11 | Anything else (J2 unsure) | NEEDS REVIEW | Spec rule |
@@ -115,7 +119,7 @@ Asked only when the block is not bypassed by any candidate, every candidate is d
 
 **Question:** "Activating input.method moved the keyboard to input.landing. Doing so skipped the items in input.skipped, in page order. Items marked repeats: true were found on another page you gave; the others were not found word for word. Are the unmarked items also repeated site content, of the same kind and purpose on every page (for example breadcrumbs or a section menu whose links change), or are they content of this page that a user would miss? Answer repeated, not_repeated or unsure."
 
-**Input:** the method (name), the landing (text), the skipped units (text, kind, region, repeats), and the matching units of the other pages' first screens.
+**Input:** the method (role, name), the landing (text, kind, region), and the skipped units in page order (text, kind, region, repeats; at most 40). Asked only while no candidate already bypasses the block (an answer could not change a PASS).
 
 **Output:** `{choice: repeated|not_repeated|unsure, reasons}`.
 
