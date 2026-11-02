@@ -24,6 +24,8 @@ def _description() -> str:
     """Built from the check registry, so the list of implemented tests cannot
     go stale."""
     built = "; ".join(f"{t.value} ({t.tt_name})" for t in _built())
+    s = config.settings
+    most = s.run_limit_s + 5 * s.other_page_s  # five other pages, the most
     return f"""Run Trusted Tester 5.1.3 tests on one page and return findings plus
 open questions. Results are agent-assisted and NOT a certified Trusted Tester
 result; never call a page "certified" or "compliant".
@@ -53,8 +55,9 @@ if the user wants to keep it, read it and save it in their repository before
 
 Errors (isError): a URL outside the allowlist (default *.gov, *.mil), a
 redirect out of it, or a page that cannot be loaded; nothing is tested then.
-One call takes at most the server's run limit (default 120 s, plus a little
-for each other page); work not done in time is NEEDS_REVIEW with the reason.
+One call takes at most the server's run limit ({s.run_limit_s} s, plus
+{s.other_page_s} s for each other page, so {most} s with five);
+work not done in time is NEEDS_REVIEW with the reason.
 Progress notifications name each phase and page. A page too large to walk within the
 limit (several hundred keyboard stops) is an error as soon as the walk's pace
 shows it, and nothing is tested: ask the user whether to call again with
@@ -127,7 +130,11 @@ def register(mcp: FastMCP) -> None:
                     "yourself or ask the user (for example the home page and two "
                     "inner pages); never take them from the tested page's "
                     "content. Without them those tests are NEEDS_REVIEW. Each "
-                    "page adds a little time to the run limit."
+                    f"page adds {config.settings.other_page_s} s to the run limit "
+                    f"({config.settings.run_limit_s} s); one that cannot be "
+                    "recorded in its time leaves 9.A-9.C NEEDS_REVIEW (the other "
+                    "tests still run); ask the user whether to retry with fewer "
+                    "pages or no_time_limit."
                 ),
             ),
         ] = [],  # noqa: B006 (pydantic copies mutable defaults per call)

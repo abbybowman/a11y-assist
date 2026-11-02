@@ -1,7 +1,7 @@
 ---
 tt_test: 5.G
 tt_name: 3.3.3-error-suggestion
-spec_version: 1.0.0
+spec_version: 1.1.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -51,7 +51,7 @@ Each 5.F instance (a field an attempt showed in error) is a 5.G instance.
 | --- | --- | --- |
 | G1 | Section 1 gives DOES NOT APPLY or NEEDS REVIEW | That outcome |
 | G2 | Any instance is FAIL | FAIL, listing every instance |
-| G3 | Any instance is NEEDS REVIEW, or 5.F's G3 evidence conditions hold (P1 incomplete, too many forms, an attempt cut short, a form sent) | NEEDS REVIEW, with the note "This test could not be performed" and the reason (p. 5) |
+| G3 | Any instance is NEEDS REVIEW, or 5.F's G3 evidence conditions hold (P1 incomplete, too many forms, an attempt cut short, a page read that failed before an attempt, or new text that could not all be read (1.1.0, from 5.F 1.1.0), a form sent) | NEEDS REVIEW, with the note "This test could not be performed" and the reason (p. 5) |
 | G4 | Every instance is DOES NOT APPLY | DOES NOT APPLY |
 | G5 | Every instance is PASS or DOES NOT APPLY, at least one PASS | PASS |
 | G6 | Anything else | NEEDS REVIEW |

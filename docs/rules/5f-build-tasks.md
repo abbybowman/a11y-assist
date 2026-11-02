@@ -1,10 +1,10 @@
 # Build tasks: 5.F and 5.G
 
 Specs [5f-error-identification.md](5f-error-identification.md) and
-[5g-error-suggestion.md](5g-error-suggestion.md) 1.0.0 are built
+[5g-error-suggestion.md](5g-error-suggestion.md) 1.1.0 are built
 (`checks/t5f.py`, `checks/t5g.py`, registered; shared pieces in `forms.py`):
 the seven TC10.D Baseline cases (14 pairs, `tests/test_baseline_cases.py`) and
-14 custom pages (`tests/test_fixtures_5f.py`, both tests in one call). Judge
+17 custom pages (`tests/test_fixtures_5f.py`, both tests in one call). Judge
 eval: evals/README.md runs 5 and 6.
 
 ## Fixtures

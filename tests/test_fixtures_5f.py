@@ -176,6 +176,35 @@ EXPECTED: dict[str, dict[str, dict]] = {
             "answers": {"J1": {"choice": "guides", "quote": "Date of birth:"}},
         },
     },
+    # The page cancels the invalid event (no browser message) and only sets
+    # aria-invalid: not M2, the field is marked with no text.
+    "f15-cancelled-browser-message": {
+        "5.F": {"outcome": "FAIL", "rows": ["M3", "M3"]},
+        "5.G": {"outcome": "FAIL", "rows": ["N3", "N3"]},
+    },
+    # 1,200 paragraphs before a footer form: only text new after the press
+    # is read, so its error is found however long the page is.
+    "f17-long-page-footer-form": {
+        "5.F": {
+            "outcome": "PASS",
+            "rows": ["M6", "M6"],
+            "answers": {"J1": {"choice": "described", "quote": ": enter"}},
+        },
+        "5.G": {
+            "outcome": "PASS",
+            "rows": ["N4", "N4"],
+            "answers": {"J1": {"choice": "guides", "quote": "like"}},
+        },
+    },
+    # No button: both attempts press Enter in the field (empty, then "abc").
+    "f16-no-button": {
+        "5.F": {"outcome": "PASS", "rows": ["M2", "M2"]},
+        "5.G": {
+            "outcome": "PASS",
+            "rows": ["N4", "N4"],
+            "answers": {"J1": {"choice": "guides", "quote": "Please"}},
+        },
+    },
 }
 
 

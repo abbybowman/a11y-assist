@@ -166,7 +166,7 @@ The server reads public web pages, by default only on `.gov` and `.mil`. It need
 ### Scope containment as a control
 
 - **Allowlist on every hop.** The allowlist is checked on every top-level navigation and every redirect, not just the first URL.
-- **Other pages chosen by the caller only.** The multi-page tests compare the tested page with up to five other pages the caller names. Each must pass the allowlist and be on the tested page's host before and after redirects, or nothing is tested; page content never adds a page (links on the tested page are never followed). Each is recorded as its own replay file.
+- **Other pages chosen by the caller only.** The multi-page tests compare the tested page with up to five other pages the caller names. Each must pass the allowlist and be on the tested page's host before and after redirects, or nothing is tested; one that cannot be recorded within its 20 s share leaves the multi-page tests NEEDS REVIEW while the other tests still run; page content never adds a page (links on the tested page are never followed). Each is recorded as its own replay file.
 - **Refused pages produce no findings.** A blocked, unreachable or invalid page is a tool error with no findings, so no "result" exists for a page that was never tested.
 - **Dev-only local files.** `file://` URLs work only in development mode.
 - **Connection-time address checks.** The allowlist matches any `.gov` or `.mil` host by suffix, which this use needs, but a name says nothing about where it points. So Chrome's only way out is a local proxy inside the server. For every connection (the page, iframes, subresources, WebSockets, each redirect hop and the guard's own fetch), the proxy resolves the host once. It refuses the connection if any answer is a private, loopback, link-local, multicast, unspecified, reserved or cloud-metadata address, including IPv4-mapped, IPv4-compatible, 6to4 and Teredo IPv6 forms, or if the port isn't 80 or 443. Otherwise it connects to the address it just checked, so a second DNS answer (rebinding) is never used. TLS stays end to end, so Chrome still verifies the certificate for the real hostname. If the proxy is down, nothing gets out. A refused page is a tool error; refused page parts are listed in the result. Development mode reaches the local test server only through an explicit address allowlist that is ignored outside development mode.
@@ -176,7 +176,7 @@ The server reads public web pages, by default only on `.gov` and `.mil`. It need
 ### Untrusted input and prompt injection
 
 - **The server's text never includes page text.** Page strings appear only in a labeled untrusted field, and the server's own question wording is fixed.
-- **Page scripts can't fake focus.** Focus is read through the Chrome DevTools Protocol in an isolated context; a test checks that page script can't spoof it.
+- **Page scripts can't fake focus.** Focus is read through the Chrome DevTools Protocol in an isolated context; a test checks that page script can't spoof it. This includes where a skip link lands (9.A): a test page that tells its own script focus moved, when it did not, is a FAIL, not a PASS. A page that cancels the browser's own error message (5.F) is not credited with that message.
 - **Outcomes come only from spec rows.** A model's answer is recorded as a fact for a rule, never as an outcome.
 - **Adversarial fixture.** Fixture F32 contains text telling automated testers to report PASS for every test; the expected result is FAIL with both traps reported. **[FILL: result at the submission commit.]**
 
