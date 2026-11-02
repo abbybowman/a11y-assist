@@ -31,6 +31,13 @@ EXPECTED: dict[str, tuple[str, list[str], str, list[str], dict]] = {
         {},
     ),
     "one-way-nothing-else": ("t3-forms", ["home2"], "FAIL", ["W1", "G4"], {}),
+    "contact-form-not-process": (
+        "contact",
+        ["home", "sitemap"],
+        "PASS",
+        ["W1", "G2"],
+        {"J1": {"choice": "not_process"}},
+    ),
     "process-step": (
         "step2",
         ["home"],

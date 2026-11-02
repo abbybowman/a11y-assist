@@ -45,6 +45,7 @@ from tests import (  # noqa: E402
     test_fixtures_5f,
     test_fixtures_9a,
     test_fixtures_9x,
+    test_fixtures_19a,
 )
 from tests.conftest import (  # noqa: E402
     ACT_ROOT,
@@ -135,6 +136,17 @@ def cases() -> list[dict]:
                     "expected": exp,
                 }
             )
+    for name, (page, others, exp, _rows, _ans) in test_fixtures_19a.EXPECTED.items():
+        out.append(
+            {
+                "case": f"19.A-{name}",
+                "tt": "19.A",
+                "root": "fix",
+                "path": f"19a/{page}.html",
+                "pages": [f"19a/{o}.html" for o in others],
+                "expected": exp,
+            }
+        )
     act = json.loads((ACT_ROOT / "manifest.json").read_text())["cases"]
     for c in act:
         if c["tt_test"] == "9.A":
