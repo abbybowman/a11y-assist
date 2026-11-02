@@ -43,6 +43,8 @@ from tests import (  # noqa: E402
     test_fixtures_5a,
     test_fixtures_5d,
     test_fixtures_5f,
+    test_fixtures_9a,
+    test_fixtures_9x,
 )
 from tests.conftest import (  # noqa: E402
     ACT_ROOT,
@@ -118,8 +120,34 @@ def cases() -> list[dict]:
                         "with": by_test.get("with", []),
                     }
                 )
+    # 9.x: a tested page plus the other pages it is compared with.
+    for name, (page, others, want, _answers) in test_fixtures_9x.EXPECTED.items():
+        if name in test_fixtures_9x.NOT_EVAL:
+            continue
+        for tt, exp in want.items():
+            out.append(
+                {
+                    "case": f"{tt}-{name}",
+                    "tt": tt,
+                    "root": "fix",
+                    "path": f"9x/{page}.html",
+                    "pages": [f"9x/{o}.html" for o in others],
+                    "expected": exp,
+                }
+            )
     act = json.loads((ACT_ROOT / "manifest.json").read_text())["cases"]
     for c in act:
+        if c["tt_test"] == "9.A":
+            out.append(
+                {
+                    "case": f"9.A-act-{c['id']}",
+                    "tt": "9.A",
+                    "root": "act",
+                    "path": c["path"],
+                    "pages": [test_fixtures_9a.CH2],
+                    "expected": c["expected"],
+                }
+            )
         if c["tt_test"] in ("4.A", "4.C"):
             out.append(
                 {
@@ -271,6 +299,7 @@ async def prepare(out: Path, only: set[str] | None = None) -> None:
                 s,
                 f"{roots[c['root']]}/{c['path']}",
                 [TestId(t) for t in c.get("with", [])] + [TestId(c["tt"])],
+                other_pages=[f"{roots[c['root']]}/{p}" for p in c.get("pages", [])],
             )
         if [q for q in res.open_questions if q.test_id.value == c["tt"]]:
             _write_packet(out, c, res.run_id, 1, res)

@@ -75,6 +75,10 @@ EXPECTED: dict[str, tuple[str, list[str], dict[str, str], dict]] = {
     ),
 }
 
+# Rules tests only, left out of the judge eval: the same page and question
+# as another case with the opposite scripted answer.
+NOT_EVAL = {"breadcrumbs-not-repeated"}
+
 ROWS = {
     ("skip-past-heading", "9.A"): ["M8"],
     ("documented-key", "9.A"): ["M7"],  # the documented key, pressed
