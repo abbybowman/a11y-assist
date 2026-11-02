@@ -21,6 +21,15 @@ because fixture names describe the expected answer ("key-in-comment-only").
 The answer key (`/tmp/eval/state.json`) is outside the packet tree. Agents
 are told to open nothing else and to list every file they opened.
 
+## Run 9, 2026-11-02: 19.A (draft spec 0.1.0), its packets only
+
+`prepare OUT 19.A`: 2 of the 9 cases ask J1 (is the page a step in a
+process?): a review step ("Step 2 of 3") and a contact form whose intro
+says "Thank you for your interest" (hinted, not a process). One fresh
+Sonnet agent (about 72,000 tokens, 13 s), told to use no scripts: 2/2
+match, no false PASS. It opened only packet files and wrote none outside
+them.
+
 ## Run 8, 2026-11-02: 9.A, 9.B and 9.C (draft specs 0.1.0), their packets only
 
 `prepare OUT 9.A,9.B,9.C`. Cases now carry other pages (`pages`: the ACT
