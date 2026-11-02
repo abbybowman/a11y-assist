@@ -86,23 +86,15 @@ run).
   matters for real sites: resumable runs (walk in one call, checks in the
   next), or walking P1 and P2 in parallel (headed Chrome focus in a
   background window needs checking on Windows first).
-- **Confirm 4.B alternatives by pressing them.** The last judge-eval mismatch
-  (4.B f02): the agent could not tell whether the named alternative does what
-  the timed press does. Press it normally on a fresh replay and compare its
-  effect with the timed press's (a mechanical check on J2, like 4.C's
-  documented keys).
 - **Starter-template leftovers.** `pyproject.toml` still says "Starter MCP
   server for the GSA MCP hackathon". (The 0.0.0.0 HTTP branch is gone; HTTP
   is loopback-only with Host/Origin checks. Authentication is still needed
   before any hosted deployment.)
 - **Tidy the checks** (from the PR #3 review and a 2026-11-02 cleanup
-  draft that was never approved; recheck each item against the code first).
-  Possible principle gaps, first: the A2 "could not be performed" note is
-  typed by hand in many checks and some A2 branches may omit it (add a
-  harness guard: the note appears exactly on NEEDS REVIEW from A2 or G3);
-  `judge_backend` is a free string, so an unbuilt backend fails mid-run, not
-  at start; 4.E dialog keys may let two dialogs share a key (prove with a
-  fixture before changing code). Then sharing: 5.G imports 5.F's private
+  draft that was never approved; recheck each item against the code first;
+  its principle gaps were fixed in PR #6). Sharing: the "could not be
+  performed" note is typed by hand in 19 places (use
+  `models.TEST_NOT_PERFORMED_NOTE`; the harness guards it); 5.G imports 5.F's private
   helpers (`t5f._errors_of`, `_field_input`, `_label`), so error pass E
   could be its own module like `labels.py`; `forms.py` exports underscore
   names; `RunContext.cache` keys are bare strings (a typo silently redoes

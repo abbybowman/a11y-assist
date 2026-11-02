@@ -8,6 +8,7 @@ Only evaluate() and the row tables decide outcomes.
 
 from __future__ import annotations
 
+import hashlib
 import re
 from typing import Any
 
@@ -77,6 +78,7 @@ class State4B(BaseModel):
     j1: dict[str, Any] | None = None
     proof: dict[str, Any] | None = None  # normal / timed / timed2 effects
     j2: dict[str, Any] | None = None
+    alt: dict[str, Any] | None = None  # alternative press: reached, key, effect, end
 
 
 def _sentences(text: str) -> list[str]:
@@ -160,7 +162,7 @@ async def prove(ctx: RunContext, st: State4B) -> None:
     assert sr is not None and key is not None
     keys = ["Tab"] * (sr.index + 1)
 
-    async def run(timed: bool) -> Effect | None:
+    async def run(timed: bool) -> tuple[Effect, dict[str, Any]] | None:
         s = await t4a._replay(ctx, keys)
         try:
             at, _ = await s.traversal.reader.read()
@@ -180,7 +182,8 @@ async def prove(ctx: RunContext, st: State4B) -> None:
                         await kb.press(key)
                         await s.page.wait_for_timeout(REPEAT_GAP_MS)
 
-            return await observe(s, ctx.quiet_ms, act, sr.path_key)
+            eff = await observe(s, ctx.quiet_ms, act, sr.path_key)
+            return eff, await _end_state(s)
         except Exception:
             return None
         finally:
@@ -189,12 +192,54 @@ async def prove(ctx: RunContext, st: State4B) -> None:
     proof: dict[str, Any] = {"keys": keys}
     normal = await run(False)
     timed = await run(True)
-    proof["normal"] = normal.model_dump() if normal else None
-    proof["timed"] = timed.model_dump() if timed else None
-    if normal is not None and timed is not None and timed.any and not normal.any:
+    for k, got in (("normal", normal), ("timed", timed)):
+        proof[k] = got[0].model_dump() if got else None
+        proof[f"{k}_end"] = got[1] if got else None
+    if normal is not None and timed is not None and timed[0].any and not normal[0].any:
         timed2 = await run(True)
-        proof["timed2"] = timed2.model_dump() if timed2 else None
+        proof["timed2"] = timed2[0].model_dump() if timed2 else None
     st.proof = proof
+
+
+async def _end_state(s) -> dict[str, Any]:
+    """Spec section 2, end state: the top URL without its fragment and a digest
+    of the page text (the text itself is already in the run's page_text)."""
+    text = "\n".join(t["text"] for t in await page_text(s.page))
+    return {
+        "url": s.page.url.split("#", 1)[0],
+        "text_sha256": hashlib.sha256(text.encode()).hexdigest(),
+    }
+
+
+async def alt_press(ctx: RunContext, st: State4B) -> None:
+    """Spec section 2, alternative press: Enter on the stop J2 names, then
+    Space on another fresh replay when Enter has no effect."""
+    o = st.stop_list[(st.j2 or {})["element"] - 1]
+    keys = ["Tab"] * (o.index + 1)
+    rec: dict[str, Any] = {"keys": keys, "reached": False}
+    for key in ("Enter", " "):
+        s = await t4a._replay(ctx, keys)
+        try:
+            at, _ = await s.traversal.reader.read()
+            if at.path_key != o.path_key:
+                break
+            eff = await observe(
+                s, ctx.quiet_ms, lambda: s.page.keyboard.press(key), o.path_key
+            )
+            rec = {
+                "keys": keys,
+                "reached": True,
+                "key": "Space" if key == " " else key,
+                "effect": eff.model_dump(),
+                "end": await _end_state(s),
+            }
+        except Exception:
+            break
+        finally:
+            await s.close()
+        if eff.any:
+            break
+    st.alt = rec
 
 
 def _confirmed(st: State4B) -> bool:
@@ -275,10 +320,12 @@ def apply_answers(st: State4B, report) -> None:
             "decided_by": a.decided_by.value,
         }
         if j == "J1":
-            if st.j1 != rec:
-                st.proof, st.j2 = None, None  # a new J1 answer needs a new proof
+            if st.j1 != rec:  # a new J1 answer needs a new proof
+                st.proof, st.j2, st.alt = None, None, None
             st.j1 = rec
         else:
+            if st.j2 != rec:
+                st.alt = None  # a new alternative needs its own press
             st.j2 = rec
 
 
@@ -312,6 +359,17 @@ def _alt_ok(st: State4B) -> bool:
     )
 
 
+def _alt_confirmed(st: State4B) -> bool:
+    a, p = st.alt or {}, st.proof or {}
+    end, timed, normal = a.get("end"), p.get("timed_end"), p.get("normal_end")
+    return (
+        bool(a.get("reached"))
+        and None not in (end, timed, normal)
+        and end == timed
+        and timed != normal
+    )
+
+
 INSTANCE_ROWS = [
     Row("M1", lambda st: not st.matches, Outcome.PASS, "p. 20 HtT 2"),
     Row("J1?", lambda st: st.j1 is None, Outcome.NEEDS_REVIEW, "Open question J1"),
@@ -320,7 +378,19 @@ INSTANCE_ROWS = [
     Row("P?", lambda st: st.proof is None, Outcome.NEEDS_REVIEW, "Proof not run"),
     Row("M5", lambda st: not _confirmed(st), Outcome.NEEDS_REVIEW, "Spec rule"),
     Row("J2?", lambda st: st.j2 is None, Outcome.NEEDS_REVIEW, "Open question J2"),
-    Row("M7", _alt_ok, Outcome.PASS, "p. 20 HtT 3; ER 1"),
+    Row(
+        "A?",
+        lambda st: _alt_ok(st) and st.alt is None,
+        Outcome.NEEDS_REVIEW,
+        "Spec rule",
+    ),
+    Row(
+        "M7",
+        lambda st: _alt_ok(st) and _alt_confirmed(st),
+        Outcome.PASS,
+        "p. 20 HtT 3; ER 1",
+    ),
+    Row("M10", _alt_ok, Outcome.NEEDS_REVIEW, "Spec rule (1.2.0)"),
     Row("M8", lambda st: _ch(st.j2, "no_alternative"), Outcome.FAIL, "p. 20 ER 1"),
     Row("M9", lambda st: True, Outcome.NEEDS_REVIEW, "Spec rule"),
 ]
@@ -331,13 +401,14 @@ def _sentence(st: State4B, rid: str) -> str:
     el = t4a._label({"name": sr.name, "role": sr.role}) if sr else "an element"
     timing = _timing_words(st.j1 or {})
     keys = t4a._keys_text(["Tab"] * (sr.index + 1)) if sr else ""
-    alt = ""
+    alt, alt_keys = "", ""
     e = (st.j2 or {}).get("element")
     if isinstance(e, int) and 1 <= e <= len(st.stop_list):
         o = st.stop_list[e - 1]
         alt = t4a._label({"name": o.name, "role": o.role})
+        alt_keys = t4a._keys_text(["Tab"] * (o.index + 1))
+    pressed = (st.alt or {}).get("key") or "Enter"
     r1 = (st.j1 or {}).get("reasons", "")
-    r2 = (st.j2 or {}).get("reasons", "")
     return {
         "M1": "Nothing on this page asks you to press keys at a certain speed, hold a key down, or press a key several times quickly.",
         "J1?": "The page mentions holding or timing; a question about it is still open.",
@@ -346,7 +417,9 @@ def _sentence(st: State4B, rid: str) -> str:
         "P?": "The page mentions key timing; we have not tried it yet.",
         "M5": f"The page says {el} needs you to {timing}, but pressing the key that way did not behave differently from a normal press, so we could not confirm it. Please check: load the page, press {keys}, then try it.",
         "J2?": f"{el} works only if you {timing}; a question about it is still open.",
-        "M7": f"{el} needs you to {timing}, but {alt} does the same thing with a normal key press ({r2}). If you disagree, tell your assistant.",
+        "A?": f"{el} works only if you {timing}; we have not yet tried the other way to do it.",
+        "M7": f"{el} needs you to {timing}, but {alt} does the same thing with a normal key press: we pressed {pressed} on it and the page changed the same way. If you disagree, tell your assistant.",
+        "M10": f"{el} needs you to {timing}. We pressed {alt} normally, and it did not change the page the way {timing} does, so we could not confirm it does the same thing. Please check: load the page, press {alt_keys}, then Enter.",
         "M8": f"{el} works only if you {timing}, and nothing else on the page does the same thing with a normal key press. People who cannot press keys quickly or hold them steadily cannot use it. To see it, load the page, press {keys}, then {timing}.",
         "M9": f"{el} needs you to {timing}; please check whether something else on the page does the same thing without timing.",
     }[rid]
@@ -415,8 +488,8 @@ class Check4B:
         "keys quickly. If there are none, the test passes. If there are, your "
         "assistant reads them; when they describe timed key presses, the tool "
         "presses the key normally and then the timed way to confirm it, and "
-        "your assistant checks whether another control does the same thing "
-        "without timing."
+        "your assistant picks another control that may do the same thing "
+        "without timing, and the tool presses it normally to confirm."
     )
 
     def walk_extras(self) -> list:
@@ -442,4 +515,6 @@ class Check4B:
         apply_answers(state, report)
         if _proof_ready(state) and state.proof is None:
             await prove(ctx, state)
+        if _alt_ok(state) and _confirmed(state) and state.alt is None:
+            await alt_press(ctx, state)
         return []

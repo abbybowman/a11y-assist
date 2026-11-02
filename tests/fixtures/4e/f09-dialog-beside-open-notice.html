@@ -1,0 +1,13 @@
+<!doctype html><html lang="en"><head><title>F09 dialog beside open notice</title>
+<style>.dlg{position:fixed;inset:10% 10%;background:#fff;border:3px solid #333;padding:2em;box-shadow:0 0 0 9999px rgba(0,0,0,.5)}.note{position:fixed;bottom:0;left:0;right:0;background:#eef;padding:4px}</style></head><body>
+<h1>News</h1>
+<a href="#a" id="before">Before</a>
+<label>Search <input id="search"></label>
+<a href="#c" id="after">After</a>
+<section><div><div><div><div><div><div role="dialog" aria-label="Notice" class="note">This site uses cookies.</div></div></div></div></div></div></section>
+<section><div><div><div><div><div><div role="dialog" aria-label="Sign up" class="dlg" hidden><h2>Sign up for our newsletter</h2><p>Get updates every week.</p></div></div></div></div></div></div></section>
+<script>
+  const dlg = document.querySelectorAll('section')[1].querySelector('[role=dialog]');
+  search.addEventListener('focus', () => { dlg.hidden = false; });
+</script>
+</body></html>

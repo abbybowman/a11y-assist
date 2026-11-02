@@ -1,6 +1,7 @@
 # Plan: agent-level evaluation (not built)
 
-Status: **draft; decisions recorded 2026-11-01.** Nothing here is built.
+Status: **draft; decisions recorded 2026-11-01 and 2026-11-02 (sections 4,
+6).** Nothing here is built.
 Models and access are decided and the Ask Sage route is checked (section 7).
 The development set (section 2.5) is enough to build the harness; the scored
 pages come from Abby's blind-labeled real sites and seeded faults (2.3, 2.4),
@@ -170,8 +171,13 @@ NEEDS_REVIEW at 0 never punishes saying "unsure" (principle 3) and makes
 75% confidence. Raw counts are always shown beside the weighted score, and
 false PASS is reported on its own line.
 
-**Scope.** Only the TT tests the server performs are scored (Test 4 and 5.D
-today). Every other test is reported as not performed, never scored.
+**Scope.** Only the TT tests the server performs are scored (the implemented
+list in `a11y_run_tt_tests`' description, from `checks.REGISTRY`). Every other
+test is reported as not performed, never scored.
+
+**Time limit.** The tool arm may set `no_time_limit` (Abby, 2026-11-02). The
+limit exists for people who would rather not wait; the eval wants every
+test's full result.
 
 **What the sample size supports.** With n true failures for a test and none
 missed, the 95% upper bound on the miss rate is about 3/n. That bound is
@@ -203,13 +209,21 @@ The judge never sees the expected outcome and never scores it.
 ## 6. Rounds and freezing
 
 - **Development rounds** (2.5, then 5 to 8 real pages from development
-  sites): fix the harness, make questions harder (never easier), or change
-  the code. Log every change between rounds.
+  sites; as many rounds as needed): fix the harness, make questions harder
+  (never easier), or change the code. Log every change between rounds.
+- **After a round, its site is a development site** (Abby, 2026-11-02): rows
+  its pages never triggered can be exercised on a doctored copy of one of
+  them, a seed in the sense of 2.4.
 - **Freeze before the final round:** questions, prompts, weights, scoring
   code and labels, recorded with a commit in `docs/hackathon/evaluation.md`.
-- **Final round:** sites never used before; nothing is changed after seeing
-  its results. The headline figures come from this round only.
-- **Every round's results are reported**, the early ones included.
+- **Final round:** the latest round before the code freezes for hackathon
+  judging; sites never used before; nothing is changed after seeing its
+  results. The headline figures come from this round only.
+- **Every round's results are kept in the repo**, the early ones included,
+  to show progress (Abby, 2026-11-02: testing is to improve, not only to
+  prove). Development rounds are recorded as formal rounds, not in
+  `docs/hackathon/evaluation.md`; where they live is being built on the
+  SCRT-report branch (`ccr-4d5c479b-6cdrmr`).
 
 ## 7. Models and access (decided 2026-11-01)
 

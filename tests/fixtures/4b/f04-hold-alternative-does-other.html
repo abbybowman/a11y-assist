@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head><title>Sign in help</title></head>
+<body>
+<h1>Sign in help</h1>
+<p>To change the button from Request Password Reset to Request User Name, tab to the button,
+press and hold the space bar for 3 seconds, and release the spacebar.</p>
+<button id="b" type="button">Request Password Reset</button>
+<button id="alt" type="button" onclick="help.hidden = !help.hidden">Change request</button>
+<p id="help" hidden>Call the help desk for other requests.</p>
+<script>
+  const b = document.getElementById('b');
+  const help = document.getElementById('help');
+  let down = 0, up = 0, armed = false;
+  b.addEventListener('keydown', (e) => {
+    if (e.key !== ' ' || armed) return;
+    e.preventDefault(); armed = true; down = Date.now();
+    setTimeout(() => {
+      if (down > up) b.textContent = b.textContent === 'Request Password Reset' ? 'Request User Name' : 'Request Password Reset';
+    }, 3000);
+  });
+  b.addEventListener('keyup', (e) => { if (e.key === ' ') { e.preventDefault(); up = Date.now(); armed = false; } });
+</script>
+</body>
+</html>
