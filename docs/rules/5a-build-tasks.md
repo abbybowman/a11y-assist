@@ -5,6 +5,7 @@ Specs [5a-label-provided.md](5a-label-provided.md) and
 `labels.py` (pass L), registered. Judge eval: evals/README.md run 7.
 Green with scripted answers: 26 TC10.A/TC10.E pairs and 17 custom pages
 (`tests/test_fixtures_5a.py`, both tests in one call).
+Judge eval after the 1.1.0 review fixes: runs 9 (15/18, two false PASS, fixed) and 10 (13/13).
 Order of work: [plans/2026-11-01-forms-5a-5c.md](../plans/2026-11-01-forms-5a-5c.md).
 
 ## Fixtures
