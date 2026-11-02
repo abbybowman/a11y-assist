@@ -46,10 +46,13 @@ TOOL SELECTION GUIDE:
 - Explain what a TT test checks, or explain a run's results and fixes in
   plain language -> the explain prompt (about = test ID, WCAG criterion or
   words; run_id = a run to explain)
+- Read an SCRT report file (from DHS's SCRT or this server's pre-SCRT
+  file), or score one against a person's answer key -> a11y_read_report
+  (content; compare_to = the reference file)
 - Read the TT text for a test -> resource tt://5.1.3/tests/{{id}} (list of
   all tests: tt://5.1.3/index; a whole part: tt://5.1.3/parts/{{part}})
 - Read a run's full report or evidence, or save the report -> the run://
-  links in the result (report_uri); save before expires_at
+  links in the result (report_uri, pre_scrt_uri); save before expires_at
 
 Conventions: test IDs look like "4.C". Only URLs on the server's allowlist
 (default *.gov, *.mil) can be tested; anything else is a tool error and

@@ -21,6 +21,48 @@ because fixture names describe the expected answer ("key-in-comment-only").
 The answer key (`/tmp/eval/state.json`) is outside the packet tree. Agents
 are told to open nothing else and to list every file they opened.
 
+## Judging rounds: real pages against a tester's blind SCRT files
+
+`evals/judging.py` scores the tool on real .gov pages against a certified
+Trusted Tester's SCRT files, by commit and reveal, so neither the tool nor
+its developers see the pages or the answers first.
+
+1. **Start a round.** The tester commits `evals/judging/<round>/pages.txt`
+   when testing begins (not earlier: a page list in the repository lets
+   development prepare for it). One page per line, its URL and the SHA-256
+   of their SCRT file for it, in either order; `#` comments allowed. Hash
+   the exact file to be uploaded (`shasum -a 256 *.json`, `sha256sum *.json`
+   or `Get-FileHash *.json`) and do not re-save it in SCRT afterwards.
+2. **Scan.** `uv run python evals/judging.py scan evals/judging/<round>`
+   runs every implemented test on each page, with the round's other pages
+   on the same host as `other_pages` (9.A-9.C, 19.A). In a container, set
+   `BROWSER_CHANNEL=chromium HEADLESS=true`. The real allowlist applies.
+3. **Answer.** ONE fresh agent answers every
+   `<round>/packets/pNN/roundK/questions.json` into `answers.json` in the
+   same folder, opening nothing else; then `apply`. Repeat until no page is
+   open.
+4. **Lock.** `uv run python evals/judging.py lock evals/judging/<round>`,
+   then commit `results/` (reports, pre-SCRT files, HARs, `lock.json`).
+5. **Reveal.** The tester adds their SCRT files to `<round>/keys/` (any
+   names: they are matched to pages by hash) and commits.
+6. **Score.** `uv run python evals/judging.py score evals/judging/<round>`
+   writes `score.md` and `score.json`. It stops if a key matches no page or
+   if `pages.txt`, a result or the comparison code changed after the lock
+   (to score with older code, check out the lock commit). Add a line for
+   the round below. Do not copy figures into `docs/hackathon/evaluation.md`
+   until a final round is chosen.
+
+Tests the tool does not perform yet, and tests the tester left blank, are
+counted apart, never as agreement or disagreement.
+
+**Freezing pages (later rounds).** Round 1 was tested live on the day of
+the scan. Pages change, so later rounds record each page on the day the
+tester tests it and scan that recording. Until a `freeze` command exists, in
+Chrome: DevTools, Network tab, tick "Preserve log" and "Disable cache",
+reload the page, then right-click a request and "Save all as HAR with
+content". Whether a DevTools HAR replays like our own recordings is not yet
+checked.
+
 ## Run 14, 2026-11-02: 5.B 1.1.0 after the merge, its packets only
 
 `prepare OUT 5.B` after 5.B 1.1.0 (an option in a set no longer takes the

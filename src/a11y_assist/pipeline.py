@@ -30,6 +30,7 @@ from urllib.parse import urlsplit
 
 from playwright.async_api import Browser, async_playwright
 
+from a11y_assist import scrt
 from a11y_assist.browser import NavigationBlocked, launch_browser
 from a11y_assist.capture import record, replay_context
 from a11y_assist.checks import REGISTRY, RunContext
@@ -615,6 +616,7 @@ async def run_tt_tests(
     report.open_questions = result.pending
     report.finished_at = utcnow()
     run.write_json(run.report_path, report)
+    pre_scrt = scrt.write_for_run(run.dir, run.report_path, report)
     run.log("run_end", status="error" if report.errors else "ok")
     return RunResult(
         run_id=run.run_id,
@@ -630,6 +632,7 @@ async def run_tt_tests(
         expires_at=expires_at(run.dir, settings.run_ttl_hours),
         report=report,
         report_uri=run_uri(run.run_id, run.rel(run.report_path)),
+        pre_scrt_uri=run_uri(run.run_id, run.rel(pre_scrt)),
         errors=report.errors,
     )
 
@@ -672,6 +675,7 @@ async def answer_questions(
         await browser.close()
     _evaluate(run, report, states)
     run.write_json(run.report_path, report)
+    pre_scrt = scrt.write_for_run(run.dir, run.report_path, report)
     run.log(
         "answers_recorded",
         "error" if errors else "ok",
@@ -689,5 +693,6 @@ async def answer_questions(
         shared_inputs=_shared_inputs(report, states),
         report=report,
         report_uri=run_uri(run.run_id, run.rel(run.report_path)),
+        pre_scrt_uri=run_uri(run.run_id, run.rel(pre_scrt)),
         errors=errors,
     )

@@ -31,17 +31,21 @@ What works today:
 | Tool errors | A URL outside the allowlist, a redirect out of it, a page that cannot load, or an unknown or expired run id is a tool error (isError) with no findings |
 | TT 5.1.3 as data | The whole PDF as Markdown plus `tt.json` (all 63 conditions with requirements and WCAG links), checked word for word against the PDF. Served as `tt://5.1.3/index`, `tt://5.1.3/tests/{id}` and `tt://5.1.3/parts/{part}`; every finding links its test (`reference`) and Understanding pages. See `docs/sources/README.md` |
 | `explain(about?, run_id?)` prompt | A command that explains Trusted Tester tests in plain language, before a run (what a test checks, what this tool does for it) or after (what was found, how to fix it). `about` takes a test ID, WCAG criterion, test name or words. Built on `explain.py`, which failure reports will reuse |
-| `run://{run_id}/{path}` resources | `report.json`, `evidence/*.json` and screenshots of a run, while it is kept (`RUN_TTL_HOURS`, default 24). Durable results belong in the user's repository |
+| `run://{run_id}/{path}` resources | `report.json`, `pre-scrt.json`, `evidence/*.json` and screenshots of a run, while it is kept (`RUN_TTL_HOURS`, default 24). Durable results belong in the user's repository |
 | HAR record + replay | Page is recorded once (scrolled to load lazy content); every pass and probe runs against the replay |
 | Navigation allowlist | `.gov` and `.mil` by default, enforced on every top-level navigation and redirect hop; `file://` only in dev mode |
 | Connection address checks | Chrome's only way out is a local proxy (`egress.py`) that resolves each host once, refuses it if any answer is a private, loopback, link-local, multicast, reserved or cloud-metadata address (IPv4-mapped and other alternate forms included) or the port is not 80/443, and connects to the address it checked, so DNS rebinding cannot get past it. Covers the page, iframes, subresources, WebSockets and every redirect hop. A refused page is a tool error; refused page parts are listed in the result's `errors` |
 | ANDI 29.2.2 | Vendored, injected from local files, never loaded from ssa.gov. Used by 5.C (what screen readers announce for each form field) and 9.C (names across pages) |
 | Findings for any active TT test | The seventeen implemented tests: PASS, FAIL, DOES NOT APPLY or NEEDS REVIEW per its spec, with the spec rows that produced it. Every other active TT 5.1.3 test: `NEEDS_REVIEW` with the note "This test could not be performed" (no spec yet). Never `NOT_TESTED`: the PDF allows it only where a test names it (p. 6) |
 | `a11y_answer_questions(run_id, answers)` | Records one answer per question (the calling agent's, or a person's override, which wins); presses documented keys in the recorded page and re-applies the spec. Suggested input values go to a person to try. Answers are facts, never outcomes |
+| `a11y_read_report(content, compare_to?)` | Reads one page's report file: an SCRT JSON file saved from DHS's [SCRT](https://github.com/Section508Coordinators/SCRT), or this server's pre-SCRT file. Returns what failed, what still needs a person and who tested it. With `compare_to` (a reference file, such as a Trusted Tester's answer key for the same page) it scores the file test by test: agreement, false PASS (listed first), missed fail, false FAIL. Takes the file's text, not a path |
+| pre-SCRT files | Every run also writes `pre-scrt.json` (`pre_scrt_uri`): SCRT's fields and its 61 TT 5.1.3 rows, with the spec's outcome in SCRT's words, rows the tool left for a person flagged, screenshots inline, and where each row came from. A top-level object, so SCRT cannot load it as a formal report. Agent-assisted, not a Trusted Tester evaluation |
 | ApiJudge | Stub (`NotImplementedError`) |
 
-Planned: `read_report` (read an agency's existing ACR or SCRT report and
-recommend fixes and re-tests) and a `compare_to` option on `a11y_run_tt_tests` that
+Planned: Trusted Tester review of a pre-SCRT file in a local page and export
+to SCRT once every row is checked, merging a partial file into a run, a
+site roll-up, a plain-language report for developers, fix advice for a read
+report (its own tool), and a `compare_to` option on `a11y_run_tt_tests` that
 takes a saved report (verify a fix). Guidance goes in resources or a prompt.
 Tools are broad and outcome-based, not one per test step.
 
