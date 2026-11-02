@@ -54,7 +54,7 @@ by TT test ID. Package: `a11y_assist` (name is provisional).
    with no jargon or spec codes (row IDs stay in the evidence trace). A
    person's answer overrides the agent's. An opinion leads to PASS only when a
    key press or another mechanical check confirms it, or when the spec marks
-   the question as one a careful tester settles by looking (4.E J1, 4.F J1, 5.A J1, 5.C J1, 5.D J1 and J2, 5.F J1, 5.G J1; drafts 9.A J2, 9.C J1); the agent
+   the question as one a careful tester settles by looking (4.E J1, 4.F J1, 5.A J1, 5.C J1, 5.D J1 and J2, 5.F J1, 5.G J1, 9.A J2, 9.C J1); the agent
    must then answer "unsure" whenever the evidence does not settle it, and only
    those go to a person.
 
@@ -155,9 +155,9 @@ src/a11y_assist/
     t5d.py      5.D on input: fill pass F, own-widget changes, J1-J3
     t5f.py      5.F error identification: error pass E (shared with 5.G), notice, J0-J2
     t5g.py      5.G error suggestion: reads 5.F's pass, J1
-    t9a.py      9.A bypass (draft): repeated block, candidate replays, J1 keys, J2
-    t9b.py      9.B consistent navigation (draft): order of shared components
-    t9c.py      9.C consistent identification (draft): ANDI names across pages, J1
+    t9a.py      9.A bypass: repeated block, candidate replays, J1 keys, J2
+    t9b.py      9.B consistent navigation: order of shared components
+    t9c.py      9.C consistent identification: ANDI names across pages, J1
   judgment.py   Judge interface: ClientJudge, ApiJudge (stub); answer recording
   pipeline.py   run_tt_tests / answer_questions orchestration (generic)
   runlog.py     runs/<run_id>/ folder, steps.jsonl

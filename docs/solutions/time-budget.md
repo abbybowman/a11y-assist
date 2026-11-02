@@ -79,3 +79,10 @@ changed on any fixture. Date-input parts are native in 4.A (1.2.0, Abby's
 approval). Agency page 108 s, benefits form 92.5 s, all nine tests.
 Sharing that changes what a check visits (4.A's 20 arrow presses vs pass
 W's 5 items) stays a MINOR change; this kind does not.
+
+**Tests that compare pages cost nothing without them (2026-11-02).** 9.A,
+9.B and 9.C are registered but need `other_pages`; without them they are
+not performed and skip even the walk (`pipeline.needs_walk`). All fourteen
+tests: agency page 108.0 s, benefits form 94.6 s. With one other page the
+limit grows by `OTHER_PAGE_S` (20 s) and the agency page took 110.1 s of
+140 s; measure with `time_budget.py --other`.

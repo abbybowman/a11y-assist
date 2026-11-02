@@ -4,29 +4,27 @@ What is left to build, newest priorities first. A living list, not a log:
 delete an item once it is built, and put any decision it needed into the
 spec, CLAUDE.md or `docs/solutions/` where it belongs.
 
-## Now: Test 4 and 5.A, 5.C, 5.D, 5.F, 5.G are built
+## Now: Test 4, five form tests and the multi-page batch are built
 
 Built (spec 1.0.0+, check registered, fixtures green): 4.A, 4.B, 4.C, 4.D,
 4.E, 4.F, 5.A (Label provided), 5.C (Programmatic label, from ANDI's
-output), 5.D (On input), 5.F (Error identification) and 5.G (Error
-suggestion). Judge eval (fresh agents, no scripted answers): 43/44 Test 4
-fixtures and every 5.x packet, no false PASS
-([evals/README.md](../evals/README.md)). Every implemented test fits one
-120 s call on the realistic pages in `tests/fixtures/budget/` (about 110 s
-and 97 s: the agency page has no margin left, so the next test must find
+output), 5.D (On input), 5.F (Error identification), 5.G (Error
+suggestion), and 9.A (Bypass), 9.B (Consistent navigation) and 9.C
+(Consistent identification). Judge eval (fresh agents, no scripted
+answers): 43/44 Test 4 fixtures and every 5.x and 9.x packet, no false
+PASS ([evals/README.md](../evals/README.md)). Every implemented test fits
+one 120 s call on the realistic pages in `tests/fixtures/budget/` (the
+agency page has no margin left, so the next single-page test must find
 time elsewhere); pages too large to walk, or with more than 40 form
 fields, are refused at once with a `no_time_limit` option
-([solutions/time-budget.md](solutions/time-budget.md)).
+([solutions/time-budget.md](solutions/time-budget.md)). 9.A–9.C compare
+the page with 1–5 other pages of the same site the caller names
+(`other_pages`, the run limit +20 s each); without them they are NEEDS
+REVIEW at no cost ([solutions/multi-page.md](solutions/multi-page.md)).
 
-Drafts (9.A 0.2.0, 9.B and 9.C 0.1.0, in `tests/drafts.py`, fixtures green, judge eval 4/4):
-9.A (Bypass), 9.B (Consistent navigation) and 9.C (Consistent
-identification), on the new `other_pages` input (1–5 pages of the same
-site, the run limit +20 s each) and the shared `site.py` read
-([plans/2026-11-02-multi-page.md](plans/2026-11-02-multi-page.md),
-[rules/9a-build-tasks.md](rules/9a-build-tasks.md)). Next: Abby's review
-of the three specs for 1.0.0, then registration (0 s on a single-page run:
-without other pages they are NEEDS REVIEW). After that: 5.B (label
-descriptive) and 5.H (error prevention) would complete Test 5.
+Next: 5.B (label descriptive) and 5.H (error prevention) would complete
+Test 5 (fix their `tt.json` steps first, below); then the visual-versus-code
+cluster. Choose with the coverage map and CLAUDE.md's research rule.
 
 Per-test leftovers live in each `docs/rules/<id>-build-tasks.md` (mostly
 browser checks on Windows headed Chrome, which this Linux container cannot

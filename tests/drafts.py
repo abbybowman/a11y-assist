@@ -9,12 +9,10 @@ import pytest
 
 from a11y_assist.checks import REGISTRY
 from a11y_assist.checks.base import Check
-from a11y_assist.checks.t9a import Check9A
-from a11y_assist.checks.t9b import Check9B
-from a11y_assist.checks.t9c import Check9C
 from a11y_assist.models import TestId
 
-DRAFTS: dict[TestId, Check] = {c.test_id: c for c in (Check9A(), Check9B(), Check9C())}
+# None now: 9.A, 9.B and 9.C moved to the registry at 1.0.0 (2026-11-02).
+DRAFTS: dict[TestId, Check] = {}
 
 
 @pytest.fixture

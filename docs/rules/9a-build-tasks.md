@@ -2,10 +2,9 @@
 
 Specs [9a-bypass.md](9a-bypass.md),
 [9b-consistent-navigation.md](9b-consistent-navigation.md) and
-[9c-consistent-identification.md](9c-consistent-identification.md) are
-drafts (9.A 0.2.0, 9.B and 9.C 0.1.0), built as `checks/t9a.py`, `t9b.py` and `t9c.py` on the
-shared `site.py` read and registered only in `tests/drafts.py` until Abby
-approves 1.0.0. Judge eval: evals/README.md run 8 (4/4). Order of work:
+[9c-consistent-identification.md](9c-consistent-identification.md) 1.0.0
+(Abby, 2026-11-02) are built as `checks/t9a.py`, `t9b.py` and `t9c.py` on
+the shared `site.py` read, registered. Judge eval: evals/README.md run 8 (4/4). Order of work:
 [plans/2026-11-02-multi-page.md](../plans/2026-11-02-multi-page.md).
 
 ## Fixtures
@@ -45,10 +44,9 @@ all three tests in one call):
 | V2 | Windows headed Chrome: V1 again, and a hotkey with Alt (Alt+letter can open browser menus there) | 9.A, J1 |
 | V3 | ANDI on a page whose Content-Security-Policy blocks inline scripts: 9.C A2 (not performed) | 9.C A2 |
 
-## Before 1.0.0
+## Left
 
-- Abby's approval of the three specs (the decisions written into them:
-  small block in numbers, two block stops allowed before the method, the
-  region match, 9.B leaving out the main content, 9.C's four ways to pair).
-- Move the checks to `checks/__init__.py`; then 9.x run by default and
-  are NEEDS REVIEW without other pages (0 s on a single-page run).
+- V2 and V3 above (Windows headed Chrome; a page whose CSP blocks ANDI).
+- Real .gov sites: the region match and 9.C's same-place pairing were
+  tuned on fixtures only. Check them on the agent-eval pages
+  (plans/2026-10-31-agent-eval.md) before trusting 9.B and 9.C there.

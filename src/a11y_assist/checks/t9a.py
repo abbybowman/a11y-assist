@@ -759,7 +759,7 @@ def _notes(st: State9A, working: list[Cand]) -> list[str]:
 
 
 class Check9A:
-    """9.A as a check (checks/base.py). Draft: registered in tests/drafts.py."""
+    """9.A as a registered check (checks/base.py)."""
 
     test_id = TestId.T9A
     state_type = State9A

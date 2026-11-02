@@ -242,7 +242,7 @@ def evaluate(st: State9B, evidence_refs: list[str]) -> Finding:
 
 
 class Check9B:
-    """9.B as a check (checks/base.py). Draft: registered in tests/drafts.py."""
+    """9.B as a registered check (checks/base.py)."""
 
     test_id = TestId.T9B
     state_type = State9B

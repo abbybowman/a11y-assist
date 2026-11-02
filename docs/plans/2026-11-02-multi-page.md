@@ -1,4 +1,4 @@
-# Plan: multi-page tests 9.A, 9.B, 9.C (2026-11-02)
+# Plan: multi-page tests 9.A, 9.B, 9.C (2026-11-02, done: 1.0.0)
 
 The literal order of work. Rules live in the specs
 ([9a-bypass.md](../rules/9a-bypass.md),
