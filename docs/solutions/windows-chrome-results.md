@@ -33,9 +33,14 @@ browser creates them (CDP `Target.targetCreated` with the page as opener),
 with the count kept as a second signal. Both cases now FAIL correctly on
 Windows; the full Run A suite gives the same scores, with nothing else
 changed. `tests/test_observe.py` (a window that opens and closes at once)
-fails on the old code on any OS, so Linux CI keeps the fix.
+fails on the old code on any OS, so Linux CI keeps the fix. Its other tests
+show that a window opened and closed from a cross-site iframe is caught
+(Chrome reports the tested page as its opener), and that a window from an
+earlier action is not counted again. If discovery cannot start, only the
+page count decides.
 
 **Real Windows differences (reproduced; open).**
+
 - **Egress guard tests, Run B only.**
   `test_egress.py::test_iframe_and_subresources_pointing_inside_are_refused`
   records no "non-public" refusal, and
@@ -56,7 +61,11 @@ fails on the old code on any OS, so Linux CI keeps the fix.
   and `test_time_budget.py::test_out_of_time_is_needs_review_and_no_time_limit_finishes`
   never started its walk within 10 s. Both pass when run alone in Run A and
   in serial Run B. On Windows the 120 s budget has less headroom under
-  parallel load.
+  parallel load. Once, also under 8 workers:
+  `test_browser.py::test_page_initiated_navigation_to_disallowed_host_is_blocked`
+  found the page had not reached the disallowed host (the check that
+  matters), but the guard's record of the block was not there yet. The test
+  passed 3 of 3 times when run alone.
 - **Test-harness portability (both runs):** the two
   `test_config.py` launch tests start Python with only `PATH=/usr/bin:/bin`,
   a Linux path; Windows Python needs more of the environment to start. The
@@ -80,11 +89,23 @@ keyboard focus, which these tests measure. Stay off the machine during a
 headed run, or try a second Windows virtual desktop first (not yet tried).
 Rerun any headed failure alone, hands off, before believing it.
 
-**One unexplained headed hang.** The first headed run after the new-window
-fix stopped for 50 minutes on 5.D `f10-zip-submits-when-valid` (the form
-submits and the page navigates). It did not happen again: f10 alone passed
-with and without CDP time limits, and the full headed rerun of those 112
-tests finished in 12 minutes. The observer now abandons any of its CDP calls
-after 2 s (`observe.CDP_TIMEOUT_S`), and the page count decides alone.
-Run long headed checks under a hard stop (`timeout 1500 ...`) with `-v`, so a
-hang names its test instead of stalling.
+**Headed runs hang when the screen locks (assumed).** With the new-window
+fix, 3 of 5 headed runs of the same 112 tests stopped for 25 to 50 minutes,
+each on a different test (5.D f10, 4.A f12, 4.A f04). A stack dump showed
+the event loop idle, waiting on a browser call that has no time limit (a
+CDP command or `page.evaluate`; the settle rule waits on animation frames).
+Every hang came while no one was using the laptop. It auto-locks after 15
+minutes idle (`InactivityTimeoutSecs` 900, a managed setting) and turns the
+display off after 15 minutes, and Windows logged Modern Standby during
+each hung run. A locked or dark screen stops Chrome drawing frames. The two
+clean runs finished in about 12 minutes, one with a video playing to keep
+the display on. The one headed run on `main` without the fix, while the
+laptop was in use, did not hang. Not proven: two hangs began well before 15
+minutes, and the decisive test (`main` with a deliberate lock) was not run.
+The observer's own CDP calls now give up after 2 s (`observe.CDP_TIMEOUT_S`).
+
+**For headed runs:** keep the screen on and unlocked (play a video in a small
+window, or change the power settings), and run long checks under a hard
+stop with `-v`, e.g. `timeout 1800 env TEST_BROWSER_CHANNEL=chrome
+TEST_HEADED=1 uv run pytest -n0 -v -o faulthandler_timeout=240 ...`, so a
+hang names its test and dumps where it waits.
