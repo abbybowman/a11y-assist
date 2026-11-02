@@ -21,6 +21,21 @@ because fixture names describe the expected answer ("key-in-comment-only").
 The answer key (`/tmp/eval/state.json`) is outside the packet tree. Agents
 are told to open nothing else and to list every file they opened.
 
+## Run 10, 2026-11-02: 5.B and 5.H (draft specs 0.1.0), their packets only
+
+`prepare OUT 5.B,5.H`: 30 of the cases ask questions (5.B asks one question
+per form on every labelled form; 5.H only when a form hints at
+consequences): 16 ACT cc0f0a cases, the TC10.A/E and TC10.G Baseline
+cases, and the custom 5.H pages. Leak grep clean. One fresh Sonnet agent
+(about 127,000 tokens for round 1, 140 s; it also answered the four 5.H J2
+follow-ups in round 2): 30/30 match, no false PASS. 5.B used the field
+images (it saw the "Shipping"/"Billing" headings that make repeated
+"Name" labels descriptive, and their absence when they are off screen).
+Its least certain calls: a "step 1 of 3" form with a Next button that
+leaves the recorded page (judged multi_step, then unsure about J2, which is
+NEEDS REVIEW as intended). It opened only packet files, listed the folders
+with one shell command, and wrote no scripts.
+
 ## Run 9, 2026-11-02: 19.A (draft spec 0.1.0), its packets only
 
 `prepare OUT 19.A`: 2 of the 9 cases ask J1 (is the page a step in a
