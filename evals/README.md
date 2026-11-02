@@ -21,6 +21,18 @@ because fixture names describe the expected answer ("key-in-comment-only").
 The answer key (`/tmp/eval/state.json`) is outside the packet tree. Agents
 are told to open nothing else and to list every file they opened.
 
+## Run 11, 2026-11-02: 5.H after J2 named G155 and G168, its packets only
+
+G155 (a required confirm checkbox) and G168 (an "Are you sure?"
+confirmation) had been listed in the plan but not read; J2's rubric did not
+name them, so a form confirming that way could have been judged "none" (a
+false FAIL). The rubric and question now name both, with a fixture for
+each (f06, f07). `prepare OUT 5.H`: 9 cases ask questions. One fresh
+Sonnet agent, two rounds (about 100,000 tokens): 9/9 match, no false PASS;
+it judged the dialog and the checkbox review_step. It read the packets with
+one read-only Python snippet against its instructions; nothing outside the
+packets was opened.
+
 ## Run 10, 2026-11-02: 5.B and 5.H (draft specs 0.1.0), their packets only
 
 `prepare OUT 5.B,5.H`: 30 of the cases ask questions (5.B asks one question

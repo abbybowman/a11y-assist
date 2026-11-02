@@ -30,6 +30,17 @@ EXPECTED: dict[str, tuple[str, list[str], dict]] = {
         {"J1": MULTI, "J2": {"choice": "unsure"}},
     ),
     "f05-newsletter": ("DNA", ["A3", "G1"], {}),
+    # G168 and G155: a confirmation before the final payment.
+    "f06-confirm-dialog": (
+        "PASS",
+        ["A6", "f1:M2", "G4"],
+        {"J1": MULTI, "J2": {"choice": "review_step"}},
+    ),
+    "f07-confirm-checkbox": (
+        "PASS",
+        ["A6", "f1:M2", "G4"],
+        {"J1": MULTI, "J2": {"choice": "review_step"}},
+    ),
 }
 
 

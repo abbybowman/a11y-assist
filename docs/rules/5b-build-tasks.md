@@ -5,7 +5,7 @@ Specs [5b-label-descriptive.md](5b-label-descriptive.md) and
 as `checks/t5b.py` (on pass L, shared with 5.A and 5.C; components now
 record their form) and `checks/t5h.py` (on 5.F's error pass E), registered
 only in `tests/drafts.py` until Abby approves 1.0.0. Judge eval:
-evals/README.md run 10 (30/30). Order of work:
+evals/README.md runs 10 (30/30) and 11 (5.H, 9/9). Order of work:
 [plans/2026-11-02-forms-5b-5h.md](../plans/2026-11-02-forms-5b-5h.md).
 
 ## Fixtures
@@ -27,6 +27,8 @@ evals/README.md run 10 (30/30). Order of work:
 | f03 cancel period | J2 reversible ("cancel within 30 days"): M2 PASS |
 | f04 server step | the submit leaves the recording: J2 unsure, M4 NEEDS REVIEW |
 | f05 newsletter | no consequence hint: A3 DNA |
+| f06 confirm dialog | "Pay the $40 fee now?" before paying (G168): J2 review_step, PASS |
+| f07 confirm checkbox | a required "I confirm the details are correct" box (G155): J2 review_step, PASS |
 
 ## Time
 
