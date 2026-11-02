@@ -58,3 +58,15 @@ def test_an_env_file_is_read_from_any_directory(tmp_path):
     elsewhere = tmp_path / "elsewhere"
     elsewhere.mkdir()
     assert _launch_from(elsewhere, env)["port"] == 9124
+
+
+def test_an_unbuilt_judge_backend_is_refused_at_startup():
+    import pytest
+    from pydantic import ValidationError
+
+    from a11y_assist.config import Settings
+
+    for bad in ("api", "clinet"):
+        with pytest.raises(ValidationError):
+            Settings(_env_file=None, judge_backend=bad)
+    assert Settings(_env_file=None).judge_backend == "client"

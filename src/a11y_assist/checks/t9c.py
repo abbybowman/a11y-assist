@@ -381,7 +381,7 @@ def _finding(outcome, summary, rows, refs, inst=None, rationale="", note=False):
         instances=inst or [],
         evidence_refs=refs,
     )
-    if note:
+    if note or outcome is Outcome.NEEDS_REVIEW:  # principle 2, G3
         f.note = "This test could not be performed"
     return f
 
