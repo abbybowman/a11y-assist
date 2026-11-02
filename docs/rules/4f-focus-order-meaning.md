@@ -1,7 +1,7 @@
 ---
 tt_test: 4.F
 tt_name: 2.4.3-focus-order-meaning
-spec_version: 1.1.2
+spec_version: 1.1.3
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -31,7 +31,7 @@ The tool gives each page one 4.F outcome: PASS, FAIL, DOES NOT APPLY or NEEDS RE
 
 **Walk extras** (collected only when 4.F is selected; cheap, no images): per stop, its page scroll offset (so boxes are in page coordinates), its tabindex attribute, its position in DOM order (document order within its frame, frames in DOM order), and its form group (form, and nearest fieldset, role=group or role=radiogroup, with its legend or label). Per trigger: aria-haspopup's value.
 
-**Reveal pass R** (HtT 2.b; shared: 4.C may read it in a later version). For each trigger P1 reached, in forward order, at most `REVEAL_MAX`: fresh replay to the trigger, press Enter, settle. The *revealed content* is the element the trigger names in aria-controls or, for a summary, its details; a trigger with neither is opened only to check for a modal dialog. If the revealed content has stops, record whether focus moved into it, then press Tab once and record whether focus is in it; if a modal dialog opened (focus is in it, or it became visible), press Tab and then Shift+Tab up to 2 × (stops in the dialog) + 2 times each, from a fresh replay each, (up to 30 presses, stopping once focus cycles), and record whether focus reached any page element outside the dialog (OUT, the browser's own controls, is not outside the page). A modal dialog already open at load is checked from the walk: a forward stop in the dialog followed by one outside it.
+**Reveal pass R** (HtT 2.b; shared: 4.C may read it in a later version). For each trigger P1 reached, in forward order, at most `REVEAL_MAX`: fresh replay to the trigger, press Enter through the shared observe (4.A's effect rule; its effect is kept for 4.A's execute check, 1.1.3), settle. The *revealed content* is the element the trigger names in aria-controls or, for a summary, its details; a trigger with neither is opened only to check for a modal dialog. If the revealed content has stops, record whether focus moved into it, then press Tab once and record whether focus is in it; if a modal dialog opened (focus is in it, or it became visible), press Tab and then Shift+Tab up to 2 × (stops in the dialog) + 2 times each, from a fresh replay each, (up to 30 presses, stopping once focus cycles), and record whether focus reached any page element outside the dialog (OUT, the browser's own controls, is not outside the page). A modal dialog already open at load is checked from the walk: a forward stop in the dialog followed by one outside it.
 
 **Order image** (only when J1 is asked): one full-page screenshot on a fresh load, with a numbered badge drawn at each forward stop's box (on that copy only; the walk's page is never marked). Pages with more than `BADGE_MAX` stops get one image per `BADGE_MAX` stops.
 

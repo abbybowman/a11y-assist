@@ -110,6 +110,26 @@ INIT_JS = """(() => {
   addEventListener("submit", (e) => {
     log.s.push({ how: "event", trusted: e.isTrusted, css: e.target && e.target.nodeType === 1 ? path(e.target) : null });
   }, true);
+  // Whether a page handler cancelled the submission (5.F: a form the page
+  // checked and stopped vs one sent to its server). Bubble phase on window
+  // runs after the form's own handlers.
+  addEventListener("submit", (e) => {
+    const last = log.s[log.s.length - 1];
+    if (last && last.how === "event") last.prevented = e.defaultPrevented;
+  });
+  // Native validation (5.F): an invalid event per field the browser blocked.
+  log.v = [];
+  // A page that cancels it hides the browser's message (custom error UI), so
+  // record whether it was cancelled. invalid does not bubble: a listener
+  // added on the field now runs after the page's own listeners there.
+  // `prevented` stays null when that listener never ran (propagation stopped).
+  addEventListener("invalid", (e) => {
+    const el = e.target;
+    const rec = { css: el && el.nodeType === 1 ? path(el) : null, msg: el && el.validationMessage || "", prevented: null };
+    log.v.push(rec);
+    if (el && el.addEventListener)
+      el.addEventListener("invalid", (ev) => { rec.prevented = ev.defaultPrevented; }, { once: true });
+  }, true);
   for (const name of ["submit", "requestSubmit"]) {
     const orig = HTMLFormElement.prototype[name];
     HTMLFormElement.prototype[name] = function (...args) {
@@ -704,6 +724,17 @@ async def submissions(page: Page) -> list[dict[str, Any]]:
             continue
         out.extend({**g, "frame": frame.url} for g in got or [])
     return out
+
+
+async def invalid_events(page: Page) -> list[dict[str, Any]]:
+    """Every native validation `invalid` event so far, main frame (5.F)."""
+    try:
+        got = await page.evaluate(
+            "() => (window.__a11yLog && window.__a11yLog.v ? window.__a11yLog.v.slice() : [])"
+        )
+    except Exception:
+        return []
+    return list(got or [])
 
 
 async def _pause_log(page: Page, on: bool) -> None:

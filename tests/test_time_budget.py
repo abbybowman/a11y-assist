@@ -116,3 +116,26 @@ async def test_more_fields_than_5d_checks_is_refused_at_the_first_load(
     out = await run_tt_tests(settings, url, [TestId.T5D], no_time_limit=True)
     filled = [i for i in out.report.findings[0].rows if i.startswith("f")]
     assert filled == ["f3:J1?"]  # the third field submits the form
+
+
+async def test_slow_other_page_drops_only_the_page_tests(settings, server):
+    # The other page answers after 16 s, past its 5 s share: 4.C still runs
+    # in full; 9.B is not performed (never compared on fewer pages).
+    settings.run_limit_s, settings.other_page_s = 60, 5
+    loop = asyncio.get_running_loop()
+    t0 = loop.time()
+    out = await run_tt_tests(
+        settings,
+        f"{server.base}/no_trap.html",
+        [TestId.T4C, TestId.T9B],
+        other_pages=[f"{server.base}/slow.html"],
+    )
+    took = loop.time() - t0
+    got = {f.test_id: f for f in out.report.findings}
+    assert got[TestId.T4C].outcome is Outcome.PASS
+    assert got[TestId.T9B].outcome is Outcome.NEEDS_REVIEW
+    summary = got[TestId.T9B].summary
+    assert "Other page 1 could not be recorded within its 5 s" in summary
+    assert "no_time_limit=true" in " ".join(out.errors)
+    assert out.report.other_pages == []
+    assert took < 45, took

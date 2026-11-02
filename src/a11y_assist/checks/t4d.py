@@ -608,6 +608,14 @@ async def _widget_pass(
                         break
                     subjects.append(cur)
                 moved = len(set(subjects)) > 1
+                # The stops these arrows reached, for 4.A's arrow probe (it
+                # skips its own replay when every item it needs is here).
+                reached = ctx.cache.setdefault("arrows", {}).setdefault(
+                    wstep.stop.path_key, set()
+                )
+                reached.update(
+                    x.stop.path_key for x in p.steps if x.stop.kind == "element"
+                )
                 if moved:
                     before = len(by_subject)
                     _attempts_from(p, st, by_subject, ctx.rel, arrow, ["Tab"] * (i + 1))
@@ -985,6 +993,7 @@ class Check4D:
     test_id = TestId.T4D
     state_type = State4D
     uses_walk = True
+    shares = 1  # collects before 4.A, which reuses its replays (ctx.cache)
     about = (
         "As keyboard focus lands on each element during the Tab and Shift+Tab "
         "walks, it takes a small picture of the element and its surroundings, "

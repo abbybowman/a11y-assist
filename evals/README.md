@@ -21,6 +21,111 @@ because fixture names describe the expected answer ("key-in-comment-only").
 The answer key (`/tmp/eval/state.json`) is outside the packet tree. Agents
 are told to open nothing else and to list every file they opened.
 
+## Run 10, 2026-11-02: 5.A 1.1.0 after the rubric fix, its packets only
+
+`prepare OUT 5.A`, fresh packets after run 9's two fixes. 13 of the cases
+ask questions (16 questions); leak grep clean. One fresh Sonnet agent, told
+to start no sub-agents (about 102,000 tokens, 2 min): 13/13 match, no false
+PASS, no follow-up round. It called the "Find" and "Subscribe" fields
+not_labeled ("names the action, not the field content"), the "Search"
+button's box labeled, and quoted "Official Name:" (now matched on its
+words). Least sure: the search box whose placeholder and button both say
+"Search". It opened only packet files and used only Read and Write.
+
+## Run 9, 2026-11-02: 5.A and 5.C 1.1.0 (PR #3 review fixes), their packets only
+
+`prepare OUT 5.A,5.C` after 5.A J1's input gained `buttons_next_to_it` and
+`question_of_the_set` (spec 1.1.0). 18 cases ask questions; leak grep clean.
+One fresh Sonnet agent (it split the work across four sub-agents of its
+own; about 49,000 tokens reported): **15/18, two false PASS.** With the
+buttons beside a field shown and the rubric's only example "a Search button
+beside a search box", it counted "Subscribe" (f01) and "Find" (f02) as
+labels. Fix: the rubric now says a button counts only when its words say
+what to type into the field, and names action words that do not. The third
+miss (TC10.A-all-pass-6, NEEDS REVIEW for PASS) was the quote check: the
+page shows "Official Name" and ":" as two pieces of text and the agent
+quoted "Official Name:"; a quote now also matches on its words (M4). The
+scripted tests could not see either problem: they answer as a correct judge
+would.
+
+## Run 8, 2026-11-02: 9.A, 9.B and 9.C (draft specs 0.1.0), their packets only
+
+`prepare OUT 9.A,9.B,9.C`. Cases now carry other pages (`pages`: the ACT
+cases are compared with the rules' chapter2.html, the custom cases with
+their sibling pages in `tests/fixtures/9x/`); `NOT_EVAL` in
+`test_fixtures_9x.py` leaves out one rules-only case (the same page and
+question as another, with the opposite scripted answer). 4 of the 47 cases
+ask questions (9.A and 9.B decide almost everything mechanically; 9.B asks
+nothing); leak grep clean. One fresh Sonnet agent (about 76,000 tokens,
+32 s): 4/4 match, no false PASS, no follow-up round. 9.A J1 named Alt+S
+with its quote; 9.A J2 judged a "Start / Benefits overview" trail as
+repeated (the agent's least certain answer: no breadcrumb landmark, it went
+by the links and separator); 9.C J1 judged "Go to page 3/4" and "5/6"
+consistent, "Contact"/"Get in touch" and "Search"/"Find" inconsistent. It
+opened only packet files; it read and wrote them with inline Python, which
+its instructions said not to do (no file was saved).
+
+## Run 7, 2026-11-01: 5.A and 5.C (draft specs 0.4.0 and 0.3.0), their packets only
+
+`prepare /tmp/eval 5.A,5.C`; f12 runs with 4.F (its pass R reveals the
+field), and packets hold only the case's own test's questions. 16 of the
+50 cases ask questions (5.C decides most pages mechanically); leak grep
+clean. One fresh Sonnet agent (about 89,000 tokens, 44 s): 16/16 match, no
+false PASS, no follow-up round. It opened only packet files and wrote no
+scratch file (it printed and wrote with inline Python). Borderline calls
+it listed: a field named only by its table header judged complete; a red
+"*" on a field without `required` judged missing; on the floating-label
+page it read the small "ZIP code" label in the image as the label.
+
+## Run 6, 2026-11-01: 5.F and 5.G at 1.0.0, their packets only
+
+After Abby's review: a plain "Save" is a submit control again (f09 back to
+"Save", f12 new), native date fields get a date outside their range in
+attempt 2 (f13 `max`, f14 a birth date checked by script), and a date
+field is read through its input (it had been dropped from its form: a
+false DNA). 33 of 5.F's and 5.G's 42 cases ask questions; leak grep clean.
+One fresh Sonnet agent (about 94,000 tokens, 171 s; then 9 s for f11's two
+round-2 packets after J0's rerun): 33/33 match, no false PASS. It opened
+only packet files; it wrote a scratch file (`/tmp/dump.txt`) and deleted
+it, against its instructions, as agents did in runs 1 and 5. Borderline
+calls it listed: instruction-style messages ("City: enter the city ...")
+judged described; a valid "abc" name with only the ZIP code's error listed
+judged no_error.
+
+## 2026-11-01: shared replays and 4.A 1.2.0, no agent run needed
+
+4.A now reuses 4.D's pass W arrows and 4.F's pass R Enter presses, and
+treats native date-input parts as native (4.A 1.2.0). Packets for every
+Test 4 fixture were built on main and on the branch and compared case by
+case (`questions.json`, run IDs normalised): all 45 that ask questions
+are identical, so no question or input changed.
+
+## Run 5, 2026-11-01: 5.F and 5.G (draft specs), their packets only
+
+`prepare /tmp/eval 5.F,5.G` (the new optional test list). 28 of 5.F's and
+5.G's 36 cases ask questions (11 custom pages and the 7 TC10.D Baseline
+cases, each for both tests). Leak grep (local hosts, fixture names, case
+IDs): no match.
+
+**First agent** (Sonnet, about 87,000 tokens, 74 s): 25/26 scored match,
+no false PASS. The miss, 5.F f10 ("Date of birth: invalid entry."): the
+agent answered not_described (FAIL), but the PDF's own example of a
+description is "the Password you entered is incorrect" (p. 28 HtT 3.b).
+J1's rubric now says that saying the value is incorrect or invalid is
+enough (what to enter instead is 5.G); J0's rubric now excludes the
+control already pressed (the agent asked). 5.F spec 0.5.0.
+
+**Second agent** on the rebuilt packets (about 95,000 tokens, 77 s, then 8 s
+for the two round-2 packets after J0's rerun): 28/28 match, no false PASS
+(5.F: 4 FAIL, 9 PASS, 1 DNA; 5.G: 3 FAIL, 9 PASS, 1 DNA, plus the f11
+pair after J0 picked "Send my question"). It opened only packet files; it
+wrote one scratch file outside the packets (`/tmp/dump.txt`, removed),
+as an agent did in run 1. Borderline calls it listed: instruction-style
+messages ("Enter your full name", "City: enter the city ...") judged
+described (G83: a text description identifying the field not completed);
+"Error: not a number." on an empty number field judged described (5.F) and
+guides (5.G).
+
 ## Run 4, 2026-11-01: 5.D On input (draft spec 0.5.0), its packets only
 
 `judge_eval.py` now includes 5.D's custom fixtures and Baseline cases, and

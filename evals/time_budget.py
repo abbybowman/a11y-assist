@@ -9,7 +9,9 @@ key presses). Measurement only; it decides nothing.
 --drafts also runs the checks whose spec is still a draft (tests/drafts.py).
 --limit sets RUN_LIMIT_S for the run (default 120, the tool's own);
 --no-time-limit runs as the tool's no_time_limit does (what an uncapped run
-costs). "quick" counts replay-prefix presses without the quiet window,
+costs); --other PAGE (repeatable) compares each page with other pages of the
+same fixture site, as other_pages does (9.A-9.C; the limit grows per page).
+"quick" counts replay-prefix presses without the quiet window,
 "redos" replays redone fully settled. Paths are under tests/fixtures/.
 Offline, like the tests: only 127.0.0.1 resolves.
 """
@@ -66,6 +68,8 @@ def costs(steps_path: Path) -> list[tuple]:
         d = e["detail"]
         if e["step"] == "captured":
             out.append(("record", d.get("seconds", 0.0), 1, 0, 0, 0))
+        elif e["step"] == "captured_other":
+            out.append((f"record p{d['n']}", d.get("seconds", 0.0), 1, 0, 0, 0))
         elif e["step"] == "walk":
             c = d["cost"]
             out.append(("walk", *_cost(c)))
@@ -81,7 +85,12 @@ def _cost(c: dict) -> tuple:
 
 
 async def measure(
-    base: str, page: str, limit: int, runs: Path, no_limit: bool = False
+    base: str,
+    page: str,
+    limit: int,
+    runs: Path,
+    no_limit: bool = False,
+    others: list[str] | None = None,
 ) -> None:
     settings = Settings(
         _env_file=None,
@@ -97,20 +106,26 @@ async def measure(
     t0 = time.monotonic()
     try:
         out = await run_tt_tests(
-            settings, f"{base}/{page}", list(REGISTRY), no_time_limit=no_limit
+            settings,
+            f"{base}/{page}",
+            list(REGISTRY),
+            no_time_limit=no_limit,
+            other_pages=[f"{base}/{o}" for o in others or []],
         )
     except RunRefused as exc:
         print(f"\n{page}  refused after {time.monotonic() - t0:.1f} s: {exc}")
         return
     total = time.monotonic() - t0
-    print(f"\n{page}  (limit {limit} s, total {total:.1f} s)")
+    lim = out.report.versions.run_settings
+    extra = len(out.report.other_pages) * lim.get("other_page_s", 0)
+    print(f"\n{page}  (limit {limit + extra} s, total {total:.1f} s)")
     print(
         f"  {'phase':8} {'s':>7} {'loads':>6} {'presses':>8} {'quick':>6} {'redos':>6}"
     )
     for name, s, loads, presses, quick, redos in costs(
         runs / out.run_id / "steps.jsonl"
     ):
-        print(f"  {name:8} {s:7.1f} {loads:6} {presses:8} {quick:6} {redos:6}")
+        print(f"  {name:9} {s:7.1f} {loads:6} {presses:8} {quick:6} {redos:6}")
     asked = [q.test_id.value for q in out.open_questions]
     for f in out.report.findings:
         n = asked.count(f.test_id.value)
@@ -125,6 +140,7 @@ async def main(argv: list[str]) -> None:
     ap.add_argument("--limit", type=int, default=120)
     ap.add_argument("--no-time-limit", action="store_true")
     ap.add_argument("--drafts", action="store_true")
+    ap.add_argument("--other", action="append", default=[])
     args = ap.parse_args(argv)
     if args.drafts:
         sys.path.insert(0, str(FIXTURES.parent.parent))
@@ -135,7 +151,9 @@ async def main(argv: list[str]) -> None:
     base = _serve()
     with tempfile.TemporaryDirectory() as tmp:
         for page in args.pages:
-            await measure(base, page, args.limit, Path(tmp), args.no_time_limit)
+            await measure(
+                base, page, args.limit, Path(tmp), args.no_time_limit, args.other
+            )
 
 
 if __name__ == "__main__":
