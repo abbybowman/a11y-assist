@@ -87,6 +87,7 @@ class RunContext:
     cache: dict[str, Any] = field(default_factory=dict)
     third_party: Path | None = None  # vendored ANDI (andi.install_andi_routes)
     selected: frozenset[str] = frozenset()  # TT test IDs in this call ("5.A")
+    requested_url: str = ""  # the URL the caller gave, before redirects (19.A)
     # Other pages of the same site the caller named (empty: none given). Only
     # recorded when a selected check compares pages (`uses_pages`).
     pages: list[PageRef] = field(default_factory=list)

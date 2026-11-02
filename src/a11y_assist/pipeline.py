@@ -538,6 +538,7 @@ async def run_tt_tests(
             )
             ctx = _context(settings, run, get_browser, cap.final_url, soft)
             ctx.selected = frozenset(c.test_id.value for c in checks)
+            ctx.requested_url = url
             ctx.pages = _page_refs(get_browser, settings, run, report)
             ctx.record_live = _live_recorder(
                 browser, settings, run, report, proxy, cap.final_url, get_browser

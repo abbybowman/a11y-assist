@@ -63,6 +63,7 @@ class State19A(BaseModel):
     read_errors: list[str] = Field(default_factory=list)
     pages: list[dict[str, Any]] = Field(default_factory=list)
     t_url: str = ""
+    t_requested: str = ""  # the caller's URL before redirects, when it differs
     links: list[LinkTo] = Field(default_factory=list)
     search_forms: int = 0
     search: Search = Field(default_factory=Search)
@@ -77,6 +78,12 @@ class State19A(BaseModel):
         if self.search.status == "found":
             k.add("search")
         return [x for x in KIND_WORDS if x in k]
+
+
+def _to_t(href: str, t: str | tuple[str, ...]) -> bool:
+    """A link to T: its final URL, or the URL the caller gave before redirects
+    (spec edge cases: links to the requested URL count too)."""
+    return any(_same(href, x) for x in ((t,) if isinstance(t, str) else t) if x)
 
 
 def _same(a: str, b: str) -> bool:
@@ -113,20 +120,22 @@ def _kind(u, page: PageRead, maps: set[int]) -> str:
     return "links"
 
 
-def results_link_to(res: PageRead, t_url: str) -> bool:
+def results_link_to(res: PageRead, t_url: str | tuple[str, ...]) -> bool:
     """Only the results count: a results page's own menus, header and footer
     link to T whatever the search found (spec 1.1.0, Abby 2026-11-02)."""
     return any(
-        u.role == "link" and _same(u.href, t_url) and u.region_role not in TEMPLATE
+        u.role == "link" and _to_t(u.href, t_url) and u.region_role not in TEMPLATE
         for u in res.units
     )
 
 
-def links_to(t_url: str, pages: list[PageRead], maps: set[int]) -> list[LinkTo]:
+def links_to(
+    t_url: str | tuple[str, ...], pages: list[PageRead], maps: set[int]
+) -> list[LinkTo]:
     out = []
     for p in pages:
         for u in p.units:
-            if u.role == "link" and _same(u.href, t_url):
+            if u.role == "link" and _to_t(u.href, t_url):
                 out.append(
                     LinkTo(
                         page=p.n,
@@ -195,8 +204,11 @@ async def collect(ctx: RunContext, walk: KeyboardWalk | None) -> State19A:
         return st
     main = site.main
     st.t_url = main.url
+    if ctx.requested_url and not _same(ctx.requested_url, main.url):
+        st.t_requested = ctx.requested_url
+    both = (st.t_url, st.t_requested)
     maps = _site_map_pages(site.pages)
-    st.links = links_to(st.t_url, site.others, maps)
+    st.links = links_to(both, site.others, maps)
     forms = [f for p in site.pages for f in p.forms]
     st.search_forms = len(forms) + sum(
         1 for p in site.pages for r in p.regions if r.role == "search" and not p.forms
@@ -243,7 +255,7 @@ async def _live_search(ctx: RunContext, st: State19A, main: PageRead, forms) -> 
             "its results could not be read",
         )
         return
-    found = results_link_to(res, st.t_url)
+    found = results_link_to(res, (st.t_url, st.t_requested))
     if not found and res.truncated:
         st.search.status, st.search.reason = (
             "cannot_run",
