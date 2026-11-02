@@ -28,7 +28,7 @@ from a11y_assist.models import (
     Step,
     TestId,
 )
-from a11y_assist.observe import observe
+from a11y_assist.observe import observe, shown
 from a11y_assist.traverse import Traversal, open_session, screenshot
 from a11y_assist.walk import KeyboardWalk
 
@@ -314,6 +314,12 @@ async def _reveal(
             )
             if here.path_key == trig.path_key and not effect.unreliable:
                 ctx.cache.setdefault("enter", {})[trig.path_key] = effect
+                # What Enter showed: 4.A's hover check reads it instead of
+                # replaying to this stop and pressing Enter again.
+                if "4.A" in ctx.selected:
+                    seen = await shown(s)
+                    if seen is not None:
+                        ctx.cache.setdefault("enter-shown", {})[trig.path_key] = seen
             await s.traversal.resync()
             after, _ = await s.traversal.reader.read()
             container = trig.info.get("container")
