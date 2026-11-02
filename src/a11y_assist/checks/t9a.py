@@ -643,16 +643,15 @@ def evaluate(st: State9A, evidence_refs: list[str]) -> Finding:
         )
     if not _applies(st):
         where = (
-            "comes only after the main content"
+            "comes after the main content"
             if not st.block
-            else "is very short (one link, or a few words)"
+            else "is a single link or a few words"
         )
         return _finding(
-            Outcome.NEEDS_REVIEW,
-            f"Content repeated on the other pages you gave {where}, so a way to skip it may not be needed. A person should decide.",
+            Outcome.DNA,
+            f"The only content repeated on the other pages you gave {where}, so there is nothing to skip and this test does not apply.",
             ["A4", "G1"],
             evidence_refs,
-            note=True,
         )
     results = _results(st)
     trace = ["A5"] + [f"c{c.n}:{r.id}" for c, r in results]

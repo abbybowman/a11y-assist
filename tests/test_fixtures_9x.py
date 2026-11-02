@@ -70,7 +70,7 @@ EXPECTED: dict[str, tuple[str, list[str], dict[str, str], dict]] = {
     "paging": (
         "d1-page4",
         ["d2-page5"],
-        {"9.A": "NEEDS_REVIEW", "9.B": "PASS", "9.C": "PASS"},
+        {"9.A": "DNA", "9.B": "PASS", "9.C": "PASS"},
         {"9.C": {"J1": {"choice": "consistent"}}},
     ),
 }
