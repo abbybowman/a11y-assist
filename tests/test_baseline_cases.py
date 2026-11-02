@@ -46,6 +46,35 @@ ANSWERS = {
         )
     },
     ("TC10.E-1-fail-1", "5.A"): {"J1": {"choice": "not_labeled"}},
+    # 5.B: one field each; "The sky is blue" does not describe it.
+    **{
+        (c, "5.B"): {"J1": {"choice": "all_descriptive"}}
+        for c in (
+            "TC10.A-1-fail-1",
+            "TC10.A-all-pass-2",
+            "TC10.A-all-pass-3",
+            "TC10.A-all-pass-4",
+            "TC10.A-all-pass-5",
+            "TC10.A-all-pass-6",
+            "TC10.E-1-pass-2",
+            "TC10.E-1-pass-3",
+        )
+    },
+    # 5.H (TC10.G): one-page order forms; 2.c shows a cart before payment.
+    **{
+        (c, "5.H"): {"J1": {"choice": "one_page", "element": 1}}
+        for c in ("TC10.G-2.a-pass-1", "TC10.G-2.b-pass-1", "TC10.G-all-fail-1")
+    },
+    # Its text says the form "does not change" data: the 1.1.0 hint word
+    # "change" asks J1, and a correct agent answers no consequences.
+    ("TC10.G-ic-dna-2", "5.H"): {"J1": {"choice": "not_consequential", "element": 1}},
+    ("TC10.G-2.c-pass-1", "5.H"): {
+        "J1": {"choice": "multi_step", "element": 1},
+        "J2": {"choice": "review_step"},
+    },
+    ("TC10.E-1-pass-1", "5.B"): {
+        "J1": {"choice": "some_not_descriptive", "elements": [1]}
+    },
     # 5.F / 5.G (TC10.D): what a correct agent says about each error text.
     ("TC10.D-2-fail-1", "5.F"): {
         "J1": {"choice": "described", "quote": "Error: not a number."}
@@ -78,7 +107,7 @@ def test_files_match_their_hashes():
 
 # Tests that share one collection pass run in one call, as a client runs
 # them (and halving the browser runs keeps the suite's timing guards honest).
-SHARED = ({"5.A", "5.C"}, {"5.F", "5.G"})
+SHARED = ({"5.A", "5.B", "5.C"}, {"5.F", "5.G", "5.H"})
 
 
 def _runs() -> list[tuple[str, tuple[str, ...]]]:
@@ -86,9 +115,10 @@ def _runs() -> list[tuple[str, tuple[str, ...]]]:
     for cid, c in sorted(CASES.items()):
         left = set(c["expected"])
         for grp in SHARED:
-            if grp <= left:
-                out.append((cid, tuple(sorted(grp))))
-                left -= grp
+            both = grp & left
+            if len(both) > 1:
+                out.append((cid, tuple(sorted(both))))
+                left -= both
         out += [(cid, (t,)) for t in sorted(left)]
     return out
 

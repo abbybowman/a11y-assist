@@ -39,7 +39,7 @@ script outside the packets. A sandboxed runner is on the roadmap.
 **A rubric's only example becomes the rule.** 5.A 1.1.0 showed the agent
 the buttons beside a field, with one example: "a Search button beside a
 search box". The agent then counted "Subscribe" and "Find" as labels, two
-false PASSes (evals/README.md run 9). Naming the cases that do not count
+false PASSes (evals/README.md run 12). Naming the cases that do not count
 ("Go", "Find", "Submit", "Subscribe" only say what the button does) fixed
-it (run 10). When an input field is added to a question, give an example
+it (run 13). When an input field is added to a question, give an example
 on each side of the line.

@@ -11,7 +11,7 @@ from a11y_assist.checks import REGISTRY
 from a11y_assist.checks.base import Check
 from a11y_assist.models import TestId
 
-# None now: 9.A, 9.B and 9.C moved to the registry at 1.0.0 (2026-11-02).
+# None now: 5.B and 5.H moved to the registry at 1.0.0 (2026-11-02).
 DRAFTS: dict[TestId, Check] = {}
 
 

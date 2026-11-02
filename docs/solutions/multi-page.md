@@ -40,15 +40,24 @@ an agent can only give one answer, so one would always "mismatch".
 
 **Check the converted TT text before relying on it.** 9.B's PDF heading
 breaks over a line ("consistent- navigation"), so the first conversion gave
-9.B 9.A's steps and put 9.B's text into 9.C. 5.B, 7.C and 16.B have the
+9.B 9.A's steps and put 9.B's text into 9.C. 5.B had it too (fixed); 7.C and 16.B have the
 same problem (ROADMAP). Read the printed pages for each new test.
+
+**19.A reused nearly everything (2026-11-02).** The site read gained only
+each page's title and its search forms; links to the tested page, grouped
+by region, give the kinds of way. Two new pieces: `RunContext.record_live`
+(one more live page on the same host, allowlisted on every hop, its own
+HAR; only 19.A's site search may call it), and *suggested* pages (URLs the
+pages link to, offered to the user, never visited). The fixture server
+answers a search for any query (`search.html`), so the live path is
+tested offline through the egress proxy.
 
 **Every record() call is bounded, and each other page by its own share.**
 Each other page adds `OTHER_PAGE_S` (20 s) to the limit, but one recording
 can take 30 s to load plus the idle wait and scrolls. The recordings were
 not bounded at first. Bounding them by the whole run's deadline was not
 enough: a slow page then ate the time the single-page tests needed. Now each
-other page records within its own share; one that runs over leaves 9.A-9.C
+other page records within its own share; one that runs over leaves the tests that compare pages (9.A-9.C, 19.A)
 not performed (never run on fewer pages than the caller named) and the
 other tests run in full (Abby, 2026-11-02;
 `test_time_budget.py::test_slow_other_page_drops_only_the_page_tests`).

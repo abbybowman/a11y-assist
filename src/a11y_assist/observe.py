@@ -13,7 +13,36 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from a11y_assist.traverse import Session, _read_logs, settle, submissions
+from a11y_assist.traverse import PATH_JS, Session, _read_logs, settle, submissions
+
+# Paths of every element rendered in the top document, shadow roots included,
+# with 4.A's own path builder and visibility test, so 4.A can match its keys
+# (4.F's Enter presses: what they show, for 4.A's hover check).
+SHOWN_JS = (
+    "(() => {"
+    + PATH_JS
+    + """
+  const out = [];
+  const walk = (root) => { for (const el of root.querySelectorAll('*')) {
+    const v = el.checkVisibility
+      ? el.checkVisibility({ visibilityProperty: true })
+      : el.getClientRects().length > 0;
+    if (v) out.push(path(el));
+    if (el.shadowRoot) walk(el.shadowRoot); } };
+  walk(document);
+  return out;
+})()"""
+)
+
+
+async def shown(s: Session) -> set[str] | None:
+    """SHOWN_JS in the top frame's isolated world; None when it fails."""
+    try:
+        got = await s.traversal.reader.evaluate_top(SHOWN_JS)
+    except Exception:
+        return None
+    return set(got) if isinstance(got, list) else None
+
 
 # Before the action, the page is watched this long; DOM changes in it are
 # page noise (animation), so an effect of only DOM changes is unreliable.

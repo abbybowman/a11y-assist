@@ -1,0 +1,4 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Donate: step 1 of 2</title></head><body>
+<main><h1>Donate to the fund: step 1 of 2</h1><form id="f"><p><label for="nm">Name on card</label> <input id="nm" name="nm"></p><p><label for="amt">Amount in dollars</label> <input id="amt" name="amt"></p><button type="submit">Continue</button></form><div id="out" hidden tabindex="-1"></div></main>
+<script>document.getElementById("f").addEventListener("submit",(e)=>{e.preventDefault();if(!document.getElementById("nm").value.trim()){const p=document.createElement("p");p.id="err";p.textContent="Error: enter the name on the card.";document.getElementById("f").prepend(p);return;}const o=document.getElementById("out");o.innerHTML="<h2>Step 2 of 2: review your donation</h2>";o.hidden=false;document.getElementById("f").hidden=true;o.focus();});</script>
+</body></html>

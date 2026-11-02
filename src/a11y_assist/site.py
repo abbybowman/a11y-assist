@@ -160,7 +160,21 @@ UNITS_FN = (
       for (const c of el.children) walk(c, chain);
     };
     if (document.body) walk(document.body, []);
-    return { units: out, regions, truncated, url: location.href, els };
+    // Search forms (19.A): a GET submission the tool can make itself.
+    const SEARCH_NAME = /^(q|query|search|s|k|keyword|keywords|searchterm|term)$/i;
+    const forms = Array.from(document.querySelectorAll('form')).filter(shown).map((f) => {
+      const fields = Array.from(f.elements);
+      const named = fields.find((e) => e.name && SEARCH_NAME.test(e.name) && e.tagName === 'INPUT');
+      const typed = fields.find((e) => e.tagName === 'INPUT' && (e.type || '').toLowerCase() === 'search');
+      const isSearch = f.getAttribute('role') === 'search' || !!f.closest('[role=search], search') || !!typed || !!named;
+      if (!isSearch) return null;
+      const field = typed || named || fields.find((e) => e.tagName === 'INPUT' && ['text', ''].includes((e.type || '').toLowerCase()));
+      const hidden = {};
+      fields.filter((e) => e.type === 'hidden' && e.name).forEach((e) => { hidden[e.name] = e.value; });
+      return { action: f.action, method: (f.getAttribute('method') || 'get').toLowerCase(),
+               field: field && field.name ? field.name : '', hidden, css: path(f) };
+    }).filter(Boolean);
+    return { units: out, regions, truncated, url: location.href, els, title: norm(document.title), forms };
   };
 """
 )
@@ -201,6 +215,8 @@ class PageRead(BaseModel):
     units: list[Unit] = Field(default_factory=list)
     regions: list[Region] = Field(default_factory=list)
     truncated: bool = False
+    title: str = ""
+    forms: list[dict[str, Any]] = Field(default_factory=list)  # search forms
     error: str = ""
 
 
@@ -243,6 +259,8 @@ async def read_page(n: int, url: str, new_page: NewPage) -> PageRead:
             units=[Unit(**u) for u in data["units"]],
             regions=[Region(**r) for r in data["regions"]],
             truncated=data["truncated"],
+            title=data.get("title") or "",
+            forms=data.get("forms") or [],
         )
     except Exception as exc:
         return PageRead(n=n, url=url, error=type(exc).__name__)

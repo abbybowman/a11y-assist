@@ -21,9 +21,21 @@ because fixture names describe the expected answer ("key-in-comment-only").
 The answer key (`/tmp/eval/state.json`) is outside the packet tree. Agents
 are told to open nothing else and to list every file they opened.
 
-## Run 10, 2026-11-02: 5.A 1.1.0 after the rubric fix, its packets only
+## Run 14, 2026-11-02: 5.B 1.1.0 after the merge, its packets only
 
-`prepare OUT 5.A`, fresh packets after run 9's two fixes. 13 of the cases
+`prepare OUT 5.B` after 5.B 1.1.0 (an option in a set no longer takes the
+legend as its label). 23 cases ask questions; leak grep clean. One fresh
+Sonnet agent, told to start no sub-agents (about 154,000 tokens, 7 min):
+23/23 match, no false PASS, no follow-up round. Its least sure calls:
+duplicate "Name"/"Street" labels told apart by visible "Shipping"/"Billing"
+headings (descriptive) against the same labels with no heading (not); a
+field whose only visible label is "Go". **Coverage gap:** no packet has a
+radio button or checkbox, so this run shows 5.B's cases still hold but does
+not exercise the 1.1.0 change itself.
+
+## Run 13, 2026-11-02: 5.A 1.1.0 after the rubric fix, its packets only
+
+`prepare OUT 5.A`, fresh packets after run 12's two fixes. 13 of the cases
 ask questions (16 questions); leak grep clean. One fresh Sonnet agent, told
 to start no sub-agents (about 102,000 tokens, 2 min): 13/13 match, no false
 PASS, no follow-up round. It called the "Find" and "Subscribe" fields
@@ -32,7 +44,7 @@ button's box labeled, and quoted "Official Name:" (now matched on its
 words). Least sure: the search box whose placeholder and button both say
 "Search". It opened only packet files and used only Read and Write.
 
-## Run 9, 2026-11-02: 5.A and 5.C 1.1.0 (PR #3 review fixes), their packets only
+## Run 12, 2026-11-02: 5.A and 5.C 1.1.0 (PR #3 review fixes), their packets only
 
 `prepare OUT 5.A,5.C` after 5.A J1's input gained `buttons_next_to_it` and
 `question_of_the_set` (spec 1.1.0). 18 cases ask questions; leak grep clean.
@@ -47,6 +59,41 @@ page shows "Official Name" and ":" as two pieces of text and the agent
 quoted "Official Name:"; a quote now also matches on its words (M4). The
 scripted tests could not see either problem: they answer as a correct judge
 would.
+## Run 11, 2026-11-02: 5.H after J2 named G155 and G168, its packets only
+
+G155 (a required confirm checkbox) and G168 (an "Are you sure?"
+confirmation) had been listed in the plan but not read; J2's rubric did not
+name them, so a form confirming that way could have been judged "none" (a
+false FAIL). The rubric and question now name both, with a fixture for
+each (f06, f07). `prepare OUT 5.H`: 9 cases ask questions. One fresh
+Sonnet agent, two rounds (about 100,000 tokens): 9/9 match, no false PASS;
+it judged the dialog and the checkbox review_step. It read the packets with
+one read-only Python snippet against its instructions; nothing outside the
+packets was opened.
+
+## Run 10, 2026-11-02: 5.B and 5.H (draft specs 0.1.0), their packets only
+
+`prepare OUT 5.B,5.H`: 30 of the cases ask questions (5.B asks one question
+per form on every labelled form; 5.H only when a form hints at
+consequences): 16 ACT cc0f0a cases, the TC10.A/E and TC10.G Baseline
+cases, and the custom 5.H pages. Leak grep clean. One fresh Sonnet agent
+(about 127,000 tokens for round 1, 140 s; it also answered the four 5.H J2
+follow-ups in round 2): 30/30 match, no false PASS. 5.B used the field
+images (it saw the "Shipping"/"Billing" headings that make repeated
+"Name" labels descriptive, and their absence when they are off screen).
+Its least certain calls: a "step 1 of 3" form with a Next button that
+leaves the recorded page (judged multi_step, then unsure about J2, which is
+NEEDS REVIEW as intended). It opened only packet files, listed the folders
+with one shell command, and wrote no scripts.
+
+## Run 9, 2026-11-02: 19.A (draft spec 0.1.0), its packets only
+
+`prepare OUT 19.A`: 2 of the 9 cases ask J1 (is the page a step in a
+process?): a review step ("Step 2 of 3") and a contact form whose intro
+says "Thank you for your interest" (hinted, not a process). One fresh
+Sonnet agent (about 72,000 tokens, 13 s), told to use no scripts: 2/2
+match, no false PASS. It opened only packet files and wrote none outside
+them.
 
 ## Run 8, 2026-11-02: 9.A, 9.B and 9.C (draft specs 0.1.0), their packets only
 

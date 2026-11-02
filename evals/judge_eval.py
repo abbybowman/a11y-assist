@@ -43,8 +43,10 @@ from tests import (  # noqa: E402
     test_fixtures_5a,
     test_fixtures_5d,
     test_fixtures_5f,
+    test_fixtures_5h,
     test_fixtures_9a,
     test_fixtures_9x,
+    test_fixtures_19a,
 )
 from tests.conftest import (  # noqa: E402
     ACT_ROOT,
@@ -135,6 +137,27 @@ def cases() -> list[dict]:
                     "expected": exp,
                 }
             )
+    for name, (exp, _rows, _ans) in test_fixtures_5h.EXPECTED.items():
+        out.append(
+            {
+                "case": f"5.H-{name}",
+                "tt": "5.H",
+                "root": "fix",
+                "path": f"5h/{name}.html",
+                "expected": exp,
+            }
+        )
+    for name, (page, others, exp, _rows, _ans) in test_fixtures_19a.EXPECTED.items():
+        out.append(
+            {
+                "case": f"19.A-{name}",
+                "tt": "19.A",
+                "root": "fix",
+                "path": f"19a/{page}.html",
+                "pages": [f"19a/{o}.html" for o in others],
+                "expected": exp,
+            }
+        )
     act = json.loads((ACT_ROOT / "manifest.json").read_text())["cases"]
     for c in act:
         if c["tt_test"] == "9.A":
@@ -148,7 +171,7 @@ def cases() -> list[dict]:
                     "expected": c["expected"],
                 }
             )
-        if c["tt_test"] in ("4.A", "4.C"):
+        if c["tt_test"] in ("4.A", "4.C", "5.B"):
             out.append(
                 {
                     "case": f"{c['tt_test']}-act-{c['id']}",

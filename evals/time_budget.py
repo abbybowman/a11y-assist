@@ -11,6 +11,9 @@ key presses). Measurement only; it decides nothing.
 --no-time-limit runs as the tool's no_time_limit does (what an uncapped run
 costs); --other PAGE (repeatable) compares each page with other pages of the
 same fixture site, as other_pages does (9.A-9.C; the limit grows per page).
+--json prints one JSON object per page instead of the table (total and each
+phase's seconds, and each test's outcome), for timing changes one at a time;
+--keep DIR keeps the run folders there (to read a check's evidence after).
 "quick" counts replay-prefix presses without the quiet window,
 "redos" replays redone fully settled. Paths are under tests/fixtures/.
 Offline, like the tests: only 127.0.0.1 resolves.
@@ -91,6 +94,7 @@ async def measure(
     runs: Path,
     no_limit: bool = False,
     others: list[str] | None = None,
+    as_json: bool = False,
 ) -> None:
     settings = Settings(
         _env_file=None,
@@ -116,6 +120,24 @@ async def measure(
         print(f"\n{page}  refused after {time.monotonic() - t0:.1f} s: {exc}")
         return
     total = time.monotonic() - t0
+    if as_json:
+        phases = costs(runs / out.run_id / "steps.jsonl")
+        print(
+            json.dumps(
+                {
+                    "page": page,
+                    "total_s": round(total, 1),
+                    "phases": {p[0]: round(p[1], 1) for p in phases},
+                    "loads": sum(p[2] for p in phases),
+                    "outcomes": {
+                        f.test_id.value: f.outcome.value for f in out.report.findings
+                    },
+                    "run_id": out.run_id,
+                    "errors": out.errors,
+                }
+            )
+        )
+        return
     lim = out.report.versions.run_settings
     extra = len(out.report.other_pages) * lim.get("other_page_s", 0)
     print(f"\n{page}  (limit {limit + extra} s, total {total:.1f} s)")
@@ -141,6 +163,8 @@ async def main(argv: list[str]) -> None:
     ap.add_argument("--no-time-limit", action="store_true")
     ap.add_argument("--drafts", action="store_true")
     ap.add_argument("--other", action="append", default=[])
+    ap.add_argument("--json", action="store_true")
+    ap.add_argument("--keep", type=Path)
     args = ap.parse_args(argv)
     if args.drafts:
         sys.path.insert(0, str(FIXTURES.parent.parent))
@@ -150,9 +174,16 @@ async def main(argv: list[str]) -> None:
     egress.RESOLVER = _offline
     base = _serve()
     with tempfile.TemporaryDirectory() as tmp:
+        runs = args.keep or Path(tmp)
         for page in args.pages:
             await measure(
-                base, page, args.limit, Path(tmp), args.no_time_limit, args.other
+                base,
+                page,
+                args.limit,
+                runs,
+                args.no_time_limit,
+                args.other,
+                args.json,
             )
 
 

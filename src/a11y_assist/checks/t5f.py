@@ -64,9 +64,10 @@ _LIVE = "[aria-live=polite],[aria-live=assertive],[role=alert],[role=status],out
 _DLG = "dialog[open],[role=dialog],[role=alertdialog]"
 
 # Text: the "base" read (fresh load) notes every visible piece in the isolated
-# world, uncapped, and returns none; each later read returns only pieces not
-# noted then (an error message is new text, wherever it appears), at most
-# NEW_MAX. "capped": more than that, or the base read is gone (spec 1.1.0).
+# world, uncapped, and returns the first NEW_MAX (5.H reads them as page text);
+# each later read returns only pieces not noted then (an error message is
+# new text, wherever it appears), at most NEW_MAX. "capped": more than that,
+# or the base read is gone (spec 1.1.0).
 NEW_MAX = 200
 
 READ_JS = (
@@ -86,6 +87,7 @@ READ_JS = (
   });
   const texts = [];
   const base = mode === 'base';
+  const full = [];  // the base read's whole text, for 5.H's hint
   const seen = base ? new Set() : globalThis.__a11y5fSeen;
   let capped = !seen;
   const tw = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT);
@@ -96,9 +98,14 @@ READ_JS = (
     const t = n.textContent.replace(/\\s+/g, ' ').trim();
     if (!t) continue;
     const key = path(p) + '\\u0000' + t;
-    if (base) { seen.add(key); continue; }
-    if (seen.has(key)) continue;
-    if (texts.length >= NEW_MAX) { capped = true; break; }
+    if (base) {
+      seen.add(key);
+      full.push(t);
+      if (texts.length >= NEW_MAX) continue;  // the page's first text, for 5.H
+    } else {
+      if (seen.has(key)) continue;
+      if (texts.length >= NEW_MAX) { capped = true; break; }
+    }
     const live = p.closest(LIVE);
     const desc = descOf.filter(([d]) => d.contains(p)).map(([, i]) => i);
     const r = p.getBoundingClientRect();
@@ -130,7 +137,8 @@ READ_JS = (
   if (base) globalThis.__a11y5fSeen = seen;
   const a = doc.activeElement;
   const dialogs = Array.from(doc.querySelectorAll(DLG)).filter(vis).length;
-  return { texts, capped, live: Array.from(doc.querySelectorAll(LIVE)).map(path), fields,
+  return { texts, capped, all_text: full.join(" ").slice(0, 100000),
+           live: Array.from(doc.querySelectorAll(LIVE)).map(path), fields,
            focus: a && a !== doc.body && a !== doc.documentElement ? path(a) : null,
            dialogs, url: location.href };
 })""".replace("NEW_MAX", str(NEW_MAX))
@@ -226,6 +234,9 @@ class Read(BaseModel):
     url: str = ""
     failed: bool = False  # the page could not be read (it left)
     capped: bool = False  # new text past NEW_MAX, or the base read was lost
+    # Base read only: all visible text, for 5.H's hint at collect time; never
+    # saved (it would bloat the evidence files).
+    all_text: str = Field(default="", exclude=True)
 
 
 class AttemptE(BaseModel):
@@ -299,6 +310,7 @@ def _read_of(got: Any, moment: str, fields: list[Field5D]) -> Read:
         moment=moment,
         texts=got.get("texts") or [],
         capped=bool(got.get("capped")),
+        all_text=got.get("all_text") or "",
         live=got.get("live") or [],
         fields={str(f.n): v for f, v in zip(fields, got.get("fields") or [])},
         focus=got.get("focus"),
@@ -556,6 +568,8 @@ async def run_attempts(
     if btn_n is not None:
         form.tried.append(btn_n)
     for kind in (1, 2):
+        if kind == 2 and not (form.text or form.dates):
+            continue  # nothing to make wrong: attempt 2 does not apply (1.1.0)
         if ctx.out_of_time():
             ps.incomplete.append(
                 "The run time limit was reached before every form was checked."
@@ -1081,7 +1095,9 @@ def is_none(st: State5F, i: Inst5F) -> bool:
 
 def incomplete_of(ps: PassE) -> list[str]:
     out = list(ps.incomplete)
-    if ps.p1["end"] not in ("wrap", "stuck", "loop"):
+    # A page with no form field at all (the DOM inventory counts every one,
+    # reachable or not) hides none past the walk's end.
+    if ps.p1["end"] not in ("wrap", "stuck", "loop") and ps.inventory_fields > 0:
         out.append(
             "The Tab walk did not get through the whole page, so some fields may not have been checked."
         )

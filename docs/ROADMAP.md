@@ -4,15 +4,17 @@ What is left to build, newest priorities first. A living list, not a log:
 delete an item once it is built, and put any decision it needed into the
 spec, CLAUDE.md or `docs/solutions/` where it belongs.
 
-## Now: Test 4, five form tests and the multi-page batch are built
+## Now: Tests 4 and 5, the multi-page batch and 19.A are built
 
 Built (spec 1.0.0+, check registered, fixtures green): 4.A, 4.B, 4.C, 4.D,
-4.E, 4.F, 5.A (Label provided), 5.C (Programmatic label, from ANDI's
-output), 5.D (On input), 5.F (Error identification), 5.G (Error
-suggestion), and 9.A (Bypass), 9.B (Consistent navigation) and 9.C
-(Consistent identification). Judge eval (fresh agents, no scripted
-answers): 43/44 Test 4 fixtures and every 5.x and 9.x packet, no false
-PASS ([evals/README.md](../evals/README.md)). Every implemented test fits
+4.E, 4.F, 5.A (Label provided), 5.B (Label descriptive), 5.C
+(Programmatic label, from ANDI's output), 5.D (On input), 5.F (Error
+identification), 5.G (Error suggestion), 5.H (Error prevention; 5.E is
+obsolete in TT 5.1.3), 9.A (Bypass), 9.B (Consistent navigation), 9.C
+(Consistent identification) and 19.A (Multiple ways). Judge eval (fresh agents, no scripted
+answers): 43/44 Test 4 fixtures and every 5.x, 9.x and 19.A packet, no
+false PASS after fixes (5.A 1.1.0's rubric change gave two, fixed: runs 12
+and 13; [evals/README.md](../evals/README.md)). Every implemented test fits
 one 120 s call on the realistic pages in `tests/fixtures/budget/` (the
 agency page has no margin left, so the next single-page test must find
 time elsewhere); pages too large to walk, or with more than 40 form
@@ -20,11 +22,14 @@ fields, are refused at once with a `no_time_limit` option
 ([solutions/time-budget.md](solutions/time-budget.md)). 9.A–9.C compare
 the page with 1–5 other pages of the same site the caller names
 (`other_pages`, the run limit +20 s each); without them they are NEEDS
-REVIEW at no cost ([solutions/multi-page.md](solutions/multi-page.md)).
+REVIEW at no cost ([solutions/multi-page.md](solutions/multi-page.md));
+19.A uses the same pages, then runs the site's own search live once if it
+must (the one approved exception to principle 5).
 
-Next: 5.B (label descriptive) and 5.H (error prevention) would complete
-Test 5 (fix their `tt.json` steps first, below); then the visual-versus-code
-cluster. Choose with the coverage map and CLAUDE.md's research rule.
+Next: 2.B, 2.C and 2.D (moving, auto-updating and changing content) as one
+batch on the walk's mutation log, 4.E's dialog detection and 5.F's
+live-region rule; then the visual-versus-code cluster. Choose with the
+coverage map and CLAUDE.md's research rule.
 
 Per-test leftovers live in each `docs/rules/<id>-build-tasks.md` (mostly
 browser checks on Windows headed Chrome, which this Linux container cannot
@@ -32,20 +37,34 @@ run).
 
 ## Soon
 
-- **`tt.json` steps for 5.B, 7.C and 16.B.** Each repeats the previous
+- **`tt.json` steps for 7.C and 16.B.** Each repeats the previous
   test's "How to Test" (the same PDF heading trap that scrambled 9.B, fixed
   2026-11-02; `tests/test_tt_source.py`). Fix each from its printed pages
   before building those tests, and the tt:// resource with it.
+- **9.x rows no fixture triggers (optional; do with the real-page eval).**
+  A coverage run (2026-11-02) reached about 91% of the 9.x check code; never
+  triggered: 9.A M6 (focus did not really move), M2, the 8-candidate cap,
+  a frame in the block, J1 `not_documented`/`unsure` and a documented key
+  that does not work; 9.B N1, N5 and visual order reversed the other way;
+  9.C C2 (a name on one page only), C5 and the all-dropped DNA; A2 (a page
+  or ANDI that cannot be read) end to end; `other_pages` through the MCP
+  tool, an other page that redirects off the host or fails to load, and the
+  "other pages not used" note. Real .gov templates matter more than these:
+  wait for the agent-eval pages, then add fixtures for whatever they show.
 - **Multi-page testing, one page per call (open; Abby, 2026-11-02).**
   Current: one call records the tested page plus up to 5 other pages; only
   the tested page gets the single-page tests, the others are comparison
-  pages for 9.A–9.C, and a page too slow for its 20 s share leaves 9.A–9.C
+  pages for 9.A–9.C and 19.A, and a page too slow for its 20 s share leaves those
   NEEDS REVIEW. Proposed: test each page of a batch in full, in its own
   call, then run the multi-page tests once at the end and add their results
   to every page's report. Open: where the recordings live between calls
   (runs are kept 24 h; the comparison needs several runs at once, or the
-  user's saved reports). Plan it with the next 9.A–9.C work and 19.A
-  (Multiple ways, also site-level), not on its own.
+  user's saved reports). Plan it with the next work on 9.A–9.C and 19.A
+  (Multiple ways), not on its own. Part of it: **add pages to an existing
+  run** (Abby, 2026-11-02). Today a second call with the suggested site map
+  or other pages is a new run; 19.A's summary tells the agent to run 19.A
+  alone and replace its result in the saved report. Later: append 9.A-9.C
+  and 19.A to the first run's report from its kept recordings.
 - **Progress on long calls.** Multi-page runs take up to 120 s + 20 s per
   other page. The tool sends MCP progress per phase and page; a consumer
   agent that hands the run to a subagent sees none of it. Find a way for a
