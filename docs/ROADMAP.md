@@ -76,6 +76,11 @@ run).
   at the same stops; 4.C reading pass R (traps inside revealed content);
   5.D and 5.F both filling fields. Build when a realistic page is over the
   limit again; the agency page is at 108 s of 110.
+- **Merge fixture pages (only if suite time matters again).** CI's test step
+  is 8 min 48 s (was 10 min 28 s before PR #5). Next saving: a simplify
+  review of `tests/` lists pages worth merging; a merged page keeps every
+  FAIL tied to its own instance and row, never only the page outcome (Abby,
+  2026-11-02).
 - **Large pages.** Pages over roughly 300 stops cannot be walked in one
   120 s call (F34, 600 links, is refused after ~5 s). Options if this
   matters for real sites: resumable runs (walk in one call, checks in the
