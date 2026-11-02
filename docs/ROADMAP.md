@@ -32,7 +32,7 @@ run).
 
 ## Soon
 
-- **`tt.json` steps for 5.B, 7.C and 16.B.** Each repeats the previous
+- **`tt.json` steps for 7.C and 16.B.** Each repeats the previous
   test's "How to Test" (the same PDF heading trap that scrambled 9.B, fixed
   2026-11-02; `tests/test_tt_source.py`). Fix each from its printed pages
   before building those tests, and the tt:// resource with it.
