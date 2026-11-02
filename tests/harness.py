@@ -60,12 +60,18 @@ def instance_rows(finding) -> list[str]:
 
 
 async def run_tests(
-    settings, url: str, tests, answers: dict[str, dict[str, dict[str, Any]]]
+    settings,
+    url: str,
+    tests,
+    answers: dict[str, dict[str, dict[str, Any]]],
+    other_pages: list[str] | None = None,
 ) -> dict[str, Any]:
     """Several tests in one call (tests that share a collection pass, such as
     5.A and 5.C). `answers` maps a test ID to its scripted answers, keyed by
     the question ID's last part. Returns each test's finding."""
-    out = await run_tt_tests(settings, url, [TestId(t) for t in tests])
+    out = await run_tt_tests(
+        settings, url, [TestId(t) for t in tests], other_pages=other_pages
+    )
     assert out.errors == [], out.errors
     report = out.report
     for _ in range(3):

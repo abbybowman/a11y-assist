@@ -62,7 +62,7 @@ Each candidate is an *instance*. A candidate's *jump* is the set of units strict
 | M3 | Every unit of B after the candidate is no longer rendered | Works: hides the block (covers those units) | Baseline 4.A ("hidden, closed"); SCR28; ACT 3e12e1 |
 | M4 | Some units of B after the candidate are no longer rendered | Works in part: covers those units | p. 43 HtT 3.a |
 | M5 | No landing, or the landing is not after the candidate | Does not work (target missing, nothing moved) | p. 43 ER 2; ACT ye5d6e failed 2 |
-| M6 | The next Tab reached a stop before the landing | Does not work (focus did not really move) | p. 43 ER 2 |
+| M6 | A stop exists after the landing, and the next Tab reached a stop before the landing | Does not work (focus did not really move). With no stop after the landing the Tab wraps or leaves the page, which says nothing (HtT 3.b) | p. 43 ER 2, HtT 3.b |
 | M7 | The landing is at or before M | Works: covers its jump | G1; Baseline 4.A ("past the repetitive content only") |
 | M8 | The landing is past M and M is `main` or `h1` | Does not work: skips main content | p. 43 Note 2 |
 | J2? | The landing is past M, M is `first_unique`, J2 not answered | NEEDS REVIEW | Open question (Q2) |

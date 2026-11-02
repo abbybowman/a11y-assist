@@ -104,7 +104,7 @@ UNITS_FN = (
       (ti !== null && ti.trim() !== '' && parseInt(ti, 10) >= 0);
   };
   const units = (cap) => {
-    const out = [], regions = [], counts = {};
+    const out = [], regions = [], counts = {}, els = [];
     let truncated = false;
     const box = (el) => {
       const r = el.getBoundingClientRect();
@@ -112,6 +112,7 @@ UNITS_FN = (
     };
     const push = (el, u, chain) => {
       if (out.length >= cap) { truncated = true; return false; }
+      els.push(el);
       const inner = chain.filter((k) => !k.startsWith('main|'));
       out.push(Object.assign({ i: out.length, css: path(el), regions: chain.slice(),
         region_role: inner.length ? inner[inner.length - 1].split('|')[0] : '',
@@ -159,12 +160,12 @@ UNITS_FN = (
       for (const c of el.children) walk(c, chain);
     };
     if (document.body) walk(document.body, []);
-    return { units: out, regions, truncated, url: location.href };
+    return { units: out, regions, truncated, url: location.href, els };
   };
 """
 )
 
-READ_JS = "(cap) => {" + UNITS_FN + " return units(cap); }"
+READ_JS = "(cap) => {" + UNITS_FN + " const r = units(cap); delete r.els; return r; }"
 
 
 class Unit(BaseModel):
