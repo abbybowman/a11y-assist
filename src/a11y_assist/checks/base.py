@@ -58,6 +58,17 @@ from a11y_assist.walk import ExtraFactory, KeyboardWalk
 
 
 @dataclass
+class PageRef:
+    """Another page of the same site (9.A-9.C): a fresh load of its own HAR
+    per call to `new_page`."""
+
+    n: int  # 1-based, in the caller's order
+    url: str
+    final_url: str
+    new_page: NewPage
+
+
+@dataclass
 class RunContext:
     """What a check may use while collecting evidence for one page."""
 
@@ -73,6 +84,9 @@ class RunContext:
     cache: dict[str, Any] = field(default_factory=dict)
     third_party: Path | None = None  # vendored ANDI (andi.install_andi_routes)
     selected: frozenset[str] = frozenset()  # TT test IDs in this call ("5.A")
+    # Other pages of the same site the caller named (empty: none given). Only
+    # recorded when a selected check compares pages (`uses_pages`).
+    pages: list[PageRef] = field(default_factory=list)
 
     def out_of_time(self) -> bool:
         """Past the checks' deadline (4.C spec section 2, Run limits). Use it

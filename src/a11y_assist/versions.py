@@ -33,6 +33,7 @@ def collect_versions(
             "settle_quiet_ms": settings.settle_quiet_ms,
             "record_scroll_passes": settings.record_scroll_passes,
             "run_limit_s": settings.run_limit_s,
+            "other_page_s": settings.other_page_s,
             # The caller turned the run limit off for this run (a11y_run_tt_tests).
             "no_time_limit": no_time_limit,
         },

@@ -391,6 +391,16 @@ class Versions(BaseModel):
     )
 
 
+class OtherPage(BaseModel):
+    """Another page of the same site the caller named (9.A-9.C), recorded as
+    its own HAR. Chosen by the caller, never by page content."""
+
+    n: int = Field(description="1-based, in the order given.")
+    url: str
+    final_url: str | None = None
+    har: str = Field(description="HAR path relative to the run folder.")
+
+
 class Report(BaseModel):
     disclaimer: str = NOT_CERTIFIED_DISCLAIMER
     certified: Literal[False] = False
@@ -398,6 +408,9 @@ class Report(BaseModel):
     target: str
     tests: list[str] = Field(default_factory=list, description="TT test IDs run.")
     final_url: str | None = None
+    other_pages: list[OtherPage] = Field(
+        default_factory=list, description="Other pages of the same site compared."
+    )
     started_at: datetime
     finished_at: datetime | None = None
     versions: Versions
