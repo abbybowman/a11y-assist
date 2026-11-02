@@ -154,13 +154,14 @@ async def test_no_test_is_reported_not_tested(settings):
         "9.A": "NEEDS_REVIEW",
         "9.B": "NEEDS_REVIEW",
         "9.C": "NEEDS_REVIEW",
+        "19.A": "NEEDS_REVIEW",
     }
     for t in built:
         assert by_id[t]["outcome"] == expected.get(t, "PASS"), (t, by_id[t]["summary"])
     for f in [f for t, f in by_id.items() if t not in built]:
         assert f["outcome"] == "NEEDS_REVIEW"
         assert f["note"] == "This test could not be performed"
-    for t in ("9.A", "9.B", "9.C"):
+    for t in ("9.A", "9.B", "9.C", "19.A"):
         assert by_id[t]["note"] == "This test could not be performed"
         assert "other_pages" in by_id[t]["summary"]
     for t in by_id:

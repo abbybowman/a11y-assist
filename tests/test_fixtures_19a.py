@@ -14,7 +14,13 @@ from .harness import run_tests
 # case -> (tested page, other pages, expected outcome, rows, answers)
 EXPECTED: dict[str, tuple[str, list[str], str, list[str], dict]] = {
     "nav-and-site-map": ("t-benefits", ["home", "sitemap"], "PASS", ["W1", "G2"], {}),
-    "nav-and-related-link": ("t-benefits", ["home", "related"], "PASS", ["W1", "G2"], {}),
+    "nav-and-related-link": (
+        "t-benefits",
+        ["home", "related"],
+        "PASS",
+        ["W1", "G2"],
+        {},
+    ),
     "nav-and-live-search": ("t-benefits", ["home"], "PASS", ["W1", "W2", "G2"], {}),
     "search-finds-nothing": (
         "t2-status",

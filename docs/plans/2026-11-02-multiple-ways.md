@@ -1,4 +1,4 @@
-# Plan: 19.A Multiple ways (2026-11-02)
+# Plan: 19.A Multiple ways (2026-11-02, done: 1.0.0)
 
 The literal order of work. Rules live in
 [19a-multiple-ways.md](../rules/19a-multiple-ways.md); Abby's answers are

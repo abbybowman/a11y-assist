@@ -59,8 +59,8 @@ def test_every_active_test_has_its_blocks_and_text_in_its_section_file():
 def test_each_test_has_its_own_steps():
     """9.B's heading breaks over a line in the PDF ("consistent- navigation"),
     so the first conversion gave 9.B 9.A's steps and put 9.B's text in 9.C's
-    Identify Content (fixed by hand from pp. 43-44, 2026-11-02). 7.C and 16.B still repeat
-    the previous test's steps (docs/ROADMAP.md)."""
+    Identify Content (fixed by hand from pp. 43-44, 2026-11-02). 7.C and 16.B
+    still repeat the previous test's steps (docs/ROADMAP.md)."""
     t = {x["id"]: x for x in DATA["tests"] if x["status"] == "active"}
     assert t["9.B"]["how_to_test"] != t["9.A"]["how_to_test"]
     assert t["9.B"]["how_to_test"].startswith("1. Review multiple web pages")
