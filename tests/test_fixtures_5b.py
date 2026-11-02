@@ -49,3 +49,36 @@ async def test_act_case(case_id, settings, act_server, drafts):  # noqa: F811
     assert f.outcome.value == case["expected"], (f.rows, f.summary)
     if case["expected"] == "FAIL":
         assert "M2" in instance_rows(f)
+
+
+def test_an_option_in_a_set_does_not_take_the_legend_as_its_label():
+    """5.B 1.1.0 (5.A's rule): the legend is the option's group, never its
+    label. Built evidence: no ACT or Baseline 5.B case has a radio set."""
+    from a11y_assist.checks.t5b import items_of
+    from a11y_assist.labels import Comp, LabelsPass
+
+    legend = {"text": "How should we contact you?", "shown": True, "group": True}
+
+    def radio(n, own):
+        shown = [legend] + (
+            [{"text": own, "shown": True, "group": False}] if own else []
+        )
+        return Comp(
+            n=n,
+            css=f"#c{n}",
+            type="radio",
+            option=True,
+            set_size=2,
+            group="f:radio:contact",
+            group_labels=[legend["text"]],
+            label_shown=shown,
+            nearby=[legend["text"], *([own] if own else [])],
+            nearby_own=[own] if own else [],
+        )
+
+    items, _, no_label = items_of(
+        LabelsPass(components=[radio(1, "Email"), radio(2, "")])
+    )
+    assert [(i.label, i.group) for i in items] == [("Email", legend["text"])]
+    assert legend["text"] not in items[0].near
+    assert no_label == 1  # the blank option: no label of its own (5.A M2o)
