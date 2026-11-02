@@ -273,6 +273,15 @@ def evaluate(st: State5B, evidence_refs: list[str]) -> Finding:
             evidence_refs,
             note=True,
         )
+    if not st.items and lp.incomplete:
+        # Unread fields may have labels to judge: not DNA (spec A2, 1.1.0).
+        return _finding(
+            Outcome.NEEDS_REVIEW,
+            REVIEW_HEAD + " " + " ".join(lp.incomplete),
+            ["A3", "G1"],
+            evidence_refs,
+            note=True,
+        )
     if not st.items:
         return _finding(
             Outcome.DNA,

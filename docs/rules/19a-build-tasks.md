@@ -1,6 +1,6 @@
 # Build tasks: 19.A
 
-Spec [19a-multiple-ways.md](19a-multiple-ways.md) 1.0.0 (Abby,
+Spec [19a-multiple-ways.md](19a-multiple-ways.md) 1.1.0 after the PR #4 review (1.0.0: Abby,
 2026-11-02, including G4) is built as `checks/t19a.py` on the shared `site.py` read (each page's title
 and search forms added) and `RunContext.record_live` (the live site
 search), registered.

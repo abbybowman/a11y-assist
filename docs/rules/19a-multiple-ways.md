@@ -1,7 +1,7 @@
 ---
 tt_test: 19.A
 tt_name: 2.4.5-multiple-ways
-spec_version: 1.0.0
+spec_version: 1.1.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -17,13 +17,13 @@ The tool gives each page one 19.A outcome: PASS, FAIL, DOES NOT APPLY or NEEDS R
 **Terms.**
 - *Other pages*, the site read, *units*, *regions*: [9a-bypass.md](9a-bypass.md) Terms and section 2. Other pages come from the caller (CLAUDE.md principle 5); the one exception is the live search below.
 - *T*: the tested page's final URL. A link *leads to T* when its destination equals T (absolute, fragment dropped, trailing slash ignored).
-- *Kinds of way* (Abby, 2026-11-02: two ways means two different kinds, from the TT's list):
+- *Kinds of way* (Abby, 2026-11-02: two ways means two different kinds, from the TT's list). A link inside a navigation, banner or contentinfo region is navigation on every page, a site map page and a search results page included: those regions are the site's shared template, not the site map's list or the search's results (1.1.0, Abby 2026-11-02):
   - *navigation*: a link to T on another page, inside a navigation, banner or contentinfo region (menus, dropdowns, trees, header and footer link lists; breadcrumbs);
   - *table of contents*: a link to T inside a region or list labelled "contents" or "on this page";
-  - *site map*: a link to T on another page that is a site map (its title or first heading says "site map" or "sitemap", or a link named so leads to it);
+  - *site map*: a link to T, outside those regions, on another page that is a site map: a page people can see and reach from a visible link (its title or first heading says "site map" or "sitemap", or a link named so leads to it). An XML sitemap for search engines is not a way for people (1.1.0);
   - *links between pages*: a link to T anywhere else on another page (its content);
   - *search*: the site search leads to T (below).
-- *Search form*: a form with role search, a search field, or a field named `q`, `query`, `search`, `s`, `k` or `keyword`, on T or on another page.
+- *Search form*: a form with role search, a search field, or a field named `q`, `query`, `search`, `s`, `k`, `keyword`, `keywords`, `searchterm` or `term` (the last three 1.1.0), on T or on another page.
 - *Live search* (Abby, 2026-11-02: exhaust the pages first, then run the search on the live site): only when the caller's pages show fewer than two kinds and a search form exists. One search per run: the form must submit by GET; its action URL must pass the allowlist and be on T's host (the allowlist is checked on every redirect hop, the host at the end); the term is T's first `h1`, else its title; the request carries the form's own hidden fields and the term, nothing else. The results page is recorded as its own HAR and read like another page. Search counts as a way when the results page links to T (HtT 2.b; G161 step 5).
 - *Suggested pages*: same-host URLs the pages link to that could show more ways and were not given: links named "site map", "sitemap" or "A-Z index"; the home page (a link to the site's root, or named "home"); breadcrumb links. At most 5. They are proposed for the calling agent to ask the user about, never visited by the tool (Abby, 2026-11-02).
 - *Process hint*: T's text has "step N of M", "review your", "confirm", "confirmation", "order summary" or "thank you for", and T has a form with a submit button.
@@ -54,9 +54,9 @@ The instance is the page: the kinds of way found.
 | # | Evidence pattern | Result | Source |
 | --- | --- | --- | --- |
 | W1 | Links to T on the other pages, each classified by kind (Terms) | Kinds found | p. 75 HtT 1, 2.a |
-| W2 | Fewer than two kinds, a search form, the live search allowed and run, its results link to T | Adds search | p. 75 HtT 2.b; G161 |
+| W2 | Fewer than two kinds, a search form, the live search allowed and run, its results link to T (outside navigation, banner and contentinfo regions, 1.1.0) | Adds search | p. 75 HtT 2.b; G161 |
 | W3 | The live search ran and its results do not link to T | Search does not lead to T (not a way) | p. 75 ER 2 |
-| W4 | The search form cannot be run (POST, script only, off host, blocked, time) | Search not verified | Spec rule |
+| W4 | The search form cannot be run (POST, script only, off host, blocked, time, or longer than a caller-named page's 20 s share), or its results page was over the read cap and did not link to T (1.1.0) | Search not verified | Spec rule |
 
 **3b. Page outcome (first match wins)**
 

@@ -215,6 +215,10 @@ uv run pytest                    # Playwright Chromium, headless, one worker per
 uv run pytest -n 8               # tests mostly wait, so 2x CPUs is faster (~3.5 min)
 uv run pytest -n0 tests/test_fixtures_4e.py -k f03   # one fixture while building
 uv run pytest -m slow            # long fixtures (F34 with no_time_limit, ~4.5 min)
+# Agents: for long runs, keep one line per test in a log and report progress
+# from it (done of total, failures by name), never only the final -q summary:
+uv run pytest -n 4 -v -p no:cacheprovider > "$TEMP/pytest.log" 2>&1   # then:
+grep -cE " (PASSED|FAILED|ERROR|SKIPPED|XFAIL)" "$TEMP/pytest.log"; grep -E "FAILED|ERROR" "$TEMP/pytest.log"
 uv run python evals/judge_eval.py prepare /tmp/eval   # judge eval packets ...
 uv run python evals/judge_eval.py apply /tmp/eval     # ... after one agent answers them
 uv run python evals/time_budget.py budget/agency-home.html   # where a run's time goes

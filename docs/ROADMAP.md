@@ -60,7 +60,11 @@ run).
   to every page's report. Open: where the recordings live between calls
   (runs are kept 24 h; the comparison needs several runs at once, or the
   user's saved reports). Plan it with the next work on 9.A–9.C and 19.A
-  (Multiple ways), not on its own.
+  (Multiple ways), not on its own. Part of it: **add pages to an existing
+  run** (Abby, 2026-11-02). Today a second call with the suggested site map
+  or other pages is a new run; 19.A's summary tells the agent to run 19.A
+  alone and replace its result in the saved report. Later: append 9.A-9.C
+  and 19.A to the first run's report from its kept recordings.
 - **Progress on long calls.** Multi-page runs take up to 120 s + 20 s per
   other page. The tool sends MCP progress per phase and page; a consumer
   agent that hands the run to a subagent sees none of it. Find a way for a

@@ -65,6 +65,9 @@ ANSWERS = {
         (c, "5.H"): {"J1": {"choice": "one_page", "element": 1}}
         for c in ("TC10.G-2.a-pass-1", "TC10.G-2.b-pass-1", "TC10.G-all-fail-1")
     },
+    # Its text says the form "does not change" data: the 1.1.0 hint word
+    # "change" asks J1, and a correct agent answers no consequences.
+    ("TC10.G-ic-dna-2", "5.H"): {"J1": {"choice": "not_consequential", "element": 1}},
     ("TC10.G-2.c-pass-1", "5.H"): {
         "J1": {"choice": "multi_step", "element": 1},
         "J2": {"choice": "review_step"},
