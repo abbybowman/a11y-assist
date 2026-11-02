@@ -37,7 +37,7 @@ pages in `tests/fixtures/5f/` only for what they do not cover:
 | V1 | A text change outside any live region, with focus left where it was, is told apart from one inside a live region (read at the time of the change) | Notice, M7 |
 | V2 | Checked (Linux headless Chromium, 2026-11-01): Playwright records a JS `alert` message; after dismissing it focus is where the page sent it (TC10.D-all-pass-1: the field) | Notice, M6 |
 | V3 | Checked (Linux headless Chromium, 2026-11-01): Enter on a submit button fires `invalid` on every invalid field, blocks the submission and focuses the first; `validationMessage` reads "Please fill out this field." and "Please include an '@' in the email address. 'abc' is missing an '@'." (f01). Left: Enter in a text field, headed Chrome's bubble | M2 |
-| V4 | Windows headed Chrome: every fixture gives the same outcome (cannot run from Linux) | All rows |
+| V4 | Checked (Windows, installed Chrome 156 headed, 2026-11-02): every 5.F, 5.G and 5.H fixture gives the same outcome | All rows |
 
 ## Left to do
 
@@ -47,5 +47,5 @@ pages in `tests/fixtures/5f/` only for what they do not cover:
 - Scripted answers apply one answer to every J1 of a page (f03's valid
   name field is scripted "described" where an agent says no_error; same
   outcome). The judge eval checks real answers.
-- V1, V4 and Enter-in-a-text-field native validation (V3) on Windows
+- V1 and Enter-in-a-text-field native validation (V3) on Windows
   headed Chrome; real government forms.

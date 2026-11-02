@@ -219,6 +219,7 @@ uv run pytest -m slow            # long fixtures (F34 with no_time_limit, ~4.5 m
 # from it (done of total, failures by name), never only the final -q summary:
 uv run pytest -n 4 -v -p no:cacheprovider > "$TEMP/pytest.log" 2>&1   # then:
 grep -cE " (PASSED|FAILED|ERROR|SKIPPED|XFAIL)" "$TEMP/pytest.log"; grep -E "FAILED|ERROR" "$TEMP/pytest.log"
+cat runs/test-progress.txt       # any run: done of total, elapsed, rough ETA, failures
 uv run python evals/judge_eval.py prepare /tmp/eval   # judge eval packets ...
 uv run python evals/judge_eval.py apply /tmp/eval     # ... after one agent answers them
 uv run python evals/time_budget.py budget/agency-home.html   # where a run's time goes

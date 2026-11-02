@@ -409,7 +409,11 @@ if __name__ == "__main__":
     REGISTRY.update(DRAFTS)
     # prepare OUT [TESTS]: TESTS (e.g. "5.F,5.G") limits the run to the
     # tests whose questions or inputs changed.
-    cmd, out = sys.argv[1], Path(sys.argv[2]).resolve()
+    args = sys.argv[1:]
+    # "prepare --help" once wrote packets into the repo (2026-11-02).
+    if len(args) < 2 or args[0] not in ("prepare", "apply") or args[1][:1] == "-":
+        sys.exit("usage: judge_eval.py prepare|apply OUT [TESTS, e.g. 5.F,5.G]")
+    cmd, out = args[0], Path(args[1]).resolve()
     only = set(sys.argv[3].split(",")) if len(sys.argv) > 3 else None
     out.mkdir(parents=True, exist_ok=True)
     os.chdir(REPO)
