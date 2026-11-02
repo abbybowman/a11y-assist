@@ -1,0 +1,4 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Pay a fee: step 2 of 2</title></head><body>
+<main><h1>Pay your permit fee: step 2 of 2</h1><form id="f"><p><label for="nm">Name on card</label> <input id="nm" name="nm"></p><p><input type="checkbox" id="ok"> <label for="ok">I confirm the payment details are correct</label></p><p id="msg"></p><button type="submit">Pay now</button></form><div id="out" hidden tabindex="-1"></div></main>
+<script>document.getElementById("f").addEventListener("submit",(e)=>{e.preventDefault();if(!document.getElementById("ok").checked){document.getElementById("msg").textContent="Tick the box to confirm your payment details before paying.";return;}const o=document.getElementById("out");o.innerHTML="<h2>Payment complete</h2><p>Your card has been charged.</p>";o.hidden=false;document.getElementById("f").hidden=true;o.focus();});</script>
+</body></html>
