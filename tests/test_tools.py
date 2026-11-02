@@ -150,12 +150,19 @@ async def test_no_test_is_reported_not_tested(settings):
         "5.G": "DNA",
         "5.A": "NEEDS_REVIEW",
         "5.C": "NEEDS_REVIEW",
+        # No other pages given: not performed (9.A-9.C specs, A1).
+        "9.A": "NEEDS_REVIEW",
+        "9.B": "NEEDS_REVIEW",
+        "9.C": "NEEDS_REVIEW",
     }
     for t in built:
         assert by_id[t]["outcome"] == expected.get(t, "PASS"), (t, by_id[t]["summary"])
     for f in [f for t, f in by_id.items() if t not in built]:
         assert f["outcome"] == "NEEDS_REVIEW"
         assert f["note"] == "This test could not be performed"
+    for t in ("9.A", "9.B", "9.C"):
+        assert by_id[t]["note"] == "This test could not be performed"
+        assert "other_pages" in by_id[t]["summary"]
     for t in by_id:
         if t not in built:
             assert "No rules exist" in by_id[t]["summary"], t

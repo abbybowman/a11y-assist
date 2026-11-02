@@ -1,7 +1,7 @@
 ---
 tt_test: 9.C
 tt_name: 3.2.4-consistent-identification
-spec_version: 0.1.0
+spec_version: 1.0.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -18,7 +18,7 @@ The tool gives each page one 9.C outcome: PASS, FAIL, DOES NOT APPLY or NEEDS RE
 1. *Same destination*: links to the same address (absolute, fragment dropped unless the link is to the same page).
 2. *Same id*: same role and the same non-empty `id`.
 3. *Same name*: same role, same region role and the same ANDI name.
-4. *Same place*: the same role at the same position among that role's components in matched regions, when both regions have the same number of them (a search button named "Search" here and "Go" there).
+4. *Same place*: the same role at the same position among that role's components in the same innermost region (not `main`) on both pages, when both regions have the same number of them (a search button named "Search" here and "Go" there).
 Names and descriptions *agree* when they are equal after collapsing spaces and ignoring case.
 
 ## 1. Applicability
@@ -34,7 +34,7 @@ Names and descriptions *agree* when they are equal after collapsing spaces and i
 
 **ANDI read** of the tested page and each other page (above): per focusable element, its CSS path, role, region, link destination, `id`, and ANDI's name and description. Pairs are made from these. Nothing is clicked.
 
-**Time budget:** one load with ANDI per page (about 2–3 s each), run only with other pages, within the time they add to the run limit.
+**Time budget:** one load with ANDI per page, all pages at once (measured 0.9 s for the agency budget page and one other page, Linux headless, 2026-11-02), run only with other pages, within the time they add to the run limit.
 
 ## 3. Mechanical checks
 

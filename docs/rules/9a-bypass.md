@@ -1,7 +1,7 @@
 ---
 tt_test: 9.A
 tt_name: 2.4.1-bypass-function
-spec_version: 0.2.0
+spec_version: 1.0.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -51,7 +51,7 @@ Candidates are tried in walk order and the tries stop as soon as the block is by
 
 **Documented keys** (Abby, 2026-11-02: tried only when the page documents them): only after J1 names a key, one fresh load, the key pressed from the top of the page, then the same reads.
 
-**Time budget:** the site read is one load and one DOM read per page (about 1 s each); candidate replays one each (about 1–2 s; usually one or two candidates). All of it runs only with other pages, within the time those pages add to the run limit (`OTHER_PAGE_S` each).
+**Time budget:** the site read is one load and one DOM read per page; candidate replays one each, stopping once the block is bypassed. Measured (Linux headless, 2026-11-02): the agency budget page with one other page, 1.2 s for the site read and one replay (9.7 s before the early stop, with all 8 candidates). All of it runs only with other pages, within the time those pages add to the run limit (`OTHER_PAGE_S` each).
 
 ## 3. Mechanical checks
 

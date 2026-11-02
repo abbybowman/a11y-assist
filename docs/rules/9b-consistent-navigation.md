@@ -1,7 +1,7 @@
 ---
 tt_test: 9.B
 tt_name: 3.2.3-consistent-navigation
-spec_version: 0.1.0
+spec_version: 1.0.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -14,7 +14,7 @@ The tool gives each page one 9.B outcome: PASS, FAIL, DOES NOT APPLY or NEEDS RE
 
 **Other sources.** [Understanding 3.2.3](https://www.w3.org/WAI/WCAG22/Understanding/consistent-navigation.html): consistent "visual layout and source order"; examples: a search field, a navigation menu, a skip link; insertions and removals allowed; a change "initiated by the user" (preferences, adaptive user agents) is excepted. Sufficient [G61](https://www.w3.org/WAI/WCAG22/Techniques/general/G61) (list the repeated components; check each is in the same relative order "with regard to other repeated components", and each navigational component's links "in the same relative order"). Failure [F66](https://www.w3.org/WAI/WCAG22/Techniques/failures/F66): "check the default presentation of the navigation mechanism on each page to see if the list of links are in the same relative order"; "secondary navigation items may be in between". No ACT rule; no DHS ACT data. ICT Testing Baseline 3.1 4.B-ConsistentNavigation: "Review multiple Web pages. Do not initiate changes to the content"; navigational mechanisms are "both interactive and non-interactive" and "may or may not be contained within a block of content". No Baseline Alignment cases.
 
-**Terms.** *Other pages*, *unit*, *region* and the site read: [9a-bypass.md](9a-bypass.md) Terms and section 2. A *component* is a control unit (link, button, field) or a region. Components *match* across two pages when they have the same kind, the same region role, the same name (lower case, spaces collapsed) and, for links, the same destination (absolute, without the fragment unless it is a same-page link); several equal ones pair in order. A component inside the `main` landmark of either page is content, not navigation, and is left out. Order is checked two ways: *source order* (reading order) and *visual order* (a comes before b when a's box ends above b's box, or they share a line and a is to the left; pairs with neither relation are not compared).
+**Terms.** *Other pages*, *unit*, *region* and the site read: [9a-bypass.md](9a-bypass.md) Terms and section 2. A *component* is a control unit (link, button, field) or a region. Components *match* across two pages when they have the same kind, the same region role, the same name (lower case, spaces collapsed) and, for links, the same destination (absolute, without the fragment unless it is a same-page link); several equal ones pair in order. A component inside the `main` landmark of either page is content, not navigation, and is left out. Order is checked two ways: *source order* (reading order; controls are compared with controls and regions with regions) and *visual order* (controls only: a comes before b when a's box ends above b's box, or they share a line and a is to the left; pairs with neither relation are not compared).
 
 ## 1. Applicability
 

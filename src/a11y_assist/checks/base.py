@@ -5,7 +5,7 @@ A check never decides an outcome outside its rules spec (CLAUDE.md principle
 2): `evaluate` applies the spec's rows to the evidence, and nothing else does.
 
 Adding a check (4.D, 4.E, 4.F and 5.D were built this way; copy t4e.py, the
-smallest, or t5d.py for a form test):
+smallest, t5d.py for a form test, or t9b.py for a multi-page test):
   1. Research first (CLAUDE.md): the TT text, W3C Understanding and its
      techniques, ACT rules and DHS's verdicts, the ICT Testing Baseline
      test and its Baseline Alignment cases; read the vendored pages before
@@ -28,6 +28,9 @@ smallest, or t5d.py for a form test):
      tests/harness.py run_check(). Use ctx.replay for replays and
      ctx.out_of_time() before each one; a page whose items exceed a cap the
      check declares (`cap`) is refused at the first load.
+     A test that compares pages sets `uses_pages = True` and reads
+     `site.site_read(ctx)` (each page once, cached) and `ctx.pages`;
+     without other pages it is not performed and costs nothing (9.A-9.C).
      Open questions: link files as run:// (never run-folder paths), put
      evidence several questions share in shared_inputs(state), and give the
      agent what its rubric asks about (an eval found a rubric judged on half
