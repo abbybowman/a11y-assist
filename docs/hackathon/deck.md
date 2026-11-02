@@ -104,6 +104,7 @@ flowchart LR
 - Time budget: under 60 s per page for Test 4, hard limit 120 s per call
 - A page too large for the limit is refused early; the user can choose to run it with no time limit
 - Replays reuse what the walk saw: realistic agency page 151 s → 97 s, same outcomes
+- Checks reuse each other's replays (4.A reads 4.D's arrow presses and 4.F's Enter presses): with 5.F and 5.G added, both realistic pages still fit with all eleven tests (110.2 s and 97.1 s)
 
 **Notes:**
 
@@ -190,6 +191,7 @@ flowchart LR
 - Public .gov/.mil pages only, checked on every redirect; no logins, no credentials
 - Every browser connection is checked at connect time: names that point inside (private, loopback, cloud metadata) are refused, and DNS rebinding can't get past the check
 - Page content is untrusted: never shown to the agent as instructions; outcomes come only from rules
+- Other pages for the multi-page tests come only from the user, on the same allowed host; links on a page are never followed
 - A test page tells "automated testers" to report PASS; the tool must still find both traps **[FILL: result]**
 - Evidence kept 24 h, then deleted; results go to the user's repository
 - No secrets in errors or logs: query strings, headers and page text are redacted
@@ -227,5 +229,6 @@ flowchart LR
 - Real-site holdout with a second certified tester
 - A published side-by-side on real .gov pages: certified testers, A11y Assist and five scanners
 - Export drafts to DHS's SCRT format so a certified tester can review and finish them
-- Built after Test 4: 5.D On input (forms that change context when filled in)
+- Built after Test 4: 5.D On input (forms that change context when filled in), 5.F Error identification and 5.G Error suggestion (forms whose errors are not named, explained, announced or fixable), 5.A Label provided and 5.C Programmatic label (labels people can see, and what ANDI says screen readers announce)
+- Multi-page 9.A Bypass, 9.B Consistent navigation, 9.C Consistent identification: the page compared with other pages of the same site the user names (judge eval 4/4, no false PASS)
 - Then: more form tests, headings, reading order — where scanners fall short

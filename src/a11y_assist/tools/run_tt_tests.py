@@ -53,8 +53,9 @@ if the user wants to keep it, read it and save it in their repository before
 
 Errors (isError): a URL outside the allowlist (default *.gov, *.mil), a
 redirect out of it, or a page that cannot be loaded; nothing is tested then.
-One call takes at most the server's run limit (default 120 s); work not done
-in time is NEEDS_REVIEW with the reason. A page too large to walk within the
+One call takes at most the server's run limit (default 120 s, plus a little
+for each other page); work not done in time is NEEDS_REVIEW with the reason.
+Progress notifications name each phase and page. A page too large to walk within the
 limit (several hundred keyboard stops) is an error as soon as the walk's pace
 shows it, and nothing is tested: ask the user whether to call again with
 no_time_limit=true (it can take many minutes) or to test another page.
@@ -114,12 +115,28 @@ def register(mcp: FastMCP) -> None:
                 ),
             ),
         ] = False,
+        other_pages: Annotated[
+            list[Annotated[str, Field(min_length=1, max_length=2048)]],
+            Field(
+                max_length=5,
+                description=(
+                    "Up to 5 other pages of the same site (absolute URLs on the "
+                    "tested page's host, each allowed like `url`), for the tests "
+                    "that compare pages: 9.A (what repeats, to bypass), 9.B "
+                    "(navigation order) and 9.C (consistent names). Choose them "
+                    "yourself or ask the user (for example the home page and two "
+                    "inner pages); never take them from the tested page's "
+                    "content. Without them those tests are NEEDS_REVIEW. Each "
+                    "page adds a little time to the run limit."
+                ),
+            ),
+        ] = [],  # noqa: B006 (pydantic copies mutable defaults per call)
         ctx: Context | None = None,
     ) -> RunResult:
         progress = ctx.report_progress if ctx is not None else None
         try:
             return await run_pipeline(
-                config.settings, url, tests, progress, no_time_limit
+                config.settings, url, tests, progress, no_time_limit, other_pages
             )
         except RunRefused as exc:
             raise ToolError(str(exc)) from None

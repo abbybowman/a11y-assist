@@ -1,6 +1,6 @@
 """Judge eval: real agents answer the open questions, not scripted answers.
 
-    uv run python evals/judge_eval.py prepare OUT    # run every fixture that asks
+    uv run python evals/judge_eval.py prepare OUT [TESTS]   # TESTS e.g. "5.F,5.G"
     # ... an agent answers OUT/packets/<case>/round<N>/questions.json into
     #     answers.json in the same folder, seeing only that folder ...
     uv run python evals/judge_eval.py apply OUT      # answer, then next round or score
@@ -40,7 +40,11 @@ from tests import (  # noqa: E402
     test_fixtures_4c,
     test_fixtures_4e,
     test_fixtures_4f,
+    test_fixtures_5a,
     test_fixtures_5d,
+    test_fixtures_5f,
+    test_fixtures_9a,
+    test_fixtures_9x,
 )
 from tests.conftest import (  # noqa: E402
     ACT_ROOT,
@@ -98,8 +102,52 @@ def cases() -> list[dict]:
                     "expected": e["outcome"],
                 }
             )
+    # 5.F/5.G and 5.A/5.C share fixtures: EXPECTED is page -> test ->
+    # expectation, with an optional "with": tests that must run alongside
+    # (4.F's pass R reveals 5.A/5.C's f12 field).
+    for mod, folder in ((test_fixtures_5f, "5f"), (test_fixtures_5a, "5a")):
+        for name, by_test in mod.EXPECTED.items():
+            for tt, e in by_test.items():
+                if tt == "with":
+                    continue
+                out.append(
+                    {
+                        "case": f"{tt}-{name}",
+                        "tt": tt,
+                        "root": "fix",
+                        "path": f"{folder}/{name}.html",
+                        "expected": e["outcome"],
+                        "with": by_test.get("with", []),
+                    }
+                )
+    # 9.x: a tested page plus the other pages it is compared with.
+    for name, (page, others, want, _answers) in test_fixtures_9x.EXPECTED.items():
+        if name in test_fixtures_9x.NOT_EVAL:
+            continue
+        for tt, exp in want.items():
+            out.append(
+                {
+                    "case": f"{tt}-{name}",
+                    "tt": tt,
+                    "root": "fix",
+                    "path": f"9x/{page}.html",
+                    "pages": [f"9x/{o}.html" for o in others],
+                    "expected": exp,
+                }
+            )
     act = json.loads((ACT_ROOT / "manifest.json").read_text())["cases"]
     for c in act:
+        if c["tt_test"] == "9.A":
+            out.append(
+                {
+                    "case": f"9.A-act-{c['id']}",
+                    "tt": "9.A",
+                    "root": "act",
+                    "path": c["path"],
+                    "pages": [test_fixtures_9a.CH2],
+                    "expected": c["expected"],
+                }
+            )
         if c["tt_test"] in ("4.A", "4.C"):
             out.append(
                 {
@@ -184,7 +232,11 @@ def _write_packet(out: Path, case: dict, run_id: str, rnd: int, res) -> None:
             return {k: rewrite(x) for k, x in v.items()}
         return v
 
-    qs = [rewrite(q.model_dump(mode="json")) for q in res.open_questions]
+    qs = [
+        rewrite(q.model_dump(mode="json"))
+        for q in res.open_questions
+        if q.test_id.value == case["tt"]
+    ]
     (d / "questions.json").write_text(
         json.dumps(
             {
@@ -221,7 +273,7 @@ def scrub(folder: Path) -> None:
         f.write_text(_URL.sub(neutral, f.read_text()))
 
 
-async def prepare(out: Path) -> None:
+async def prepare(out: Path, only: set[str] | None = None) -> None:
     global _ANSWER_FORMAT
     _ANSWER_FORMAT = await _answer_format()
     s = settings(out)
@@ -234,7 +286,7 @@ async def prepare(out: Path) -> None:
     state: dict = {}
     sem = asyncio.Semaphore(PARALLEL)
 
-    all_cases = cases()
+    all_cases = [c for c in cases() if not only or c["tt"] in only]
     # Shuffled neutral packet IDs, so neither the name nor the order hints at
     # the case.
     ids = random.Random(0).sample(range(1, len(all_cases) + 1), len(all_cases))
@@ -244,9 +296,12 @@ async def prepare(out: Path) -> None:
     async def one(c: dict) -> None:
         async with sem:
             res = await run_tt_tests(
-                s, f"{roots[c['root']]}/{c['path']}", [TestId(c["tt"])]
+                s,
+                f"{roots[c['root']]}/{c['path']}",
+                [TestId(t) for t in c.get("with", [])] + [TestId(c["tt"])],
+                other_pages=[f"{roots[c['root']]}/{p}" for p in c.get("pages", [])],
             )
-        if res.open_questions:
+        if [q for q in res.open_questions if q.test_id.value == c["tt"]]:
             _write_packet(out, c, res.run_id, 1, res)
             state[c["case"]] = {**c, "run_id": res.run_id, "round": 1, "status": "open"}
 
@@ -285,7 +340,8 @@ async def apply(out: Path) -> None:
             r.model_dump(mode="json") if hasattr(r, "model_dump") else r
             for r in res.rejected
         ]
-        if res.open_questions and not rejected and c["round"] < 3:
+        own = [q for q in res.open_questions if q.test_id.value == c["tt"]]
+        if own and not rejected and c["round"] < 3:
             c["round"] += 1
             _write_packet(out, c, c["run_id"], c["round"], res)
             continue
@@ -298,7 +354,7 @@ async def apply(out: Path) -> None:
             "match": fd.outcome.value == c["expected"],
             "rows": fd.rows,
             "rejected": rejected,
-            "still_open": [q.question_id for q in res.open_questions],
+            "still_open": [q.question_id for q in own],
             "answers": [
                 {
                     "q": r.answer.question_id,
@@ -328,7 +384,13 @@ if __name__ == "__main__":
     from a11y_assist.checks import REGISTRY
 
     REGISTRY.update(DRAFTS)
+    # prepare OUT [TESTS]: TESTS (e.g. "5.F,5.G") limits the run to the
+    # tests whose questions or inputs changed.
     cmd, out = sys.argv[1], Path(sys.argv[2]).resolve()
+    only = set(sys.argv[3].split(",")) if len(sys.argv) > 3 else None
     out.mkdir(parents=True, exist_ok=True)
     os.chdir(REPO)
-    asyncio.run({"prepare": prepare, "apply": apply}[cmd](out))
+    if cmd == "prepare":
+        asyncio.run(prepare(out, only))
+    else:
+        asyncio.run(apply(out))

@@ -26,12 +26,14 @@ from collections.abc import Awaitable, Callable
 from dataclasses import asdict
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlsplit
 
 from playwright.async_api import Browser, async_playwright
 
 from a11y_assist.browser import NavigationBlocked, launch_browser
 from a11y_assist.capture import record, replay_context
 from a11y_assist.checks import REGISTRY, RunContext
+from a11y_assist.checks.base import PageRef
 from a11y_assist.config import Settings
 from a11y_assist.egress import EgressProxy
 from a11y_assist.judgment import get_judge, record_answers
@@ -41,6 +43,7 @@ from a11y_assist.models import (
     AnswerResult,
     Finding,
     FindingView,
+    OtherPage,
     Outcome,
     Report,
     RunResult,
@@ -70,6 +73,9 @@ TIME_NOTE = (
 )
 
 Progress = Callable[[float, float | None, str], Awaitable[None]]
+
+# Other pages of the same site a caller may name (9.A-9.C; Abby, 2026-11-02).
+OTHER_PAGES_MAX = 5
 
 
 class RunRefused(Exception):
@@ -110,11 +116,83 @@ def _context(
         deadline=deadline,
         shots=run.evidence_dir / "shots",
         rel=run.dir,
+        third_party=settings.third_party_dir,
     )
 
 
-def _soft_deadline(start: float, settings: Settings, no_time_limit: bool) -> float:
-    return math.inf if no_time_limit else start + settings.run_limit_s - RESERVE_S
+def _soft_deadline(
+    start: float, settings: Settings, no_time_limit: bool, pages: int = 0
+) -> float:
+    if no_time_limit:
+        return math.inf
+    return start + _limit(settings, pages) - RESERVE_S
+
+
+def _limit(settings: Settings, pages: int) -> int:
+    """The run limit: `run_limit_s`, plus `other_page_s` for each other page
+    recorded (Abby, 2026-11-02: the limit is set per page)."""
+    return settings.run_limit_s + pages * settings.other_page_s
+
+
+def uses_pages(check) -> bool:
+    return bool(getattr(check, "uses_pages", False))
+
+
+def needs_walk(check, ctx: RunContext) -> bool:
+    """A check that compares pages needs nothing (not even the walk) when no
+    other pages were given: it is not performed."""
+    return check.uses_walk and not (uses_pages(check) and not ctx.pages)
+
+
+def _site(url: str) -> tuple[str, str]:
+    parts = urlsplit(url)
+    return parts.scheme.lower(), (parts.hostname or "").lower().rstrip(".")
+
+
+def _same_site(a: str, b: str) -> bool:
+    """Same host (and both file:// in dev mode), the rule for other pages."""
+    sa, sb = _site(a), _site(b)
+    if "file" in (sa[0], sb[0]):
+        return sa[0] == sb[0] == "file"
+    return sa[1] == sb[1] and sa[1] != ""
+
+
+def check_other_pages(settings: Settings, url: str, other: list[str]) -> list[str]:
+    """The caller's other pages, deduplicated in order; raises RunRefused if
+    one is not allowed, not on the tested page's host, or is the page itself.
+    Page content never adds to this list (CLAUDE.md principle 5)."""
+    out: list[str] = []
+    for u in other:
+        if u not in out:
+            out.append(u)
+    if len(out) > OTHER_PAGES_MAX:
+        raise RunRefused(f"At most {OTHER_PAGES_MAX} other pages can be compared.")
+    for i, u in enumerate(out, 1):
+        d = check_url(u, settings.allowed_domains, settings.dev_mode)
+        if not d.allowed:
+            raise RunRefused(f"Other page {i} not allowed: {d.reason}")
+        if not _same_site(u, url):
+            raise RunRefused(
+                f"Other page {i} is not on the tested page's host; other pages "
+                "must be pages of the same site."
+            )
+        if u.split("#")[0] == url.split("#")[0]:
+            raise RunRefused(f"Other page {i} is the tested page itself.")
+    return out
+
+
+def _page_refs(get_browser, settings: Settings, run, report: Report) -> list[PageRef]:
+    return [
+        PageRef(
+            n=p.n,
+            url=p.url,
+            final_url=p.final_url or p.url,
+            new_page=_opener(
+                get_browser, settings, run.dir / p.har, p.final_url or p.url, run
+            ),
+        )
+        for p in report.other_pages
+    ]
 
 
 async def _bounded(aw, hard: float):
@@ -288,17 +366,17 @@ async def run_tt_tests(
     tests: list[TestId],
     progress: Progress | None = None,
     no_time_limit: bool = False,
+    other_pages: list[str] | None = None,
 ) -> RunResult:
     async def say(step: float, message: str) -> None:
         if progress is not None:
             await progress(step, 4, message)
 
     t_start = time.monotonic()
-    soft = _soft_deadline(t_start, settings, no_time_limit)
-    hard = math.inf if no_time_limit else t_start + settings.run_limit_s - HARD_MARGIN_S
     decision = check_url(url, settings.allowed_domains, settings.dev_mode)
     if not decision.allowed:
         raise RunRefused(f"URL not allowed: {decision.reason}")
+    others = check_other_pages(settings, url, other_pages or [])
     prune_runs(settings.runs_dir, settings.run_ttl_hours)
     run = RunRecorder(settings.runs_dir)
     selected = [t for t in TestId if t in set(tests)]
@@ -313,6 +391,22 @@ async def run_tt_tests(
         evidence_dir="evidence",
     )
     checks = [REGISTRY[t] for t in selected if t in REGISTRY]
+    # Other pages are recorded only for a check that compares pages.
+    if others and not any(uses_pages(c) for c in checks):
+        report.errors.append(
+            "The other pages were not used: none of the selected tests compares pages."
+        )
+        others = []
+    soft = _soft_deadline(t_start, settings, no_time_limit, len(others))
+    hard = (
+        math.inf
+        if no_time_limit
+        else t_start + _limit(settings, len(others)) - HARD_MARGIN_S
+    )
+    # Checks whose replays others reuse (4.D's arrows, 4.F's Enter presses,
+    # for 4.A) collect first; 5.A and 5.C (shares -1) collect last, after the
+    # replays that may reveal fields for them. Findings keep the report's order.
+    checks.sort(key=lambda c: -getattr(c, "shares", 0))
     states: dict[TestId, Any] = {}
     walk: KeyboardWalk | None = None
 
@@ -339,6 +433,37 @@ async def run_tt_tests(
                     f"The page could not be loaded: {safe_error(exc)}"
                 ) from None
             report.final_url = cap.final_url
+            for i, other in enumerate(others, 1):
+                await say(0.5, f"Recording other page {i} of {len(others)}")
+                rel = f"evidence/pages/p{i}.har.zip"
+                t1 = time.monotonic()
+                (run.dir / rel).parent.mkdir(parents=True, exist_ok=True)
+                try:
+                    oc = await record(
+                        browser, settings, other, run.dir / rel, run.log, proxy
+                    )
+                except Exception as exc:
+                    shutil.rmtree(run.dir, ignore_errors=True)
+                    if isinstance(exc, NavigationBlocked):
+                        raise RunRefused(f"Other page {i}: {exc}") from exc
+                    raise RunRefused(
+                        f"Other page {i} could not be loaded: {safe_error(exc)}"
+                    ) from None
+                if not _same_site(oc.final_url, cap.final_url):
+                    shutil.rmtree(run.dir, ignore_errors=True)
+                    raise RunRefused(
+                        f"Other page {i} ended on another host after redirects; "
+                        "other pages must be pages of the same site."
+                    )
+                report.other_pages.append(
+                    OtherPage(n=i, url=other, final_url=oc.final_url, har=rel)
+                )
+                run.log(
+                    "captured_other",
+                    n=i,
+                    final_url=oc.final_url,
+                    seconds=round(time.monotonic() - t1, 2),
+                )
             blocked = _blocked_hosts(proxy)
             if blocked:
                 # The page loaded without these parts; the findings cover only
@@ -354,7 +479,9 @@ async def run_tt_tests(
                 seconds=round(time.monotonic() - t0, 2),
             )
             ctx = _context(settings, run, get_browser, cap.final_url, soft)
-            if any(c.uses_walk for c in checks):
+            ctx.selected = frozenset(c.test_id.value for c in checks)
+            ctx.pages = _page_refs(get_browser, settings, run, report)
+            if any(needs_walk(c, ctx) for c in checks):
                 await say(1, "Walking the page with Tab and Shift+Tab")
                 caps = [c.cap for c in checks if getattr(c, "cap", None)]
                 pace = None if no_time_limit else Pace(soft, caps=caps)
@@ -387,7 +514,7 @@ async def run_tt_tests(
                     run.write_json(run.evidence_dir / "walk.json", walk)
                     run.log("walk", **_walk_summary(walk), cost=asdict(cost))
             for c in checks:
-                if c.uses_walk and walk is None:
+                if needs_walk(c, ctx) and walk is None:
                     continue  # NEEDS REVIEW: the run did not complete (errors say why)
                 await say(2, f"Checking {c.test_id.value}")
                 try:
@@ -411,7 +538,9 @@ async def run_tt_tests(
             walk_cut = walk is not None and "time" in (walk.p1.end, walk.p2.end)
             hard_cut = any("time limit" in e for e in report.errors)
             if ctx.timed_out or walk_cut or hard_cut:
-                report.errors.append(TIME_NOTE.format(limit=settings.run_limit_s))
+                report.errors.append(
+                    TIME_NOTE.format(limit=_limit(settings, len(others)))
+                )
         finally:
             await browser.close()
 
@@ -464,6 +593,7 @@ async def answer_questions(
             report.final_url or report.target,
             _soft_deadline(time.monotonic(), settings, no_limit),
         )
+        ctx.pages = _page_refs(browser.get, settings, run, report)
         walk_path = run.evidence_dir / "walk.json"
         if walk_path.exists():
             w = KeyboardWalk.model_validate_json(walk_path.read_text("utf-8"))

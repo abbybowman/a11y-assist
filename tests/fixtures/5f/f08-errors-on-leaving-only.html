@@ -1,0 +1,14 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>F08 Estimate your payment</title>
+<style>.err{color:#b00}</style></head><body>
+<h1>Estimate your payment</h1>
+<div>
+<p><label for="amt">Amount in dollars</label> <input id="amt" aria-describedby="amt-err"> <span class="err" id="amt-err" role="alert"></span></p>
+<p><button type="button" id="calc">Estimate</button></p>
+</div>
+<script>
+const amt = document.getElementById("amt");
+amt.addEventListener("blur", () => {
+  const bad = amt.value !== "" && !/^\d+(\.\d\d)?$/.test(amt.value);
+  document.getElementById("amt-err").textContent = bad ? "Amount in dollars must be a number, like 1250 or 1250.00." : "";
+});
+</script></body></html>
