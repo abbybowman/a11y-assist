@@ -69,5 +69,27 @@
       "LICENSE.txt": "d4db9ebe6f29f5168eac45ad713f055623ac5d0dcd5ba92da23d650ae012020d",
       "jquery.min.js": "fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a"
     }
+  },
+  "scrt": {
+    "name": "SCRT (Section 508 Compliance Reporting Tool)",
+    "version": "5.2.0 (README heading; the repository has no releases or tags)",
+    "source": "https://github.com/Section508Coordinators/SCRT",
+    "commit": "63fe6878d72d33d910232913e8be74c3b527085b",
+    "license": "MIT",
+    "copied_from": "the TT 5.1.3 template, createReport.html, viewReport.html and the JS/CSS they load (manual, other templates and images omitted)",
+    "used_for": "scrt.py reads the template's test rows (CrtID, DisabilityImpact, OptMenu1). The HTML and JS are for tests only (loading files in the real SCRT); the MCP server never serves them.",
+    "sha256": {
+      "CSS/acrt_styles.css": "313d1e5c637c3ce2756375248307f19eca4ea7f2fe327b5f5001af39ecbf5458",
+      "JS/AngularJS1.6.9/angular.min.js": "58e690fb8fb0f2afd73e86febd717dea9324e43dc05c6954700715c37f030c99",
+      "JS/FileSaver.min.js": "fb4fb2703a8baba2c194e93ba254451de4594ff60d4b3cf426c0a2f07d658f58",
+      "JS/angular-sanitize.js": "c66e70093a12653226c8503e04b2cab042233b816354ba5d1ee906831f0120bf",
+      "JS/common.js": "65bcbb24df13fd0c5295f84b45d1de59cd3d40090ef5bb5ecd24844385775097",
+      "JS/createReport.js": "6c7fa4a9f07c060db0f98dfb5b2e6173c4569436930cd4f1e83ea2cd2fefd3ab",
+      "JS/viewReport.js": "5566afb31a9672411b598f74e675644ed240eb1468967617ff106bb5ac94f0eb",
+      "LICENSE": "19dbd67eb17ef930c9f104b2c05ffa6db08e5e484197b84addecb505f47f2a14",
+      "Resources/SuccessCriteriaTT5.1.3.json": "8f5daabdc9890d0c8f2cc3089f82971cbbf41be2343dbaf6d4fb16ae2cdc6d4c",
+      "createReport.html": "60017132212f6f08711b91f2cc9c5eb5139606460182af6112967fed4be8b4b9",
+      "viewReport.html": "8a9acc91e208bb18fc2aa3e0e48bd45bdc03cdfa7f32bd76af5aaecf71791d93"
+    }
   }
 }

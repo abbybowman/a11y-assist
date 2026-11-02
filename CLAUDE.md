@@ -73,11 +73,14 @@ by TT test ID. Package: `a11y_assist` (name is provisional).
   printed pages.
 - One tool per file in `src/a11y_assist/tools/`, registered in
   `tools/__init__.py`. Tools are broad and outcome-based, not one per step:
-  `a11y_run_tt_tests` and `a11y_answer_questions` now (files
-  `run_tt_tests.py`, `answer_questions.py`); `verify_fix` (an option on
-  a11y_run_tt_tests that takes a saved report), `read_report` (an agency's existing
-  ACR or SCRT report → recommended fixes) planned; guidance goes in resources
-  or a prompt, not a tool. Never put "trusted_tester" in a tool name (it could
+  `a11y_run_tt_tests`, `a11y_answer_questions` and `a11y_read_report` now
+  (files `run_tt_tests.py`, `answer_questions.py`, `read_report.py`; the
+  last reads an SCRT or pre-SCRT file and scores it against a reference);
+  `verify_fix` (an option on a11y_run_tt_tests that takes a saved report),
+  merging a partial SCRT file, TT review and export, and fix advice for a
+  read report (its own optional tool) planned
+  (`docs/plans/2026-11-02-scrt-io.md`); guidance goes in resources or a
+  prompt, not a tool. Never put "trusted_tester" in a tool name (it could
   read as certification). Every tool name starts with the service prefix
   `a11y_` (GSA template: names stay unique beside other MCP servers). Say "open questions" to users, not "judgments". Tool inputs are Pydantic-validated with precise
   descriptions. The implemented-test list in `a11y_run_tt_tests`' description and
@@ -178,6 +181,9 @@ src/a11y_assist/
   tools/        one MCP tool per file (typed results: RunResult, AnswerResult)
   resources/    run://{run_id}/{path} evidence while a run is kept;
                 tt://5.1.3/... the TT text (index, tests/{id}, parts/{part})
+  scrt.py       SCRT and pre-SCRT files: models, lenient SCRT reader, pre-SCRT
+                from a run's report (copies outcomes; decides none)
+  compare.py    two report files test by test: agreement, false PASS, false FAIL
   explain.py    plain-language explanations of tests and results (prompt now,
                 failure reports later)
   prompts/      explain (a command in clients)
@@ -189,12 +195,14 @@ docs/research/  research notes (e.g. the TT scanner coverage map); not authoriti
 docs/solutions/ lessons that save the next test time
 docs/sources/   TT 5.1.3 PDF (the authority), SHA-256 in its README;
                 tt-5.1.3/ its Markdown + tt.json copy (made once; see README)
-third_party/    ANDI 29.2.2, jQuery 3.7.1, PROVENANCE.json
+third_party/    ANDI 29.2.2, jQuery 3.7.1, SCRT 5.2.0 (template read by scrt.py;
+                its pages for tests only), PROVENANCE.json
 tests/fixtures/ no_trap.html (general evidence); 4a/ … 4f/, 5a/, 5d/, 5f/, 5h/ fNN-short-name.html
                 (custom fixtures per test); 9x/, 19a/ (small multi-page sites for 9.A-9.C, 19.A); act/ (vendored W3C ACT cases,
                 manifest.json, sync_act.py); baseline/ (vendored Section 508
                 Baseline Alignment cases, manifest.json, sync_baseline.py);
-                budget/ (realistic multi-section pages for timing only)
+                budget/ (realistic multi-section pages for timing only);
+                scrt/ (a file saved by the real SCRT, make_sample.py)
 tests/drafts.py      checks whose spec is a draft: registered for tests only
 tests/harness.py     end-to-end runs of any check with scripted answers (test data);
                      harness_4c.py does the same for 4.C's j1/j2 questions
@@ -202,7 +210,9 @@ tests/scoring.py     DHS / ACT agreement printed after every test run (per worke
 tests/test_baseline_cases.py   every (case, TT test) pair in fixtures/baseline/manifest.json
 evals/          judge eval: fresh agents answer the open questions from isolated
                 packets; judge_eval.py, README.md (results of each run);
-                time_budget.py (each phase's cost from steps.jsonl)
+                time_budget.py (each phase's cost from steps.jsonl);
+                judging.py (real pages against a tester's blind SCRT files,
+                commit and reveal; rounds in evals/judging/<round>/)
 runs/           output (git-ignored)
 ```
 
@@ -222,6 +232,7 @@ grep -cE " (PASSED|FAILED|ERROR|SKIPPED|XFAIL)" "$TEMP/pytest.log"; grep -E "FAI
 uv run python evals/judge_eval.py prepare /tmp/eval   # judge eval packets ...
 uv run python evals/judge_eval.py apply /tmp/eval     # ... after one agent answers them
 uv run python evals/time_budget.py budget/agency-home.html   # where a run's time goes
+uv run python evals/judging.py scan evals/judging/<round>   # then apply, lock, score (evals/README.md)
 TEST_BROWSER_CHANNEL=chrome TEST_HEADED=1 uv run pytest   # installed Chrome, visible
 uv run ruff check . && uv run ruff format --check .
 uv run a11y-assist               # stdio MCP server
