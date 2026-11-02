@@ -411,6 +411,10 @@ class Report(BaseModel):
     other_pages: list[OtherPage] = Field(
         default_factory=list, description="Other pages of the same site compared."
     )
+    live_pages: list[OtherPage] = Field(
+        default_factory=list,
+        description="Pages the tool loaded live itself: 19.A's site search only.",
+    )
     started_at: datetime
     finished_at: datetime | None = None
     versions: Versions

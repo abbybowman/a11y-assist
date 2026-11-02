@@ -90,6 +90,10 @@ class RunContext:
     # Other pages of the same site the caller named (empty: none given). Only
     # recorded when a selected check compares pages (`uses_pages`).
     pages: list[PageRef] = field(default_factory=list)
+    # Record one more live page on the tested page's host (19.A's site search
+    # only; CLAUDE.md). Returns its PageRef; raises ValueError if refused.
+    # None when resuming (no live loads then).
+    record_live: Any = None
 
     def out_of_time(self) -> bool:
         """Past the checks' deadline (4.C spec section 2, Run limits). Use it
