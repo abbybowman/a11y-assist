@@ -74,9 +74,9 @@ from `d.day`. Never use `%-d`, `%-m` or the like in this repo.
   passed 3 of 3 times when run alone.
 - **Test-harness portability (both runs):** the two
   `test_config.py` launch tests start Python with only `PATH=/usr/bin:/bin`,
-  a Linux path; Windows Python needs more of the environment to start. The
-  product is not affected. This was found by reading the test; no fix has
-  been tried yet.
+  a Linux path. Without `SYSTEMROOT`, Windows Python fails at `import
+  asyncio` (WinError 10106). The product is not affected. Fixed 2026-11-02:
+  the tests pass `SYSTEMROOT` through on Windows only (3 passed, headless).
 
 **What this settles.** Each build-task file's "headed Chrome on Windows:
 every fixture gives the same outcome" item is now answered for its test.
