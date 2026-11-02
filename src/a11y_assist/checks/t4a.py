@@ -536,6 +536,12 @@ async def collect(ctx: RunContext, walk: KeyboardWalk) -> State4A:
                 unreached.pop(k, None)
                 st.instances.append(_k(st, {"path_key": k}, sr.n, checked=False))
             continue
+        # 4.F's pass R replayed to this stop and pressed Enter (focus checked
+        # on the stop): when that showed every target, Enter reveals them
+        # and this replay would only repeat it.
+        seen = (ctx.cache.get("enter-shown") or {}).get(sr.path_key)
+        if seen is not None and all(k in seen for k in ks):
+            continue
         s = await _replay(ctx, ["Tab"] * (sr.index + 1))
         try:
             _, now = await _scan(s, stops_arg, False, False)
