@@ -7,10 +7,27 @@ from __future__ import annotations
 
 from typing import Any
 
-from a11y_assist.models import Answer, ChoiceAnswer, TestId
+from a11y_assist.models import (
+    TEST_NOT_PERFORMED_NOTE,
+    Answer,
+    ChoiceAnswer,
+    Outcome,
+    TestId,
+)
 from a11y_assist.pipeline import answer_questions, run_tt_tests
 
 from .harness_4c import assert_plain
+
+
+def assert_note(f) -> None:
+    # Principle 2 and _template.md G3: every NEEDS REVIEW says the test could
+    # not be performed, and nothing else does. Every fixture checks it.
+    assert (f.note == TEST_NOT_PERFORMED_NOTE) == (f.outcome is Outcome.NEEDS_REVIEW), (
+        f.test_id.value,
+        f.outcome.value,
+        f.note,
+        f.rows,
+    )
 
 
 async def run_check(
@@ -52,6 +69,7 @@ async def run_check(
         report = res.report
     [finding] = [f for f in report.findings if f.test_id is test]
     assert_plain(finding.summary)
+    assert_note(finding)
     return {"finding": finding, "report": report, "run_id": out.run_id}
 
 
@@ -97,4 +115,5 @@ async def run_tests(
     got = {f.test_id.value: f for f in report.findings if f.test_id.value in tests}
     for f in got.values():
         assert_plain(f.summary)
+        assert_note(f)
     return got
