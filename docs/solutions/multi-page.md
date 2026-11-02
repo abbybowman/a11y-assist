@@ -42,3 +42,13 @@ an agent can only give one answer, so one would always "mismatch".
 breaks over a line ("consistent- navigation"), so the first conversion gave
 9.B 9.A's steps and put 9.B's text into 9.C. 5.B had it too (fixed); 7.C and 16.B have the
 same problem (ROADMAP). Read the printed pages for each new test.
+
+**19.A reused nearly everything (2026-11-02).** The site read gained only
+each page's title and its search forms; links to the tested page, grouped
+by region, give the kinds of way. Two new pieces: `RunContext.record_live`
+(one more live page on the same host, allowlisted on every hop, its own
+HAR; only 19.A's site search may call it), and *suggested* pages (URLs the
+pages link to, offered to the user, never visited). The fixture server
+answers a search for any query (`search.html`), so the live path is
+tested offline through the egress proxy.
+

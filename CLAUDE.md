@@ -55,7 +55,7 @@ by TT test ID. Package: `a11y_assist` (name is provisional).
    with no jargon or spec codes (row IDs stay in the evidence trace). A
    person's answer overrides the agent's. An opinion leads to PASS only when a
    key press or another mechanical check confirms it, or when the spec marks
-   the question as one a careful tester settles by looking (4.E J1, 4.F J1, 5.A J1, 5.C J1, 5.D J1 and J2, 5.F J1, 5.G J1, 9.A J2, 9.C J1); the agent
+   the question as one a careful tester settles by looking (4.E J1, 4.F J1, 5.A J1, 5.C J1, 5.D J1 and J2, 5.F J1, 5.G J1, 9.A J2, 9.C J1, 19.A J1); the agent
    must then answer "unsure" whenever the evidence does not settle it, and only
    those go to a person.
 
@@ -145,7 +145,7 @@ src/a11y_assist/
   observe.py    what an action changes (Effect): 4.A, 4.B, 4.F and 5.D
   forms.py      form fields shared by 5.D, 5.F, 5.G: field stops, arrival, page reads
   labels.py     pass L for 5.A and 5.C: form components, visible labels, ANDI output
-  site.py       other pages of the same site (9.A-9.C): units and regions per page,
+  site.py       other pages of the same site (9.A-9.C, 19.A): units, regions, search forms per page,
                 read once; what repeats and what matches (no outcomes)
   walk.py       the shared keyboard walk (P1 Tab, P2 Shift+Tab), once per page
   engine.py     shared first-match tables and page rows G1-G5
@@ -165,6 +165,7 @@ src/a11y_assist/
     t9a.py      9.A bypass: repeated block, candidate replays, J1 keys, J2
     t9b.py      9.B consistent navigation: order of shared components
     t9c.py      9.C consistent identification: ANDI names across pages, J1
+    t19a.py     19.A multiple ways: links by kind, live site search, suggested pages, J1
   judgment.py   Judge interface: ClientJudge, ApiJudge (stub); answer recording
   pipeline.py   run_tt_tests / answer_questions orchestration (generic)
   runlog.py     runs/<run_id>/ folder, steps.jsonl
@@ -188,7 +189,7 @@ docs/sources/   TT 5.1.3 PDF (the authority), SHA-256 in its README;
                 tt-5.1.3/ its Markdown + tt.json copy (made once; see README)
 third_party/    ANDI 29.2.2, jQuery 3.7.1, PROVENANCE.json
 tests/fixtures/ no_trap.html (general evidence); 4a/ … 4f/, 5a/, 5d/, 5f/ fNN-short-name.html
-                (custom fixtures per test); 9x/ (small multi-page sites for 9.A-9.C); act/ (vendored W3C ACT cases,
+                (custom fixtures per test); 9x/, 19a/ (small multi-page sites for 9.A-9.C, 19.A); act/ (vendored W3C ACT cases,
                 manifest.json, sync_act.py); baseline/ (vendored Section 508
                 Baseline Alignment cases, manifest.json, sync_baseline.py);
                 budget/ (realistic multi-section pages for timing only)

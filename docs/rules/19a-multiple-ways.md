@@ -1,7 +1,7 @@
 ---
 tt_test: 19.A
 tt_name: 2.4.5-multiple-ways
-spec_version: 0.1.0
+spec_version: 1.0.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -24,7 +24,7 @@ The tool gives each page one 19.A outcome: PASS, FAIL, DOES NOT APPLY or NEEDS R
   - *links between pages*: a link to T anywhere else on another page (its content);
   - *search*: the site search leads to T (below).
 - *Search form*: a form with role search, a search field, or a field named `q`, `query`, `search`, `s`, `k` or `keyword`, on T or on another page.
-- *Live search* (Abby, 2026-11-02: exhaust the pages first, then run the search on the live site): only when the caller's pages show fewer than two kinds and a search form exists. One search per run: the form must submit by GET; its action URL must pass the allowlist and be on T's host (the same checks as other pages, on every redirect hop); the term is T's first `h1`, else its title; the request carries the form's own hidden fields and the term, nothing else. The results page is recorded as its own HAR and read like another page. Search counts as a way when the results page links to T (HtT 2.b; G161 step 5).
+- *Live search* (Abby, 2026-11-02: exhaust the pages first, then run the search on the live site): only when the caller's pages show fewer than two kinds and a search form exists. One search per run: the form must submit by GET; its action URL must pass the allowlist and be on T's host (the allowlist is checked on every redirect hop, the host at the end); the term is T's first `h1`, else its title; the request carries the form's own hidden fields and the term, nothing else. The results page is recorded as its own HAR and read like another page. Search counts as a way when the results page links to T (HtT 2.b; G161 step 5).
 - *Suggested pages*: same-host URLs the pages link to that could show more ways and were not given: links named "site map", "sitemap" or "A-Z index"; the home page (a link to the site's root, or named "home"); breadcrumb links. At most 5. They are proposed for the calling agent to ask the user about, never visited by the tool (Abby, 2026-11-02).
 - *Process hint*: T's text has "step N of M", "review your", "confirm", "confirmation", "order summary" or "thank you for", and T has a form with a submit button.
 
@@ -43,7 +43,7 @@ The tool gives each page one 19.A outcome: PASS, FAIL, DOES NOT APPLY or NEEDS R
 
 **Site read** (shared with 9.A–9.C): adds each page's title and its search forms (action, method, the field to fill, hidden fields). **Live search**, only as in Terms. Nothing is pressed on the recorded pages.
 
-**Time budget:** the site read (shared); the live search, when it runs, one live load and one read (a few seconds, within the time the other pages add).
+**Time budget:** the site read (shared with 9.A–9.C; 19.A itself measured 0.0 s on the agency budget page with one other page); the live search, when it runs, one live load and one read (a few seconds, within the time the other pages add).
 
 ## 3. Mechanical checks
 
@@ -65,7 +65,7 @@ The instance is the page: the kinds of way found.
 | G1 | Section 1 gives DOES NOT APPLY or NEEDS REVIEW | That outcome |
 | G2 | Two or more kinds | PASS, naming them |
 | G3 | Fewer than two kinds, and suggested pages exist or the search was not verified (W4) | NEEDS REVIEW, naming the ways found and the suggested pages to give next ("This test could not be performed" note) |
-| G4 | Fewer than two kinds, no suggested pages left, and no search form or the search does not lead to T (W3) | FAIL |
+| G4 | Fewer than two kinds, no suggested pages left, and no search form or the search does not lead to T (W3) | FAIL: nothing is left to try (Abby, 2026-11-02) |
 | G5 | Anything else | NEEDS REVIEW |
 
 **Plain-language sentences.**

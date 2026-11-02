@@ -18,6 +18,7 @@ from a11y_assist.checks.t5g import Check5G
 from a11y_assist.checks.t9a import Check9A
 from a11y_assist.checks.t9b import Check9B
 from a11y_assist.checks.t9c import Check9C
+from a11y_assist.checks.t19a import Check19A
 from a11y_assist.models import TestId
 
 REGISTRY: dict[TestId, Check] = {
@@ -37,6 +38,7 @@ REGISTRY: dict[TestId, Check] = {
         Check9A(),
         Check9B(),
         Check9C(),
+        Check19A(),
     )
 }
 

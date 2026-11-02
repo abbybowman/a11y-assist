@@ -27,4 +27,4 @@ took more than an hour to understand; update it when the answer changes.
 | [form-fields.md](form-fields.md) | Read vendored cases first; one control kind per stop; Chrome's date-input parts; changes outside a field's own widget; submission log; draft checks; before-reads on the fresh load; alerts, native validation and live regions |
 | [time-budget.md](time-budget.md) | Measure with `evals/time_budget.py`; the tool's own screenshots are DOM mutations; replay with `ctx.replay` |
 | [egress-proxy.md](egress-proxy.md) | `route.fetch` goes through the launch proxy; a CONNECT 403 is a response, not an error; HAR replay hangs on failed requests |
-| [multi-page.md](multi-page.md) | Other pages come from the caller; read content, not stops (ACT's text-only blocks); where a skip link lands; stop once bypassed; rules-only cases and the judge eval |
+| [multi-page.md](multi-page.md) | Other pages come from the caller; read content, not stops (ACT's text-only blocks); where a skip link lands; stop once bypassed; rules-only cases and the judge eval; 19.A's live search and suggested pages |

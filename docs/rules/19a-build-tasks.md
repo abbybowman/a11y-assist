@@ -1,9 +1,9 @@
 # Build tasks: 19.A
 
-Spec [19a-multiple-ways.md](19a-multiple-ways.md) is a draft (0.1.0),
-built as `checks/t19a.py` on the shared `site.py` read (each page's title
+Spec [19a-multiple-ways.md](19a-multiple-ways.md) 1.0.0 (Abby,
+2026-11-02, including G4) is built as `checks/t19a.py` on the shared `site.py` read (each page's title
 and search forms added) and `RunContext.record_live` (the live site
-search), registered only in `tests/drafts.py` until Abby approves 1.0.0.
+search), registered.
 Judge eval: evals/README.md run 9 (2/2). Order of work:
 [plans/2026-11-02-multiple-ways.md](../plans/2026-11-02-multiple-ways.md).
 
@@ -32,9 +32,6 @@ fixture server answers its search (`search.html` for any query,
 | --- | --- | --- |
 | V1 | A real .gov site search: GET forms, result pages that link to the page, and searches that run only in script (W4) | W2–W4 |
 
-## Before 1.0.0
+## Left
 
-- Abby's approval, including G4 (FAIL only when nothing is left to try:
-  fewer than two kinds, no suggested page left, and no search or a search
-  that does not find the page).
-- Move the check to `checks/__init__.py`.
+- V1 on real .gov sites (with the agent-eval pages).
