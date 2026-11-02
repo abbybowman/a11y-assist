@@ -140,7 +140,7 @@ EXPECTED = {
         "722992ea": "FAIL",
         "36f679b6": "FAIL",  # ACT passed: heading only (047fe0), not a key method
         "9eb0cf41": "FAIL",  # ACT passed: landmark only (b40fd1), not a key method
-        "c039d5c0": "NEEDS_REVIEW",  # ACT passed: the repeated block comes after main
+        "c039d5c0": "DNA",  # ACT passed: the repeated block comes after main
         "1c8d17ef": "PASS",
         "07c0b535": "PASS",
         "7fdb66e3": "PASS",

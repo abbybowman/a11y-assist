@@ -3,7 +3,7 @@
 Specs [9a-bypass.md](9a-bypass.md),
 [9b-consistent-navigation.md](9b-consistent-navigation.md) and
 [9c-consistent-identification.md](9c-consistent-identification.md) are
-drafts (0.1.0), built as `checks/t9a.py`, `t9b.py` and `t9c.py` on the
+drafts (9.A 0.2.0, 9.B and 9.C 0.1.0), built as `checks/t9a.py`, `t9b.py` and `t9c.py` on the
 shared `site.py` read and registered only in `tests/drafts.py` until Abby
 approves 1.0.0. Judge eval: evals/README.md run 8 (4/4). Order of work:
 [plans/2026-11-02-multi-page.md](../plans/2026-11-02-multi-page.md).
@@ -16,8 +16,8 @@ compared with the rules' own other page `bypass-blocks-cf77f2/chapter2.html`
 `fixtures/act/manifest.json`). Ours differ from ACT's on three: cf77f2
 passed 2 (heading only) and passed 3 (landmark only) are FAIL, because
 headings and landmarks are not keyboard methods (Baseline 4.A excludes
-ARIA11 and H69); passed 7 (the repeated block after main) is NEEDS REVIEW
-(Abby: no outcome in the TT for "nothing to bypass"). DHS scored none.
+ARIA11 and H69); passed 7 (the repeated block after main) is DOES NOT APPLY
+(Abby: nothing before the main content to bypass, as with a footer). DHS scored none.
 No ACT rule and no Baseline Alignment case exists for 9.B or 9.C, so they
 rely on custom sites in `tests/fixtures/9x/` (`tests/test_fixtures_9x.py`,
 all three tests in one call):
@@ -35,7 +35,7 @@ all three tests in one call):
 | documented-key | b3 vs a2 | 9.A J1 documented Alt+S, pressed (G4) |
 | breadcrumbs-repeated / -not-repeated | b4 vs a2 | 9.A no main or h1: J2 (the second is rules-only, `NOT_EVAL`) |
 | two-links | b5 vs b6 | 9.A coverage across two links (G123) |
-| paging | d1 vs d2 | 9.C J1 consistent ("Go to page 4/5"); 9.A A4 (block is one link) |
+| paging | d1 vs d2 | 9.C J1 consistent ("Go to page 4/5"); 9.A A4 DNA (block is one link) |
 
 ## Browser behavior to verify in code
 

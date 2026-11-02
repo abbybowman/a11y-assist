@@ -1,7 +1,7 @@
 ---
 tt_test: 9.A
 tt_name: 2.4.1-bypass-function
-spec_version: 0.1.0
+spec_version: 0.2.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -30,7 +30,7 @@ The tool gives each page one 9.A outcome: PASS, FAIL, DOES NOT APPLY or NEEDS RE
 | A1 | No other pages were given | NEEDS REVIEW, not performed: "it needs other pages of the same site to know which content repeats" | Abby, 2026-11-02 (Q1: other pages required); p. 42 Identify Content |
 | A2 | A page could not be read (load, units) | NEEDS REVIEW, not performed, naming the page | Spec rule |
 | A3 | No unit of the tested page is repeated | DOES NOT APPLY | p. 42 Applicability |
-| A4 | Repeated units exist but B is empty (they all come after the main content), or B is small: one control, or fewer than 4 words in all | NEEDS REVIEW, naming what repeats and where | p. 42 Identify Content (EXCLUDE, Note); Abby, 2026-11-02 (no outcome given by the TT for "nothing to bypass": NEEDS REVIEW) |
+| A4 | Repeated units exist but B is empty (they all come after the main content, such as a footer), or B is small: one control, or fewer than 4 words in all | DOES NOT APPLY, naming what repeats and where: there is nothing before the main content to bypass, as forms tests do not apply to a page with no form | p. 42 Identify Content (EXCLUDE: small sections "are not considered repetitive blocks"; Note: a bypass for navigation "at the bottom of a web page may be unnecessary"); Baseline 4.A (the same limitations); ACT ye5d6e and 3e12e1 look only at repeated content before non-repeated content; Abby, 2026-11-02 (DNA: users who reach the footer have had the page's content and can stop) |
 | A5 | Otherwise | Applies; go to section 3 | |
 
 Small block, in numbers: B is one control, or B's units hold fewer than 4 words in all.
@@ -97,7 +97,7 @@ Each candidate is an *instance*. A candidate's *jump* is the set of units strict
 | Page FAIL | "This page starts with content repeated on the other pages you gave (for example <first repeated text>), and we found no keyboard way to skip past it. Add a "Skip to main content" link as the first thing on the page." |
 | A1 | "This test could not be performed: it needs other pages of the same site, to see which content repeats. Run it again with other_pages." |
 | A3 | "Nothing on this page appears on the other pages you gave, so this test does not apply." |
-| A4 | "Content repeated on the other pages you gave comes only after the main content (or is very short), so a skip link may not be needed. A person should decide." |
+| A4 | "The only content repeated on the other pages you gave comes after the main content (or is a single link or a few words), so there is nothing to skip and this test does not apply." |
 | M8, M10 | "<method> skips past the start of the main content." |
 | M5, M6 | "<method> did not move the keyboard past the repeated content." |
 
