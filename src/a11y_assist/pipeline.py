@@ -181,6 +181,35 @@ def check_other_pages(settings: Settings, url: str, other: list[str]) -> list[st
     return out
 
 
+def _live_recorder(browser, settings, run, report, proxy, final_url, get_browser):
+    """19.A's live site search (CLAUDE.md, Abby 2026-11-02): one more page
+    recorded live, allowlisted on every hop and on the tested page's host."""
+
+    async def record_live(url: str) -> PageRef:
+        d = check_url(url, settings.allowed_domains, settings.dev_mode)
+        if not d.allowed or not _same_site(url, final_url):
+            raise ValueError("not on the tested page's host or not allowed")
+        n = len(report.live_pages) + 1
+        rel = f"evidence/pages/live{n}.har.zip"
+        (run.dir / rel).parent.mkdir(parents=True, exist_ok=True)
+        t1 = time.monotonic()
+        lc = await record(browser, settings, url, run.dir / rel, run.log, proxy)
+        if not _same_site(lc.final_url, final_url):
+            raise ValueError("it ended on another host after redirects")
+        report.live_pages.append(
+            OtherPage(n=n, url=url, final_url=lc.final_url, har=rel)
+        )
+        run.log("captured_live", n=n, seconds=round(time.monotonic() - t1, 2))
+        return PageRef(
+            n=100 + n,
+            url=url,
+            final_url=lc.final_url,
+            new_page=_opener(get_browser, settings, run.dir / rel, lc.final_url, run),
+        )
+
+    return record_live
+
+
 def _page_refs(get_browser, settings: Settings, run, report: Report) -> list[PageRef]:
     return [
         PageRef(
@@ -481,6 +510,9 @@ async def run_tt_tests(
             ctx = _context(settings, run, get_browser, cap.final_url, soft)
             ctx.selected = frozenset(c.test_id.value for c in checks)
             ctx.pages = _page_refs(get_browser, settings, run, report)
+            ctx.record_live = _live_recorder(
+                browser, settings, run, report, proxy, cap.final_url, get_browser
+            )
             if any(needs_walk(c, ctx) for c in checks):
                 await say(1, "Walking the page with Tab and Shift+Tab")
                 caps = [c.cap for c in checks if getattr(c, "cap", None)]
