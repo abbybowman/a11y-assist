@@ -88,6 +88,12 @@ walks) in installed Chrome:
 TEST_BROWSER_CHANNEL=chrome TEST_HEADED=1 uv run pytest -v
 ```
 
+Keep the screen on and unlocked while it runs, and don't click in the test
+windows: a locked screen appears to stop Chrome drawing and the run waits
+forever, and a click moves keyboard focus. Playing a video in a small window
+keeps the display awake. What the first Windows runs found:
+[docs/solutions/windows-chrome-results.md](docs/solutions/windows-chrome-results.md).
+
 Plain `uv run pytest` uses Playwright's bundled Chromium, headless. That needs
 a one-time `uv run playwright install chromium`, which downloads into your
 user profile.

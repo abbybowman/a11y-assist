@@ -68,13 +68,15 @@ async def snapshot(s: Session) -> dict[str, Any]:
 class _Opened:
     """Pages the tested page opens, as the browser creates them. Counting
     context.pages after the settle can miss one on Windows, where a new page
-    joins the list later; the browser's own event cannot be missed or
-    spoofed by page script."""
+    joins the list later or not at all; page script cannot spoof the
+    browser's own event. `ok` is False when discovery did not start, and
+    then only the page count decides."""
 
     def __init__(self, s: Session):
         self._s = s
         self._cdp: Any = None
         self.ids: set[str] = set()
+        self.ok = False
 
     async def __aenter__(self) -> _Opened:
         def wait(call: Awaitable[Any]) -> Awaitable[Any]:
@@ -93,6 +95,9 @@ class _Opened:
 
             cdp.on("Target.targetCreated", created)
             await wait(cdp.send("Target.setDiscoverTargets", {"discover": True}))
+            # Pages that already exist are reported before this answer; after
+            # a timeout they could arrive late and read as new.
+            self.ok = True
         except Exception:
             pass  # the page count below still applies
         return self
@@ -135,7 +140,7 @@ async def observe(
         after = await snapshot(s)
         sub1 = len(await submissions(page)) if submits else 0
         m2, *_ = await _read_logs(page)
-        new_windows = opened.ids - earlier
+        new_windows = opened.ids - earlier if opened.ok else set()
     e = Effect(mutations=max(0, m2 - m1), noise=max(0, m1 - m0))
     if after["url"] != before["url"]:
         e.kinds.append("navigation")
