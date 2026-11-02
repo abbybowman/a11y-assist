@@ -59,7 +59,14 @@ from `d.day`. Never use `%-d`, `%-m` or the like in this repo.
   the requests is not yet known; Chrome's own block on public pages reaching
   private addresses is one guess, unchecked.
 - **4.A ACT case 8f9b5bf5 (rule 0ssw9k), Run B only:** PASS where ACT
-  expects DNA ("Spec G4. no instances").
+  expects DNA ("Spec G4. no instances"). Explained 2026-11-02 (it again failed
+  in a headed run that day): Windows draws classic scrollbars inside the box,
+  and ACT's case assumes overlay scrollbars. Measured on the `section` with
+  `overflow: scroll`: headless shell 153, scrollbar 0 px, scrollWidth 560 =
+  clientWidth 560, nothing scrolls (DNA). Headed Chrome 156, scrollbar 15
+  px, scrollWidth 550 > clientWidth 545 and scrollHeight 258 > clientHeight
+  255, so the box really scrolls and Tab reaches it. Not a false PASS: the
+  outcome matches what that browser renders. No code change.
 
 **Not Windows differences.**
 
@@ -81,8 +88,12 @@ from `d.day`. Never use `%-d`, `%-m` or the like in this repo.
 **What this settles.** Each build-task file's "headed Chrome on Windows:
 every fixture gives the same outcome" item is now answered for its test.
 4.C, 4.D, 4.E and 4.F: yes, every fixture and ACT case. 4.B: yes. 4.A: yes
-except ACT 8f9b5bf5. 5.D: yes after the new-window fix (headless full
-suite, and a headed run of the 4.A, 4.B, 5.D and Baseline tests). The
+except ACT 8f9b5bf5 (scrollbars, above). 5.D: yes after the new-window fix
+(headless full suite, and a headed run of the 4.A, 4.B, 5.D and Baseline
+tests). 5.A, 5.B, 5.C, 5.F, 5.G, 5.H, 9.A, 9.B, 9.C and 19.A: yes (2026-11-02,
+installed Chrome 156 headed, `-n0`, in four chunks of about 4.5 min each:
+`test_fixtures_5a/5b`, 36 passed; `5f/5h`, 26; `9a`, 29; `9x`, `19a` and
+`test_site.py`, 30). The
 individual browser checks in `tests/browser/` (4.C V1 to V15) passed in Run B. Items no test
 covers, such as 4.B V1 (repeated keydown on a held key) and 4.D V8 (cost
 per stop), are still open.
