@@ -9,6 +9,7 @@ read from there whatever the working directory.
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Literal
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -92,8 +93,9 @@ class Settings(BaseSettings):
 
     # ── Versions recorded in every report ─────────────────────────────────────
     # "client": open questions go to the calling agent (a11y_answer_questions).
-    # "api": NASA hosted model (not implemented yet).
-    judge_backend: str = "client"
+    # "api" (NASA hosted model) joins this choice when ApiJudge is built, so an
+    # unbuilt backend fails at startup, not after a run.
+    judge_backend: Literal["client"] = "client"
     # Identifier of the model that answers open questions, if any.
     judging_model: str = "none"
 
