@@ -21,6 +21,18 @@ because fixture names describe the expected answer ("key-in-comment-only").
 The answer key (`/tmp/eval/state.json`) is outside the packet tree. Agents
 are told to open nothing else and to list every file they opened.
 
+## Run 14, 2026-11-02: 5.B 1.1.0 after the merge, its packets only
+
+`prepare OUT 5.B` after 5.B 1.1.0 (an option in a set no longer takes the
+legend as its label). 23 cases ask questions; leak grep clean. One fresh
+Sonnet agent, told to start no sub-agents (about 154,000 tokens, 7 min):
+23/23 match, no false PASS, no follow-up round. Its least sure calls:
+duplicate "Name"/"Street" labels told apart by visible "Shipping"/"Billing"
+headings (descriptive) against the same labels with no heading (not); a
+field whose only visible label is "Go". **Coverage gap:** no packet has a
+radio button or checkbox, so this run shows 5.B's cases still hold but does
+not exercise the 1.1.0 change itself.
+
 ## Run 13, 2026-11-02: 5.A 1.1.0 after the rubric fix, its packets only
 
 `prepare OUT 5.A`, fresh packets after run 12's two fixes. 13 of the cases
