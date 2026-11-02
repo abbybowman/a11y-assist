@@ -12,4 +12,4 @@ Spec [4a-keyboard-access.md](4a-keyboard-access.md) 1.0.0 is built (`checks/t4a.
 | V1 | Hit-testing through frames: inert, hidden and 1 × 1 px frames are not pointer targets (covered by ACT 17a371c4, 033e04cc, 63cd20ec); cross-origin frames are counted as unreadable (no fixture) | Pointer scan, M16 |
 | V2 | Chrome shows no title tooltip on keyboard focus (assumed from the PDF's note and Baseline's advisory; headless screenshots cannot show native tooltips) | Title check |
 | V3 | Delegated click handlers (`document` listeners, React roots) are found by the cursor rule; one without a pointer cursor is missed (no fixture) | Pointer scan |
-| V4 | Headed Chrome on Windows: every fixture gives the same outcome | All rows |
+| V4 | Checked (Windows, installed Chrome 156 headed): every fixture gives the same outcome; ACT 8f9b5bf5 differs because Windows scrollbars make its box scroll (solutions/windows-chrome-results.md) | All rows |
