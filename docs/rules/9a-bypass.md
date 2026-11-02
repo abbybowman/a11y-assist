@@ -33,7 +33,7 @@ The tool gives each page one 9.A outcome: PASS, FAIL, DOES NOT APPLY or NEEDS RE
 | A4 | Repeated units exist but B is empty (they all come after the main content), or B is small: one control, or fewer than 4 words in all | NEEDS REVIEW, naming what repeats and where | p. 42 Identify Content (EXCLUDE, Note); Abby, 2026-11-02 (no outcome given by the TT for "nothing to bypass": NEEDS REVIEW) |
 | A5 | Otherwise | Applies; go to section 3 | |
 
-Small block, in numbers: B is one control, or B's units hold fewer than 4 words in all. Measured on the agency budget page with one other page: B is 30 units.
+Small block, in numbers: B is one control, or B's units hold fewer than 4 words in all.
 
 ## 2. Evidence to collect
 
