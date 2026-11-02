@@ -13,6 +13,7 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 from a11y_assist.checks.base import RunContext
+from a11y_assist.checks.t5a import in_set
 from a11y_assist.checks.t5c import rel_images
 from a11y_assist.engine import Row, first_match
 from a11y_assist.labels import Comp, LabelsPass, labels_pass
@@ -53,10 +54,14 @@ class State5B(BaseModel):
 
 
 def _shown(c: Comp) -> str:
+    """5.A's visible label: an option in a set does not take the legend (it
+    goes in `group`; 5.A 1.1.0)."""
     return " ".join(
         (x.get("text") or "").strip()
         for x in c.label_shown
-        if x.get("shown") and (x.get("text") or "").strip()
+        if x.get("shown")
+        and (x.get("text") or "").strip()
+        and not (x.get("group") and in_set(c))
     )
 
 
@@ -74,7 +79,8 @@ def items_of(lp: LabelsPass) -> tuple[list[Item], list[str], int]:
             near: list[str] = []
         else:
             label = _shown(c)
-            near = [t for t in c.nearby if t.strip() and t.strip() != label][:NEAR_MAX]
+            nearby = c.nearby_own if in_set(c) else c.nearby
+            near = [t for t in nearby if t.strip() and t.strip() != label][:NEAR_MAX]
             if not label and not near:
                 no_label += 1
                 continue

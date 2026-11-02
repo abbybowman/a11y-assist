@@ -1,7 +1,7 @@
 ---
 tt_test: 5.C
 tt_name: 1.3.1-programmatic-label
-spec_version: 1.0.0
+spec_version: 1.1.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -47,6 +47,7 @@ Each form component is an *instance*.
 | M1 | The component could not be read | NEEDS REVIEW | Spec rule |
 | M2 | ANDI did not analyse the component (no ANDI output) | NEEDS REVIEW | p. 26 HtT 2–3 |
 | M3 | The programmatic text is empty (no name, no description, no group label, no table header, no list context) | FAIL | p. 27 ER 1–4 (nothing describes it); F68; Baseline 10.A check 1; TC10.A-1-fail-1, TC10.E-1-fail-1 |
+| M3o | A radio button or checkbox in a set (5.A section 3: two or more under one legend or group label) whose only programmatic text is the group label: no name, description, table header or list context of its own | FAIL: screen readers announce the question, not which choice it is (1.1.0) | p. 27 ER 1; Understanding 3.3.2 (each option needs a label); Abby, 2026-11-02 |
 | M4 | (A part of a multi-part field with no name and no description, F86: M3 covers it, FAIL) | — | F86 |
 | M5 | The programmatic text contains every word of the nearby visible text (a button: its own text), including any required cue ("*", "required"), and, for a radio button or checkbox in a set of two or more, a group label | PASS: whether the wording describes the purpose is 5.B's (p. 25 Note 3; Abby, 2026-11-01), so TC10.E-1-pass-1's "The sky is blue" passes here and is 5.B's failure | p. 27 ER 1, 3; Note 4 |
 | J1? | Otherwise, J1 not answered | NEEDS REVIEW | Open question |
@@ -75,6 +76,7 @@ Each form component is an *instance*.
 | Page NEEDS REVIEW | "We could not finish this test, so a person needs to check it." |
 | A1 | "This page has no form fields or buttons, so this test does not apply." |
 | M3 | "<component> has no name for screen readers: the text people see next to it is not connected to it in the code. To see it, move to it with a screen reader." |
+| M3o | "<component> is one of several choices under the same question, and screen readers announce only the question, not which choice it is. Give each choice its own label in the code." |
 | M4 | "One part of <component> has no name for screen readers, so a user cannot tell the parts apart." |
 | M7 | "<component> is announced as \"<programmatic text>\", which leaves out \"<quote>\" that sighted users see next to it." |
 | M8 | "<component> is announced as \"<programmatic text>\", which does not say what it is for." |

@@ -78,3 +78,13 @@ Pass E dismisses JS dialogs, so a confirmation dialog reaches J2 as an
 alert message: questions about what happened after a submit must show
 `alerts`.
 
+
+**`invalid` does not bubble, so a cancelled one needs a listener on the
+field.** Pages cancel the `invalid` event to hide the browser's message and
+draw their own errors; the field still has a `validationMessage`, so 5.F
+1.0.0 credited a message nobody saw (code review, 2026-11-02). The bubble
+trick used for `submit` cannot see it. `traverse.INIT_JS` now adds a
+one-time listener to the field from the window capture listener; it runs
+after the page's own listeners there and records `defaultPrevented`
+(`null` when propagation was stopped, counted as not shown). Fixture
+`5f/f15-cancelled-browser-message.html`.

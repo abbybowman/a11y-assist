@@ -10,6 +10,7 @@ decide outcomes.
 
 from __future__ import annotations
 
+import json
 import re
 from typing import Any
 
@@ -192,7 +193,16 @@ async def _read_after(s: Session, st: State9A, c: Cand, url0: str) -> None:
     """After the key was pressed: landing, hidden units, navigation, one Tab."""
     idx = {u.css: u.i for u in st.units}
     block_css = [st.units[b].css for b in st.block]
-    got = await s.page.evaluate(LANDING_JS, [c.css, block_css, UNIT_CAP])
+    if s.page.url.split("#")[0] != url0.split("#")[0]:
+        c.nav = True
+        return
+    # Isolated world: page script cannot fake document.activeElement there
+    # (docs/solutions/focus-reading.md), and the landing decides M5 and M7.
+    args = json.dumps([c.css, block_css, UNIT_CAP])
+    got = await s.traversal.reader.evaluate_top(f"({LANDING_JS})({args})")
+    if not isinstance(got, dict):
+        c.error = "where the keyboard landed could not be read"
+        return
     if got["url"].split("#")[0] != url0.split("#")[0]:
         c.nav = True
         return

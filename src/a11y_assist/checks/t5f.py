@@ -63,8 +63,15 @@ SUBMIT_WORDS = re.compile(
 _LIVE = "[aria-live=polite],[aria-live=assertive],[role=alert],[role=status],output"
 _DLG = "dialog[open],[role=dialog],[role=alertdialog]"
 
+# Text: the "base" read (fresh load) notes every visible piece in the isolated
+# world, uncapped, and returns the first NEW_MAX (5.H reads them as page text);
+# each later read returns only pieces not noted then (an error message is
+# new text, wherever it appears), at most NEW_MAX. "capped": more than that,
+# or the base read is gone (spec 1.1.0).
+NEW_MAX = 200
+
 READ_JS = (
-    "(function (css) {"
+    "(function ([css, mode]) {"
     + PATH_JS
     + """
   const doc = document;
@@ -79,13 +86,24 @@ READ_JS = (
       }
   });
   const texts = [];
+  const base = mode === 'base';
+  const seen = base ? new Set() : globalThis.__a11y5fSeen;
+  let capped = !seen;
   const tw = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT);
-  for (let n = tw.nextNode(); n && texts.length < 800; n = tw.nextNode()) {
+  for (let n = tw.nextNode(); n && seen; n = tw.nextNode()) {
     const p = n.parentElement;
     if (!p || ['SCRIPT', 'STYLE', 'NOSCRIPT', 'OPTION', 'TEXTAREA'].includes(p.tagName)) continue;
     if (!vis(p)) continue;
     const t = n.textContent.replace(/\\s+/g, ' ').trim();
     if (!t) continue;
+    const key = path(p) + '\\u0000' + t;
+    if (base) {
+      seen.add(key);
+      if (texts.length >= NEW_MAX) continue;  // the page's first text, for 5.H
+    } else {
+      if (seen.has(key)) continue;
+      if (texts.length >= NEW_MAX) { capped = true; break; }
+    }
     const live = p.closest(LIVE);
     const desc = descOf.filter(([d]) => d.contains(p)).map(([, i]) => i);
     const r = p.getBoundingClientRect();
@@ -114,12 +132,15 @@ READ_JS = (
              maxlength: el.maxLength > 0 ? el.maxLength : null,
              min: el.getAttribute('min'), max: el.getAttribute('max') };
   });
+  if (base) globalThis.__a11y5fSeen = seen;
   const a = doc.activeElement;
   const dialogs = Array.from(doc.querySelectorAll(DLG)).filter(vis).length;
-  return { texts, live: Array.from(doc.querySelectorAll(LIVE)).map(path), fields,
+  return { texts, capped, live: Array.from(doc.querySelectorAll(LIVE)).map(path), fields,
            focus: a && a !== doc.body && a !== doc.documentElement ? path(a) : null,
            dialogs, url: location.href };
-})""".replace("LIVE", json.dumps(_LIVE)).replace("DLG", json.dumps(_DLG))
+})""".replace("NEW_MAX", str(NEW_MAX))
+    .replace("LIVE", json.dumps(_LIVE))
+    .replace("DLG", json.dumps(_DLG))
 )
 
 # Each field's form (its form owner's path, or "" outside any form) and the
@@ -209,6 +230,7 @@ class Read(BaseModel):
     dialogs: int = 0
     url: str = ""
     failed: bool = False  # the page could not be read (it left)
+    capped: bool = False  # new text past NEW_MAX, or the base read was lost
 
 
 class AttemptE(BaseModel):
@@ -224,6 +246,7 @@ class AttemptE(BaseModel):
     reads: list[Read] = Field(default_factory=list)
     js: list[str] = Field(default_factory=list)  # JS dialog messages
     invalid: int = 0  # native validation invalid events
+    invalid_shown: int = 0  # of those, not cancelled: the browser showed its message
     sent: bool = False  # a submission not cancelled, or the page left
     shot_before: str | None = None
     shot_after: str | None = None
@@ -262,7 +285,8 @@ def wrong_date(min_: str | None, max_: str | None) -> tuple[str, str]:
         d = lo.replace(year=lo.year - 1, day=min(lo.day, 28))
     else:
         d = dt.date(2999, 1, 1)
-    return f"{d.month:02d}{d.day:02d}{d.year:04d}", d.strftime("%B %-d, %Y")
+    # Not strftime("%-d"): Windows has no "-" flag and raises ValueError.
+    return f"{d.month:02d}{d.day:02d}{d.year:04d}", f"{d:%B} {d.day}, {d.year}"
 
 
 def _choose(buttons: list[Btn]) -> int | None:
@@ -279,6 +303,7 @@ def _read_of(got: Any, moment: str, fields: list[Field5D]) -> Read:
     return Read(
         moment=moment,
         texts=got.get("texts") or [],
+        capped=bool(got.get("capped")),
         live=got.get("live") or [],
         fields={str(f.n): v for f, v in zip(fields, got.get("fields") or [])},
         focus=got.get("focus"),
@@ -288,7 +313,8 @@ def _read_of(got: Any, moment: str, fields: list[Field5D]) -> Read:
 
 
 async def _read(s: Session, moment: str, fields: list[Field5D]) -> Read:
-    got = await _top(s, READ_JS, [_css(f) for f in fields])
+    mode = "base" if moment in ("base", "load") else "after"
+    got = await _top(s, READ_JS, [[_css(f) for f in fields], mode])
     return _read_of(got, moment, fields)
 
 
@@ -322,7 +348,9 @@ async def _press_submit(
     await settle(page, ctx.quiet_ms)
     await page.wait_for_timeout(150)  # an alert's handler, a late re-render
     subs = (await submissions(page))[sub0:]
-    a.invalid = max(0, len(await invalid_events(page)) - inv0)
+    inv = (await invalid_events(page))[inv0:]
+    a.invalid = len(inv)
+    a.invalid_shown = sum(1 for x in inv if x.get("prevented") is False)
     left = page.url.split("#")[0] != url0.split("#")[0]
     a.sent = left or any(
         x.get("how") in ("submit", "requestSubmit")
@@ -353,13 +381,21 @@ async def attempt(
     by_n = {f.n: f for f in fields}
     a = AttemptE(form=form.id, kind=kind, button=btn.n if btn else None)
     text = sorted([by_n[n] for n in form.text + form.dates], key=lambda f: f.index)
+    plain = sorted([by_n[n] for n in form.text], key=lambda f: f.index)
     if kind == 1 and btn is not None:
-        start = btn.index or 0
-    elif text:
-        start = text[0].index
+        start, target = btn.index or 0, _btn_field(btn)
+    elif kind == 1 and plain:
+        # No button: Enter in the last text field, nothing typed (section 2).
+        start, target = plain[-1].index, plain[-1]
+    elif kind == 2 and text:
+        start, target = text[0].index, text[0]
     else:
         a.reached = False
-        a.error = "no text or date field to type into"
+        a.error = (
+            "no button and no text field to press Enter in"
+            if kind == 1
+            else "no text or date field to type into"
+        )
         return a
     # The before-read is on the fresh load, before any key: tabbing past a
     # field can already show its error (TC10.D validates on leaving).
@@ -370,7 +406,6 @@ async def attempt(
         a.shot_before = await _shot(
             ctx, s, f"{form.id}-a{kind}-b{a.button or 0}-before"
         )
-        target = _btn_field(btn) if kind == 1 and btn is not None else text[0]
         if await _arrive(s, target, start + ARRIVE_SLACK, ctx.plan) is None:
             a.reached = False
             a.error = "could not reach the first field or the submit control"
@@ -526,8 +561,6 @@ async def run_attempts(
     if btn_n is not None:
         form.tried.append(btn_n)
     for kind in (1, 2):
-        if kind == 1 and btn is None:
-            continue  # nothing to press without typing: Enter needs a text field
         if ctx.out_of_time():
             ps.incomplete.append(
                 "The run time limit was reached before every form was checked."
@@ -641,7 +674,7 @@ def new_texts(a: AttemptE, fields: list[Field5D]) -> list[ErrText]:
 
 def notice(a: AttemptE, texts: list[ErrText]) -> bool:
     """How the user learns of the errors (spec section 3, notice)."""
-    if a.js or a.invalid:
+    if a.js or a.invalid_shown:
         return True
     if any(r.dialogs > (a.base.dialogs if a.base else 0) for r in a.reads):
         return True
@@ -689,7 +722,7 @@ def instances(ps: PassE) -> list[Inst5F]:
                 page_text=page_text,
             )
             b = a.base.fields.get(str(n)) or {}
-            if a.invalid and not a.sent and last:
+            if a.invalid_shown and not a.sent and last:
                 v = last.fields.get(str(n)) or {}
                 if v.get("valid") is False and v.get("vmsg"):
                     i.native = v["vmsg"]
@@ -1062,6 +1095,14 @@ def incomplete_of(ps: PassE) -> list[str]:
             out.append(
                 f"One attempt to send a form could not be completed ({a.error})."
             )
+        elif a.base is None or a.base.failed:
+            out.append(
+                "The page could not be read before one attempt to send a form, so its errors could not be told apart from what was already there."
+            )
+    if any(r.capped for a in ps.attempts for r in [a.base, *a.reads] if r):
+        out.append(
+            "Not all the text that appeared after one attempt could be read, so an error message may have been missed."
+        )
     return out
 
 

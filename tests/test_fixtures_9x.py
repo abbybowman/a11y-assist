@@ -67,6 +67,8 @@ EXPECTED: dict[str, tuple[str, list[str], dict[str, str], dict]] = {
         {"9.A": {"J2": {"choice": "not_repeated"}}},
     ),
     "two-links": ("b5-two-links", ["b6-sibling-with-aside"], {"9.A": "PASS"}, {}),
+    # The page tells its own script that focus moved; it did not.
+    "fake-focus": ("b7-fake-focus", ["a2-benefits"], {"9.A": "FAIL"}, {}),
     "paging": (
         "d1-page4",
         ["d2-page5"],
@@ -82,6 +84,7 @@ NOT_EVAL = {"breadcrumbs-not-repeated"}
 ROWS = {
     ("skip-past-heading", "9.A"): ["M8"],
     ("documented-key", "9.A"): ["M7"],  # the documented key, pressed
+    ("fake-focus", "9.A"): ["M5"],
     ("breadcrumbs-repeated", "9.A"): ["M9"],
     ("nav-reordered", "9.B"): ["N3"],
     ("nav-css-order", "9.B"): ["N4"],
@@ -105,3 +108,24 @@ async def test_case(case, settings, server, drafts):  # noqa: F811
         assert f.outcome.value == outcome, (t, f.rows, f.summary)
         if (case, t) in ROWS:
             assert sorted(instance_rows(f)) == sorted(ROWS[(case, t)]), f.rows
+
+
+def test_9c_page_over_the_cap_is_never_pass_or_dna():
+    """A page over the 600-unit cap has controls that were never paired, so
+    agreeing pairs (G5) or no pairs (A3) cannot decide (spec 1.1.0). Built
+    evidence: no fixture page this large is worth vendoring."""
+    from a11y_assist.checks.t9c import AndiPage, Comp, Pair, State9C, evaluate
+
+    def page(n, truncated):
+        c = Comp(k=0, css="a", role="link", href="/home", andi_name="Home")
+        return AndiPage(n=n, ran=True, truncated=truncated, comps=[c])
+
+    pair = Pair(id="p1-0", page=1, here=0, there=0, by="destination")
+    full = State9C(pages=[page(0, False), page(1, False)], pairs=[pair])
+    assert evaluate(full, []).outcome.value == "PASS"
+    over = State9C(pages=[page(0, False), page(1, True)], pairs=[pair])
+    f = evaluate(over, [])
+    assert (f.outcome.value, f.rows[-1]) == ("NEEDS_REVIEW", "G3"), f.rows
+    assert "other page 1" in f.summary
+    none = State9C(pages=[page(0, True), page(1, False)], pairs=[])
+    assert evaluate(none, []).outcome.value == "NEEDS_REVIEW"

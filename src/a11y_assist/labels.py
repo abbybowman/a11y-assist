@@ -38,6 +38,15 @@ _SHARED_JS = """
     return true;
   };
   const txt = (e) => (e ? (e.innerText || e.textContent || '') : '').replace(/\\s+/g, ' ').trim();
+  const isOpt = (o) => {
+    const t = (o.type || '').toLowerCase(), ro = o.getAttribute('role') || '';
+    return t === 'radio' || t === 'checkbox' || ['radio', 'checkbox', 'switch'].includes(ro);
+  };
+  const isBtn = (o) => {
+    const t = (o.type || '').toLowerCase();
+    return o.tagName === 'BUTTON' || (o.tagName === 'INPUT' && ['submit', 'reset', 'button'].includes(t)) ||
+      o.getAttribute('role') === 'button';
+  };
   const comps = () => Array.from(doc.querySelectorAll(SEL)).filter((el) => {
     if (el.closest('#ANDI508')) return false;
     const t = (el.type || '').toLowerCase();
@@ -90,13 +99,17 @@ COMPONENTS_JS = (
   return els.map((el, i) => {
     const tag = el.tagName.toLowerCase(), type = (el.type || '').toLowerCase(), role = el.getAttribute('role') || '';
     const button = tag === 'button' || (tag === 'input' && ['submit', 'reset', 'button'].includes(type)) || role === 'button';
-    const option = type === 'radio' || type === 'checkbox' || ['radio', 'checkbox', 'switch'].includes(role);
+    const option = isOpt(el);
+    // Options under one legend or group label, whatever their names: the
+    // legend labels an option only when it is the set's only one (5.A 1.1.0).
+    const cont = option ? el.closest('fieldset,[role=radiogroup],[role=group]') : null;
+    const set_size = cont ? els.filter((o) => cont.contains(o) && isOpt(o)).length : 1;
     let group = null;
     if (type === 'radio' || type === 'checkbox') group = (el.form ? path(el.form) : '') + ':' + type + ':' + (el.name || path(el));
     else if (role === 'radio') { const g = el.closest('[role=radiogroup]'); group = g ? 'rg:' + path(g) : null; }
     const r = el.getBoundingClientRect();
     return {
-      i, css: path(el), tag, type, role, button, option, group,
+      i, css: path(el), tag, type, role, button, option, group, set_size,
       form: (el.form || el.closest('form')) ? path(el.form || el.closest('form')) : '',
       readonly: el.readOnly === true || el.getAttribute('aria-readonly') === 'true',
       required: el.required === true || el.getAttribute('aria-required') === 'true',
@@ -143,8 +156,24 @@ FOCUS_JS = (
   for (const fs of doc.querySelectorAll('fieldset')) if (!fs.contains(el)) others.push(fs);
   const form = el.form || el.closest('form');
   const inOther = (n) => others.some((o) => o === n || o.contains(n)) || (form && !form.contains(n));
-  const labels = [...labelEls(el), ...groupEls(el)].map((l) => ({
-    text: txt(l), shown: shown(l) && inReg(l.getBoundingClientRect()) }));
+  const grp = groupEls(el);
+  const labels = [...labelEls(el).map((l) => [l, false]), ...grp.map((l) => [l, true])].map(([l, g]) => ({
+    text: txt(l), shown: shown(l) && inReg(l.getBoundingClientRect()), group: g }));
+  // A button's text beside the field can label it (G167: a "Search" button
+  // by a search box); kept apart, it is not the field's own text (5.C).
+  const btns = [];
+  for (const o of els) {
+    if (o === el || !isBtn(o) || !shown(o) || !inReg(o.getBoundingClientRect())) continue;
+    const t = txt(o) || o.value || '';
+    if (t && !btns.includes(t)) btns.push(t);
+  }
+  // Pictures near the field, not another field's: one may be its label
+  // (J1's "graphic"), so a field with one is never failed for having no text.
+  let imgs = 0;
+  for (const m of doc.querySelectorAll('img,svg,[role=img],input[type=image]')) {
+    if (el.contains(m) || inOther(m) || !shown(m) || !inReg(m.getBoundingClientRect())) continue;
+    imgs++;
+  }
   const near = [];
   const tw = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT);
   const cx = (r.left + r.right) / 2, cy = (r.top + r.bottom) / 2;
@@ -159,7 +188,8 @@ FOCUS_JS = (
     const range = doc.createRange(); range.selectNodeContents(n);
     const b = range.getBoundingClientRect();
     if (!b.width || !inReg(b)) continue;
-    near.push({ t, d: Math.hypot((b.left + b.right) / 2 - cx, (b.top + b.bottom) / 2 - cy) });
+    near.push({ t, g: grp.some((x) => x.contains(p)),
+                d: Math.hypot((b.left + b.right) / 2 - cx, (b.top + b.bottom) / 2 - cy) });
   }
   near.sort((a, b) => a.d - b.d);
   // Visible labels of other fields in the region: a set of fields (a phone
@@ -175,6 +205,7 @@ FOCUS_JS = (
   return {
     focused: doc.activeElement === el,
     labels, nearby: near.map((x) => x.t), nearby_other: nbr.slice(0, 6),
+    nearby_own: near.filter((x) => !x.g).map((x) => x.t), nearby_buttons: btns.slice(0, 6), nearby_images: imgs,
     placeholder_shown: !!el.getAttribute('placeholder') && !el.value,
     // Viewport coordinates: a viewport screenshot's clip is relative to it.
     clip: { x: reg.l, y: reg.t, width: Math.max(1, reg.r - reg.l), height: Math.max(1, reg.b - reg.t) },
@@ -196,6 +227,7 @@ class Comp(BaseModel):
     option: bool = False
     group: str | None = None
     form: str = ""  # form owner's path; "" outside any form (5.B)
+    set_size: int = 1  # options under the same legend or group label
     readonly: bool = False
     required: bool = False
     labels: list[str] = Field(default_factory=list)
@@ -211,6 +243,9 @@ class Comp(BaseModel):
     label_shown: list[dict[str, Any]] = Field(default_factory=list)
     nearby: list[str] = Field(default_factory=list)
     nearby_other: list[str] = Field(default_factory=list)  # other fields' labels
+    nearby_own: list[str] = Field(default_factory=list)  # nearby, minus the legend
+    nearby_buttons: list[str] = Field(default_factory=list)  # buttons' text nearby
+    nearby_images: int = 0  # pictures nearby that are not another field's
     placeholder_shown: bool = False
     image: str | None = None
     andi: dict[str, Any] | None = None  # name, desc, group, dangers, warnings
@@ -314,6 +349,9 @@ async def read_session(
             total += len(t)
         c.nearby = near
         c.nearby_other = r.get("nearby_other") or []
+        c.nearby_own = r.get("nearby_own") or []
+        c.nearby_buttons = r.get("nearby_buttons") or []
+        c.nearby_images = r.get("nearby_images") or 0
         if images:
             try:
                 ctx.shots.mkdir(parents=True, exist_ok=True)

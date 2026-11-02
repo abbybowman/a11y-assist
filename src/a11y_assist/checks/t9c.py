@@ -407,6 +407,22 @@ def evaluate(st: State9C, evidence_refs: list[str]) -> Finding:
         f = Finding.not_performed(TestId.T9C, "; ".join(errs))
         f.rows = ["A2", "G1"]
         return f
+    # Controls past the cap were never paired, so no DNA or PASS can rest on
+    # the pairs that were read (spec 1.1.0).
+    unread = [
+        f"Only the first {UNIT_CAP} pieces of content of {'the tested page' if p.n == 0 else f'other page {p.n}'} were read."
+        for p in st.pages
+        if p.truncated
+    ]
+    if not st.pairs and unread:
+        return _finding(
+            Outcome.NEEDS_REVIEW,
+            " ".join([REVIEW_HEAD, *unread]),
+            ["A4", "G3"],
+            evidence_refs,
+            rationale="Spec G3. Incomplete: " + "; ".join(unread),
+            note=True,
+        )
     if not st.pairs:
         return _finding(
             Outcome.DNA,
@@ -442,7 +458,7 @@ def evaluate(st: State9C, evidence_refs: list[str]) -> Finding:
                     description=f"{p.id} [{rid} {outcome.value}] {x.role} {x.andi_name!r} / {y.andi_name!r} ({p.by})",
                 )
             )
-    if not results:
+    if not results and not unread:
         return _finding(
             Outcome.DNA,
             "The links and controls the tool matched do different things on each page, so this test does not apply.",
@@ -453,12 +469,13 @@ def evaluate(st: State9C, evidence_refs: list[str]) -> Finding:
         gid, outcome = "G2", Outcome.FAIL
         head = "Some links or controls that do the same thing have different names on different pages:"
         tail = ["Use the same name on every page."]
-    elif any(o is Outcome.NEEDS_REVIEW for o in results):
+    elif any(o is Outcome.NEEDS_REVIEW for o in results) or unread:
         gid, outcome, head, tail = "G3", Outcome.NEEDS_REVIEW, REVIEW_HEAD, []
         if capped:
             tail = [
                 f"Only {J1_MAX} differences were asked about; a person should check the rest."
             ]
+        tail += unread
     else:
         gid, outcome = "G5", Outcome.PASS
         head = "Links and controls that do the same thing here and on the other pages you gave have the same names for screen reader users."

@@ -1,0 +1,12 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>F15 Newsletter</title></head><body>
+<h1>Newsletter</h1>
+<form action="send" method="post">
+<p><label for="email">Email</label> <input id="email" name="email" type="email" required></p>
+<p><button>Sign up</button></p>
+</form>
+<script>
+document.getElementById("email").addEventListener("invalid", (e) => {
+  e.preventDefault();
+  e.target.setAttribute("aria-invalid", "true");
+});
+</script></body></html>
