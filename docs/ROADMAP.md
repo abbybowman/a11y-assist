@@ -20,7 +20,7 @@ fields, are refused at once with a `no_time_limit` option
 
 Next: 5.B (label descriptive) and 5.H (error prevention) would complete
 Test 5; or the multi-page batch
-([plans/2026-11-01-multi-page.md](plans/2026-11-01-multi-page.md)). Choose
+([plans/2026-11-02-multi-page.md](plans/2026-11-02-multi-page.md)). Choose
 with the coverage map and CLAUDE.md's research rule.
 
 Per-test leftovers live in each `docs/rules/<id>-build-tasks.md` (mostly
@@ -98,7 +98,7 @@ run).
   to "not evaluated". TT tests map to WCAG criteria through `tt.json`
   (Appendix A); 4.A and 4.B share 2.1.1.
 - **Multi-page tests** (9.A, 9.B, 9.C as one batch:
-  [plans/2026-11-01-multi-page.md](plans/2026-11-01-multi-page.md); 9.A is
+  [plans/2026-11-02-multi-page.md](plans/2026-11-02-multi-page.md); 9.A is
   researched, with three questions for Abby), then the visual-versus-code cluster (10.x, 14.x, 15.A,
   18.A; ANDI is the core evidence for most of it, so the ANDI spike first).
 - **Firefox as an optional browser.** TT 5.1.3 validates Chrome and Firefox
