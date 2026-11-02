@@ -36,6 +36,16 @@ run).
   test's "How to Test" (the same PDF heading trap that scrambled 9.B, fixed
   2026-11-02; `tests/test_tt_source.py`). Fix each from its printed pages
   before building those tests, and the tt:// resource with it.
+- **9.x rows no fixture triggers (optional; do with the real-page eval).**
+  A coverage run (2026-11-02) reached about 91% of the 9.x check code; never
+  triggered: 9.A M6 (focus did not really move), M2, the 8-candidate cap,
+  a frame in the block, J1 `not_documented`/`unsure` and a documented key
+  that does not work; 9.B N1, N5 and visual order reversed the other way;
+  9.C C2 (a name on one page only), C5 and the all-dropped DNA; A2 (a page
+  or ANDI that cannot be read) end to end; `other_pages` through the MCP
+  tool, an other page that redirects off the host or fails to load, and the
+  "other pages not used" note. Real .gov templates matter more than these:
+  wait for the agent-eval pages, then add fixtures for whatever they show.
 - **Progress on long calls.** Multi-page runs take up to 120 s + 20 s per
   other page. The tool sends MCP progress per phase and page; a consumer
   agent that hands the run to a subagent sees none of it. Find a way for a
