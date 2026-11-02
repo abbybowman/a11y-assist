@@ -18,10 +18,15 @@ time elsewhere); pages too large to walk, or with more than 40 form
 fields, are refused at once with a `no_time_limit` option
 ([solutions/time-budget.md](solutions/time-budget.md)).
 
-Next: 5.B (label descriptive) and 5.H (error prevention) would complete
-Test 5; or the multi-page batch
-([plans/2026-11-02-multi-page.md](plans/2026-11-02-multi-page.md)). Choose
-with the coverage map and CLAUDE.md's research rule.
+Drafts (spec 0.1.0, in `tests/drafts.py`, fixtures green, judge eval 4/4):
+9.A (Bypass), 9.B (Consistent navigation) and 9.C (Consistent
+identification), on the new `other_pages` input (1–5 pages of the same
+site, the run limit +20 s each) and the shared `site.py` read
+([plans/2026-11-02-multi-page.md](plans/2026-11-02-multi-page.md),
+[rules/9a-build-tasks.md](rules/9a-build-tasks.md)). Next: Abby's review
+of the three specs for 1.0.0, then registration (0 s on a single-page run:
+without other pages they are NEEDS REVIEW). After that: 5.B (label
+descriptive) and 5.H (error prevention) would complete Test 5.
 
 Per-test leftovers live in each `docs/rules/<id>-build-tasks.md` (mostly
 browser checks on Windows headed Chrome, which this Linux container cannot
@@ -29,6 +34,15 @@ run).
 
 ## Soon
 
+- **`tt.json` steps for 5.B, 7.C and 16.B.** Each repeats the previous
+  test's "How to Test" (the same PDF heading trap that scrambled 9.B, fixed
+  2026-11-02; `tests/test_tt_source.py`). Fix each from its printed pages
+  before building those tests, and the tt:// resource with it.
+- **Progress on long calls.** Multi-page runs take up to 120 s + 20 s per
+  other page. The tool sends MCP progress per phase and page; a consumer
+  agent that hands the run to a subagent sees none of it. Find a way for a
+  subagent to relay progress to the main thread (Abby, 2026-11-02), or say
+  in the tool description how long to expect.
 - **More shared replays (deferred).** 4.A now reuses 4.D's pass W arrows
   and 4.F's pass R Enter presses when they cover what it needs
   (docs/solutions/time-budget.md). Left: 4.C's widget check (P4) and pass W
@@ -97,10 +111,8 @@ run).
 - **OpenACR export**, as a draft labelled agent-assisted; NEEDS_REVIEW maps
   to "not evaluated". TT tests map to WCAG criteria through `tt.json`
   (Appendix A); 4.A and 4.B share 2.1.1.
-- **Multi-page tests** (9.A, 9.B, 9.C as one batch:
-  [plans/2026-11-02-multi-page.md](plans/2026-11-02-multi-page.md); 9.A is
-  researched, with three questions for Abby), then the visual-versus-code cluster (10.x, 14.x, 15.A,
-  18.A; ANDI is the core evidence for most of it, so the ANDI spike first).
+- **The visual-versus-code cluster** (10.x, 14.x, 15.A, 18.A; ANDI is the
+  core evidence for most of it).
 - **Firefox as an optional browser.** TT 5.1.3 validates Chrome and Firefox
   (Test Environment). Results are reported for the browser the report
   records and never claimed for others (e.g. Chrome 130+ tabs to scroll
