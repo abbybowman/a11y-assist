@@ -18,7 +18,7 @@ time elsewhere); pages too large to walk, or with more than 40 form
 fields, are refused at once with a `no_time_limit` option
 ([solutions/time-budget.md](solutions/time-budget.md)).
 
-Drafts (spec 0.1.0, in `tests/drafts.py`, fixtures green, judge eval 4/4):
+Drafts (9.A 0.2.0, 9.B and 9.C 0.1.0, in `tests/drafts.py`, fixtures green, judge eval 4/4):
 9.A (Bypass), 9.B (Consistent navigation) and 9.C (Consistent
 identification), on the new `other_pages` input (1–5 pages of the same
 site, the run limit +20 s each) and the shared `site.py` read
