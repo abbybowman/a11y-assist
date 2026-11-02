@@ -57,3 +57,44 @@ async def run_check(
 
 def instance_rows(finding) -> list[str]:
     return sorted(r.split(":")[1] for r in finding.rows if ":" in r)
+
+
+async def run_tests(
+    settings,
+    url: str,
+    tests,
+    answers: dict[str, dict[str, dict[str, Any]]],
+    other_pages: list[str] | None = None,
+) -> dict[str, Any]:
+    """Several tests in one call (tests that share a collection pass, such as
+    5.A and 5.C). `answers` maps a test ID to its scripted answers, keyed by
+    the question ID's last part. Returns each test's finding."""
+    out = await run_tt_tests(
+        settings, url, [TestId(t) for t in tests], other_pages=other_pages
+    )
+    assert out.errors == [], out.errors
+    report = out.report
+    for _ in range(3):
+        qs = [q for q in report.open_questions if q.test_id.value in tests]
+        if not qs:
+            break
+        sent = []
+        for q in qs:
+            f = (answers.get(q.test_id.value) or {}).get(
+                q.question_id.rsplit("-", 1)[-1]
+            )
+            assert f is not None, f"{url}: no scripted answer for {q.question_id}"
+            sent.append(
+                Answer(
+                    question_id=q.question_id,
+                    choice=ChoiceAnswer(**{"reasons": "scripted test answer", **f}),
+                    rationale="scripted test answer",
+                )
+            )
+        res = await answer_questions(settings, out.run_id, sent)
+        assert res.errors == [] and res.rejected == [], (res.errors, res.rejected)
+        report = res.report
+    got = {f.test_id.value: f for f in report.findings if f.test_id.value in tests}
+    for f in got.values():
+        assert_plain(f.summary)
+    return got

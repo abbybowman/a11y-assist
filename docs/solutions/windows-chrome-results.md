@@ -39,6 +39,12 @@ show that a window opened and closed from a cross-site iframe is caught
 earlier action is not counted again. If discovery cannot start, only the
 page count decides.
 
+**Fixed: a Linux-only date format (5.F).** `t5f.wrong_date` wrote the date
+in words with `strftime("%-d")`. Windows Python has no `-` flag and raises
+`ValueError`, so 5.F's f13 and f14 gave NEEDS REVIEW ("One attempt to send a
+form could not be completed") where Linux gives PASS. It now builds the day
+from `d.day`. Never use `%-d`, `%-m` or the like in this repo.
+
 **Real Windows differences (reproduced; open).**
 
 - **Egress guard tests, Run B only.**

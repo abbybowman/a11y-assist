@@ -1,0 +1,14 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>F12 Contact preferences</title></head><body>
+<h1>Contact preferences</h1>
+<form id="f" novalidate>
+<p role="alert" id="msg"></p>
+<p><label for="phone">Phone number</label> <input id="phone"></p>
+<p><button type="submit">Save</button></p>
+</form>
+<script>
+document.getElementById("f").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const ok = /^\d{10}$/.test(document.getElementById("phone").value.replace(/\D/g, ""));
+  document.getElementById("msg").textContent = ok ? "" : "Phone number: enter 10 digits, like 202 555 0100.";
+});
+</script></body></html>

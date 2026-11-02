@@ -74,6 +74,9 @@ class Settings(BaseSettings):
     # Wall clock for one a11y_run_tt_tests call: short enough for HTTP proxies when
     # hosted. Tests not finished in time are NEEDS_REVIEW with the reason.
     run_limit_s: int = Field(default=120, ge=10)
+    # Seconds the run limit grows by for each other page of the same site the
+    # caller names (9.A-9.C: recording it and reading it; Abby, 2026-11-02).
+    other_page_s: int = Field(default=20, ge=5)
     runs_dir: Path = REPO_ROOT / "runs"
     # Runs are working files, not an archive: deleted after this many hours.
     # Durable results belong in the user's codebase (saved from tool output).
