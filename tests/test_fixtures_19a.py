@@ -122,3 +122,30 @@ def test_live_search_url_drops_the_action_query():
         "hidden": {"site": "main"},
     }
     assert search_url(form, "Apply") == "https://example.gov/s?site=main&q=Apply"
+
+
+def test_links_to_the_requested_url_count_after_a_redirect():
+    """Spec edge case: menus link to /benefits, which redirects to
+    /benefits/apply; those links reach T too (review #6)."""
+    from a11y_assist.checks.t19a import links_to
+    from a11y_assist.site import PageRead, Unit
+
+    menu = Unit(
+        i=0,
+        kind="control",
+        role="link",
+        text="benefits",
+        name="Benefits",
+        css="a",
+        href="https://example.gov/benefits",
+        region_role="navigation",
+    )
+    other = PageRead(n=1, url="https://example.gov/", units=[menu])
+    final, requested = (
+        "https://example.gov/benefits/apply",
+        "https://example.gov/benefits",
+    )
+    assert links_to(final, [other], set()) == []
+    assert [x.kind for x in links_to((final, requested), [other], set())] == [
+        "navigation"
+    ]
