@@ -1,8 +1,10 @@
 # Build tasks: 5.B and 5.H
 
 Specs [5b-label-descriptive.md](5b-label-descriptive.md) and
-[5h-error-prevention.md](5h-error-prevention.md) 1.0.0 (Abby, 2026-11-02; 5.B 1.1.0 after
-merging the PR #3 review fixes: an option's legend is its group, not its label)
+[5h-error-prevention.md](5h-error-prevention.md) 1.1.0 (Abby, 2026-11-02; 1.1.0 after
+the PR #4 review: an incomplete pass is never DNA; 5.B: an option's legend is its
+group, not its label; 5.H: more hint words, the hint reads all page text, and
+"checked" needs the form to stay put)
 are built
 as `checks/t5b.py` (on pass L, shared with 5.A and 5.C; components now
 record their form) and `checks/t5h.py` (on 5.F's error pass E),

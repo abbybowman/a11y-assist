@@ -9,6 +9,9 @@ on:
     types: [labeled]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   budget:
     if: github.event_name == 'workflow_dispatch' || github.event.label.name == 'time-budget'

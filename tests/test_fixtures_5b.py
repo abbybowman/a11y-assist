@@ -82,3 +82,19 @@ def test_an_option_in_a_set_does_not_take_the_legend_as_its_label():
     assert [(i.label, i.group) for i in items] == [("Email", legend["text"])]
     assert legend["text"] not in items[0].near
     assert no_label == 1  # the blank option: no label of its own (5.A M2o)
+
+
+def test_an_incomplete_label_pass_is_never_dna():
+    """5.B 1.1.0: when pass L stopped early, unread fields may have labels to
+    judge, so no item is NEEDS REVIEW, not DNA (A2)."""
+    from a11y_assist.checks.t5b import State5B, evaluate
+    from a11y_assist.labels import Comp, LabelsPass
+
+    field = Comp(n=1, css="#f", type="text")
+    full = evaluate(State5B(lp=LabelsPass(components=[field])), [])
+    assert (full.outcome.value, full.rows[0]) == ("DNA", "A2")
+    lp = LabelsPass(
+        components=[field], incomplete=["2 fields inside frames were not checked."]
+    )
+    cut = evaluate(State5B(lp=lp), [])
+    assert cut.outcome.value == "NEEDS_REVIEW"

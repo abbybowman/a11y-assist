@@ -14,7 +14,7 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 from a11y_assist.checks.base import RunContext
-from a11y_assist.checks.t5f import error_pass
+from a11y_assist.checks.t5f import error_pass, incomplete_of
 from a11y_assist.engine import Row, first_match
 from a11y_assist.models import (
     REVIEW_HEAD,
@@ -28,7 +28,9 @@ from a11y_assist.walk import KeyboardWalk
 
 HINT = re.compile(
     r"\b(pay|payment|purchase|order|checkout|cart|buy|donat\w*|transfer|credit card|card number|"
-    r"agree|terms|sign and submit|delete|remove|exam|quiz|test answers|legal|contract|application)\b",
+    r"agree|terms|sign and submit|delete|remove|exam|quiz|test answers|legal|contract|application|"
+    # Changes to saved data and benefits (spec 1.1.0, Abby 2026-11-02).
+    r"update|change|save changes|apply|claim|renew|enroll|withdraw|deposit)\b",
     re.I,
 )
 ERROR = re.compile(
@@ -64,8 +66,10 @@ async def collect(ctx: RunContext, walk: KeyboardWalk | None) -> State5H:
     if walk is None:
         return State5H(ran=False, incomplete=["The keyboard walk did not run."])
     ps = await error_pass(ctx, walk)
-    st = State5H(incomplete=list(ps.incomplete))
+    # 5.F's whole list: a cut walk, unread forms or reads (spec A2, 1.1.0).
+    st = State5H(incomplete=incomplete_of(ps))
     base_texts: list[str] = []
+    all_text = ""
     for f in ps.forms:
         atts = [a for a in ps.attempts if a.form == f.id]
         form = Form5H(
@@ -77,10 +81,12 @@ async def collect(ctx: RunContext, walk: KeyboardWalk | None) -> State5H:
             ][:20],
             buttons=[b.name for b in f.buttons][:10],
         )
+        checked = False
         for a in atts:
             before = {t.get("t") for t in (a.base.texts if a.base else [])}
             if a.base and not base_texts:
                 base_texts = [t.get("t", "") for t in a.base.texts if t.get("t")]
+                all_text = a.base.all_text
             last = next((r for r in reversed(a.reads) if r.moment == "submit"), None)
             if last is None:
                 if a.reached and not a.error:
@@ -96,18 +102,27 @@ async def collect(ctx: RunContext, walk: KeyboardWalk | None) -> State5H:
             form.after.append(new[:TEXT_MAX])
             form.alerts += a.js
             form.invalid += a.invalid
-        form.checked = (
-            any(ERROR.search(t) for att in form.after for t in att)
-            or any(ERROR.search(m) for m in form.alerts)
-            or form.invalid > 0
-        )
+            # Checked only when this attempt stayed on the form: not sent, and
+            # its fields still there (a next step's "required" text is not a
+            # check; spec 1.1.0, Abby 2026-11-02).
+            stayed = not a.sent and any(
+                last.fields.get(str(n)) is not None for n in f.fields
+            )
+            if stayed and (
+                any(ERROR.search(t) for t in new)
+                or any(ERROR.search(m) for m in a.js)
+                or a.invalid > 0
+            ):
+                checked = True
+        form.checked = checked
         words = " ".join(
             form.fields + form.buttons + [t for att in form.after for t in att]
         )
         form.hint = bool(HINT.search(words))
         st.forms.append(form)
     st.page_text = [t[:200] for t in base_texts][:TEXT_MAX]
-    if any(HINT.search(t) for t in st.page_text):
+    # The hint reads all of the page's text; the 60 strings are J1's input.
+    if HINT.search(all_text) or any(HINT.search(t) for t in base_texts):
         for form in st.forms:
             form.hint = True
     return st
@@ -307,6 +322,16 @@ def evaluate(st: State5H, evidence_refs: list[str]) -> Finding:
             "This page has no form to submit, so this test does not apply.",
             ["A1", "G1"],
             evidence_refs,
+        )
+    if not _hinted(st) and st.incomplete:
+        # Unread forms or text may hold the hint: never DNA on part of the
+        # page (spec A2, 1.1.0).
+        return _finding(
+            Outcome.NEEDS_REVIEW,
+            " ".join([REVIEW_HEAD, *st.incomplete]),
+            ["A2", "G1"],
+            evidence_refs,
+            note=True,
         )
     if not _hinted(st):
         return _finding(

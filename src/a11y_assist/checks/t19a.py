@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import re
 from typing import Any
-from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+from urllib.parse import urlencode, urlsplit, urlunsplit
 
 from pydantic import BaseModel, Field
 
@@ -96,15 +96,30 @@ def _site_map_pages(pages: list[PageRead]) -> set[int]:
     return out
 
 
+TEMPLATE = ("navigation", "banner", "contentinfo")
+
+
 def _kind(u, page: PageRead, maps: set[int]) -> str:
+    # The site's menus, header and footer come first: on a site map page they
+    # are the shared template, not the site map's list (spec 1.1.0, Abby
+    # 2026-11-02).
+    if u.region_role in TEMPLATE:
+        return "navigation"
     if page.n in maps:
         return "site_map"
     labels = " ".join(u.regions)
     if TOC.search(labels):
         return "toc"
-    if u.region_role in ("navigation", "banner", "contentinfo"):
-        return "navigation"
     return "links"
+
+
+def results_link_to(res: PageRead, t_url: str) -> bool:
+    """Only the results count: a results page's own menus, header and footer
+    link to T whatever the search found (spec 1.1.0, Abby 2026-11-02)."""
+    return any(
+        u.role == "link" and _same(u.href, t_url) and u.region_role not in TEMPLATE
+        for u in res.units
+    )
 
 
 def links_to(t_url: str, pages: list[PageRead], maps: set[int]) -> list[LinkTo]:
@@ -131,7 +146,9 @@ def search_url(form: dict[str, Any], term: str) -> str | None:
     parts = urlsplit(form["action"])
     if parts.scheme not in ("http", "https", "file"):
         return None
-    q = parse_qsl(parts.query) + list(form.get("hidden", {}).items())
+    # A GET submission replaces the action's own query: hidden fields and
+    # the term only (spec Terms, Live search).
+    q = list(form.get("hidden", {}).items())
     q.append((form["field"], term))
     return urlunsplit(parts._replace(query=urlencode(q), fragment=""))
 
@@ -214,7 +231,11 @@ async def _live_search(ctx: RunContext, st: State19A, main: PageRead, forms) -> 
         res = await read_page(ref.n, ref.final_url, ref.new_page)
     except Exception as exc:
         st.search.status = "cannot_run"
-        st.search.reason = f"the search could not be run ({type(exc).__name__})"
+        st.search.reason = (
+            "the search took longer than its share of the time limit"
+            if isinstance(exc, TimeoutError)
+            else f"the search could not be run ({type(exc).__name__})"
+        )
         return
     if res.error:
         st.search.status, st.search.reason = (
@@ -222,7 +243,13 @@ async def _live_search(ctx: RunContext, st: State19A, main: PageRead, forms) -> 
             "its results could not be read",
         )
         return
-    found = any(u.role == "link" and _same(u.href, st.t_url) for u in res.units)
+    found = results_link_to(res, st.t_url)
+    if not found and res.truncated:
+        st.search.status, st.search.reason = (
+            "cannot_run",
+            "its results page was too long to read in full",
+        )
+        return
     st.search.status = "found" if found else "not_found"
 
 
@@ -363,7 +390,8 @@ def evaluate(st: State19A, evidence_refs: list[str]) -> Finding:
         more = (
             " To check further, ask the user whether to run again with these pages too: "
             + ", ".join(st.suggestions)
-            + "."
+            + ". Run only this test (tests: 19.A) with the pages added, and replace"
+            " this result in the saved report; the other tests need not run again."
             if st.suggestions
             else ""
         )

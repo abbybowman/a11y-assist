@@ -75,3 +75,50 @@ async def test_without_other_pages_nothing_runs(settings, server, drafts):  # no
     got = await run_tests(settings, f"{server.base}/19a/t-benefits.html", ["19.A"], {})
     f = got["19.A"]
     assert f.outcome.value == "NEEDS_REVIEW" and f.rows == ["A1", "G1"]
+
+
+def test_template_links_are_navigation_only():
+    """19.A 1.1.0 (Abby, 2026-11-02): on a results page or a site map page,
+    the shared menus, header and footer link to T whatever the search found
+    or the site map lists. Built evidence: no fixture page has that template."""
+    from a11y_assist.checks.t19a import _kind, results_link_to
+    from a11y_assist.site import PageRead, Unit
+
+    t = "https://example.gov/apply.html"
+
+    def link(region_role):
+        return Unit(
+            i=0,
+            kind="control",
+            role="link",
+            text="apply",
+            name="Apply",
+            css="a",
+            href=t,
+            region_role=region_role,
+        )
+
+    menu_only = PageRead(
+        n=101, url="https://example.gov/search", units=[link("navigation")]
+    )
+    assert not results_link_to(menu_only, t)  # "No results", menu link only
+    hit = PageRead(
+        n=101, url="https://example.gov/search", units=[link(""), link("navigation")]
+    )
+    assert results_link_to(hit, t)
+    site_map = PageRead(n=2, url="https://example.gov/sitemap.html", units=[])
+    assert _kind(link("banner"), site_map, {2}) == "navigation"
+    assert _kind(link(""), site_map, {2}) == "site_map"
+
+
+def test_live_search_url_drops_the_action_query():
+    """A GET submission replaces the action's own query (spec Terms)."""
+    from a11y_assist.checks.t19a import search_url
+
+    form = {
+        "method": "get",
+        "field": "q",
+        "action": "https://example.gov/s?x=1",
+        "hidden": {"site": "main"},
+    }
+    assert search_url(form, "Apply") == "https://example.gov/s?site=main&q=Apply"

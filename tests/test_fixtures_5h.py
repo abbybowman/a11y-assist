@@ -53,3 +53,15 @@ async def test_fixture(name, settings, server, drafts):  # noqa: F811
     f = got["5.H"]
     assert f.outcome.value == outcome, (f.rows, f.summary)
     assert f.rows == rows, f.rows
+
+
+def test_an_incomplete_pass_is_never_dna():
+    """5.H 1.1.0: forms or text the error pass did not read may hold the
+    hint, so no hint plus an incomplete pass is NEEDS REVIEW (A2), not DNA."""
+    from a11y_assist.checks.t5h import Form5H, State5H, evaluate
+
+    form = Form5H(n=1, id="form1", fields=["Name"], buttons=["Send"])
+    done = evaluate(State5H(forms=[form]), [])
+    assert (done.outcome.value, done.rows[0]) == ("DNA", "A3")
+    cut = evaluate(State5H(forms=[form], incomplete=["A form is inside a frame."]), [])
+    assert (cut.outcome.value, cut.rows[0]) == ("NEEDS_REVIEW", "A2")

@@ -21,7 +21,7 @@ The tool gives each page one 5.B outcome: PASS, FAIL, DOES NOT APPLY or NEEDS RE
 | # | Evidence | Outcome | Source |
 | --- | --- | --- | --- |
 | A1 | Pass L found no enabled, rendered form component | DOES NOT APPLY | p. 25 Applicability |
-| A2 | Components exist, but none is an item (no visual labels) | DOES NOT APPLY | p. 25 Applicability ("no visual labels are provided") |
+| A2 | Components exist, but none is an item (no visual labels), and pass L read every field (when pass L is incomplete, NEEDS REVIEW: unread fields may have labels to judge, 1.1.0) | DOES NOT APPLY | p. 25 Applicability ("no visual labels are provided") |
 | A3 | Pass L did not run | NEEDS REVIEW | Spec rule |
 | A4 | Otherwise | Applies; go to section 3 | |
 

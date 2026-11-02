@@ -79,7 +79,7 @@ An attempt's *notice* is how the user learns of its errors (Baseline 10.D "made 
 | G1 | Section 1 gives DOES NOT APPLY or NEEDS REVIEW | That outcome |
 | G2 | Any instance is FAIL | FAIL, listing every instance |
 | G3 | Any instance is NEEDS REVIEW; P1 incomplete before the last field; more forms than `FORM_MAX`; an attempt cut by the run limit; the page could not be read before an attempt (1.1.0); more than 200 new pieces of text appeared after one action, or the list from the fresh load was lost, so new text may not all have been read (1.1.0); or an attempt sent its form (A4) | NEEDS REVIEW, with the note "This test could not be performed" and the reason (p. 5) |
-| G4 | Both attempts ran for every form, at least one instance, every instance PASS | PASS |
+| G4 | Both attempts ran for every form (attempt 2 only for a form with a text or date field: with none there is nothing to make wrong, 1.1.0), at least one instance, every instance PASS | PASS |
 | G5 | Anything else | NEEDS REVIEW |
 
 **Plain-language sentences.** `<field>` is the field's label and kind in plain words; `<keys>` reproduces the attempt from a fresh load.

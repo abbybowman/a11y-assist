@@ -193,7 +193,12 @@ def _live_recorder(browser, settings, run, report, proxy, final_url, get_browser
         rel = f"evidence/pages/live{n}.har.zip"
         (run.dir / rel).parent.mkdir(parents=True, exist_ok=True)
         t1 = time.monotonic()
-        lc = await record(browser, settings, url, run.dir / rel, run.log, proxy)
+        # The same share a caller-named page gets, so a slow search cannot
+        # take the later checks' time (19.A W4 on a timeout).
+        lc = await asyncio.wait_for(
+            record(browser, settings, url, run.dir / rel, run.log, proxy),
+            settings.other_page_s,
+        )
         if not _same_site(lc.final_url, final_url):
             raise ValueError("it ended on another host after redirects")
         report.live_pages.append(
