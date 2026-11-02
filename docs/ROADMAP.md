@@ -4,12 +4,13 @@ What is left to build, newest priorities first. A living list, not a log:
 delete an item once it is built, and put any decision it needed into the
 spec, CLAUDE.md or `docs/solutions/` where it belongs.
 
-## Now: Test 4, five form tests, the multi-page batch and 19.A are built
+## Now: Tests 4 and 5, the multi-page batch and 19.A are built
 
 Built (spec 1.0.0+, check registered, fixtures green): 4.A, 4.B, 4.C, 4.D,
-4.E, 4.F, 5.A (Label provided), 5.C (Programmatic label, from ANDI's
-output), 5.D (On input), 5.F (Error identification), 5.G (Error
-suggestion), 9.A (Bypass), 9.B (Consistent navigation), 9.C
+4.E, 4.F, 5.A (Label provided), 5.B (Label descriptive), 5.C
+(Programmatic label, from ANDI's output), 5.D (On input), 5.F (Error
+identification), 5.G (Error suggestion), 5.H (Error prevention; 5.E is
+obsolete in TT 5.1.3), 9.A (Bypass), 9.B (Consistent navigation), 9.C
 (Consistent identification) and 19.A (Multiple ways). Judge eval (fresh agents, no scripted
 answers): 43/44 Test 4 fixtures and every 5.x, 9.x and 19.A packet, no
 false PASS ([evals/README.md](../evals/README.md)). Every implemented test fits
@@ -24,9 +25,10 @@ REVIEW at no cost ([solutions/multi-page.md](solutions/multi-page.md));
 19.A uses the same pages, then runs the site's own search live once if it
 must (the one approved exception to principle 5).
 
-Next: 5.B (label descriptive) and 5.H (error prevention) would complete
-Test 5 (fix their `tt.json` steps first, below); then the visual-versus-code
-cluster. Choose with the coverage map and CLAUDE.md's research rule.
+Next: 2.B, 2.C and 2.D (moving, auto-updating and changing content) as one
+batch on the walk's mutation log, 4.E's dialog detection and 5.F's
+live-region rule; then the visual-versus-code cluster. Choose with the
+coverage map and CLAUDE.md's research rule.
 
 Per-test leftovers live in each `docs/rules/<id>-build-tasks.md` (mostly
 browser checks on Windows headed Chrome, which this Linux container cannot

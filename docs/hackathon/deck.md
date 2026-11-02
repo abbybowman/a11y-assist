@@ -229,6 +229,6 @@ flowchart LR
 - Real-site holdout with a second certified tester
 - A published side-by-side on real .gov pages: certified testers, A11y Assist and five scanners
 - Export drafts to DHS's SCRT format so a certified tester can review and finish them
-- Built after Test 4: 5.D On input (forms that change context when filled in), 5.F Error identification and 5.G Error suggestion (forms whose errors are not named, explained, announced or fixable), 5.A Label provided and 5.C Programmatic label (labels people can see, and what ANDI says screen readers announce)
+- Built after Test 4: 5.D On input (forms that change context when filled in), 5.F Error identification and 5.G Error suggestion (forms whose errors are not named, explained, announced or fixable), 5.A Label provided, 5.B Label descriptive and 5.C Programmatic label (labels people can see, and what ANDI says screen readers announce); 5.H Error prevention (payments and other consequential forms can be reviewed, undone or checked), which completes Test 5
 - Multi-page 9.A Bypass, 9.B Consistent navigation, 9.C Consistent identification and 19.A Multiple ways: the page compared with other pages of the same site the user names (judge eval 6/6, no false PASS)
 - Then: more form tests, headings, reading order — where scanners fall short

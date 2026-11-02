@@ -1,10 +1,11 @@
 # Build tasks: 5.B and 5.H
 
 Specs [5b-label-descriptive.md](5b-label-descriptive.md) and
-[5h-error-prevention.md](5h-error-prevention.md) are drafts (0.1.0), built
+[5h-error-prevention.md](5h-error-prevention.md) 1.0.0 (Abby, 2026-11-02)
+are built
 as `checks/t5b.py` (on pass L, shared with 5.A and 5.C; components now
-record their form) and `checks/t5h.py` (on 5.F's error pass E), registered
-only in `tests/drafts.py` until Abby approves 1.0.0. Judge eval:
+record their form) and `checks/t5h.py` (on 5.F's error pass E),
+registered. Judge eval:
 evals/README.md runs 10 (30/30) and 11 (5.H, 9/9). Order of work:
 [plans/2026-11-02-forms-5b-5h.md](../plans/2026-11-02-forms-5b-5h.md).
 
@@ -36,11 +37,13 @@ Measured with `time_budget.py --drafts` (Linux headless, 2026-11-02): 5.B
 0.0 s and 5.H 0.1 s on both budget pages (they reuse pass L and pass E);
 agency page 109.1–110.4 s, benefits form 97.6 s for all sixteen tests.
 
-## Before 1.0.0
+## Left
 
-- Abby's approval, including the rules written into the drafts: 5.B leaves
-  icon-only buttons out (no visible text to judge); 5.H's consequence hint
-  (a word list) gates J1, and with no hint the test is DNA mechanically;
-  "checked" is new error text, a JS alert or native validation after a
-  pass E submit.
-- Move both checks to `checks/__init__.py`.
+- 5.B: icon-only buttons are left out (no picture of buttons in pass L);
+  add one if real pages show icon buttons with misleading names.
+- 5.H: the consequence word list and the error words for "checked" were
+  tuned on fixtures; check them on the agent-eval pages (real checkout,
+  payment and account-deletion flows) before trusting a DNA from A3. Known
+  over-match: "order" also matches "tab order" or "in order to", so J1 is
+  asked on pages that only mention those (one question; never a PASS on
+  its own). Narrowing the list is a MINOR change.

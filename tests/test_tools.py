@@ -150,6 +150,10 @@ async def test_no_test_is_reported_not_tested(settings):
         "5.G": "DNA",
         "5.A": "NEEDS_REVIEW",
         "5.C": "NEEDS_REVIEW",
+        "5.B": "NEEDS_REVIEW",  # its J1 is open, and the framed button
+        # 5.H's consequence hint matches "order" in "Not in tab order": J1
+        # is asked (docs/rules/5b-build-tasks.md, Left).
+        "5.H": "NEEDS_REVIEW",
         # No other pages given: not performed (9.A-9.C specs, A1).
         "9.A": "NEEDS_REVIEW",
         "9.B": "NEEDS_REVIEW",
@@ -357,7 +361,7 @@ async def test_explain_before_a_run(settings):
     assert "tries the keys a person would" in text  # what this tool does
     assert "NOT a certified" in text
     # Untested tests say so plainly.
-    assert "cannot run this test yet" in await _prompt({"about": "5.B"})
+    assert "cannot run this test yet" in await _prompt({"about": "14.B"})
 
 
 async def test_explain_finds_tests_by_words_criterion_or_name(settings):
