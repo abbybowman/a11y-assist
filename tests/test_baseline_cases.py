@@ -46,6 +46,23 @@ ANSWERS = {
         )
     },
     ("TC10.E-1-fail-1", "5.A"): {"J1": {"choice": "not_labeled"}},
+    # 5.B: one field each; "The sky is blue" does not describe it.
+    **{
+        (c, "5.B"): {"J1": {"choice": "all_descriptive"}}
+        for c in (
+            "TC10.A-1-fail-1",
+            "TC10.A-all-pass-2",
+            "TC10.A-all-pass-3",
+            "TC10.A-all-pass-4",
+            "TC10.A-all-pass-5",
+            "TC10.A-all-pass-6",
+            "TC10.E-1-pass-2",
+            "TC10.E-1-pass-3",
+        )
+    },
+    ("TC10.E-1-pass-1", "5.B"): {
+        "J1": {"choice": "some_not_descriptive", "elements": [1]}
+    },
     # 5.F / 5.G (TC10.D): what a correct agent says about each error text.
     ("TC10.D-2-fail-1", "5.F"): {
         "J1": {"choice": "described", "quote": "Error: not a number."}
