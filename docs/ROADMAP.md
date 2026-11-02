@@ -97,6 +97,23 @@ run).
   server for the GSA MCP hackathon". (The 0.0.0.0 HTTP branch is gone; HTTP
   is loopback-only with Host/Origin checks. Authentication is still needed
   before any hosted deployment.)
+- **Tidy the checks** (from the PR #3 review and a 2026-11-02 cleanup
+  draft that was never approved; recheck each item against the code first).
+  Possible principle gaps, first: the A2 "could not be performed" note is
+  typed by hand in many checks and some A2 branches may omit it (add a
+  harness guard: the note appears exactly on NEEDS REVIEW from A2 or G3);
+  `judge_backend` is a free string, so an unbuilt backend fails mid-run, not
+  at start; 4.E dialog keys may let two dialogs share a key (prove with a
+  fixture before changing code). Then sharing: 5.G imports 5.F's private
+  helpers (`t5f._errors_of`, `_field_input`, `_label`), so error pass E
+  could be its own module like `labels.py`; `forms.py` exports underscore
+  names; `RunContext.cache` keys are bare strings (a typo silently redoes
+  work); the checks repeat findings, plain-text, question and replay code,
+  and base.py's "add a check" steps say to copy a check. Last: CLAUDE.md's
+  Layout lacks `egress.py`, `redact.py` and `routes.py` and says
+  `verify_fix` where this list says `compare_to`; `_KEY_WORDS` (4.C) and
+  `NO_INSTANCE` (4.E) look unused. Keep `traverse.py` and `pipeline.py`
+  frozen; aim at the current tests, not future ones (Abby, 2026-11-02).
 - **"Test a page" prompt** for operators who are not Trusted Testers: run,
   answer questions (one subagent for all of them), summarize, read
   `report_uri` and offer to save it.
