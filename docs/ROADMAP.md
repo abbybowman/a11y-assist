@@ -86,11 +86,6 @@ run).
   matters for real sites: resumable runs (walk in one call, checks in the
   next), or walking P1 and P2 in parallel (headed Chrome focus in a
   background window needs checking on Windows first).
-- **Confirm 4.B alternatives by pressing them.** The last judge-eval mismatch
-  (4.B f02): the agent could not tell whether the named alternative does what
-  the timed press does. Press it normally on a fresh replay and compare its
-  effect with the timed press's (a mechanical check on J2, like 4.C's
-  documented keys).
 - **Starter-template leftovers.** `pyproject.toml` still says "Starter MCP
   server for the GSA MCP hackathon". (The 0.0.0.0 HTTP branch is gone; HTTP
   is loopback-only with Host/Origin checks. Authentication is still needed
