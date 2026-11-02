@@ -60,6 +60,15 @@ ANSWERS = {
             "TC10.E-1-pass-3",
         )
     },
+    # 5.H (TC10.G): one-page order forms; 2.c shows a cart before payment.
+    **{
+        (c, "5.H"): {"J1": {"choice": "one_page", "element": 1}}
+        for c in ("TC10.G-2.a-pass-1", "TC10.G-2.b-pass-1", "TC10.G-all-fail-1")
+    },
+    ("TC10.G-2.c-pass-1", "5.H"): {
+        "J1": {"choice": "multi_step", "element": 1},
+        "J2": {"choice": "review_step"},
+    },
     ("TC10.E-1-pass-1", "5.B"): {
         "J1": {"choice": "some_not_descriptive", "elements": [1]}
     },
@@ -103,9 +112,10 @@ def _runs() -> list[tuple[str, tuple[str, ...]]]:
     for cid, c in sorted(CASES.items()):
         left = set(c["expected"])
         for grp in SHARED:
-            if grp <= left:
-                out.append((cid, tuple(sorted(grp))))
-                left -= grp
+            both = grp & left
+            if len(both) > 1:
+                out.append((cid, tuple(sorted(both))))
+                left -= both
         out += [(cid, (t,)) for t in sorted(left)]
     return out
 
