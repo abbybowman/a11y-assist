@@ -41,6 +41,13 @@ run).
   agent that hands the run to a subagent sees none of it. Find a way for a
   subagent to relay progress to the main thread (Abby, 2026-11-02), or say
   in the tool description how long to expect.
+- **Progress during long test runs.** The full suite takes about 12 minutes
+  headless on Windows and about 43 minutes headed and serial, and `-q` prints
+  only dots: there is no ETA, nothing names the running test, and a hang
+  looks like a slow run. Print per-test names and elapsed time, plus a rough
+  ETA, to a progress file the agent can read and summarize (Abby,
+  2026-11-01), and keep the hard stop and `faulthandler_timeout` from
+  [solutions/windows-chrome-results.md](solutions/windows-chrome-results.md).
 - **More shared replays (deferred).** 4.A now reuses 4.D's pass W arrows
   and 4.F's pass R Enter presses when they cover what it needs
   (docs/solutions/time-budget.md). Left: 4.C's widget check (P4) and pass W

@@ -262,7 +262,8 @@ def wrong_date(min_: str | None, max_: str | None) -> tuple[str, str]:
         d = lo.replace(year=lo.year - 1, day=min(lo.day, 28))
     else:
         d = dt.date(2999, 1, 1)
-    return f"{d.month:02d}{d.day:02d}{d.year:04d}", d.strftime("%B %-d, %Y")
+    # Not strftime("%-d"): Windows has no "-" flag and raises ValueError.
+    return f"{d.month:02d}{d.day:02d}{d.year:04d}", f"{d:%B} {d.day}, {d.year}"
 
 
 def _choose(buttons: list[Btn]) -> int | None:
