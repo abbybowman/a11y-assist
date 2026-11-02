@@ -26,29 +26,25 @@ from a11y_assist.models import (
     Step,
     TestId,
 )
-from a11y_assist.traverse import Traversal, open_session, screenshot
+from a11y_assist.traverse import PATH_JS, Traversal, open_session, screenshot
 from a11y_assist.walk import KeyboardWalk
 
 MAX_REPLAYS = 10
 CONTROL_WAIT_MS = 2000
 HOOK = "context4e"
 
-_DIALOGS_JS = """() => {
+# The path is the dialog's identity across steps: a path cut short let two
+# dialogs share one, so the second never counted as new (f09).
+_DIALOGS_JS = (
+    "() => {"
+    + PATH_JS
+    + """
   const vis = (el) => el.checkVisibility ? el.checkVisibility({ visibilityProperty: true })
                                          : el.getClientRects().length > 0;
-  const path = (n) => {
-    const parts = [];
-    for (let c = n, k = 0; c && c.nodeType === 1 && k < 6; c = c.parentElement, k++) {
-      if (c.id) { parts.unshift('#' + c.id); break; }
-      const p = c.parentElement;
-      const same = p ? Array.from(p.children).filter((x) => x.tagName === c.tagName) : [];
-      parts.unshift(c.tagName.toLowerCase() + (same.length > 1 ? `:nth-of-type(${same.indexOf(c) + 1})` : ''));
-    }
-    return parts.join(' > ');
-  };
   return Array.from(document.querySelectorAll('dialog[open], [role=dialog], [role=alertdialog]'))
     .filter(vis).map((el) => ({ css: path(el), name: el.getAttribute('aria-label') || '' }));
 }"""
+)
 
 J1_QUESTION = (
     "Image A shows the page just before keyboard focus moved to the element "
