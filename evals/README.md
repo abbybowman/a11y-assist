@@ -21,6 +21,23 @@ because fixture names describe the expected answer ("key-in-comment-only").
 The answer key (`/tmp/eval/state.json`) is outside the packet tree. Agents
 are told to open nothing else and to list every file they opened.
 
+## Run 8, 2026-11-02: 9.A, 9.B and 9.C (draft specs 0.1.0), their packets only
+
+`prepare OUT 9.A,9.B,9.C`. Cases now carry other pages (`pages`: the ACT
+cases are compared with the rules' chapter2.html, the custom cases with
+their sibling pages in `tests/fixtures/9x/`); `NOT_EVAL` in
+`test_fixtures_9x.py` leaves out one rules-only case (the same page and
+question as another, with the opposite scripted answer). 4 of the 47 cases
+ask questions (9.A and 9.B decide almost everything mechanically; 9.B asks
+nothing); leak grep clean. One fresh Sonnet agent (about 76,000 tokens,
+32 s): 4/4 match, no false PASS, no follow-up round. 9.A J1 named Alt+S
+with its quote; 9.A J2 judged a "Start / Benefits overview" trail as
+repeated (the agent's least certain answer: no breadcrumb landmark, it went
+by the links and separator); 9.C J1 judged "Go to page 3/4" and "5/6"
+consistent, "Contact"/"Get in touch" and "Search"/"Find" inconsistent. It
+opened only packet files; it read and wrote them with inline Python, which
+its instructions said not to do (no file was saved).
+
 ## Run 7, 2026-11-01: 5.A and 5.C (draft specs 0.4.0 and 0.3.0), their packets only
 
 `prepare /tmp/eval 5.A,5.C`; f12 runs with 4.F (its pass R reveals the
