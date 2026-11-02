@@ -113,6 +113,32 @@ EXPECTED: dict[str, dict] = {
         "5.A": {"outcome": "PASS", "rows": ["M2", "M4"], "answers": labeled("Other:")},
         "5.C": {"outcome": "FAIL", "rows": ["M3", "M5", "M5", "M5"]},
     },
+    # Two options under one legend, nothing beside either: the legend asks
+    # the question and labels neither answer.
+    "f14-blank-options-under-legend": {
+        "5.A": {"outcome": "FAIL", "rows": ["M2o", "M2o"]},
+        "5.C": {"outcome": "FAIL", "rows": ["M3o", "M3o", "M5"]},
+    },
+    # A single option: its legend is its label.
+    "f15-single-checkbox-under-legend": {
+        "5.A": {"outcome": "PASS", "rows": ["M2"]},
+        "5.C": {"outcome": "PASS", "rows": ["M5", "M5"]},
+    },
+    # The button beside the box labels it (G167): J1, not M3.
+    "f16-search-button-beside-box": {
+        "5.A": {"outcome": "PASS", "rows": ["M4"], "answers": labeled("Search")},
+        "5.C": {"outcome": "PASS", "rows": ["M5", "M5"]},
+    },
+    # Each option's words are beside it but not connected: a person looks
+    # (5.A J1); screen readers announce only the question (5.C).
+    "f17-option-text-not-connected": {
+        "5.A": {
+            "outcome": "PASS",
+            "rows": ["M4", "M4"],
+            "answers": {"J1": {"choice": "labeled", "quote": "Email"}},
+        },
+        "5.C": {"outcome": "FAIL", "rows": ["M3o", "M3o", "M5"]},
+    },
 }
 
 

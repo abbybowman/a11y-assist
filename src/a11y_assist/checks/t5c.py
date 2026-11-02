@@ -138,12 +138,34 @@ def _quote_ok(st: State5C, c: Comp) -> bool:
 def instance_rows(st: State5C) -> list[Row]:
     multi = groups(st.lp)
     return [
+        # A field whose focus read failed has no nearby text, and M5 would
+        # compare nothing against its name.
+        Row(
+            "M1",
+            lambda c: c.entry and c.focused is not True,
+            Outcome.NEEDS_REVIEW,
+            "Spec rule",
+        ),
         Row("M2", lambda c: c.andi is None, Outcome.NEEDS_REVIEW, "p. 26 HtT 2-3"),
         Row(
             "M3",
             lambda c: not programmatic(c).strip(),
             Outcome.FAIL,
             "p. 27 ER 1-4; F68; Baseline 10.A check 1",
+        ),
+        Row(
+            "M3o",
+            lambda c: (
+                c.option
+                and c.set_size > 1
+                and not any(
+                    v.strip()
+                    for k, v in announced(c).items()
+                    if k != "group label (ANDI)"
+                )
+            ),
+            Outcome.FAIL,
+            "p. 27 ER 1; Understanding 3.3.2 (each option needs a label); Abby, 2026-11-02",
         ),
         Row(
             "M5",
@@ -252,6 +274,8 @@ def _sentence(st: State5C, c: Comp, rid: str) -> str:
     prog = programmatic(c) or "nothing"
     q = (st.j.get(f"c{c.n}-J1") or {}).get("quote", "")
     return {
+        "M1": f"We could not read the text shown around {cl}, so we could not check that screen readers announce it. Please look at it.",
+        "M3o": f"{cl} is one of several choices under the same question, and screen readers announce only the question, not which choice it is. Give each choice its own label in the code. To find it, {reach}. If you disagree, tell your assistant.",
         "M2": f"ANDI did not analyse {cl}, so what screen readers announce for it could not be checked. Please check it with a screen reader.",
         "M3": f"{cl} has no name for screen readers: the text people see next to it is not connected to it in the code. To find it, {reach}.",
         "J1?": f"A question about what screen readers announce for {cl} is still open.",

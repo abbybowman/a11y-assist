@@ -42,3 +42,13 @@ an agent can only give one answer, so one would always "mismatch".
 breaks over a line ("consistent- navigation"), so the first conversion gave
 9.B 9.A's steps and put 9.B's text into 9.C. 5.B, 7.C and 16.B have the
 same problem (ROADMAP). Read the printed pages for each new test.
+
+**Every record() call is bounded, and each other page by its own share.**
+Each other page adds `OTHER_PAGE_S` (20 s) to the limit, but one recording
+can take 30 s to load plus the idle wait and scrolls. The recordings were
+not bounded at first. Bounding them by the whole run's deadline was not
+enough: a slow page then ate the time the single-page tests needed. Now each
+other page records within its own share; one that runs over leaves 9.A-9.C
+not performed (never run on fewer pages than the caller named) and the
+other tests run in full (Abby, 2026-11-02;
+`test_time_budget.py::test_slow_other_page_drops_only_the_page_tests`).

@@ -68,3 +68,13 @@ now logs `invalid` events and whether a page handler cancelled a submit.
 fixtures first ran each test separately; under `-n 8` 4.D's f10 (a 65 s
 guard) tipped over. One call for both tests halves the runs and tests the
 shared path (`ctx.cache`).
+
+**`invalid` does not bubble, so a cancelled one needs a listener on the
+field.** Pages cancel the `invalid` event to hide the browser's message and
+draw their own errors; the field still has a `validationMessage`, so 5.F
+1.0.0 credited a message nobody saw (code review, 2026-11-02). The bubble
+trick used for `submit` cannot see it. `traverse.INIT_JS` now adds a
+one-time listener to the field from the window capture listener; it runs
+after the page's own listeners there and records `defaultPrevented`
+(`null` when propagation was stopped, counted as not shown). Fixture
+`5f/f15-cancelled-browser-message.html`.

@@ -1,7 +1,7 @@
 ---
 tt_test: 9.C
 tt_name: 3.2.4-consistent-identification
-spec_version: 1.0.0
+spec_version: 1.1.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -27,7 +27,7 @@ Names and descriptions *agree* when they are equal after collapsing spaces and i
 | --- | --- | --- | --- |
 | A1 | No other pages were given | NEEDS REVIEW, not performed: "it needs other pages of the same site to compare" | Abby, 2026-11-02 (Q1) |
 | A2 | ANDI did not run, or a page could not be read | NEEDS REVIEW, not performed, naming the page | p. 44 HtT 1; Spec rule |
-| A3 | No pair | DOES NOT APPLY | p. 44 Identify Content, Note |
+| A3 | No pair, and every page was read in full (with a page over the read cap: G3, 1.1.0) | DOES NOT APPLY | p. 44 Identify Content, Note |
 | A4 | Otherwise | Applies; go to section 3 | |
 
 ## 2. Evidence to collect
@@ -58,7 +58,7 @@ Each pair is an *instance*.
 | --- | --- | --- |
 | G1 | Section 1 gives DOES NOT APPLY or NEEDS REVIEW | That outcome |
 | G2 | Any instance is FAIL | FAIL, listing each pair |
-| G3 | Any instance is NEEDS REVIEW, or J1 questions were capped (at most 12 per run) | NEEDS REVIEW, with the note "This test could not be performed" and the reason (p. 5) |
+| G3 | Any instance is NEEDS REVIEW, or J1 questions were capped (at most 12 per run), or a page was over the read cap of 600 pieces of content, so its later controls were never paired (1.1.0; 9.A Terms: "a page over the cap is incomplete") | NEEDS REVIEW, with the note "This test could not be performed" and the reason (p. 5) |
 | G4 | Every pair was dropped by C5 | DOES NOT APPLY |
 | G5 | Every instance is PASS | PASS |
 

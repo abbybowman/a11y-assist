@@ -12,6 +12,7 @@ import json
 import os
 import random
 import threading
+import time
 from collections import Counter
 from pathlib import Path
 
@@ -102,6 +103,9 @@ class _Handler(http.server.BaseHTTPRequestHandler):
         if self.path in routes:
             status, headers = routes[self.path]
             return self._send(status, **headers)
+        if self.path == "/slow.html":  # answers after the run's time limit
+            time.sleep(16)
+            return self._send(200, b"<!doctype html><title>slow</title><p>late")
         if self.path == "/data.json":
             return self._send(
                 200, json.dumps({"n": nonce}).encode(), "application/json"

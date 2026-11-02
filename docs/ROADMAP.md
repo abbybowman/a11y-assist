@@ -36,6 +36,16 @@ run).
   test's "How to Test" (the same PDF heading trap that scrambled 9.B, fixed
   2026-11-02; `tests/test_tt_source.py`). Fix each from its printed pages
   before building those tests, and the tt:// resource with it.
+- **Multi-page testing, one page per call (open; Abby, 2026-11-02).**
+  Current: one call records the tested page plus up to 5 other pages; only
+  the tested page gets the single-page tests, the others are comparison
+  pages for 9.A–9.C, and a page too slow for its 20 s share leaves 9.A–9.C
+  NEEDS REVIEW. Proposed: test each page of a batch in full, in its own
+  call, then run the multi-page tests once at the end and add their results
+  to every page's report. Open: where the recordings live between calls
+  (runs are kept 24 h; the comparison needs several runs at once, or the
+  user's saved reports). Plan it with the next 9.A–9.C work and 19.A
+  (Multiple ways, also site-level), not on its own.
 - **Progress on long calls.** Multi-page runs take up to 120 s + 20 s per
   other page. The tool sends MCP progress per phase and page; a consumer
   agent that hands the run to a subagent sees none of it. Find a way for a
