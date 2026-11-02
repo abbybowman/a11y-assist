@@ -133,82 +133,122 @@ CASES = {
     "TC10.A-1-fail-1": (
         "/testfiles/TF10/10.A-1-fail-1.html",
         "FAIL",
-        {"5.A": "PASS", "5.C": "FAIL"},
+        {"5.A": "PASS", "5.C": "FAIL", "5.B": "PASS"},
         '5.A: Baseline judges the name only; "First Name:" is visible beside '
         "the field.",
     ),
     "TC10.A-all-pass-1": (
         "/testfiles/TF10/10.A-all-pass-1.html",
         "PASS",
-        {"5.A": "FAIL", "5.C": "PASS"},
+        {"5.A": "FAIL", "5.C": "PASS", "5.B": "DNA"},
         "5.A: Baseline judges the name only; a placeholder alone is not a visual "
-        "label (5.A spec M3; W3C forms tutorial; w3c/wcag#4918).",
+        "label (5.A spec M3; W3C forms tutorial; w3c/wcag#4918). 5.B: no visual "
+        "label to judge (DNA).",
     ),
     "TC10.A-all-pass-2": (
         "/testfiles/TF10/10.A-all-pass-2.html",
         "PASS",
-        {"5.A": "PASS", "5.C": "PASS"},
+        {"5.A": "PASS", "5.C": "PASS", "5.B": "PASS"},
         "",
     ),
     "TC10.A-all-pass-3": (
         "/testfiles/TF10/10.A-all-pass-3.html",
         "PASS",
-        {"5.A": "PASS", "5.C": "PASS"},
+        {"5.A": "PASS", "5.C": "PASS", "5.B": "PASS"},
         "",
     ),
     "TC10.A-all-pass-4": (
         "/testfiles/TF10/10.A-all-pass-4.html",
         "PASS",
-        {"5.A": "PASS", "5.C": "PASS"},
+        {"5.A": "PASS", "5.C": "PASS", "5.B": "PASS"},
         "",
     ),
     "TC10.A-all-pass-5": (
         "/testfiles/TF10/10.A-all-pass-5.html",
         "PASS",
-        {"5.A": "PASS", "5.C": "PASS"},
+        {"5.A": "PASS", "5.C": "PASS", "5.B": "PASS"},
         "",
     ),
     "TC10.A-all-pass-6": (
         "/testfiles/TF10/10.A-all-pass-6.html",
         "PASS",
-        {"5.A": "PASS", "5.C": "PASS"},
+        {"5.A": "PASS", "5.C": "PASS", "5.B": "PASS"},
         "",
     ),
     "TC10.A-ic-dna-1": (
         "/testfiles/TF10/10.A-ic-dna-1.html",
         "DNA",
-        {"5.A": "DNA", "5.C": "DNA"},
+        {"5.A": "DNA", "5.C": "DNA", "5.B": "DNA"},
         "",
     ),
     "TC10.A-ic-dna-2": (
         "/testfiles/TF10/10.A-ic-dna-2.html",
         "DNA",
-        {"5.A": "DNA", "5.C": "DNA"},
+        {"5.A": "DNA", "5.C": "DNA", "5.B": "DNA"},
         "",
     ),
     "TC10.E-1-fail-1": (
         "/testfiles/TF10/10.E-1-fail-1.html",
         "FAIL",
-        {"5.A": "FAIL", "5.C": "FAIL"},
+        {"5.A": "FAIL", "5.C": "FAIL", "5.B": "DNA"},
         "",
     ),
     "TC10.E-1-pass-1": (
         "/testfiles/TF10/10.E-1-pass-1.html",
         "PASS",
-        {"5.A": "PASS", "5.C": "PASS"},
+        {"5.A": "PASS", "5.C": "PASS", "5.B": "FAIL"},
         '5.C: the name repeats the visible label; whether "The sky is blue" '
-        "describes the field is 5.B's (5.C spec M5).",
+        "describes the field is 5.B's (5.C spec M5). 5.B: it does not (10.E "
+        "judges presence only).",
     ),
     "TC10.E-1-pass-2": (
         "/testfiles/TF10/10.E-1-pass-2.html",
         "PASS",
-        {"5.A": "PASS", "5.C": "PASS"},
+        {"5.A": "PASS", "5.C": "PASS", "5.B": "PASS"},
         "",
     ),
     "TC10.E-1-pass-3": (
         "/testfiles/TF10/10.E-1-pass-3.html",
         "PASS",
-        {"5.A": "PASS", "5.C": "PASS"},
+        {"5.A": "PASS", "5.C": "PASS", "5.B": "PASS"},
+        "",
+    ),
+    # 5.H Error prevention (3.3.4), Baseline 10.G: one-page scripted order
+    # forms; the TT makes a one-page form DNA (Abby, 2026-11-02).
+    "TC10.G-2.a-pass-1": (
+        "/testfiles/TF10/10.G-2.a-pass-1.html",
+        "PASS",
+        {"5.H": "DNA"},
+        "5.H: one page (the TT's applicability); Baseline tests it (reversible).",
+    ),
+    "TC10.G-2.b-pass-1": (
+        "/testfiles/TF10/10.G-2.b-pass-1.html",
+        "PASS",
+        {"5.H": "DNA"},
+        "5.H: one page (the TT's applicability); Baseline tests it (checked).",
+    ),
+    "TC10.G-2.c-pass-1": (
+        "/testfiles/TF10/10.G-2.c-pass-1.html",
+        "PASS",
+        {"5.H": "PASS"},
+        "",
+    ),
+    "TC10.G-all-fail-1": (
+        "/testfiles/TF10/10.G-all-fail-1.html",
+        "FAIL",
+        {"5.H": "DNA"},
+        "5.H: one page (the TT's applicability); Baseline tests it.",
+    ),
+    "TC10.G-ic-dna-1": (
+        "/testfiles/TF10/10.G-ic-dna-1.html",
+        "DNA",
+        {"5.H": "DNA"},
+        "",
+    ),
+    "TC10.G-ic-dna-2": (
+        "/testfiles/TF10/10.G-ic-dna-2.html",
+        "DNA",
+        {"5.H": "DNA"},
         "",
     ),
 }

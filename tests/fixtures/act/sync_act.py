@@ -40,6 +40,8 @@ RULES = {
     # 9.A: the composite and the two atomic rules that are keyboard methods;
     # cf77f2's landmark-only and heading-only passes come with it.
     "9.A": ["ye5d6e", "3e12e1", "cf77f2"],
+    # 5.B (2.4.6): the visible label describes the field.
+    "5.B": ["cc0f0a"],
 }
 # Pages a case needs that are not assets: the bypass-blocks rules' "other
 # page" (chapter 2), which 9.A's tests name in other_pages.
@@ -148,6 +150,25 @@ EXPECTED = {
         "ac55a162": "PASS",
         "55a6cc3e": "FAIL",
         "ecc29b73": "DNA",
+    },
+    # docs/rules/5b-label-descriptive.md (visual labels, as DHS scores them).
+    "5.B": {
+        "6b256544": "PASS",
+        "1a9ad651": "PASS",
+        "181fba19": "PASS",
+        "39a5a085": "PASS",
+        "b0b11b83": "PASS",
+        "886f7911": "PASS",
+        "081e784e": "PASS",
+        "9b967559": "FAIL",
+        "1e520607": "FAIL",
+        "fa5104f9": "FAIL",
+        "64994609": "FAIL",
+        "2f1d9641": "FAIL",
+        "3ee841b7": "FAIL",
+        "1d7c2f68": "DNA",
+        "a83b1482": "PASS",  # ACT inapplicable (label hidden from AT); DHS PASS
+        "e3debccd": "DNA",
     },
 }
 
