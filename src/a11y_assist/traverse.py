@@ -119,9 +119,16 @@ INIT_JS = """(() => {
   });
   // Native validation (5.F): an invalid event per field the browser blocked.
   log.v = [];
+  // A page that cancels it hides the browser's message (custom error UI), so
+  // record whether it was cancelled. invalid does not bubble: a listener
+  // added on the field now runs after the page's own listeners there.
+  // `prevented` stays null when that listener never ran (propagation stopped).
   addEventListener("invalid", (e) => {
     const el = e.target;
-    log.v.push({ css: el && el.nodeType === 1 ? path(el) : null, msg: el && el.validationMessage || "" });
+    const rec = { css: el && el.nodeType === 1 ? path(el) : null, msg: el && el.validationMessage || "", prevented: null };
+    log.v.push(rec);
+    if (el && el.addEventListener)
+      el.addEventListener("invalid", (ev) => { rec.prevented = ev.defaultPrevented; }, { once: true });
   }, true);
   for (const name of ["submit", "requestSubmit"]) {
     const orig = HTMLFormElement.prototype[name];

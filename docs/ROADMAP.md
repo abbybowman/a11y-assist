@@ -13,7 +13,8 @@ identification), 5.G (Error suggestion), 5.H (Error prevention; 5.E is
 obsolete in TT 5.1.3), 9.A (Bypass), 9.B (Consistent navigation), 9.C
 (Consistent identification) and 19.A (Multiple ways). Judge eval (fresh agents, no scripted
 answers): 43/44 Test 4 fixtures and every 5.x, 9.x and 19.A packet, no
-false PASS ([evals/README.md](../evals/README.md)). Every implemented test fits
+false PASS after fixes (5.A 1.1.0's rubric change gave two, fixed: runs 12
+and 13; [evals/README.md](../evals/README.md)). Every implemented test fits
 one 120 s call on the realistic pages in `tests/fixtures/budget/` (the
 agency page has no margin left, so the next single-page test must find
 time elsewhere); pages too large to walk, or with more than 40 form
@@ -50,11 +51,28 @@ run).
   tool, an other page that redirects off the host or fails to load, and the
   "other pages not used" note. Real .gov templates matter more than these:
   wait for the agent-eval pages, then add fixtures for whatever they show.
+- **Multi-page testing, one page per call (open; Abby, 2026-11-02).**
+  Current: one call records the tested page plus up to 5 other pages; only
+  the tested page gets the single-page tests, the others are comparison
+  pages for 9.A–9.C and 19.A, and a page too slow for its 20 s share leaves those
+  NEEDS REVIEW. Proposed: test each page of a batch in full, in its own
+  call, then run the multi-page tests once at the end and add their results
+  to every page's report. Open: where the recordings live between calls
+  (runs are kept 24 h; the comparison needs several runs at once, or the
+  user's saved reports). Plan it with the next work on 9.A–9.C and 19.A
+  (Multiple ways), not on its own.
 - **Progress on long calls.** Multi-page runs take up to 120 s + 20 s per
   other page. The tool sends MCP progress per phase and page; a consumer
   agent that hands the run to a subagent sees none of it. Find a way for a
   subagent to relay progress to the main thread (Abby, 2026-11-02), or say
   in the tool description how long to expect.
+- **Progress during long test runs.** The full suite takes about 12 minutes
+  headless on Windows and about 43 minutes headed and serial, and `-q` prints
+  only dots: there is no ETA, nothing names the running test, and a hang
+  looks like a slow run. Print per-test names and elapsed time, plus a rough
+  ETA, to a progress file the agent can read and summarize (Abby,
+  2026-11-01), and keep the hard stop and `faulthandler_timeout` from
+  [solutions/windows-chrome-results.md](solutions/windows-chrome-results.md).
 - **More shared replays (deferred).** 4.A now reuses 4.D's pass W arrows
   and 4.F's pass R Enter presses when they cover what it needs
   (docs/solutions/time-budget.md). Left: 4.C's widget check (P4) and pass W
@@ -91,6 +109,21 @@ run).
   its packet (agent-eval agents get no file tools).
 - **Network-level egress rules** on any host that runs the server, as a
   second layer behind the egress proxy (GSA template). Deployment work.
+- **Untimed browser waits.** Headed test runs stalled for 25 to 50 minutes,
+  apparently when the screen locked, waiting on a browser call with no time
+  limit (a CDP command or `page.evaluate`, e.g. the settle rule's animation
+  frames). A real run on such a machine would break the 120 s promise
+  (`RUN_LIMIT_S`). Hosted runs are headless, so this is low priority until
+  someone runs the server headed
+  ([solutions/windows-chrome-results.md](solutions/windows-chrome-results.md)).
+- **Egress tests in installed Chrome.** In headed Chrome 156 on Windows,
+  `test_iframe_and_subresources_pointing_inside_are_refused` and
+  `test_rebinding_mid_run_is_refused` fail because Chrome never makes the
+  frame, subresource or later `fetch` requests, so the guard is not
+  exercised. Nothing leaked: the sentinel got no hits. The default headless
+  run still exercises the guard and passes. Find why Chrome skips them, so
+  both browsers test the guard
+  ([solutions/windows-chrome-results.md](solutions/windows-chrome-results.md)).
 
 ## Later
 

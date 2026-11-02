@@ -452,25 +452,49 @@ async def run_tt_tests(
             har = run.evidence_dir / "page.har.zip"
             t0 = time.monotonic()
             try:
-                cap = await record(browser, settings, url, har, run.log, proxy)
+                cap = await _bounded(
+                    record(browser, settings, url, har, run.log, proxy), hard
+                )
             except Exception as exc:
                 # The page never loaded: a tool error, and nothing is kept.
                 shutil.rmtree(run.dir, ignore_errors=True)
+                if isinstance(exc, TimeoutError):
+                    raise RunRefused(
+                        "The page could not be recorded within the time limit."
+                    ) from None
                 if isinstance(exc, NavigationBlocked):
                     raise RunRefused(str(exc)) from exc
                 raise RunRefused(
                     f"The page could not be loaded: {safe_error(exc)}"
                 ) from None
             report.final_url = cap.final_url
+            pages_cut = ""
             for i, other in enumerate(others, 1):
                 await say(0.5, f"Recording other page {i} of {len(others)}")
                 rel = f"evidence/pages/p{i}.har.zip"
                 t1 = time.monotonic()
                 (run.dir / rel).parent.mkdir(parents=True, exist_ok=True)
                 try:
-                    oc = await record(
-                        browser, settings, other, run.dir / rel, run.log, proxy
+                    # Each other page records within its own share of the
+                    # limit, so a slow one cannot eat the other tests' time.
+                    share = hard if no_time_limit else t1 + settings.other_page_s
+                    oc = await _bounded(
+                        record(browser, settings, other, run.dir / rel, run.log, proxy),
+                        min(hard, share),
                     )
+                except TimeoutError:
+                    # The single-page tests still run; the tests that compare
+                    # pages are not performed rather than run on fewer pages.
+                    pages_cut = (
+                        f"Other page {i} could not be recorded within its "
+                        f"{settings.other_page_s} s, so the tests that compare "
+                        "pages were not performed. To run them, give fewer other "
+                        "pages, or run again with no_time_limit=true."
+                    )
+                    run.log("captured_other", "error", n=i, error="time limit")
+                    report.errors.append(pages_cut)
+                    report.other_pages = []
+                    break
                 except Exception as exc:
                     shutil.rmtree(run.dir, ignore_errors=True)
                     if isinstance(exc, NavigationBlocked):
@@ -546,6 +570,8 @@ async def run_tt_tests(
                     run.write_json(run.evidence_dir / "walk.json", walk)
                     run.log("walk", **_walk_summary(walk), cost=asdict(cost))
             for c in checks:
+                if pages_cut and uses_pages(c):
+                    continue  # NEEDS REVIEW, not performed: pages_cut says why
                 if needs_walk(c, ctx) and walk is None:
                     continue  # NEEDS REVIEW: the run did not complete (errors say why)
                 await say(2, f"Checking {c.test_id.value}")

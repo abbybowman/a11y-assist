@@ -52,3 +52,12 @@ pages link to, offered to the user, never visited). The fixture server
 answers a search for any query (`search.html`), so the live path is
 tested offline through the egress proxy.
 
+**Every record() call is bounded, and each other page by its own share.**
+Each other page adds `OTHER_PAGE_S` (20 s) to the limit, but one recording
+can take 30 s to load plus the idle wait and scrolls. The recordings were
+not bounded at first. Bounding them by the whole run's deadline was not
+enough: a slow page then ate the time the single-page tests needed. Now each
+other page records within its own share; one that runs over leaves the tests that compare pages (9.A-9.C, 19.A)
+not performed (never run on fewer pages than the caller named) and the
+other tests run in full (Abby, 2026-11-02;
+`test_time_budget.py::test_slow_other_page_drops_only_the_page_tests`).
