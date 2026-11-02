@@ -15,7 +15,7 @@ from a11y_assist.models import TestId
 
 from .conftest import BASELINE_ROOT
 from .drafts import DRAFTS
-from .harness import run_check, run_tests
+from .harness import run_tests
 
 MANIFEST = json.loads((BASELINE_ROOT / "manifest.json").read_text())
 CASES = {c["id"]: c for c in MANIFEST["cases"]}
@@ -105,45 +105,27 @@ def test_files_match_their_hashes():
     assert {c["path"] for c in CASES.values()} <= set(MANIFEST["files"])
 
 
-# Tests that share one collection pass run in one call, as a client runs
-# them (and halving the browser runs keeps the suite's timing guards honest).
-SHARED = ({"5.A", "5.B", "5.C"}, {"5.F", "5.G", "5.H"})
-
-
-def _runs() -> list[tuple[str, tuple[str, ...]]]:
-    out = []
-    for cid, c in sorted(CASES.items()):
-        left = set(c["expected"])
-        for grp in SHARED:
-            both = grp & left
-            if len(both) > 1:
-                out.append((cid, tuple(sorted(both))))
-                left -= both
-        out += [(cid, (t,)) for t in sorted(left)]
-    return out
-
-
-@pytest.mark.parametrize(("case_id", "tts"), _runs())
-async def test_case(case_id, tts, settings, baseline_server, monkeypatch):
-    for tt in tts:
-        if TestId(tt) not in REGISTRY and TestId(tt) not in DRAFTS:
-            pytest.skip(f"no {tt} check yet (being built)")
+# All of a case's tests run in one call, as a client runs them: one browser
+# run per page, and checks that share a pass (5.A-5.C, 5.F-5.H) or a replay
+# (4.A with 4.D and 4.F) are tested sharing it.
+@pytest.mark.parametrize("case_id", sorted(CASES))
+async def test_case(case_id, settings, baseline_server, monkeypatch):
+    case = CASES[case_id]
+    tts = []
+    for tt in sorted(case["expected"]):
         if TestId(tt) in DRAFTS:  # a draft spec: registered for its tests only
             monkeypatch.setitem(REGISTRY, TestId(tt), DRAFTS[TestId(tt)])
-    case = CASES[case_id]
+        if TestId(tt) in REGISTRY:
+            tts.append(tt)
+    if not tts:
+        pytest.skip(f"no check yet for {sorted(case['expected'])} (being built)")
     url = f"{baseline_server}/{case['path']}"
-    if len(tts) == 1:
-        got = {
-            tts[0]: (
-                await run_check(
-                    settings, url, TestId(tts[0]), ANSWERS.get((case_id, tts[0]))
-                )
-            )["finding"]
-        }
-    else:
-        got = await run_tests(
-            settings, url, tts, {t: ANSWERS.get((case_id, t)) or {} for t in tts}
-        )
-    for tt in tts:
-        f = got[tt]
-        assert f.outcome.value == case["expected"][tt], (tt, f.rationale, f.summary)
+    got = await run_tests(
+        settings, url, tts, {t: ANSWERS.get((case_id, t)) or {} for t in tts}
+    )
+    wrong = {
+        tt: (got[tt].outcome.value, case["expected"][tt], got[tt].rationale)
+        for tt in tts
+        if got[tt].outcome.value != case["expected"][tt]
+    }
+    assert wrong == {}, wrong

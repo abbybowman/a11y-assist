@@ -76,8 +76,9 @@ EXPECTED: dict[str, dict] = {
     "f14-plain-form-controls": {"outcome": "PASS", "rows": []},
 }
 HELPERS = {"f01-other", "f09-frame"}
-# Pages from other tests: no form fields at all.
-REUSED = {"../4d/f10-100-links.html": {"outcome": "DNA", "rows": []}}
+# Pages from other tests: no form fields at all. A small page: row A1 does
+# not depend on page size, and the 100-link page cost a 50 s walk here.
+REUSED = {"../4d/f01-background-change.html": {"outcome": "DNA", "rows": []}}
 
 
 def test_every_fixture_is_listed():

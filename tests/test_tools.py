@@ -113,7 +113,7 @@ async def test_run_tt_tests_on_http_page(settings, server):
 
 async def test_collect_on_file_fixture_in_dev_mode(settings):
     url = (FIXTURES / "4c/f04-field-swallows-tab.html").as_uri()
-    out = await _call("a11y_run_tt_tests", {"url": url})
+    out = await _call("a11y_run_tt_tests", {"url": url, "tests": ["4.C"]})
     assert out["errors"] == []
     # The field swallows Tab: P1 ends as soon as it is stuck for 3 presses.
     assert out["walk"]["P1"]["end"] == "stuck"
@@ -303,7 +303,9 @@ async def test_answer_questions_unknown_run_id_is_a_tool_error(settings):
 
 
 async def test_evidence_is_readable_as_resources_and_confined(settings, server):
-    out = await _call("a11y_run_tt_tests", {"url": f"{server.base}/no_trap.html"})
+    out = await _call(
+        "a11y_run_tt_tests", {"url": f"{server.base}/no_trap.html", "tests": ["4.C"]}
+    )
     async with Client(mcp) as client:
         [content] = await client.read_resource(f"run://{out['run_id']}/report.json")
         assert json.loads(content.text)["run_id"] == out["run_id"]
@@ -321,7 +323,9 @@ async def test_old_runs_expire(settings, server):
 
     from a11y_assist.runlog import prune_runs
 
-    out = await _call("a11y_run_tt_tests", {"url": f"{server.base}/no_trap.html"})
+    out = await _call(
+        "a11y_run_tt_tests", {"url": f"{server.base}/no_trap.html", "tests": ["4.C"]}
+    )
     run_dir = settings.runs_dir / out["run_id"]
     old = time.time() - 25 * 3600
     os.utime(run_dir / "report.json", (old, old))
