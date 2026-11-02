@@ -1,0 +1,45 @@
+name: Time budget
+
+# Where a run's time goes on the realistic budget pages, on Linux, so a
+# timing from a slower laptop is not mistaken for the tool's. Measurement
+# only. Run it by hand (Actions tab, once this file is on main) or by adding
+# the "time-budget" label to a pull request.
+on:
+  pull_request:
+    types: [labeled]
+  workflow_dispatch:
+
+jobs:
+  budget:
+    if: github.event_name == 'workflow_dispatch' || github.event.label.name == 'time-budget'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "0.11.32"
+
+      - name: Install Python
+        run: uv python install 3.11
+
+      - name: Install dependencies
+        run: uv sync --group dev
+
+      - name: Install Playwright Chromium
+        run: uv run playwright install --with-deps chromium
+
+      # Twice each: one run's noise is not a result. With the limit (what a
+      # user gets) and without it (all the work, to compare changes).
+      - name: With the 120 s limit
+        run: |
+          for i in 1 2; do
+            uv run python evals/time_budget.py budget/agency-home.html budget/benefits-form.html
+          done
+
+      - name: Without the limit
+        run: |
+          for i in 1 2; do
+            uv run python evals/time_budget.py --json --no-time-limit budget/agency-home.html budget/benefits-form.html
+          done
