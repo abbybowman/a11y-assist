@@ -153,8 +153,10 @@ run).
   headers). Next to try: contrast and image output for 7.x and 13.C. TT prescribes ANDI for
   about 20 tests, so matching its output matters there. Not needed for Test 4
   (4.F's note: use keyboard order, not ANDI's).
-- **`read_report`**: read an agency's existing ACR or SCRT report (passed in
-  by the client) and recommend fixes and re-tests, reusing `explain.py`.
+- **SCRT report files** (read, write, compare, TT review, export; plan:
+  [plans/2026-11-02-scrt-io.md](plans/2026-11-02-scrt-io.md)). Fix advice for
+  a read report is a separate, optional tool, reusing `explain.py`. ACRs and
+  OpenACR are out of scope (product level, not page level).
 - **`compare_to` on `a11y_run_tt_tests`** (verify a fix) taking a saved report, not
   a server-side run ID (runs expire after `RUN_TTL_HOURS`).
 - **OpenACR export**, as a draft labelled agent-assisted; NEEDS_REVIEW maps
