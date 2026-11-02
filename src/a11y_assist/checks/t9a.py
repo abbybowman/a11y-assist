@@ -276,7 +276,17 @@ async def collect(ctx: RunContext, walk: KeyboardWalk | None) -> State9A:
         st.incomplete.append("The keyboard walk did not run.")
         return st
     st.cands = candidates(st, walk, site.main.url)
+    tried: list[Cand] = []
     for c in st.cands:
+        # Stop once the block is bypassed: more candidates cannot change a
+        # PASS (G2), so they only cost time.
+        if tried and _bypassed_by(st, tried):
+            st.notes.append(
+                f"{len(st.cands) - len(tried)} other possible ways to skip were not tried."
+            )
+            st.cands = tried
+            break
+        tried.append(c)
         if ctx.out_of_time():
             st.incomplete.append(
                 "The run reached its time limit before every way to skip was tried."
@@ -401,6 +411,11 @@ def bypassed(st: State9A, results: list[tuple[Cand, str]]) -> list[Cand]:
     if stops_before > STOPS_BEFORE_OK:
         return []
     return [c for c, _ in working]
+
+
+def _bypassed_by(st: State9A, cands: list[Cand]) -> bool:
+    rows = instance_rows(st)
+    return bool(bypassed(st, [(c, first_match(rows, c).id) for c in cands]))
 
 
 def _results(st: State9A) -> list[tuple[Cand, Row]]:

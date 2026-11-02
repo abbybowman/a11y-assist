@@ -436,6 +436,7 @@ async def run_tt_tests(
             for i, other in enumerate(others, 1):
                 await say(0.5, f"Recording other page {i} of {len(others)}")
                 rel = f"evidence/pages/p{i}.har.zip"
+                t1 = time.monotonic()
                 (run.dir / rel).parent.mkdir(parents=True, exist_ok=True)
                 try:
                     oc = await record(
@@ -457,7 +458,12 @@ async def run_tt_tests(
                 report.other_pages.append(
                     OtherPage(n=i, url=other, final_url=oc.final_url, har=rel)
                 )
-                run.log("captured_other", n=i, final_url=oc.final_url)
+                run.log(
+                    "captured_other",
+                    n=i,
+                    final_url=oc.final_url,
+                    seconds=round(time.monotonic() - t1, 2),
+                )
             blocked = _blocked_hosts(proxy)
             if blocked:
                 # The page loaded without these parts; the findings cover only
