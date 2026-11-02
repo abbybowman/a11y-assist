@@ -188,7 +188,8 @@
    "baseline_expected": "FAIL",
    "expected": {
     "5.A": "PASS",
-    "5.C": "FAIL"
+    "5.C": "FAIL",
+    "5.B": "PASS"
    },
    "differs": "5.A: Baseline judges the name only; \"First Name:\" is visible beside the field."
   },
@@ -199,9 +200,10 @@
    "baseline_expected": "PASS",
    "expected": {
     "5.A": "FAIL",
-    "5.C": "PASS"
+    "5.C": "PASS",
+    "5.B": "DNA"
    },
-   "differs": "5.A: Baseline judges the name only; a placeholder alone is not a visual label (5.A spec M3; W3C forms tutorial; w3c/wcag#4918)."
+   "differs": "5.A: Baseline judges the name only; a placeholder alone is not a visual label (5.A spec M3; W3C forms tutorial; w3c/wcag#4918). 5.B: no visual label to judge (DNA)."
   },
   {
    "id": "TC10.A-all-pass-2",
@@ -210,7 +212,8 @@
    "baseline_expected": "PASS",
    "expected": {
     "5.A": "PASS",
-    "5.C": "PASS"
+    "5.C": "PASS",
+    "5.B": "PASS"
    },
    "differs": ""
   },
@@ -221,7 +224,8 @@
    "baseline_expected": "PASS",
    "expected": {
     "5.A": "PASS",
-    "5.C": "PASS"
+    "5.C": "PASS",
+    "5.B": "PASS"
    },
    "differs": ""
   },
@@ -232,7 +236,8 @@
    "baseline_expected": "PASS",
    "expected": {
     "5.A": "PASS",
-    "5.C": "PASS"
+    "5.C": "PASS",
+    "5.B": "PASS"
    },
    "differs": ""
   },
@@ -243,7 +248,8 @@
    "baseline_expected": "PASS",
    "expected": {
     "5.A": "PASS",
-    "5.C": "PASS"
+    "5.C": "PASS",
+    "5.B": "PASS"
    },
    "differs": ""
   },
@@ -254,7 +260,8 @@
    "baseline_expected": "PASS",
    "expected": {
     "5.A": "PASS",
-    "5.C": "PASS"
+    "5.C": "PASS",
+    "5.B": "PASS"
    },
    "differs": ""
   },
@@ -265,7 +272,8 @@
    "baseline_expected": "DNA",
    "expected": {
     "5.A": "DNA",
-    "5.C": "DNA"
+    "5.C": "DNA",
+    "5.B": "DNA"
    },
    "differs": ""
   },
@@ -276,7 +284,8 @@
    "baseline_expected": "DNA",
    "expected": {
     "5.A": "DNA",
-    "5.C": "DNA"
+    "5.C": "DNA",
+    "5.B": "DNA"
    },
    "differs": ""
   },
@@ -287,7 +296,8 @@
    "baseline_expected": "FAIL",
    "expected": {
     "5.A": "FAIL",
-    "5.C": "FAIL"
+    "5.C": "FAIL",
+    "5.B": "DNA"
    },
    "differs": ""
   },
@@ -298,9 +308,10 @@
    "baseline_expected": "PASS",
    "expected": {
     "5.A": "PASS",
-    "5.C": "PASS"
+    "5.C": "PASS",
+    "5.B": "FAIL"
    },
-   "differs": "5.C: the name repeats the visible label; whether \"The sky is blue\" describes the field is 5.B's (5.C spec M5)."
+   "differs": "5.C: the name repeats the visible label; whether \"The sky is blue\" describes the field is 5.B's (5.C spec M5). 5.B: it does not (10.E judges presence only)."
   },
   {
    "id": "TC10.E-1-pass-2",
@@ -309,7 +320,8 @@
    "baseline_expected": "PASS",
    "expected": {
     "5.A": "PASS",
-    "5.C": "PASS"
+    "5.C": "PASS",
+    "5.B": "PASS"
    },
    "differs": ""
   },
@@ -320,7 +332,68 @@
    "baseline_expected": "PASS",
    "expected": {
     "5.A": "PASS",
-    "5.C": "PASS"
+    "5.C": "PASS",
+    "5.B": "PASS"
+   },
+   "differs": ""
+  },
+  {
+   "id": "TC10.G-2.a-pass-1",
+   "summary": "https://baselinealignment.section508.gov/testcases/TC10.G-2.a-pass-1.html",
+   "path": "testfiles/TF10/10.G-2.a-pass-1.html",
+   "baseline_expected": "PASS",
+   "expected": {
+    "5.H": "DNA"
+   },
+   "differs": "5.H: one page (the TT's applicability); Baseline tests it (reversible)."
+  },
+  {
+   "id": "TC10.G-2.b-pass-1",
+   "summary": "https://baselinealignment.section508.gov/testcases/TC10.G-2.b-pass-1.html",
+   "path": "testfiles/TF10/10.G-2.b-pass-1.html",
+   "baseline_expected": "PASS",
+   "expected": {
+    "5.H": "DNA"
+   },
+   "differs": "5.H: one page (the TT's applicability); Baseline tests it (checked)."
+  },
+  {
+   "id": "TC10.G-2.c-pass-1",
+   "summary": "https://baselinealignment.section508.gov/testcases/TC10.G-2.c-pass-1.html",
+   "path": "testfiles/TF10/10.G-2.c-pass-1.html",
+   "baseline_expected": "PASS",
+   "expected": {
+    "5.H": "PASS"
+   },
+   "differs": ""
+  },
+  {
+   "id": "TC10.G-all-fail-1",
+   "summary": "https://baselinealignment.section508.gov/testcases/TC10.G-all-fail-1.html",
+   "path": "testfiles/TF10/10.G-all-fail-1.html",
+   "baseline_expected": "FAIL",
+   "expected": {
+    "5.H": "DNA"
+   },
+   "differs": "5.H: one page (the TT's applicability); Baseline tests it."
+  },
+  {
+   "id": "TC10.G-ic-dna-1",
+   "summary": "https://baselinealignment.section508.gov/testcases/TC10.G-ic-dna-1.html",
+   "path": "testfiles/TF10/10.G-ic-dna-1.html",
+   "baseline_expected": "DNA",
+   "expected": {
+    "5.H": "DNA"
+   },
+   "differs": ""
+  },
+  {
+   "id": "TC10.G-ic-dna-2",
+   "summary": "https://baselinealignment.section508.gov/testcases/TC10.G-ic-dna-2.html",
+   "path": "testfiles/TF10/10.G-ic-dna-2.html",
+   "baseline_expected": "DNA",
+   "expected": {
+    "5.H": "DNA"
    },
    "differs": ""
   }
@@ -354,6 +427,12 @@
   "testfiles/TF10/10.E-1-fail-1.html": "8cbd7547c70d72ade7d4f3bccd4d402123d65d13e13133e53ab1c895067d091a",
   "testfiles/TF10/10.E-1-pass-1.html": "3bc623539c97b4b9689ce549ac8e4617f35799e72a2daf739d8d0451c3f31a11",
   "testfiles/TF10/10.E-1-pass-2.html": "50e8f8031f8d40ea66818e28b6e472681e858b8ada338e9af912f80e819f3a4f",
-  "testfiles/TF10/10.E-1-pass-3.html": "004e213862f999636d48b064f6aa7cbcd037906e4f7b0cd4c46eaf7efdd1e12e"
+  "testfiles/TF10/10.E-1-pass-3.html": "004e213862f999636d48b064f6aa7cbcd037906e4f7b0cd4c46eaf7efdd1e12e",
+  "testfiles/TF10/10.G-2.a-pass-1.html": "f8f9c02c886fc2846db26b483652b71efbe28409fc5f58ba2cffbfe3c1b6701b",
+  "testfiles/TF10/10.G-2.b-pass-1.html": "ec0174e5cda8feb8028358537f063bfe1fcf1d65e1f93d32b59b648be7fe0103",
+  "testfiles/TF10/10.G-2.c-pass-1.html": "713a0af8bba9eda61f0c42c3d9a69724d081d8c33ee66cfd89e21858771ea67f",
+  "testfiles/TF10/10.G-all-fail-1.html": "27b923784ebb76057127694e5f58bc859fc98e5a8ff5e95ad6a2b4d749809f1c",
+  "testfiles/TF10/10.G-ic-dna-1.html": "eb295fb9271ed04b247a68e5f8d890ae3ea64cbff98583cee81e503679ba9126",
+  "testfiles/TF10/10.G-ic-dna-2.html": "f823df00c6d23123eb9d5c928813238789bb9a639fd28be7ff336428fa4f1e23"
  }
 }

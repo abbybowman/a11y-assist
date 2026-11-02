@@ -78,7 +78,7 @@ def test_files_match_their_hashes():
 
 # Tests that share one collection pass run in one call, as a client runs
 # them (and halving the browser runs keeps the suite's timing guards honest).
-SHARED = ({"5.A", "5.C"}, {"5.F", "5.G"})
+SHARED = ({"5.A", "5.B", "5.C"}, {"5.F", "5.G", "5.H"})
 
 
 def _runs() -> list[tuple[str, tuple[str, ...]]]:
