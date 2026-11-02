@@ -37,7 +37,16 @@ RULES = {
     "4.C": ["a1b64e", "ebe86a", "80af7b"],
     "4.D": ["oj04fd"],
     "4.A": ["akn7bn", "0ssw9k"],
+    # 9.A: the composite and the two atomic rules that are keyboard methods;
+    # cf77f2's landmark-only and heading-only passes come with it.
+    "9.A": ["ye5d6e", "3e12e1", "cf77f2"],
 }
+# Pages a case needs that are not assets: the bypass-blocks rules' "other
+# page" (chapter 2), which 9.A's tests name in other_pages.
+EXTRA_PAGES = [
+    "https://www.w3.org/WAI/content-assets/wcag-act-rules/test-assets/"
+    "bypass-blocks-cf77f2/chapter2.html",
+]
 # Unapproved near-copies of approved cases (docs/rules/4d-build-tasks.md).
 SKIP = {
     "8f296b7a",
@@ -107,6 +116,38 @@ EXPECTED = {
         "5d06e083": "PASS",  # ACT inapplicable: Chrome tabs to the scroller
         "8f9b5bf5": "DNA",
         "fa27b588": "PASS",
+    },
+    # docs/rules/9a-bypass.md, with chapter2.html as the other page. DHS
+    # scored none of these rules.
+    "9.A": {
+        "235a899f": "PASS",
+        "758c0097": "PASS",
+        "1d5d46b8": "PASS",
+        "a800d202": "PASS",
+        "f75c1d3e": "PASS",
+        "20d2b672": "PASS",
+        "b0707d53": "PASS",
+        "bc993393": "PASS",
+        "6fe4061a": "FAIL",
+        "8c1d5e19": "FAIL",
+        "91f4c9b8": "FAIL",
+        "fa30de1d": "PASS",
+        "01ade756": "PASS",
+        "be05e489": "PASS",
+        "61c51eb3": "PASS",
+        "14be25f3": "FAIL",
+        "d3516265": "FAIL",
+        "722992ea": "FAIL",
+        "36f679b6": "FAIL",  # ACT passed: heading only (047fe0), not a key method
+        "9eb0cf41": "FAIL",  # ACT passed: landmark only (b40fd1), not a key method
+        "c039d5c0": "DNA",  # ACT passed: the repeated block comes after main
+        "1c8d17ef": "PASS",
+        "07c0b535": "PASS",
+        "7fdb66e3": "PASS",
+        "f937af9c": "PASS",
+        "ac55a162": "PASS",
+        "55a6cc3e": "FAIL",
+        "ecc29b73": "DNA",
     },
 }
 
@@ -231,6 +272,9 @@ def main() -> None:
         files[entry["path"]] = ""
         entry["examples"].sort()
 
+    for url in EXTRA_PAGES:
+        path = save(url)
+        files[path.relative_to(HERE).as_posix()] = ""
     for rel in files:
         files[rel] = hashlib.sha256((HERE / rel).read_bytes()).hexdigest()
 

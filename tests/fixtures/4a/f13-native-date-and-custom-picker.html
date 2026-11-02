@@ -1,0 +1,14 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>F13 Schedule a visit</title>
+<style>.pick{display:inline-block;border:1px solid #333;padding:2px 6px;cursor:pointer}#cal[hidden]{display:none}</style></head><body>
+<h1>Schedule a visit</h1>
+<p><label for="d1">First choice</label> <input id="d1" type="date"></p>
+<p>Second choice: <span id="d2">none</span>
+<span class="pick" role="button" tabindex="0" aria-expanded="false" aria-controls="cal" id="pick">Choose a date</span></p>
+<div id="cal" hidden><button type="button" data-d="June 2">June 2</button> <button type="button" data-d="June 3">June 3</button></div>
+<script>
+const pick = document.getElementById("pick"), cal = document.getElementById("cal");
+function toggle() { const open = cal.hidden; cal.hidden = !open; pick.setAttribute("aria-expanded", String(open)); }
+pick.addEventListener("click", toggle);
+pick.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); } });
+cal.addEventListener("click", (e) => { if (e.target.dataset.d) { document.getElementById("d2").textContent = e.target.dataset.d; toggle(); } });
+</script></body></html>

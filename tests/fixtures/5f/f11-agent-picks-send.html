@@ -1,0 +1,15 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>F11 Ask a question</title>
+<style>.link{background:none;border:none;color:#00e;text-decoration:underline}</style></head><body>
+<h1>Ask a question</h1>
+<div>
+<p role="alert" id="msg"></p>
+<p><label for="email">Your email address</label> <input id="email"></p>
+<p><button type="button" id="go">Go</button> <button type="button" class="link" id="send">Send my question</button></p>
+</div>
+<script>
+document.getElementById("go").addEventListener("click", () => {});
+document.getElementById("send").addEventListener("click", () => {
+  const ok = /@/.test(document.getElementById("email").value);
+  document.getElementById("msg").textContent = ok ? "" : "Your email address: enter an address with an @, like name@example.com.";
+});
+</script></body></html>

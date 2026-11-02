@@ -5,7 +5,7 @@ A check never decides an outcome outside its rules spec (CLAUDE.md principle
 2): `evaluate` applies the spec's rows to the evidence, and nothing else does.
 
 Adding a check (4.D, 4.E, 4.F and 5.D were built this way; copy t4e.py, the
-smallest, or t5d.py for a form test):
+smallest, t5d.py for a form test, or t9b.py for a multi-page test):
   1. Research first (CLAUDE.md): the TT text, W3C Understanding and its
      techniques, ACT rules and DHS's verdicts, the ICT Testing Baseline
      test and its Baseline Alignment cases; read the vendored pages before
@@ -28,6 +28,9 @@ smallest, or t5d.py for a form test):
      tests/harness.py run_check(). Use ctx.replay for replays and
      ctx.out_of_time() before each one; a page whose items exceed a cap the
      check declares (`cap`) is refused at the first load.
+     A test that compares pages sets `uses_pages = True` and reads
+     `site.site_read(ctx)` (each page once, cached) and `ctx.pages`;
+     without other pages it is not performed and costs nothing (9.A-9.C).
      Open questions: link files as run:// (never run-folder paths), put
      evidence several questions share in shared_inputs(state), and give the
      agent what its rubric asks about (an eval found a rubric judged on half
@@ -46,7 +49,7 @@ smallest, or t5d.py for a form test):
 from __future__ import annotations
 
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, ClassVar, Protocol
 
@@ -55,6 +58,17 @@ from pydantic import BaseModel
 from a11y_assist.models import Finding, OpenQuestion, Report, TestId
 from a11y_assist.traverse import NewPage, ReplayPlan, Session, replay
 from a11y_assist.walk import ExtraFactory, KeyboardWalk
+
+
+@dataclass
+class PageRef:
+    """Another page of the same site (9.A-9.C): a fresh load of its own HAR
+    per call to `new_page`."""
+
+    n: int  # 1-based, in the caller's order
+    url: str
+    final_url: str
+    new_page: NewPage
 
 
 @dataclass
@@ -68,6 +82,14 @@ class RunContext:
     rel: Path  # run folder (evidence paths are relative to it)
     plan: ReplayPlan | None = None  # from the walk, once it has run
     timed_out: bool = False  # a check stopped work for the run limit
+    # Evidence one check collects for another in the same call (5.F's error
+    # pass, which 5.G reads): keyed by the collector's name.
+    cache: dict[str, Any] = field(default_factory=dict)
+    third_party: Path | None = None  # vendored ANDI (andi.install_andi_routes)
+    selected: frozenset[str] = frozenset()  # TT test IDs in this call ("5.A")
+    # Other pages of the same site the caller named (empty: none given). Only
+    # recorded when a selected check compares pages (`uses_pages`).
+    pages: list[PageRef] = field(default_factory=list)
 
     def out_of_time(self) -> bool:
         """Past the checks' deadline (4.C spec section 2, Run limits). Use it

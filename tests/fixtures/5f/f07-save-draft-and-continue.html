@@ -1,0 +1,15 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>F07 Mailing address</title></head><body>
+<h1>Mailing address</h1>
+<form id="f" novalidate>
+<p role="alert" id="msg"></p>
+<p><label for="city">City</label> <input id="city"></p>
+<p><button type="submit" name="act" value="draft">Save draft</button> <button type="submit" name="act" value="go">Continue</button></p>
+</form>
+<script>
+document.getElementById("f").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const m = document.getElementById("msg");
+  if (e.submitter && e.submitter.value === "draft") { m.textContent = "Draft saved."; return; }
+  m.textContent = document.getElementById("city").value.trim() ? "" : "City: enter the city of your mailing address.";
+});
+</script></body></html>

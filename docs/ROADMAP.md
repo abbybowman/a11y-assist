@@ -4,22 +4,27 @@ What is left to build, newest priorities first. A living list, not a log:
 delete an item once it is built, and put any decision it needed into the
 spec, CLAUDE.md or `docs/solutions/` where it belongs.
 
-## Now: Test 4 and 5.D are built
+## Now: Test 4, five form tests and the multi-page batch are built
 
 Built (spec 1.0.0+, check registered, fixtures green): 4.A, 4.B, 4.C, 4.D,
-4.E, 4.F and 5.D (On input). Judge eval (fresh agents, no scripted
-answers): 43/44 Test 4 fixtures and 14/14 for 5.D, no false PASS
-([evals/README.md](../evals/README.md)). Every implemented test fits one
-120 s call on realistic multi-section pages (108–111 s); pages too large to
-walk, or with more than 40 form fields, are refused at once with a
-`no_time_limit` option ([solutions/time-budget.md](solutions/time-budget.md)).
+4.E, 4.F, 5.A (Label provided), 5.C (Programmatic label, from ANDI's
+output), 5.D (On input), 5.F (Error identification), 5.G (Error
+suggestion), and 9.A (Bypass), 9.B (Consistent navigation) and 9.C
+(Consistent identification). Judge eval (fresh agents, no scripted
+answers): 43/44 Test 4 fixtures and every 5.x and 9.x packet, no false
+PASS ([evals/README.md](../evals/README.md)). Every implemented test fits
+one 120 s call on the realistic pages in `tests/fixtures/budget/` (the
+agency page has no margin left, so the next single-page test must find
+time elsewhere); pages too large to walk, or with more than 40 form
+fields, are refused at once with a `no_time_limit` option
+([solutions/time-budget.md](solutions/time-budget.md)). 9.A–9.C compare
+the page with 1–5 other pages of the same site the caller names
+(`other_pages`, the run limit +20 s each); without them they are NEEDS
+REVIEW at no cost ([solutions/multi-page.md](solutions/multi-page.md)).
 
-Next: choose between the other form tests (5.F and 5.G error
-identification and suggestion, 5.A and 5.C leftovers, which reuse 5.D's
-fill pass and field reads) and the multi-page batch
-([plans/2026-11-01-multi-page.md](plans/2026-11-01-multi-page.md)), using
-the coverage map ([research/2026-10-31-tt-coverage-map.md](research/2026-10-31-tt-coverage-map.md))
-and CLAUDE.md's research rule.
+Next: 5.B (label descriptive) and 5.H (error prevention) would complete
+Test 5 (fix their `tt.json` steps first, below); then the visual-versus-code
+cluster. Choose with the coverage map and CLAUDE.md's research rule.
 
 Per-test leftovers live in each `docs/rules/<id>-build-tasks.md` (mostly
 browser checks on Windows headed Chrome, which this Linux container cannot
@@ -27,15 +32,21 @@ run).
 
 ## Soon
 
-- **Share replays (deferred).** 4.C's widget check (P4), 4.D's widget pass
-  W and 4.A's arrow probes replay to the same widget stops; 4.A's execute
-  check and 4.F's pass R both press Enter on custom triggers; 4.C could also
-  read 4.F's pass R (traps inside revealed content). With quick replay
-  prefixes this saves only a few seconds per widget (it was 17 s + 18 s on
-  the agency page before them), and sharing 4.A's arrows with pass W is a
-  MINOR change to 4.A (pass W visits fewer items). Build it only when a
-  realistic page is over the limit again; measure with
-  `evals/time_budget.py`.
+- **`tt.json` steps for 5.B, 7.C and 16.B.** Each repeats the previous
+  test's "How to Test" (the same PDF heading trap that scrambled 9.B, fixed
+  2026-11-02; `tests/test_tt_source.py`). Fix each from its printed pages
+  before building those tests, and the tt:// resource with it.
+- **Progress on long calls.** Multi-page runs take up to 120 s + 20 s per
+  other page. The tool sends MCP progress per phase and page; a consumer
+  agent that hands the run to a subagent sees none of it. Find a way for a
+  subagent to relay progress to the main thread (Abby, 2026-11-02), or say
+  in the tool description how long to expect.
+- **More shared replays (deferred).** 4.A now reuses 4.D's pass W arrows
+  and 4.F's pass R Enter presses when they cover what it needs
+  (docs/solutions/time-budget.md). Left: 4.C's widget check (P4) and pass W
+  at the same stops; 4.C reading pass R (traps inside revealed content);
+  5.D and 5.F both filling fields. Build when a realistic page is over the
+  limit again; the agency page is at 108 s of 110.
 - **Large pages.** Pages over roughly 300 stops cannot be walked in one
   120 s call (F34, 600 links, is refused after ~5 s). Options if this
   matters for real sites: resumable runs (walk in one call, checks in the
@@ -101,8 +112,9 @@ run).
   Licenses: axe-core MPL 2.0 (unmodified files, keep notice), HTML_CodeSniffer
   BSD 3-Clause (keep notice); NASA release review before open sourcing.
   Scanner output is evidence for spec rows; a clean scan never means PASS.
-- **ANDI per-element data.** A spike: can names, descriptions, table headers
-  and contrast be read out of ANDI's state in the page? TT prescribes ANDI for
+- **ANDI per-element data, beyond forms.** Names, descriptions and group
+  labels are read for 5.C (`andi.andi_output`; ANDI does not report table
+  headers). Next to try: contrast and image output for 7.x and 13.C. TT prescribes ANDI for
   about 20 tests, so matching its output matters there. Not needed for Test 4
   (4.F's note: use keyboard order, not ANDI's).
 - **`read_report`**: read an agency's existing ACR or SCRT report (passed in
@@ -112,10 +124,8 @@ run).
 - **OpenACR export**, as a draft labelled agent-assisted; NEEDS_REVIEW maps
   to "not evaluated". TT tests map to WCAG criteria through `tt.json`
   (Appendix A); 4.A and 4.B share 2.1.1.
-- **Multi-page tests** (9.A, 9.B, 9.C as one batch:
-  [plans/2026-11-01-multi-page.md](plans/2026-11-01-multi-page.md); 9.A is
-  researched, with three questions for Abby), then the visual-versus-code cluster (10.x, 14.x, 15.A,
-  18.A; ANDI is the core evidence for most of it, so the ANDI spike first).
+- **The visual-versus-code cluster** (10.x, 14.x, 15.A, 18.A; ANDI is the
+  core evidence for most of it).
 - **Firefox as an optional browser.** TT 5.1.3 validates Chrome and Firefox
   (Test Environment). Results are reported for the browser the report
   records and never claimed for others (e.g. Chrome 130+ tabs to scroll

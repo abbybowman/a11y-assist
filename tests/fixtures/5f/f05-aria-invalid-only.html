@@ -1,0 +1,13 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>F05 Find a location</title></head><body>
+<h1>Find a location</h1>
+<form id="f" novalidate>
+<p><label for="city">City</label> <input id="city"></p>
+<p><button type="submit">Search</button></p>
+</form>
+<script>
+document.getElementById("f").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const c = document.getElementById("city");
+  c.setAttribute("aria-invalid", c.value.trim() ? "false" : "true");
+});
+</script></body></html>
