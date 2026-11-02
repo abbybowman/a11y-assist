@@ -43,6 +43,7 @@ async def shown(s: Session) -> set[str] | None:
         return None
     return set(got) if isinstance(got, list) else None
 
+
 # Before the action, the page is watched this long; DOM changes in it are
 # page noise (animation), so an effect of only DOM changes is unreliable.
 NOISE_MS = 300
