@@ -57,6 +57,12 @@ plus `site/v264.mp4`, in one folder and pass that folder.
 | 14 | `large_media_store.py` | `pages/big <har.zip>` | with the full body saved and ranges served on replay: plays from 40 s with audio |
 | 18 | `parallel_watcher.py` | `<absolute path to a page> <seconds>` | run beside `evals/time_budget.py budget/agency-home.html`; the walk was not slowed |
 
+**What feeds the build directly:** the tile diff in `detection.py`
+(pass T), the media store in `large_media_store.py` (`capture.py`), and
+the pages in `pages/car/`, `pages/det/` and `pages/ifr/` (the starting
+point for fixtures; the carousel pages need their libraries vendored
+first, since tests do not use the network).
+
 Some scripts read helpers from another by `exec` (`iframe_process.py` and
 `iframe_probe.py` use `iframe_media.py`'s server; `large_media_store.py`
 uses `large_media.py`'s). Keep them in the same folder.

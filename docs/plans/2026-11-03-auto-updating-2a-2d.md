@@ -12,10 +12,27 @@ work.
 - **Q2:** pass T runs in parallel with the walk, which changes
   `pipeline.py`. Pages with moving content get extra time.
 - **Q5:** browser tab mute does not satisfy 2.A.
-- **Q6:** "three elements before/after" is counted around the whole
-  carousel, in tab order.
+- **Q6:** elements are counted in reading order, not tab order: text,
+  headings, images and controls, with a control and its label as one
+  element. "Before/after" is counted
+  around the whole carousel, its own controls included.
 
-Still open: Q3, Q4, Q7 and Q8 at the end, and the Q6 follow-up.
+- **Q3:** watch 6.5 s at the top, plus one scrolled watch only when hints
+  are below the fold.
+- **Q4:** ER 3 ("the mechanism passes all applicable Test Conditions")
+  stays NEEDS REVIEW until the tests it needs are built. See "ER 3: the
+  tests a mechanism needs" for the shortlist.
+- **Q7:** `replay_context` takes extra init scripts; `traverse.py` is
+  untouched.
+- **Q8:** 2.C and 2.D first, then 2.B, then 2.A.
+- **Q9:** the media store keeps up to 50 MB and 15 s per page. Over the
+  cap, the result gives each file's size and length and offers a run with
+  no media limit.
+- **Q10:** a key combination named in page text may be pressed, as an
+  approved exception to principle 5, within the limits in Q10 below.
+
+Still open: the Q6 details and Q11 (full Chromium for the tests) at the
+end.
 
 The experiments behind every "verified" below are in
 [research/2026-11-03-2x-experiments/](../research/2026-11-03-2x-experiments/README.md).
@@ -46,8 +63,8 @@ nothing on tab order versus reading order, or on carousels:
 - DHS's ACT report.
 
 DHS's current Q&A board is inside the course's Moodle, so it is not public.
-The only ruling is #114: any element, text or images included, can be the
-mechanism.
+The only written ruling is #114: any element, text or images included, can
+be the mechanism.
 
 What the sources settle, so it is not asked:
 
@@ -282,17 +299,21 @@ TT's How to Test is "determine if there is a mechanism… within three
 elements, activate it, and test it".
 
 1. **Candidates, by position and never by name** (icon-only pause buttons
-   have empty names):
-   - **2.B and 2.C (Q6):** the content is the whole carousel, ticker or
-     player, its own controls included. Candidates are every control inside
-     it, the three tab stops before it, and the three tab stops after the
-     last stop inside it. For 2.B and 2.C this window applies in addition to
-     the "first three elements" (as 2.A).
-   - **2.A:** the first three tab stops.
-   - **Both:** text or images within that span are also possible mechanisms
-     (DHS #114: "any element, including text or images", e.g. a stated
-     keyboard shortcut). They go to a by-looking question, and the
-     shortcut, if one is stated, is pressed to confirm.
+   have empty names). Positions are counted in *elements*: the units of
+   `site.UNITS_FN` in reading order, with a label that names a control
+   merged into it (Q6). Reading them costs one `evaluate` on pass
+   T's load.
+   - **2.A, 2.B and 2.C:** the first three elements of the page.
+   - **2.B and 2.C, also:** the content is the whole carousel, ticker or
+     player, its own controls included. Candidates are every element inside
+     it, the three elements before its first element, and the three after
+     its last.
+   - **Controls** among the candidates are pressed (step 2).
+   - **Text and images** among them may be the mechanism ("any element,
+     including text or images", DHS #114). They go to a
+     by-looking question: does this describe a way to pause, stop or hide
+     it? If the text names a key combination, the combination is pressed
+     to confirm (Q10).
 2. **Activation.** Operable controls only (buttons, `role=button`,
    switches, checkboxes, sliders, and `href="#"` links), with Enter or
    Space, through `observe.py`. A slider gets arrow and Home/End presses
@@ -307,21 +328,59 @@ elements, activate it, and test it".
    focus, so the result is NEEDS REVIEW, never PASS. Slick and Splide would
    otherwise turn their own Previous button into a false PASS (item 12).
 
-PASS needs a key press that confirms it (principle 8). ER 3 ("the mechanism
-passes all applicable Test Conditions") is Q4.
+A key press must confirm the mechanism (principle 8). Even then, 2.A–2.C
+stay NEEDS REVIEW until ER 3 can be checked (Q4, below).
+
+### ER 3: the tests a mechanism needs (Q4)
+
+ER 3 asks that the mechanism pass "all applicable Test Conditions in this
+test process". Until each test that can apply to it is built, a confirmed
+mechanism gives NEEDS REVIEW. The note says the mechanism works by keyboard
+and names the tests a person must still check it against. FAIL is
+unaffected: no working mechanism is FAIL whatever ER 3 says. Names are from
+`tt.json`.
+
+| Test | Applies to the mechanism when | Built |
+| --- | --- | --- |
+| 4.A keyboard access | always (it is operated) | yes |
+| 4.B no keystroke timing | always | yes |
+| 4.C no keyboard trap | always | yes |
+| 4.D focus visible | it takes focus | yes |
+| 4.E on focus | it takes focus | yes |
+| 4.F focus order | it takes focus | yes |
+| 5.A label provided, 5.B label descriptive, 5.C programmatic label, 5.D on input | it is a form element (a toggle, a volume slider, a frequency field) | yes |
+| 6.A link purpose | it is a link or a button | **no** |
+| 7.A meaningful image name, 7.E image of text | it is, or contains, an image or icon | **no** |
+| 12.D iframe name | it is inside an iframe | **no** |
+| 13.A color meaning | its state (playing or paused) is shown by color | **no** |
+| 13.B sensory info | it is a text instruction ("press the red button") | **no** |
+| 13.C contrast | it has text, or is text | **no** |
+| 18.A resize text | it has text, or is text | **no** |
+
+The shortlist to build before 2.A–2.C can PASS: **6.A, 7.A, 7.E, 12.D,
+13.A, 13.B, 13.C and 18.A**. Each one only for the mechanisms it applies
+to: a plain text "Pause" button needs 6.A, 13.A, 13.C and 18.A, not 7.x or
+12.D. Until then, ER 3 is read from this run's findings for the built tests
+at the mechanism's element. A FAIL there is shown in the note, and the
+result stays NEEDS REVIEW.
 
 ### Per test
 
+The PASS column applies once Q4's shortlist is built. Until then, a row
+that would PASS gives NEEDS REVIEW.
+
 | Test | Applies when (DNA otherwise) | PASS | FAIL | Open questions (by rubric) |
 | --- | --- | --- | --- | --- |
-| **2.A** Audio control | Media or Web Audio makes audible sound (item 4) for more than 3 s on load | A candidate among the first three elements pauses, stops or mutes the audio (confirmed) | Audible for more than 3 s, every candidate probed, none stops it, and no text candidate | J1: does text among the first three elements describe a mechanism (by looking)? |
-| **2.B** Moving, blinking, scrolling | A region still changing at 5 s from load, or with more than 5 s of animation (CSS, G152). Excluded: the only content; essential (J1) | A candidate in either window stops, pauses or hides it (confirmed), and J2 says it is evident | Every candidate probed with no effect, and no text candidate | J1: essential (a spinner during load, a game)? J2: is the mechanism evident (by looking)? |
+| **2.A** Audio control | Media or Web Audio makes audible sound (item 4) for more than 3 s on load | A candidate among the first three elements pauses, stops or mutes the audio (confirmed by a key press) | Audible for more than 3 s, every control candidate probed, none stops it, and J1 says no text or image candidate describes a mechanism | J1: does a text or image candidate describe a mechanism (by looking)? |
+| **2.B** Moving, blinking, scrolling | A region still changing at 5 s from load, or with more than 5 s of animation (CSS, G152). Excluded: the only content; essential (J1) | A candidate in either window stops, pauses or hides it (confirmed by a key press), and J2 says it is evident | Every control candidate probed with no effect, and J3 says no text or image candidate describes a mechanism | J1: essential (a spinner during load, a game)? J2: is the mechanism evident (by looking)? J3: as 2.A's J1 |
 | **2.C** Auto-updating | Text, image sources or children change without input. Excluded only as the only content (TT: never as essential) | As 2.B, or a frequency control changes the period | As 2.B | J1: evident (shared with 2.B when it is the same control) |
 | **2.D** Change notification | The changes 2.C found | Every change is inside a live region that existed before it (mechanical; DHS wiki) | A change with no live region, no focus move to it and no dialog | J1: after focus moved to the changed content, does that content describe the change? J2: does the dialog give enough notice? |
 
 **Not performed (NEEDS REVIEW, "This test could not be performed").**
 
-- Media that failed to play, or was over the recording cap.
+- Media that failed to play, or was over the recording cap (Q9: the note
+  gives each file's size and length, and the result offers a run with no
+  media limit).
 - Third-party streaming players (item 17).
 - Polls found in the HAR (2.C and 2.D can't see new data).
 - Hints of updates slower than the watch.
@@ -340,6 +399,7 @@ check.
 | Screenshots that pause the mutation log; the focus log; `PATH_JS`; focus into out-of-process iframes (V5) | `traverse.py` (read only) |
 | Dialog detection | `t4e._DIALOGS_JS` (move to a shared module) |
 | "Region present before the change" | `t5f` (`_LIVE`, `live`), widened to ANDI's set |
+| Elements in reading order, for "three elements", plus the label merge | `site.UNITS_FN` (9.A–9.C, 19.A), unchanged; the merge is a few lines in the 2.x reader |
 | Rows, findings, questions, `shared_inputs`, `run://` links, resume and answers | `engine.py`, `models.py`, `judgment.py` |
 | The harness, the judge eval, `sync_act.py` (fetches `test-assets/` already), the time budget | `tests/`, `evals/` |
 
@@ -390,33 +450,85 @@ Ordered by harm. A false PASS or a false DNA is worse than NEEDS REVIEW.
   5.5 s confirm + 5.5 s control for the candidate that holds. Pages with
   moving content get an extra allowance (Q2, decided; e.g. +20 s, as
   `OTHER_PAGE_S`).
-- **Media store:** one full fetch per media URL while recording, within a
-  cap (4.2 s for 21 MB on loopback; real networks are slower).
+- **Media store:** one full fetch per media URL while recording, up to
+  50 MB and 15 s per page (Q9; 4.2 s for 21 MB on loopback, and real
+  networks are slower). The size of a file over the cap is known without
+  downloading it, from `Content-Length` or the total in `Content-Range`.
+  Its length comes from the element's `duration` once its metadata has
+  loaded. The result states both, and the tool offers a run with no media
+  limit. Recommended: lift the media cap with the existing `no_time_limit`
+  option instead of adding a second option, since a long recording is
+  also a long run.
 - Add a budget page with a carousel, a ticker and a video, and measure with
   `time_budget.py --drafts`.
 
+## Full Chromium instead of the headless shell (Q11)
+
+Which browser runs where today:
+
+- **Real runs:** installed Chrome (`browser_channel="chrome"`, the
+  default), which puts cross-site iframes out-of-process.
+- **Tests and `time_budget.py`:** `"chromium"`, which `browser.py` maps to
+  Playwright's headless shell. The shell runs those iframes in-process
+  (item 15).
+- **A hosted, headless deployment** set to `"chromium"` would also get the
+  shell, so it would differ from what users' Chrome does.
+
+Measured 2026-11-03 on this container, with a temporary local switch to
+full Chromium (`channel="chromium"`; not committed):
+
+| | Headless shell | Full Chromium |
+| --- | --- | --- |
+| Test suite (`pytest -n 4`) | 762 passed, 1 xfailed, **10.0 min** | 762 passed, 1 xfailed, **14.2 min** |
+| ACT and DHS agreement lines, mismatches | — | identical to the shell |
+| `time_budget.py budget/agency-home.html` | 102.5 s | 102.6 s |
+
+So full Chromium changes no result and costs nothing per page. Only the
+suite is slower (+42%: more processes per page across 763 tests).
+
+A rule "pages with iframes run in full Chromium" is hard to apply per
+page: whether a page has iframes is only known after recording, and
+switching would relaunch the browser mid-run. Options:
+
+- **(a) Recommended.** Never use the shell for real runs: `"chromium"`
+  launches full Chromium. Add a separate `"chromium-shell"` value for
+  quick local test runs. CI runs the suite in full Chromium, at +4 min.
+- **(b)** Keep the shell for the suite. Iframe tests (4.C F19–F21, V5,
+  the 2.x iframe fixtures) run in full Chromium through a marker. Faster
+  CI, but other shell-only differences stay untested, such as 0 px
+  scrollbars ([windows-chrome-results.md](../solutions/windows-chrome-results.md)).
+- **(c)** Leave it as is.
+
+Either (a) or (b) goes in CLAUDE.md as a global rule, and is built before
+2.x, since it changes `browser.py` and the test setup.
+
+## Q10's limits (decided)
+
+A key combination that page text names (for example, "press Ctrl+S to stop
+the animation") may be pressed, as an approved exception to principle 5
+like 19.A's search, and only:
+
+- on a fresh replay load, with no live network;
+- if the combination matches a fixed pattern (modifiers plus one key);
+- never as a combination the browser itself uses (Ctrl+W, Ctrl+T, Ctrl+N,
+  Ctrl+L, Alt+F4 …);
+- once per run.
+
+Only J1 (by looking) decides that the text describes a mechanism. The key
+press only confirms that it works. CLAUDE.md records the exception when 2.B
+is built.
+
 ## Open questions for Abby
 
-- **Q3. Watch length and scrolling.** (a) 6.5 s at the top, plus one
-  scrolled watch only when hints are below the fold (recommended). (b) The
-  top only. (c) A full scroll in steps (slow).
-- **Q4. ER 3, "the mechanism passes all applicable Test Conditions".**
-  (a) Read this run's other findings at the mechanism's stop; a test not
-  run gives a note (recommended). (b) Ignore it, with a note for a person.
-  (c) NEEDS REVIEW until a person confirms.
-- **Q6 follow-up.** Within the three tab stops after the carousel, text or
-  images between stops can be the mechanism (DHS #114). Do they also use up
-  the count? (a) No: count tab stops only, and text in between is a
-  candidate (recommended; your reading was "within 3 tabs"). (b) Yes:
-  count every element in reading order.
-- **Q7. Hook for pass T's init script.** (a) `replay_context` takes extra
-  init scripts; `traverse.py` is untouched (recommended). (b) Pass T injects
-  after load and misses the first changes.
-- **Q8. Order.** (a) 2.C and 2.D first (DHS-scored ACT cases, shared
-  detection), then 2.B, then 2.A (recommended: media has the most moving
-  parts). (b) All four at once, as the ROADMAP batch says.
-- **Q9 (cap).** The media store's limits: (a) 50 MB and 15 s per page
-  (recommended); (b) 20 MB; (c) none, `no_time_limit` only.
+- **Q6 details.**
+  - Each data-table cell one element? (a) Yes, as the reader does now
+    (recommended: the stricter count).
+  - A stacked label above its field: (a) one element with it, as a label
+    and its control are (recommended).
+  - An iframe: (a) one element, its content counted in its own window, as
+    ANDI tests each iframe on its own (recommended). (b) Its units inline.
+- **Q11. Full Chromium for the tests (iframes).** See "Full Chromium
+  instead of the headless shell" below.
 
 ## Order of work (after the answers)
 
@@ -440,7 +552,9 @@ Ordered by harm. A false PASS or a false DNA is worse than NEEDS REVIEW.
      - media: a muted looping video (2.B, not 2.A); a large video fetched
        in several ranges; media in a cross-site iframe (also run with
        `channel="chromium"`);
-     - changing content as the only content.
+     - changing content as the only content;
+     - our own pages for the element count: labels stacked and wrapping,
+       data tables, layout tables and columns.
 5. Checks registered in `tests/drafts.py`; the judge eval on every question;
    time with the new budget page.
 6. 1.0.0 with Abby. In the same commit: ROADMAP; solutions (pass T, autoplay
