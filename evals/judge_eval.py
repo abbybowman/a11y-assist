@@ -231,10 +231,20 @@ def _write_packet(out: Path, case: dict, run_id: str, rnd: int, res) -> None:
     """Only what a consumer agent receives; evidence copied as local files."""
     # Neutral folder names: case names describe the expected answer.
     d = packets(out) / case["packet"] / f"round{rnd}"
+    qs = [q for q in res.open_questions if q.test_id.value == case["tt"]]
+    write_packet(d, out / "runs" / run_id, run_id, qs, res, _ANSWER_FORMAT)
+    scrub(d)
+
+
+def write_packet(
+    d: Path, run_dir: Path, run_id: str, questions: list, res, answer_format: str
+) -> None:
+    """A packet folder: questions.json with the questions, page text, shared
+    inputs and answer format, and the run:// evidence they name copied in as
+    local files. Shared with evals/judging.py."""
     if d.exists():
         shutil.rmtree(d)
     (d / "evidence").mkdir(parents=True)
-    run_dir = out / "runs" / run_id
     prefix = f"run://{run_id}/"
 
     def local(uri: str) -> str:
@@ -255,11 +265,7 @@ def _write_packet(out: Path, case: dict, run_id: str, rnd: int, res) -> None:
             return {k: rewrite(x) for k, x in v.items()}
         return v
 
-    qs = [
-        rewrite(q.model_dump(mode="json"))
-        for q in res.open_questions
-        if q.test_id.value == case["tt"]
-    ]
+    qs = [rewrite(q.model_dump(mode="json")) for q in questions]
     (d / "questions.json").write_text(
         json.dumps(
             {
@@ -268,13 +274,12 @@ def _write_packet(out: Path, case: dict, run_id: str, rnd: int, res) -> None:
                 "questions": qs,
                 "page_text": res.page_text,
                 "shared_inputs": rewrite(res.shared_inputs),
-                "answer_format": _ANSWER_FORMAT,
+                "answer_format": answer_format,
                 "write_answers_to": "answers.json (a JSON list of answer objects)",
             },
             indent=1,
         )
     )
-    scrub(d)
 
 
 _ANSWER_FORMAT = ""

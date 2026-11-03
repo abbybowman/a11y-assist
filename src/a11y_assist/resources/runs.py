@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import mimetypes
 import re
+from pathlib import Path
 
 from fastmcp import FastMCP
 from fastmcp.exceptions import ResourceError
@@ -28,6 +29,18 @@ def run_uri(run_id: str, rel_path: str) -> str:
     return f"{SCHEME}{run_id}/{rel_path}"
 
 
+def run_file(run_id: str, path: str) -> Path:
+    """A file inside a kept run, confined to its folder; ValueError if the
+    run id is malformed or there is no such file (it may have expired)."""
+    if not RUN_ID.match(run_id):
+        raise ValueError("Invalid run id")
+    base = (config.settings.runs_dir / run_id).resolve()
+    target = (base / path).resolve()
+    if not target.is_relative_to(base) or not target.is_file():
+        raise ValueError(f"No file {path!r} in run {run_id} (it may have expired)")
+    return target
+
+
 def register(mcp: FastMCP) -> None:
     @mcp.resource(
         SCHEME + "{run_id}/{path*}",
@@ -40,14 +53,10 @@ def register(mcp: FastMCP) -> None:
         ),
     )
     def run_evidence(run_id: str, path: str) -> ResourceResult:
-        if not RUN_ID.match(run_id):
-            raise ResourceError("Invalid run id")
-        base = (config.settings.runs_dir / run_id).resolve()
-        target = (base / path).resolve()
-        if not target.is_relative_to(base) or not target.is_file():
-            raise ResourceError(
-                f"No file {path!r} in run {run_id} (it may have expired)"
-            )
+        try:
+            target = run_file(run_id, path)
+        except ValueError as exc:
+            raise ResourceError(str(exc)) from None
         mime = mimetypes.guess_type(target.name)[0] or "application/octet-stream"
         if mime.startswith("text/") or mime == "application/json":
             body: str | bytes = target.read_text("utf-8")

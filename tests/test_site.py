@@ -88,5 +88,12 @@ def test_other_pages_are_checked_before_anything_runs(settings):
         check_other_pages(settings, url, ["http://localhost:8000/b.html"])
     with pytest.raises(RunRefused, match="itself"):
         check_other_pages(settings, url, [url + "#top"])
-    with pytest.raises(RunRefused, match="At most 5"):
-        check_other_pages(settings, url, [f"{same}?{i}" for i in range(6)])
+    six = [f"{same}?{i}" for i in range(6)]
+    with pytest.raises(RunRefused, match="At most 5 .*no_time_limit=true"):
+        check_other_pages(settings, url, six)
+    # The cap keeps a call within its time limit; without the limit, more.
+    assert check_other_pages(settings, url, six, no_time_limit=True) == six
+    with pytest.raises(RunRefused, match="At most 50"):
+        check_other_pages(
+            settings, url, [f"{same}?{i}" for i in range(51)], no_time_limit=True
+        )

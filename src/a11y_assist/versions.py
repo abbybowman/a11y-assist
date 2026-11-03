@@ -22,6 +22,7 @@ def collect_versions(
         a11y_assist=__version__,
         andi=f"{prov['andi']['version']} ({prov['andi']['commit'][:12]})",
         jquery=prov["jquery"]["version"],
+        scrt=f"{prov['scrt']['version'].split(' ')[0]} ({prov['scrt']['commit'][:12]})",
         playwright=version("playwright"),
         browser_channel=settings.browser_channel,
         browser=browser.version if browser else None,

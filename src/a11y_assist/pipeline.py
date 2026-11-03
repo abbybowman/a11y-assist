@@ -30,6 +30,7 @@ from urllib.parse import urlsplit
 
 from playwright.async_api import Browser, async_playwright
 
+from a11y_assist import scrt
 from a11y_assist.browser import NavigationBlocked, launch_browser
 from a11y_assist.capture import record, replay_context
 from a11y_assist.checks import REGISTRY, RunContext
@@ -75,7 +76,10 @@ TIME_NOTE = (
 Progress = Callable[[float, float | None, str], Awaitable[None]]
 
 # Other pages of the same site a caller may name (9.A-9.C; Abby, 2026-11-02).
+# The cap keeps one call within its time limit; a caller who turns the limit
+# off may name more (Abby, 2026-11-03), up to a bound on the input itself.
 OTHER_PAGES_MAX = 5
+OTHER_PAGES_NO_LIMIT_MAX = 50
 
 
 class RunRefused(Exception):
@@ -157,7 +161,9 @@ def _same_site(a: str, b: str) -> bool:
     return sa[1] == sb[1] and sa[1] != ""
 
 
-def check_other_pages(settings: Settings, url: str, other: list[str]) -> list[str]:
+def check_other_pages(
+    settings: Settings, url: str, other: list[str], no_time_limit: bool = False
+) -> list[str]:
     """The caller's other pages, deduplicated in order; raises RunRefused if
     one is not allowed, not on the tested page's host, or is the page itself.
     Page content never adds to this list (CLAUDE.md principle 5)."""
@@ -165,8 +171,17 @@ def check_other_pages(settings: Settings, url: str, other: list[str]) -> list[st
     for u in other:
         if u not in out:
             out.append(u)
-    if len(out) > OTHER_PAGES_MAX:
-        raise RunRefused(f"At most {OTHER_PAGES_MAX} other pages can be compared.")
+    if len(out) > OTHER_PAGES_NO_LIMIT_MAX:
+        raise RunRefused(
+            f"At most {OTHER_PAGES_NO_LIMIT_MAX} other pages can be compared in "
+            "one call."
+        )
+    if len(out) > OTHER_PAGES_MAX and not no_time_limit:
+        raise RunRefused(
+            f"At most {OTHER_PAGES_MAX} other pages can be compared within the "
+            "time limit. To compare more, run again with no_time_limit=true "
+            f"(each page adds about {settings.other_page_s} s)."
+        )
     for i, u in enumerate(out, 1):
         d = check_url(u, settings.allowed_domains, settings.dev_mode)
         if not d.allowed:
@@ -410,7 +425,7 @@ async def run_tt_tests(
     decision = check_url(url, settings.allowed_domains, settings.dev_mode)
     if not decision.allowed:
         raise RunRefused(f"URL not allowed: {decision.reason}")
-    others = check_other_pages(settings, url, other_pages or [])
+    others = check_other_pages(settings, url, other_pages or [], no_time_limit)
     prune_runs(settings.runs_dir, settings.run_ttl_hours)
     run = RunRecorder(settings.runs_dir)
     selected = [t for t in TestId if t in set(tests)]
@@ -615,6 +630,7 @@ async def run_tt_tests(
     report.open_questions = result.pending
     report.finished_at = utcnow()
     run.write_json(run.report_path, report)
+    pre_scrt = scrt.write_for_run(run.dir, run.report_path, report)
     run.log("run_end", status="error" if report.errors else "ok")
     return RunResult(
         run_id=run.run_id,
@@ -630,6 +646,7 @@ async def run_tt_tests(
         expires_at=expires_at(run.dir, settings.run_ttl_hours),
         report=report,
         report_uri=run_uri(run.run_id, run.rel(run.report_path)),
+        pre_scrt_uri=run_uri(run.run_id, run.rel(pre_scrt)),
         errors=report.errors,
     )
 
@@ -672,6 +689,7 @@ async def answer_questions(
         await browser.close()
     _evaluate(run, report, states)
     run.write_json(run.report_path, report)
+    pre_scrt = scrt.write_for_run(run.dir, run.report_path, report)
     run.log(
         "answers_recorded",
         "error" if errors else "ok",
@@ -689,5 +707,6 @@ async def answer_questions(
         shared_inputs=_shared_inputs(report, states),
         report=report,
         report_uri=run_uri(run.run_id, run.rel(run.report_path)),
+        pre_scrt_uri=run_uri(run.run_id, run.rel(pre_scrt)),
         errors=errors,
     )
