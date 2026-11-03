@@ -52,7 +52,16 @@ from a11y_assist.compare import (  # noqa: E402
 )
 
 MAX_ROUNDS = 3
-CODE = ["src/a11y_assist/compare.py", "src/a11y_assist/scrt.py"]
+# Everything score() reads to decide what counts: a change after the reveal
+# (the tests compared, which pages count) must stop the score.
+CODE = [
+    "evals/judging.py",
+    "src/a11y_assist/compare.py",
+    "src/a11y_assist/scrt.py",
+    "src/a11y_assist/catalog.py",
+    "docs/sources/tt-5.1.3/tt.json",
+    "third_party/scrt/Resources/SuccessCriteriaTT5.1.3.json",
+]
 _HASH = re.compile(r"^[0-9a-fA-F]{64}$")
 _URL = re.compile(r"^https?://\S+$")
 
@@ -117,7 +126,9 @@ def _save_state(rd: Path, state: dict) -> None:
 
 
 def _finish(rd: Path, settings, pid: str, run_id: str) -> None:
-    """Copy a finished page's report, pre-SCRT file and HAR into results/."""
+    """Copy a finished page's report, pre-SCRT file and HARs into results/:
+    the page's own, and those of its other pages and any live site search
+    (9.A-9.C and 19.A were decided on them; runs expire)."""
     run_dir = settings.runs_dir / run_id
     out = rd / "results" / pid
     out.mkdir(parents=True, exist_ok=True)
@@ -125,6 +136,11 @@ def _finish(rd: Path, settings, pid: str, run_id: str) -> None:
         src = run_dir / name
         if src.is_file():
             shutil.copyfile(src, out / Path(name).name)
+    hars = sorted((run_dir / "evidence" / "pages").glob("*.har.zip"))
+    if hars:
+        (out / "pages").mkdir(exist_ok=True)
+        for src in hars:
+            shutil.copyfile(src, out / "pages" / src.name)
 
 
 async def scan(rd: Path, settings) -> None:
