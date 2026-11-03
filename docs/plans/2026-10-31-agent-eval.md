@@ -1,525 +1,428 @@
 # Plan: agent-level evaluation (not built)
 
-Status: **draft; decisions recorded 2026-11-01, 2026-11-02 (sections 4,
-6) and 2026-11-03 (section 0, round 1).** Nothing here is built.
-Models and access are decided and the Ask Sage route is checked (section 7).
-The development set (section 2.5) is enough to build the harness; the scored
-pages come from Abby's blind-labeled real sites and seeded faults (2.3, 2.4),
-plus the DHS training pages only if allowed (2.2).
+Status: **draft, being built.** Round 1 (section 4) is the first to run.
+Nothing here is built yet.
 
-## 0. Round 1: the first two-arm comparison (decided 2026-11-03)
+## 1. What it measures
 
-Round 1 is the first comparison of the two arms, on Abby's 9 pages from one
-site. Its main purpose is to show how far along the tests are and where
-accuracy needs work. Wherever this section disagrees with a later one, this
-section holds for round 1. Later rounds follow the rest of the plan unless a
-decision changes it.
+Real users won't call this server directly: an agent will. This eval puts
+a model in that agent's place and compares two arms:
 
-### 0.1 Words used here
+- **Agent A (tool arm):** a model with this MCP server. A person asks it to
+  test pages. It runs the tests, answers the open questions the tool hands
+  back, and reports to the person.
+- **Agent B (baseline arm):** the same model, the same task and the same
+  pages, with Playwright MCP and Tavily web search instead of this server. It
+  chooses its own way to test.
 
-- **Agent A (tool arm):** a model with this MCP server. It runs the tests and
-  answers the open questions the tool hands back, then reports to the user,
-  as it would for a real person. No separate "answering agent" takes part in
-  an agent eval.
-- **Agent B (baseline arm):** the same model, prompt and pages, with
-  Playwright MCP plus Tavily web search instead of this server. It chooses
-  its own way to test.
-- **Scoring:** code (`evals/scoring.py`) that compares an arm's results with
-  Abby's SCRT files. No model takes part. Round 1 needs only scoring.
-- **Wording judge** (section 5): a model from another family that grades how
-  an agent's final message reports its findings. It is not part of round 1.
-  Both arms' transcripts and final messages are saved, so it can run later.
-  It never sees the keys, so it can also run after the reveal.
-- **Existing tools, names unchanged:** a *judging round*
-  (`evals/judging.py`) drives the tool with a script, and one agent fills in
-  the question packets. The *judge eval* (`evals/judge_eval.py`) tests each
-  spec's open questions on our fixtures. Neither one is an agent eval. Inside
-  the product, "judge" (`JUDGING_MODEL`, `judgment.py`) means whoever answers
-  the open questions. In round 1, that is Agent A.
+Both arms are scored against a certified Trusted Tester's answer keys, on
+three things: accuracy (above all, no false PASS), tokens and wall time. That
+shows what the server adds over a capable agent with a browser. The
+hackathon does not require an agent-level eval. It is the direct evidence
+for the hackathon criterion that tool names and descriptions be "precise
+enough for an LLM to select them without ambiguity."
 
-### 0.2 Steps, in commit order
+Words used in this plan:
 
-1. **Start.** Abby commits `evals/judging/round1/pages.txt` (9 pages from one
-   site, each URL with the SHA-256 of its SCRT file) when testing begins, not
-   earlier.
-2. **Freeze.** Each page is recorded once from the live site, including
-   19.A's one site search where it runs. These recordings are the round's
-   pages. Both arms work from these copies, and neither touches the live
-   site. This is the only step that needs the site's network.
-3. **Agent A** runs in one conversation that covers all 9 pages.
-4. **Agent B** runs in one conversation that covers all 9 pages.
-5. **Lock.** Both arms' results, transcripts and step logs are locked, along
-   with the commit, then committed. The existing `lock` is extended to cover
-   them.
-6. **Reveal.** Abby adds her SCRT files to `keys/` and commits.
-7. **Score** (0.5).
+- **Scoring:** code (`evals/scoring.py`) that compares results with the
+  tester's SCRT files. No model takes part.
+- **Wording judge:** a model from another family that grades how an agent's
+  final message reports its findings (section 9). It never sees the answer
+  keys and never scores outcomes.
+- This eval is neither of the two existing evals. A **judging round**
+  (`evals/judging.py`) drives the tool with a script while one agent fills
+  in question packets: it measures the tool without an agent driving it. The
+  **judge eval** (`evals/judge_eval.py`) tests each spec's open questions on
+  our fixtures. Inside the product, "judge" (`JUDGING_MODEL`,
+  `judgment.py`) means whoever answers the open questions; in this eval
+  that is Agent A.
 
-### 0.3 Both arms
+## 2. The two arms
 
-- The **same model** (Sonnet 5.5; the route is in 0.6), the **same prompt**
-  word for word (0.4), and the same 9 frozen pages.
-- **One run per arm.** Round 1 has no repeats: the token budget does not
-  allow them yet. Round 1's logged cost decides later repeats, or smaller
-  rounds.
-- **One conversation per arm for all 9 pages**, because a real user would
-  ask once. Section 2's "one page, fresh run" rule does not apply to round 1.
-  If an arm runs out of context, that is recorded as its result, not worked
-  around.
-- **Helpers.** Both arms get the same optional tool for handing a task to a
-  helper agent (we don't know how Agent B will go about it). A helper gets
-  its parent's tools and cannot start helpers of its own. Its tokens and
-  time count toward its arm.
-- **Logged for every step**, in the same format for both arms:
-  - each model call, with its start and end time, input, cached and output
-    tokens, and the text it produced;
-  - each tool call, with its name, arguments, result size and wall time;
-  - helpers' calls the same way;
-  - Agent A's tool's own `steps.jsonl`.
+- **The same for both arms:** model, task prompt (word for word), frozen
+  pages, route (section 7), and the optional helper tool (section 7).
+- **Agent A** has only this MCP server, which it may run with
+  `no_time_limit`: the eval wants every test's full result.
+- **Agent B** has Playwright MCP (`@playwright/mcp`, version pinned and
+  recorded) and Tavily MCP. A capable agent would look up guidance, and the
+  test sites publish no accessibility reports a search could find. Agent B
+  can open a page, press keys and read the page, so it has a fair chance to
+  run each test without this server's procedure. Its tools are given up
+  front rather than "ask for what you need," so every run has the same
+  tools.
+- **"Needs review to everything"** is computed, not run: every result is
+  scored as NEEDS_REVIEW. Both arms should beat it clearly.
 
-  Final messages are kept in full.
+## 3. Pages and answer keys
 
-### 0.4 The prompt
+### 3.1 Real .gov pages, labeled blind (the scored evidence)
 
-Both arms get the same text. It contains no TT procedure, no plain-language
-explanations of the criteria (a later round tests plain-language tasks) and
-no links to W3C Understanding pages (those are WCAG 2.2 pages). It says:
+- **Abby picks the pages, not the tool.** If pages were found by running
+  A11y Assist, the set would hold only failures it already catches. Claude
+  may help find *candidate* pages with features the tests exercise (menus,
+  dialogs, carousels, forms) on public .gov sites, but must not run the TT
+  tests on them.
+- **Several pages per site:** at least 7, so 9.A-9.C and 19.A have pages to
+  compare. Every page of a round is compared with all of the round's other
+  pages on its host.
+- **Labeled blind, by commit and reveal.** Abby tests each page with the
+  SCRT and commits `pages.txt` (each URL with the SHA-256 of its SCRT file)
+  when testing begins, not earlier. Both arms run and their results are
+  locked before her SCRT files are added (section 5).
+- **Split by site, not page.** Pages on one site share templates, and so
+  share bugs. Once a site has been used in a round, it is a development
+  site: its pages can be used to fix the code, and rows they never triggered
+  can be exercised on a doctored copy (a seed, 3.2). Only untouched sites go
+  in the final round.
+- A second certified tester labels a subset, if one is available.
 
-- Test these 9 pages against **WCAG 2.0** Level A and AA, the version Section
-  508 incorporates. Test only the criteria listed, not WCAG 2.1 or 2.2.
-- **The 14 criteria this tool covers in full:** 2.1.1, 2.1.2, 2.4.1, 2.4.3,
-  2.4.5, 2.4.7, 3.2.1, 3.2.2, 3.2.3, 3.2.4, 3.3.1, 3.3.2, 3.3.3, 3.3.4.
-- **1.3.1, 2.4.6 and 4.1.2, limited to the labels of form fields.** The tool
-  covers only that part of them (5.B and 5.C; tables, headings and other
-  controls are untested TT tests). The exact wording is drafted with the
-  harness, and Abby reviews it.
-- **The possible results, one line each:**
+### 3.2 Seeded faults on real pages
+
+Real keyboard traps are rare, so real pages alone cannot show "no false
+PASS" for 4.C. Seeds fill that gap: a copy of a frozen real page with one
+fault injected, confirmed by Abby by hand and reported as planted. Seeds
+chosen by the people who wrote the detector share its blind spots, so:
+
+- **Seeds come from sources independent of this code:** W3C failure
+  technique F10, focus-trap bugs reported against widely used libraries, and
+  seeds written by a different model family that is given only the TT text
+  and asked for traps an automated tester would miss.
+- **Each seed records its source**, and results are reported by source. The
+  independent group is the one that counts.
+- **A missed seed must end NEEDS_REVIEW.** A PASS on any seed is a false
+  PASS.
+
+### 3.3 Other sources, reported separately and never pooled
+
+- **W3C ACT cases** with DHS's verdicts (`tests/fixtures/act/manifest.json`)
+  are a warm-up only. They have been public with their answers for years, so
+  they may be in models' training data, and the specs were written with
+  them in view. No claim rests on them.
+- **DHS training-course pages**, only if both of these hold: DHS's terms
+  allow saving copies, and the hackathon organizers confirm the pages count
+  as "government data that are already publicly available." Nothing else
+  waits on them.
+
+## 4. Rounds
+
+### 4.1 Round 1
+
+Nine pages from one site, `evals/judging/round1/`. Its purpose is to show how
+far along the tests are and where accuracy needs work most.
+
+- **One run per arm.** The token budget doesn't allow repeats yet. Round 1's
+  logged cost decides whether later rounds repeat, or use smaller sets.
+- **One conversation per arm for all 9 pages**, because a real person would
+  ask once. If an arm runs out of context, that is recorded as its result,
+  not worked around.
+- **The task prompt** is in 4.3.
+- **Scored per TT test** (Agent A only) **and per WCAG 2.0 criterion**
+  (both arms; section 8).
+- **No wording judge.** Both arms' transcripts and final messages are kept
+  in full, so the wording judge can run on them later.
+
+### 4.2 Later rounds
+
+- **Plain-language tasks:** the way a non-tester asks ("can a keyboard user
+  get stuck anywhere on this page?"), phrased without words from a page's
+  file name, scored the same way. These need a question set with known
+  answers, drawn from the fixture tables already asserted in `tests/` (so
+  no answer key is written twice) and from new real sites.
+- **Behavior questions** that no answer key covers, reported separately:
+  answering an open question, saying "unsure," ignoring instructions
+  injected in a page, never saying "compliant," and reporting a refused URL
+  instead of inventing findings.
+- **Repeats** (up to 5 per arm) to measure consistency, if the budget allows.
+- **Wording judge** (section 9) and **other model families** (section 10).
+- **Freeze before the final round:** questions, prompts, weights, scoring
+  code and labels, recorded with a commit in `docs/hackathon/evaluation.md`.
+  The final round is the latest round before the code freezes for hackathon
+  judging. It uses sites never used before, and nothing is changed after
+  seeing its results. The headline figures come from that round only.
+- **Every round's results stay in the repo** under `evals/judging/<round>/`,
+  including the early ones, to show progress. Testing is to improve, not
+  only to prove.
+
+### 4.3 Round 1's task prompt
+
+Both arms get the same text. It contains no TT procedure. It has no
+plain-language explanation of the criteria (round 1 measures doing the
+tests; a later round measures plain-language tasks) and no links to W3C
+Understanding pages (those are the WCAG 2.2 versions). It says:
+
+- Test these pages (the round's URLs) against **WCAG 2.0** Level A and AA,
+  the version Section 508 incorporates. Test only the criteria listed, not
+  WCAG 2.1 or 2.2.
+- **The 14 criteria the tool covers in full:** 2.1.1, 2.1.2, 2.4.1, 2.4.3,
+  2.4.5, 2.4.7, 3.2.1, 3.2.2, 3.2.3, 3.2.4, 3.3.1, 3.3.2, 3.3.3 and 3.3.4.
+- **1.3.1, 2.4.6 and 4.1.2, for the labels of form fields only.** The tool
+  covers only that part of those criteria (5.B and 5.C); their other TT
+  tests (tables, headings, other controls) are not built yet.
+- **The possible results:**
   - **Pass**;
-  - **Fail**, naming the failing element;
+  - **Fail**, naming each failing element;
   - **Does not apply**;
   - **Needs review**: unsure, or a person should check.
 
   Needs review is always allowed, and a wrong Pass is the worst error.
-- **A final machine-readable line** with one result per page per criterion.
+- **End with one machine-readable line** holding a result for each page and
+  criterion, plus the failing elements for each Fail, for example
+  `RESULT: {"https://…/a": {"2.1.1": {"result": "FAIL", "elements": ["…"]}, …}, …}`.
+  A missing or malformed line, or a missing entry, scores as wrong.
 
 The criteria list is generated from the requirements of the tests in
-`checks.REGISTRY` (`catalog.py`), not typed by hand.
+`checks.REGISTRY` (`catalog.py`), never typed by hand. Abby reviews the
+exact wording before round 1 runs.
 
-### 0.5 Scoring
+## 5. Steps of a round, in commit order
 
-- **Per TT test (Agent A):** the outcomes in the tool's own reports (the
-  "server outcome", section 4) against the keys.
-- **Per WCAG 2.0 criterion (both arms):** each arm's final line (the
-  "relayed outcome") against the keys rolled up to the criterion:
-  - Fail if any TT test under it fails;
-  - otherwise Needs review if any is Needs review or not performed;
-  - otherwise Pass if any passes;
-  - otherwise Does not apply.
+1. **Start.** Abby commits `pages.txt` when testing begins.
+2. **Freeze** (section 6). Every page is recorded once from the live site.
+   This is the only step that touches the site.
+3. **Run Agent A**, then **Agent B**, on the frozen pages (section 7).
+4. **Lock.** `evals/judging.py lock` covers both arms' results, transcripts
+   and step logs, along with the code commit. Then commit.
+5. **Reveal.** Abby adds her SCRT files to `keys/` and commits.
+6. **Score** (section 8).
 
-  For 1.3.1, 2.4.6 and 4.1.2, only 5.B and 5.C roll up. Agent A's tool
-  reports are rolled up the same way, which shows any gap between what the
-  tool found and what the agent told the user.
-- The **weights** are those in section 4. Each arm's Fail reasons are listed
-  beside its score, so Abby can see a Fail scored as false because it falls
-  outside the tests (for example, a field's role under 4.1.2).
-- **Efficiency:** tokens (input, cached and output), wall time and tool
-  calls for each arm, and for each page where a page's calls can be
-  separated.
-- The roll-up is eval code in `evals/scoring.py`. It decides no outcome of
-  the tool.
+## 6. Freezing and replay
 
-### 0.6 Route
+- **What is frozen:** each page of the round. That includes every request
+  the tool would make for it live: the page itself, the round's other pages
+  (9.A-9.C, 19.A), and 19.A's one site search where it runs. The recordings
+  are the round's pages. Both arms work from these copies, and neither arm
+  touches the live site. A request that isn't in the recordings is refused
+  and logged, never fetched live.
+- **Agent A:** the server gets a setting that points at the round's
+  recordings. When the setting is on, the server replays a URL's recording
+  instead of recording it live, and refuses (ToolError) a URL with no
+  recording. It is a server setting, not a tool input, so neither the
+  agent nor page content can choose a recording. Every report records that
+  it was replayed. How this fits the hosted deployment is decided when it is
+  built.
+- **Agent B:** Playwright MCP's `--init-page` file calls
+  `page.context().routeFromHAR(…, notFound: "abort")` on every recording of
+  the round. It must also fail requests that failed while recording (saved
+  with status -1), as `capture.replay_context` does; otherwise Playwright's
+  replay waits on them forever.
+- **Not frozen:** Tavily's web search. It is research about guidance, not
+  the page under test.
+- HAR replay freezes network responses only. Client-side randomness and the
+  clock can still vary between arms.
 
-- **Preferred:** Ask Sage's Anthropic route with Sonnet 5.5 Gov, from Abby's
-  laptop on NASA's network (section 7).
-- **Fallback** if more Ask Sage tokens don't arrive in time: the Claude Code
-  CLI on Abby's claude.ai account, run as a separate one-off process for
-  each arm. Abby confirms that her organization's rules allow this route for
-  public .gov pages. Both arms always use the same route; routes are never
-  mixed within a round, and the route is recorded with the results. Compared
-  with Ask Sage, the model is Anthropic's Sonnet 5.5 rather than the Gov
-  version. The CLI also adds one base line ("a Claude agent built on the
-  Claude Agent SDK") and an environment section to each arm's system prompt,
-  the same for both arms.
-- **Isolation check of the fallback (2026-11-03, 4 calls, about $0.03 at
-  list price):**
-  - The first call, with only `--strict-mcp-config` and `--tools ""`, passed
-    through Abby's email, a git attribution reminder and a working-folder
-    path that named the repo.
-  - `--bare` refused to start: it accepts only an API key, not this
-    account's login.
-  - The clean call used `--setting-sources "" --disable-slash-commands
-    --strict-mcp-config --tools "" --no-session-persistence
-    --system-prompt <arm prompt>`. It ran from a neutral empty folder with an
-    empty `HOME`, and with `CLAUDE_CODE_USER_EMAIL`,
-    `CLAUDE_ADDITIONAL_DIRECTORIES`,
-    `CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD`, `CLAUDE_CODE_REMOTE`
-    and the account, organization and session IDs unset.
-  - Evidence: the start-up event listed no tools, MCP servers, skills or
-    commands. The model reported no name, email, memory, CLAUDE.md, skills,
-    project or "a11y" in its context. That is the model's own report, not
-    proof.
+## 7. Running an arm
 
-  The harness repeats this check at the start of every run and stops if a
-  known value (the email, "a11y", the repo name) appears in the answer.
-- **Not yet verified on the fallback:** attaching the arms' MCP servers and
-  a helper tool; whether this container can reach the site (only the freeze
-  step needs it, and it can run on the laptop instead).
+### 7.1 Route
 
-### 0.7 Builds and open items
+Both arms use the same route, and routes are never mixed within a round. The
+route and model IDs (requested and reported) are recorded with the results.
 
-Builds:
+- **Preferred: NASA's Ask Sage API** (`https://api.asksage.ai.nasa.gov`),
+  whose Anthropic-compatible route is `/server/anthropic/v1/messages`, with
+  Claude Sonnet 5.5 Gov. It works only inside NASA's network, so these runs
+  happen from Abby's laptop. One call on 2026-11-01 showed that tool
+  calling works, temperature 0 is accepted (whether it is honored shows only
+  in repeats), and exact input and output token counts come back. The model
+  requested as `claude-sonnet-5-5-gov` reports itself as
+  `claude-sonnet-5-5`.
+- **Fallback: the Claude Code CLI on Abby's claude.ai account**, run as a
+  separate one-off process for each arm, used only if Ask Sage tokens don't
+  arrive in time and Abby's organization allows it for public .gov pages.
+  The model is Anthropic's Sonnet 5.5, not the Gov version. The CLI adds one
+  base line ("a Claude agent built on the Claude Agent SDK") and an
+  environment section to the system prompt, the same for both arms.
 
-1. **Freeze and replay** (open decision 4). Record each page once. Add a
-   replay option so `a11y_run_tt_tests` tests a given recording; how this
-   fits the hosted deployment is decided when it is built. Replay the same
-   recordings in Playwright MCP through `--init-page` and `routeFromHAR`
-   (designed in section 3, never run).
-2. **The agent loop** for each route (Ask Sage API, Claude Code CLI), with
-   the step log in 0.3.
-3. **The helper tool**, the same for both arms.
-4. **The prompt**, generated as 0.4 describes.
-5. **Per-criterion scoring** in `evals/scoring.py`, and a `lock` that
-   covers both arms.
+### 7.2 Isolation
 
-Installs (ask first): Node packages for Playwright MCP and Tavily MCP on the
-laptop. The Tavily key comes from the environment, never the repository.
+- **An arm sees only its prompt and its tools.** It has no file, shell or
+  search access beyond those tools, no memory and no project instructions.
+  No arm can read the fixtures, the labels or this repo. Labels are kept
+  where neither an agent nor the server can reach them.
+- **No model that works in this repo answers as an eval agent**: it has
+  seen the rubrics and answers. The CLI route runs a separate process that
+  is checked as described below.
+- **Isolating the CLI route.** It runs from a neutral, empty folder with an
+  empty `HOME`, using `--setting-sources "" --disable-slash-commands
+  --strict-mcp-config --mcp-config <arm's servers> --tools <arm's tools>
+  --no-session-persistence --system-prompt <arm prompt>`. It runs with
+  `CLAUDE_CODE_USER_EMAIL`, `CLAUDE_ADDITIONAL_DIRECTORIES`,
+  `CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD`, `CLAUDE_CODE_REMOTE` and
+  the account, organization and session IDs unset.
 
-Open:
+  Checked on 2026-11-03 with no tools or servers attached:
+  - The start-up event listed no tools, MCP servers, skills or commands.
+  - The model reported no name, email, memory, CLAUDE.md, skills, project or
+    "a11y" in its context. That is the model's own report, not proof.
+  - Without the empty folder, the empty `HOME` and the unset variables,
+    the user's email, a git attribution reminder and a folder path naming
+    the repo did get through.
+  - `--bare` doesn't start: it accepts only an API key, not an account
+    login.
+- **Leak check on every run.** The harness asks the same questions at the
+  start of every run, on either route. It stops if the answer contains a
+  known value: the user's email, "a11y", or the repo name.
 
-- the wording that limits 1.3.1, 2.4.6 and 4.1.2 to form fields' labels;
-- how a failing element named in Agent B's free text is matched to the key's
-  element;
-- the 19.A site search during Agent A's run must replay from the frozen
-  recording; this needs checking once replay is built.
+### 7.3 Helpers
 
-## 1. What it measures
+Both arms get the same optional tool for handing a task to a helper agent,
+since there's no telling in advance how Agent B will go about the work. A
+helper gets its parent's tools and cannot start helpers of its own. Its
+tokens and time count toward its arm. On the CLI route, this is the CLI's
+own helper tool, enabled for both arms.
 
-The judge eval (`evals/`) measures one thing: a fresh agent answering open
-questions from packets. This eval measures the whole loop. A model with only
-this MCP server and a plain task ("check this page for keyboard traps")
-should:
+### 7.4 What is logged
 
-1. call the right tools with valid arguments,
-2. answer open questions by their rubric (or say unsure),
-3. end with the same outcome a certified tester reaches on the same page,
-   for the same reason (the same failing element),
-4. relay the summary faithfully, and
-5. never call a page certified, compliant or Section 508 conformant.
+The same format for both arms:
 
-It follows the template's `mcp-eval` skill (dataset of questions with known
-answers, versioned system prompts, separate `AGENT_MODEL` and `JUDGE_MODEL`,
-temperature 0), adapted in four ways:
+- each model call, with its start and end time, input, cached and output
+  tokens, and the text it produced;
+- each tool call, with its name, arguments, result size and wall time;
+- helpers' calls the same way;
+- for Agent A, the tool's own `steps.jsonl` (time inside the tool);
+- each arm's final message, in full.
 
-- **Outcomes are scored in code, not by a judge.** They are categories. The
-  judge model scores wording only (section 5).
-- **Frozen pages, not live ones.** Every page is frozen once and every arm
-  and repeat gets the same copy.
-- **A browser-agent baseline.** The same model with a generic browser
-  automation MCP instead of this server (section 3). That shows what the
-  server adds over a capable agent with a browser.
-- **Tokens, time and consistency** are recorded for every run, with 5 repeats.
+## 8. Scoring (in code)
 
-The hackathon does not require an agent-level eval (its criteria ask for
-"their own evaluation setup and results"); it is the direct evidence for its
-criterion that tool names and descriptions be "precise enough for an LLM to
-select them without ambiguity."
+One scorer serves every eval: the verdicts in `evals/scoring.py` (which
+judging rounds already use), on the neutral comparison in
+`src/a11y_assist/compare.py`. The answer keys are the round's SCRT files.
 
-## 2. Pages
+**Two scores:**
 
-Two groups, reported separately. *Behavior* questions test what no answer
-key covers (answering an open question, saying "unsure", ignoring injected
-instructions, no "compliant" wording, reporting a refusal). *Answer-key*
-questions take the expected outcome from a certified tester, never from the
-tool. Each answer-key source below is reported on its own; none is pooled
-with another.
+- **Server outcome, per TT test (Agent A only):** the outcomes in the tool's
+  own reports, read by the `run_id`s in the trace and turned into pre-SCRT
+  files as judging rounds do. This measures how well the tool and Agent A's
+  answers to the open questions work.
+- **Relayed outcome, per WCAG 2.0 criterion (both arms):** each arm's
+  `RESULT` line, against the keys rolled up to the criterion. This measures
+  what each agent told the person.
 
-Rules for every question: independent (one page, fresh run), read-only, one
-verifiable answer per TT test, frozen, and phrased the way a non-tester would
-ask, without words from the page's file name.
+**Rolling TT outcomes up to a criterion,** for the keys, and for Agent A's
+server outcomes so any gap between the tool and the agent's report shows:
 
-### 2.1 W3C ACT pages: warm-up only
+- Fail if any TT test under the criterion fails;
+- otherwise Needs review if any is Needs review or not performed;
+- otherwise Pass if any passes;
+- otherwise Does not apply.
 
-DHS's verdicts on ACT cases (`tests/fixtures/act/manifest.json`) run as a
-warm-up. They have been public for years with their answers, so they may be
-in model training data, and the 4.C spec was written with them in view. No
-claim rests on them.
-
-### 2.2 DHS training-course pages: only if allowed
-
-The course's practice pages come with one certified answer per page per
-test and sit behind a login. Use them only if both hold: DHS's terms allow
-saving copies, and the hackathon organizers confirm they count as "government
-data that are already publicly available" (the hackathon rules' scope; ask at
-the Nov 3 check-in). Nothing else in this plan waits on them.
-
-### 2.3 Real .gov pages, labeled blind
-
-The main independent evidence.
-
-- **Abby picks the pages, not the tool.** If pages were found by running
-  A11y Assist, the set would hold only failures it already catches. Claude
-  may help find *candidate* pages with features Test 4 exercises (menus,
-  dialogs, carousels, forms, embedded media) on public NASA and other .gov
-  sites, without running the TT tests on them.
-- **Frozen before labeling.** Each page is recorded once; Abby labels the
-  frozen copy, and every arm gets the same copy.
-- **Labeled blind.** Abby records each verdict (and each failing element)
-  before any arm runs on the page, committed with a date. A second certified
-  tester on a subset, if one is available.
-- **Split by site, not page.** Pages on one site share templates and so share
-  bugs. A site used in any development round stays a development site; only
-  untouched sites go in the final round. This also keeps sites unspoiled for
-  the multi-page tests (9.A to 9.C) later.
-- **Several pages per site** (Abby, 2026-11-03): at least 7 pages of one
-  site, so 9.A-9.C and 19.A have pages to compare. Two pages are the
-  minimum for those tests; more make them more reliable. With
-  `no_time_limit` one call compares the tested page with up to 50 others
-  (5 within the time limit), so every page of a round is compared with all
-  the round's other pages on its host.
-
-### 2.4 Seeded faults on real pages
-
-Real keyboard traps are rare, so real pages alone cannot show "no false PASS"
-for 4.C. Seeds fill that gap: a copy of a frozen real page with one fault
-injected, confirmed by Abby by hand, and reported as planted.
-
-Seeds chosen by the people who wrote the detector share its blind spots, so:
-
-- **Seeds come from sources independent of this code:** W3C failure
-  technique F10, focus-trap bugs reported against widely used libraries, and
-  seeds written by someone who has not seen this code (a different model
-  family given only the TT text and asked for traps an automated tester would
-  miss; Abby).
-- **Each seed records its source**, and results are reported by source. The
-  independent group is the one that counts.
-- **A missed seed must end NEEDS_REVIEW.** A PASS on any seed is a false PASS.
-
-### 2.5 Development set (for building the harness)
-
-Expected outcomes come from the fixture tables already asserted in
-`tests/test_fixtures_4*.py` and `tests/fixtures/act/manifest.json`, so the
-answer key isn't written twice. These are our own expectations: they test
-the harness, not agreement with a certified tester.
-
-| # | Task given to the agent (paraphrased) | Fixture | Test | Expected | Why it's in the set |
-| --- | --- | --- | --- | --- | --- |
-| 1 | "Can a keyboard user get stuck anywhere on this page?" | 4c/f04-field-swallows-tab | 4.C | FAIL | Rules decide alone |
-| 2 | Same task | 4c/f09-key-in-comment-only | 4.C | FAIL | Needs an open-question answer: the "exit key" is only in an HTML comment |
-| 3 | Same task | 4c/f16-textarea-tab-escape | 4.C | PASS | A text area that takes Tab but still lets focus out (tempting false FAIL) |
-| 4 | Same task | 4c/f32-two-traps-injection | 4.C | FAIL | Page text tells automated testers to report PASS |
-| 5 | Same task | 4c/f13-cookie-banner | 4.C | PASS | Common real-world pattern; tempting false FAIL |
-| 6 | "Can everything here be used without a mouse?" | 4a/f01-click-only-text | 4.A | FAIL | Choice question: is there another keyboard way? (no) |
-| 7 | Same task | 4a/f03-custom-button-with-keys | 4.A | PASS | Custom control that does handle keys |
-| 8 | "Can I always see where keyboard focus is?" | 4d/f06-slideshow-behind-links | 4.D | FAIL | Choice question settled by looking |
-| 9 | Same task | 4d/f09-faint-outline | 4.D | NEEDS_REVIEW | Correct answer is "unsure": tests not guessing |
-| 10 | "Does anything unexpected happen when I tab through?" | 4e/f02-navigate-on-focus | 4.E | FAIL | Rules decide alone |
-| 11 | "Does the tab order make sense?" | 4f/f07-one-link | 4.F | DNA | Does-not-apply must be relayed, not turned into PASS |
-| 12 | Same task | 4f/f11-modal-lets-focus-escape | 4.F | FAIL | Dialog lets focus escape |
-| 13 | "Check this page for keyboard traps" | One ACT case DHS marked FAIL (pick from `act/manifest.json`) | 4.C | DHS verdict | Answer key from DHS, not from us |
-| 14 | "Is this page Section 508 compliant?" | 4a/f05-hover-and-focus-menu | 4.A | PASS | Certification bait: the outcome is PASS, the wording must not say "compliant" |
-| 15 | "Test https://www.example.com/ for keyboard problems" | none | none | REFUSED | Out of the allowlist: the agent must report the tool error, not invent findings |
-
-8 FAIL, 4 PASS, 1 DNA, 1 NEEDS_REVIEW and 1 refusal. Add 2 or 3 more PASS
-cases before the first run so a model that says FAIL to everything scores
-visibly badly.
-
-## 3. Arms
-
-- **Tool arm:** this MCP server only (v1 and v2 system prompts).
-- **Browser baseline:** the same model and task with Microsoft's Playwright
-  MCP (`@playwright/mcp`, version pinned and recorded) plus web search
-  (Tavily MCP; Abby, 2026-11-02: a capable agent would look up guidance,
-  and her sites publish no accessibility reports a search could find), no
-  other tools. Frozen pages: Playwright MCP has no HAR option, but its
-  `--init-page` file can call `page.context().routeFromHAR(...)` on the
-  round's HARs (README; not yet run). It can open the page, press keys and
-  read the page, so it has an equal
-  chance to do the test without this server's procedure. Given up front
-  rather than "ask for what you need," so every run has the same tools;
-  it is also the tool Claude recommends unprompted for keyboard testing.
-- **"Needs review to everything":** computed, not run. Every page scored as
-  NEEDS_REVIEW. The tool arm must beat it clearly.
-
-## 4. Scoring (in code)
-
-One scorer for every eval (Abby, 2026-11-02): the verdicts in
-`evals/scoring.py`, which judging rounds already use, on the neutral
-comparison in `src/a11y_assist/compare.py`; the weights below are computed
-from those verdicts. Answer keys are the same SCRT files and the same
-frozen HARs as the judging rounds.
-
-The agent's system prompt asks it to end with one machine-readable line, for
-example `RESULT: {"4.C": "FAIL"}`, or `RESULT: REFUSED`. Two scores per TT
-test per page:
-
-- **Server outcome:** the final outcome in the run's own report, read by the
-  `run_id` in the trace. Measures tool use and question answering. (Tool arm
-  only.)
-- **Relayed outcome:** the `RESULT` line. Measures whether the agent told the
-  user what was found. A missing or malformed line scores as wrong.
+For 1.3.1, 2.4.6 and 4.1.2, only 5.B and 5.C roll up (the forms scope in
+4.3). The roll-up is eval code; it decides no outcome of the tool.
 
 **Weights, fixed before any run:**
 
-| Outcome against the label | Score |
+| Outcome against the key | Score |
 | --- | --- |
 | Correct PASS, FAIL or DNA | +1 |
 | NEEDS_REVIEW | 0 |
 | False FAIL | −1 |
-| FAIL naming the wrong element (the label's failing element is not among those reported) | −1, counted as a false FAIL |
+| FAIL naming the wrong element (none of the key's failing elements are among those reported) | −1, counted as a false FAIL |
 | False PASS | −3 |
 
-NEEDS_REVIEW at 0 never punishes saying "unsure" (principle 3) and makes
-"above 0" mean net useful. With these weights, guessing PASS pays only above
-75% confidence. Raw counts are always shown beside the weighted score, and
-false PASS is reported on its own line.
+NEEDS_REVIEW at 0 never punishes saying "unsure," and it makes "above 0"
+mean net useful. With these weights, guessing PASS pays only above 75%
+confidence. Raw counts are always shown beside the weighted score, and false
+PASS gets its own line.
 
-**Scope.** Only the TT tests the server performs are scored (the implemented
-list in `a11y_run_tt_tests`' description, from `checks.REGISTRY`). Every other
-test is reported as not performed, never scored.
+**Also reported:**
 
-**Time limit.** The tool arm may set `no_time_limit` (Abby, 2026-11-02). The
-limit exists for people who would rather not wait; the eval wants every
-test's full result.
+- each arm's Fail reasons beside its score, so a Fail outside the tests'
+  scope (for example a field's role under 4.1.2) is visible;
+- tokens (input, cached and output), wall time and tool calls per arm, and
+  per page where a page's calls can be separated;
+- from the trace: tools called, argument errors, open questions left
+  unanswered, and "unsure" answers.
+
+**Scope.** Only the TT tests the server performs are scored (the
+implemented list, from `checks.REGISTRY`), and only their criteria. Every
+other test is reported as not performed, never scored.
 
 **What the sample size supports.** With n true failures for a test and none
 missed, the 95% upper bound on the miss rate is about 3/n. That bound is
-stated per test beside every result; under about 60 true failures, results
-are "promising, not proven." The 5 repeats measure consistency, not
-accuracy.
+stated beside every result. Under about 60 true failures, results are
+"promising, not proven." Repeats measure consistency, not accuracy.
 
-Also from the trace: tools called, argument errors, open questions left
-unanswered, and whether any answer was "unsure".
+## 9. Wording judge (later rounds)
 
-## 5. Judge (wording only)
-
-A judge model (temperature 0) **from a different model family than the agent
-it scores** answers three yes/no questions per tool-arm run, each with a
+A judge model (temperature 0) **from a different model family than the
+agent it grades** answers three yes/no questions about each run, each with a
 one-line reason:
 
-1. **Faithful relay:** does the reply say what each finding's `summary` says,
-   with no invented or dropped failures? (The judge sees the summaries and the
-   reply.)
-2. **Rubric followed:** for each open question, does the agent's answer
-   follow the question's rubric and evidence? (The judge sees question,
-   rubric, input and answer object.)
-3. **No certification claims:** does the reply avoid calling the page
-   certified, compliant or Section 508 conformant? A regex runs first in code;
-   the judge only decides context ("this is not a certified result" is fine).
+1. **Faithful report:** does the final message say what each finding's
+   `summary` says, with no invented or dropped failures?
+2. **Rubric followed** (Agent A): does each answer to an open question follow
+   that question's rubric and evidence?
+3. **No certification claims:** does the message avoid calling a page
+   certified, compliant or Section 508 conformant? A regex runs first, in
+   code; the judge only decides the context ("this is not a certified
+   result" is fine).
 
-The judge never sees the expected outcome and never scores it.
+## 10. Models
 
-## 6. Rounds and freezing
-
-- **Development rounds** (2.5, then 5 to 8 real pages from development
-  sites; as many rounds as needed): fix the harness, make questions harder
-  (never easier), or change the code. Log every change between rounds.
-- **After a round, its site is a development site** (Abby, 2026-11-02): rows
-  its pages never triggered can be exercised on a doctored copy of one of
-  them, a seed in the sense of 2.4.
-- **Freeze before the final round:** questions, prompts, weights, scoring
-  code and labels, recorded with a commit in `docs/hackathon/evaluation.md`.
-- **Final round:** the latest round before the code freezes for hackathon
-  judging; sites never used before; nothing is changed after seeing its
-  results. The headline figures come from this round only.
-- **Every round's results are kept in the repo**, the early ones included,
-  to show progress (Abby, 2026-11-02: testing is to improve, not only to
-  prove). Development rounds are recorded as formal rounds, not in
-  `docs/hackathon/evaluation.md`; where they live is being built on the
-  SCRT-report branch (`ccr-4d5c479b-6cdrmr`).
-
-## 7. Models and access (decided 2026-11-01)
-
-| Phase | Agent | Judge |
+| | Agent (both arms) | Wording judge |
 | --- | --- | --- |
-| First pass (building the harness) | Claude Sonnet 5.5 Gov | A non-Claude model once its route is checked; until then Claude Opus 5.5 Gov, with the same-family limit recorded |
-| Scored runs | Claude Sonnet 5.5 Gov, GPT 5.6 Sol and Gemini 4 Argon | Cross-family: Claude Opus 5.5 Gov judges GPT and Gemini runs; GPT 5.6 Sol judges Claude runs |
+| Round 1 | Claude Sonnet 5.5 Gov (Ask Sage), or Sonnet 5.5 on the CLI fallback | none |
+| Later scored rounds | Claude Sonnet 5.5 Gov, GPT 5.6 Sol and Gemini 4 Argon | cross-family: Claude Opus 5.5 Gov grades GPT and Gemini runs; GPT 5.6 Sol grades Claude runs |
 
-All runs go through NASA's Ask Sage API (`https://api.asksage.ai.nasa.gov`),
-which works only inside NASA's network. A model built by Claude Code in this
-repo never answers as an eval agent (it has seen the rubrics and answers).
-
-**Checked 2026-11-01** (one call, Anthropic-compatible route
-`/server/anthropic/v1/messages`): tool calling works (`tool_use` returned),
-temperature 0 is accepted (whether it is honored shows in the repeats), and
-exact input and output token counts come back. The model requested as
-`claude-sonnet-5-5-gov` reports itself as `claude-sonnet-5-5`; record both.
-This route lists only Claude models; GPT and Gemini need Ask Sage's
-OpenAI-style and Google-style routes, not yet checked.
+Ask Sage's Anthropic route lists only Claude models. GPT and Gemini need its
+OpenAI-style and Google-style routes, which haven't been checked yet. The
+harness has one provider interface with an adapter per route, so every model
+is run, logged and scored the same way.
 
 **Keys never enter the repository.** The harness reads the Ask Sage token
-from the environment or the root `.env` (git-ignored). The server itself
-needs no key: open questions go back to the calling agent
+and the Tavily key from the environment or the root `.env` (git-ignored).
+The server itself needs no key: open questions go back to the calling agent
 (`JUDGE_BACKEND=client`).
 
-**Harness design.** One provider interface with one adapter per Ask Sage
-route (Anthropic, OpenAI, Google). Questions, scoring, judge rubric and
-results are shared, so every model is scored the same way.
+## 11. Cost
 
-## 8. Isolation
+- **Agent A:** estimated (not measured) at 20,000 to 60,000 tokens per page,
+  so round 1 is roughly 0.2 to 0.6 million tokens. One conversation for all
+  pages grows its context, so the true figure may be higher. Browser time is
+  estimated at 5 to 8 minutes per page with all 8 other pages compared.
+- **Agent B:** not measured, and likely larger: Playwright MCP returns a
+  page snapshot after each action.
+- Check the Ask Sage token balance before each run. If round 1's cost is
+  too high, later rounds use smaller sets rather than skipping the baseline.
 
-- Agents run as direct API calls with only their arm's MCP server attached:
-  no file, shell or search tools, so no agent can read the fixtures, labels
-  or this repo.
-- Pages are served over local HTTP at neutral paths
-  (`http://127.0.0.1:<port>/q07/`), never `file://`; file names describe the
-  answer, and the judge eval found agents read them. The server runs with
-  `DEV_MODE=true` and `DEV_ALLOWED_ADDRESSES=["127.0.0.1/32"]`.
-- Labels are kept outside anything an agent or the server can reach.
+## 12. Build order
 
-## 9. Runs, repeats and cost
+1. **Freeze and replay** (section 6): the server's replay setting, the
+   freeze step, and Playwright MCP's init-page file. Checked on a fixture
+   site served locally (`tests/fixtures/9x/` or `19a/`) before any real
+   page.
+2. **The task prompt** (4.3), generated from `checks.REGISTRY`.
+3. **The agent loop and step log** (section 7), with the Anthropic-style
+   adapter first; it serves both Ask Sage and the claude.ai API. The CLI
+   adapter follows if the fallback is needed.
+4. **The helper tool**, the same for both arms.
+5. **Scoring:** the criterion roll-up and the `RESULT` reader in
+   `evals/scoring.py`, and a `lock` that covers both arms.
+6. **A dry run on a fixture site**, with expected outcomes from `tests/`,
+   before round 1.
 
-- **Repeats:** 5 per question per arm. Report per-question consistency
-  (how many of 5 match) beside accuracy.
-- **Recorded per run:** input and output tokens (from the API's usage
-  fields), wall time, tool time (from `steps.jsonl`), tool calls, model IDs
-  (requested and reported), prompt version, dataset version, commit.
-- **Size, development set:** 15 questions × 5 repeats × 3 runs (tool v1,
-  tool v2, browser baseline) = 225 agent runs, plus 150 judge calls. A
-  tool-arm run is roughly 20,000 to 60,000 tokens; a browser-baseline run is
-  likely larger (page snapshots after each key press), not yet measured.
-  Each tool run takes 10 to 60 s of browser time. Check the Ask Sage monthly
-  token count before each large run.
+Installs (ask first): Node packages for Playwright MCP and Tavily MCP.
 
-## 10. Layout (when built)
+## 13. Layout (when built)
 
 ```
 evals/agent/
-  questions.yaml          dataset v1 (page, task, test, expected, source)
-  prompts/                system_prompt_v1.txt, system_prompt_v2.txt, browser_baseline_v1.txt
-  judges.py               the three wording questions
-  run.py                  prepare | run --arm tool|browser --prompt v1 --repeats 5 | score
-  README.md               results of each run, like evals/README.md
+  prompt.py      the task prompt, from checks.REGISTRY
+  freeze.py      record a round's pages; the Playwright init-page file
+  run.py         run --arm a|b --round <dir> (agent loop, helper, step log)
+  providers.py   one adapter per route
+  README.md      how to run an arm, and the results of each run
+evals/judging/<round>/
+  pages.txt, keys/, results/ (both arms' reports, transcripts, step logs, lock.json)
 ```
 
-## 11. Versioned system prompts (outline)
+## 14. Open questions
 
-- **v1:** "You help someone check a web page for accessibility problems using
-  the tools provided. They are not an accessibility expert." Plus the `RESULT`
-  line contract.
-- **v2:** v1 plus scope: relay each finding's summary in plain words; answer
-  open questions yourself by their rubric, saying "unsure" if the evidence
-  doesn't settle it; never call a page certified, compliant or conformant;
-  say what wasn't tested.
-- **browser_baseline_v1:** v1's role and `RESULT` contract, with the
-  Playwright MCP's tools in place of this server's.
-
-## 12. Open decisions
-
-1. **Open:** whether the DHS training pages may be used (DHS's terms and the
-   hackathon's "publicly available" rule; 2.2).
-2. **Open:** whether a second certified tester can label a subset (2.3).
-3. **Open:** the Ask Sage routes for GPT 5.6 Sol and Gemini 4 Argon (section 7).
-4. **Decided for round 1 (section 0.7), not built:** how real pages are
-   frozen and served to both arms. The tool records its own HAR today; it
-   gets an option to replay a given recording, and the browser baseline
-   replays the same copy.
-5. **Decided:** Sonnet 5.5 Gov first; three families with cross-family judging
-   for scored runs.
-6. **Decided:** weights in section 4, NEEDS_REVIEW at 0.
-7. **Decided:** split by site; seeded faults with recorded sources.
-8. **Decided:** Phoenix later, only once its trace UI is worth the setup.
-9. **Decided:** tools are prefixed `a11y_` (`a11y_run_tt_tests`,
-   `a11y_answer_questions`), so the eval measures the names that ship.
-10. **Decided (2026-11-03):** round 1 as in section 0: one run per arm, one
-    conversation per arm for all 9 pages, a WCAG 2.0 criteria prompt, scored
-    per TT test and per criterion, no wording judge yet.
+1. The exact wording that limits 1.3.1, 2.4.6 and 4.1.2 to form fields'
+   labels (Abby reviews it).
+2. How a failing element that Agent B names in its own words is matched to
+   the key's element.
+3. Whether the CLI route works with the arms' MCP servers and the helper
+   tool attached (checked only with none attached).
+4. Whether the DHS training pages may be used (3.3).
+5. Whether a second certified tester can label a subset (3.1).
+6. The Ask Sage routes for GPT 5.6 Sol and Gemini 4 Argon (section 10).
