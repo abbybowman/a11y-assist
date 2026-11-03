@@ -2,7 +2,9 @@
 
 A proposal for Abby's review: nothing is built and no spec is drafted
 yet. The open questions at the end come first, because several of them
-decide rows. When the plan is approved, the rules go into
+decide rows. Decided so far (Abby, 2026-11-03): browser tab mute does not
+satisfy 2.A (Q5), and pass T runs in parallel with the walk, which changes
+`pipeline.py` (Q2). When the plan is approved, the rules go into
 `docs/rules/2a-…` to `2d-…` (from `_template.md`, at 0.1.0), and this plan
 keeps only the order of work.
 
@@ -68,12 +70,77 @@ build tasks.
    so they are not 2.B content. Results are per browser
    ([browser-specific-results.md](../solutions/browser-specific-results.md)).
 
+Second round (2026-11-03, with the autoplay flag):
+
+6. **H.264/AAC MP4 plays in the bundled Chromium**, live and on replay, as
+   VP9/Opus WebM does. Codec support is not the gap it was assumed to be.
+7. **Range requests replay.** Media was recorded as one 206 entry each and
+   played from the HAR. Only small files (< 250 kB) were checked; a large
+   file fetched in several ranges, or with seeking, is not.
+8. **Audio in a cross-site iframe** (`localhost` inside `127.0.0.1`) played
+   on replay. The page's CDP `Media` session reported all three players,
+   including the iframe's. Whether that frame was out-of-process was not
+   checked.
+9. **Polling freezes on replay.** A page fetched `/poll` every 0.7 s. Live,
+   its counter went 1, 2, 3, 4, 6. On replay it stayed at 1 every time: the
+   replay answers every repeat with the first recorded response. Requests
+   whose URL changes each time (cache busters) are not in the HAR and fail.
+   The HAR still has every poll (6 entries), so polling can be detected
+   from the recording without loading anything.
+10. **ACT's "silent" video has a real audio track** (Vorbis at -91 dB, by
+    ffprobe). Track presence or decoded bytes would call it audio: a false
+    FAIL. Chromium's `OfflineAudioContext.decodeAudioData` on the recorded
+    bytes tells them apart, with no new dependency: silent.webm peaks at
+    -180 dBFS with no samples above -40 dB. video.webm peaks at -10.5 dBFS
+    and the MP4 at -12. ImageDecoder also reads APNG and animated WebP
+    (10 frames, endless, 2 s per loop, as the GIF).
+
 ## What the tool would do (one shared collector, four checks)
+
+### Why pass T needs its own load, and what it takes from the others
+
+Pass letters name a purpose, not a count. Today there are seven: P1 and P2
+(the walk), W (4.D widgets), R (4.F reveals), F (5.D fills), E (5.F
+errors) and L (5.A–5.C labels). T is for time.
+
+Each of those loads presses a key within about a second. TT's question is
+what the page does **with no user input for more than 5 s**. Watching
+during P1 would be free, but P1's focus reaches a hero carousel within a
+few presses, and many carousels pause on focus. We would see it stop and
+call it shorter than 5 s: a false DNA. Delaying P1's first press by 6.5 s
+would work but adds 6.5 s to every run. So pass T is one extra load, run
+**at the same time as P1** (Q2): no added wall time when the parallel load
+does not slow the walk (measured below).
+
+What it takes from evidence that already exists, at no extra cost:
+
+- **The HAR (no load):** media bytes for loudness (verified 10), animated
+  image bytes for G152 durations (verified 4), and repeated requests for
+  polling hints (verified 9).
+- **The walk:** the first three stops (P1 1–3), the tab order for "three
+  elements before/after", and the replay plan for every probe. The per-step
+  `mutations`, `unsettled` and 4.D's `getAnimations()` reads are a free
+  cross-check: if the walk saw the page changing but pass T saw nothing,
+  the result is NEEDS REVIEW, not DNA.
+- **4.A's Enter and Space presses** (`observe.py` already measures page
+  noise for 300 ms before and after each one): a control after which the
+  noise stops is tried first as a mechanism. That only orders candidates;
+  it never decides.
+
+What stays new: the mechanism probes (below). They are replays, like every
+other check's, and kept short. A candidate is rejected as soon as the
+region changes again (within one of its own update periods, measured by
+pass T). Only the candidate that holds gets the full 5.5 s watch and the
+focus-only control probe. A page with nothing moving pays only pass T.
 
 ### Pass T: watch the page over time (new, `motion.py`)
 
 One fresh load of the recorded page, with no input, watched for about
-6.5 s. TT's threshold is "more than 5 seconds" for 2.B. For 2.A it is
+6.5 s. It runs in a second, headless browser launched with the autoplay
+flag, so the walk's browser and every other test's evidence are unchanged
+(Q1). In headed runs, a second window could take focus from the walk's
+window ([windows-chrome-results.md](../solutions/windows-chrome-results.md)).
+A headless browser opens no window. TT's threshold is "more than 5 seconds" for 2.B. For 2.A it is
 "more than 3 seconds". Pass T records facts only:
 
 - **Frames.** A screenshot about every 0.5 s through `traverse.screenshot()`,
@@ -90,7 +157,9 @@ One fresh load of the recorded page, with no input, watched for about
   iterations, duration, play state.
 - **Media.** Every `audio` and `video` element: paused, muted, volume,
   `currentTime` progress, duration, loop, `error`, and decoded audio bytes.
-  Also CDP `Media` domain events. `AudioContext` state is caught by an init
+  Also CDP `Media` domain events. Whether the audio is audible comes from
+  decoding the recorded bytes in a tool page, never the tested page
+  (verified 10). `AudioContext` state is caught by an init
   hook that counts nodes connected to `destination`.
 - **Animated images** (`img`, CSS backgrounds): G152 duration from
   `ImageDecoder`, using the bytes already in the HAR.
@@ -195,16 +264,16 @@ Ordered by harm. A false PASS or a false DNA is worse than NEEDS REVIEW.
 | 1 | Replay blocks autoplay (verified above) | 2.A DNA on every page | Pass T's browser allows autoplay (Q1) | Headed Chrome on Windows to check |
 | 2 | **A carousel pauses on focus**, so its Next or Previous button "stops" it | **False PASS** (2.B, 2.C) | Move focus away, rewatch, and run the focus-only control probe | Pages that pause on any keydown |
 | 3 | Updates slower than the window (a clock every minute, a carousel every 8–10 s), or slides that start only when scrolled into view | False DNA | Timer and polling hints, carousel markup hints (`aria-roledescription=carousel`, common library classes) → NEEDS REVIEW; watch the top viewport, then one scrolled watch if hints are below the fold (Q3) | Long timers with no hint |
-| 4 | **HAR replay returns the same data to polling requests** (tickers, scores) | 2.C and 2.D false DNA (content never changes on replay) | Requests repeated after load → NEEDS REVIEW, "updates from the server cannot be replayed" (as 5.F does for server errors) | — |
-| 5 | Media that cannot play in the bundled Chromium (H.264/AAC MP4 not verified; MSE/HLS streams; Range requests in the HAR; very large bodies) | False DNA for 2.A and 2.B | A media `error`, or a source with no progress → not performed; the installed-Chrome channel; a size cap on recorded media | Needs V-checks |
-| 6 | Cross-origin player iframes (YouTube, Vimeo) | Missed or unprobeable | Detect the embed and its `autoplay=1`; probe controls inside frames only if focus reaches them; otherwise NEEDS REVIEW | Common on .gov pages |
-| 7 | Silent audio tracks, or Web Audio nodes that make no sound | 2.A false FAIL | Decoded bytes are not loudness; analyse level with an analyser on `captureStream()` (tainted for cross-origin media) → NEEDS REVIEW when unknown | — |
+| 4 | **HAR replay returns the same data to polling requests** (tickers, scores; verified 9) | 2.C and 2.D false DNA (content never changes on replay) | Polls found in the HAR → NEEDS REVIEW, "updates from the server cannot be replayed" (as 5.F does for server errors) | — |
+| 5 | Media that cannot play from the recording (MSE/HLS streams; large files in many ranges; very large bodies). H.264 and single-range media are fine (verified 6, 7) | False DNA for 2.A and 2.B | A media `error`, or a source with no progress → not performed; a size cap on recorded media | Large-file V-check |
+| 6 | Third-party players (YouTube, Vimeo). Plain cross-site iframe audio is fine (verified 8); these stream (row 5) | Missed or unprobeable | Detect the embed and its `autoplay=1`; probe controls inside frames only if focus reaches them; otherwise NEEDS REVIEW | Common on .gov pages |
+| 7 | Silent audio tracks (ACT's own "silent" video has one; verified 10), or Web Audio nodes that make no sound | 2.A false FAIL | Loudness from decoding the recorded bytes (verified 10); Web Audio has no bytes → NEEDS REVIEW | — |
 | 8 | Pixel noise: text cursors, hover styles, font loading, late images | False 2.B applicability | Ignore changes that end before 5 s; need a region still changing at 5 s; a cursor blink is the field's own | Video ads |
 | 9 | Moving or updating misclassified (fades, opacity pulsing, a carousel that slides) | Wrong test applied | Both apply when both signals are present (TT's own note); fades go to J1 | — |
 | 10 | Judge errors on "evident", "essential", "only content", and 2.D "sufficient description" | Wrong PASS from a judgment | Only by-looking questions can lead to PASS, with "unsure" required; frame strips and before and after crops (one frame cannot show motion); slide text is untrusted (principle 5) | Judge eval needed |
-| 11 | 2.D: the APG carousel turns `aria-live` off while rotating, by design | TT reads it as FAIL; users and developers may disagree | Follow TT (principle 7); the plain explanation says why | Q6 |
+| 11 | 2.D: W3C's own carousel pattern (APG) sets `aria-live="off"` while it rotates, so a screen reader is not interrupted every few seconds | TT 2.D gives FAIL: the change is in no live region, focus does not move, and no dialog appears. Developers who followed W3C's pattern will be surprised | Follow TT (principle 7). The plain explanation says why, and that pausing the rotation (2.C) is what turns announcements on | — |
 | 12 | ANDI counts `role=marquee` and `role=timer` as live regions (their implicit `aria-live` is off) | 2.D differs from ARIA | Match ANDI, as TT prescribes, and note it | — |
-| 13 | **Autoplay allowed for the whole run** changes other tests' evidence (playing video is neither a mutation nor a Web Animation, so 4.D's noise read would miss it) | 4.D false focus indicator | Allow autoplay only in pass T's browser, or add "media playing" to 4.D's noise signal (Q1) | — |
+| 13 | **Autoplay allowed for the whole run** changes other tests' evidence (playing video is neither a mutation nor a Web Animation, so 4.D's noise read would miss it) | 4.D false focus indicator | Allow autoplay only in pass T's own browser (Q1) | — |
 | 14 | Random and clock-driven pages (`Math.random`, `Date`) | Flaky fixtures | Rows no page triggers reliably get hand-built evidence ([testing-what-no-page-can-trigger.md](../solutions/testing-what-no-page-can-trigger.md)); Playwright's clock in tests only | — |
 
 ## Time budget
@@ -226,14 +295,16 @@ content at all, so they would not show this cost.
 
 ## Open questions for Abby (multiple choice; recommendation first)
 
-- **Q1. Autoplay.** (a) A separate autoplay-allowed browser for pass T
-  only, recorded in the report (recommended: other tests' evidence is
-  unchanged). (b) The flag for the whole run, and 4.D's noise signal learns
-  about playing media; every fixture is rerun. (c) Leave 2.A not performed.
-- **Q2. Time.** (a) Pass T in parallel with P1, plus a fixed allowance
-  (e.g. +20 s) when moving content is found (recommended). (b) Sequential,
-  inside the 120 s, cutting probes to fit. (c) 2.x runs only when the
-  caller selects it.
+- **Q1. Autoplay.** (a) A second, headless, autoplay-allowed browser for
+  pass T and the mechanism probes, recorded in the report (recommended).
+  It is what makes the parallel run safe in headed mode, and other tests'
+  evidence is unchanged. (b) The flag for the whole run, with 4.D's noise
+  signal taught about playing media; every fixture rerun. (c) Leave 2.A
+  not performed.
+- **Q2. Time. Decided (Abby, 2026-11-03):** pass T in parallel with P1,
+  with a change to `pipeline.py`. Still open: a fixed allowance (e.g.
+  +20 s, as `OTHER_PAGE_S`) when moving content is found, so probes do not
+  push other tests out.
 - **Q3. Watch length and scrolling.** (a) 6.5 s at the top, plus one
   scrolled watch only when hints are below the fold (recommended). (b) The
   top only. (c) A full scroll in steps (slow).
@@ -241,16 +312,17 @@ content at all, so they would not show this cost.
   (a) Read this run's other findings at the mechanism's stop; a test not
   run gives a note (recommended). (b) Ignore it, with a note for a person.
   (c) NEEDS REVIEW until a person confirms.
-- **Q5. 2.A and browser tab mute** (TT note: it is "acceptable"; ICT
-  Baseline: "platform accessibility features"). Chrome can mute a site, so
-  counting it would make 2.A never fail in Chrome. (a) It does not satisfy
-  ER 2 (the first three elements); it is mentioned in the plain text
-  (recommended). (b) It counts: 2.A passes in Chrome whenever ER 3 holds.
-  (c) Ask DHS. This needs an answer before 2.A's rows.
-- **Q6. "Within three elements before/after the content".** (a) Tab order,
-  counting controls inside the region (recommended: that is how keyboard
-  users meet it, and carousels put their controls inside). (b) Reading
-  order, including text.
+- **Q5. 2.A and browser tab mute. Decided (Abby, 2026-11-03): it does not
+  count.** The TT note (p. 15, 2.A Notes, second bullet: "A browser's
+  ability to disable auto-playing media and/or mute a specific tab are
+  acceptable mechanisms…") is outside ER 2's "within the first three
+  elements". Only a control on the page counts. A page cannot mute its own
+  tab (no web API does that), so a "mute" button is an ordinary page
+  control and is probed like any other.
+- **Q6. "Within three elements before/after the content".** Abby is
+  checking the TT training material. Proposed default if it is silent:
+  tab order, counting controls inside the region (carousels put their
+  controls inside).
 - **Q7. Hook for pass T's init script.** (a) `replay_context` takes extra
   init scripts; `traverse.py` is untouched (recommended). (b) Pass T injects
   after load and misses the first changes.
@@ -260,11 +332,13 @@ content at all, so they would not show this cost.
 
 ## Order of work (after the answers)
 
-1. V-checks first, in tests, not scratch: autoplay on replay (both
-   settings); H.264 MP4 and Range requests replayed in bundled Chromium;
-   the CDP `Media` domain in out-of-process iframes; `ImageDecoder` on
-   APNG and WebP; pass T alongside P1 with no slowdown of the walk; the
-   same on headed Chrome on Windows (listed as not checkable here).
+1. V-checks: turn the scratch checks above into tests (autoplay on replay
+   under both settings; polling frozen on replay; loudness from recorded
+   bytes; ImageDecoder). Then the ones not yet run: a large media file in
+   several ranges; whether the iframe in check 8 was out-of-process; the
+   focus and hover pause defaults of common carousel libraries (one small
+   fixture each); pass T beside a headed walk on Windows (not checkable
+   here).
 2. Specs 2c, 2d at 0.1.0 (rows above), then 2b, then 2a; build tasks.
 3. `motion.py` pass T and the mechanism probe; rows on hand-built
    evidence.
