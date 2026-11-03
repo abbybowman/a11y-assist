@@ -1,9 +1,15 @@
-# Plan: 2.A–2.D Auto-playing and auto-updating content (2026-11-03, proposed)
+# Plan: 2.A–2.D Auto-playing and auto-updating content (2026-11-03, approved; specs at 0.1.0)
 
-A proposal for Abby's review. Nothing is built and no spec is drafted yet.
-When the plan is approved, the rules go into `docs/rules/2a-…` to `2d-…`
-(from `_template.md`, at 0.1.0), and this plan keeps only the order of
-work.
+Approved by Abby on 2026-11-03. The draft specs are
+[2c-auto-updating.md](../rules/2c-auto-updating.md), which defines pass T,
+elements and the mechanism probe for the batch;
+[2d-change-notify-auto.md](../rules/2d-change-notify-auto.md);
+[2b-blinking-moving-scrolling.md](../rules/2b-blinking-moving-scrolling.md);
+and [2a-audio-control.md](../rules/2a-audio-control.md). All are at
+0.1.0, and the build checklist is
+[2c-build-tasks.md](../rules/2c-build-tasks.md). Nothing is built yet.
+The specs now hold the rules; this plan keeps the research, the
+measurements and the order of work.
 
 **Decided (Abby, 2026-11-03):**
 
@@ -12,11 +18,14 @@ work.
 - **Q2:** pass T runs in parallel with the walk, which changes
   `pipeline.py`. Pages with moving content get extra time.
 - **Q5:** browser tab mute does not satisfy 2.A.
-- **Q6:** elements are counted in reading order, not tab order: text,
-  headings, images and controls, with a control and its label as one
-  element. "Before/after" is counted
-  around the whole carousel, its own controls included.
-
+- **Q6:** elements are what a screen reader reads as one unit, in reading
+  order, not tab order. That means text, headings, images with alt text and
+  controls. A control and its label are one element when they share a
+  line, and two when the label is stacked above. Each data-table cell is
+  one element. An iframe's content counts inline. Images without alt text,
+  and content hidden from assistive technology, do not count.
+  "Before/after" is counted around the whole carousel, its own controls
+  included.
 - **Q3:** watch 6.5 s at the top, plus one scrolled watch only when hints
   are below the fold.
 - **Q4:** ER 3 ("the mechanism passes all applicable Test Conditions")
@@ -30,9 +39,12 @@ work.
   no media limit.
 - **Q10:** a key combination named in page text may be pressed, as an
   approved exception to principle 5, within the limits in Q10 below.
+- **Q11:** replays run in full Chromium only for pages whose recording
+  has cross-site iframes (when the configured browser is `"chromium"`).
+  Pass T and the 2.x probes always use full Chromium.
 
-Still open: the Q6 details (recommendations given) and Q11 (full Chromium
-only for pages with cross-site iframes) at the end.
+Nothing is left open in this plan. Questions that come up while building
+go in the specs as OPEN marks.
 
 The experiments behind every "verified" below are in
 [research/2026-11-03-2x-experiments/](../research/2026-11-03-2x-experiments/README.md).
@@ -500,7 +512,7 @@ shell and replayed in full Chromium. The iframe was out-of-process, its
 video played, and Tab, Tab, Enter reached its Pause button and paused it.
 No request failed.
 
-**Proposed rule (recommended):**
+**The rule (decided):**
 
 - **The recorder notes cross-site frames.** It lists the frames whose site
   differs from the top page's, while it loads the page (it already waits
@@ -518,14 +530,16 @@ No request failed.
   versions today.
 - **What it costs.** Only pages with cross-site iframes pay the extra
   ~90 ms per load. In the suite that is the 17 fixture files with iframes
-  (9 ACT cases, 8 custom pages), so CI stays near 10 min.
+  (9 ACT cases, 8 custom pages), so CI should stay near 10 min (an
+  estimate, not measured).
 - **What is left.** A cross-site iframe that appears only after a click
   is not seen while recording. Its content is still reached, since V5
   handles in-process frames, but the replay runs in the shell. The walk
   can log any cross-site frame it meets, so this case shows in the
   report.
 
-A rule for CLAUDE.md, once approved: "Replays of pages with cross-site
+A rule for CLAUDE.md (approved; added when the change is built):
+"Replays of pages with cross-site
 iframes run in full Chromium, never the headless shell."
 
 ## Q10's limits (decided)
@@ -544,44 +558,13 @@ Only J1 (by looking) decides that the text describes a mechanism. The key
 press only confirms that it works. CLAUDE.md records the exception when 2.B
 is built.
 
-## Open questions for Abby
-
-- **Q6 details (recommendations).** Your rule, "when in doubt, the
-  interpretation that clearly leads to better UX and accessibility", points
-  to counting what a screen reader user actually moves through in browse
-  mode. That count is also the stricter one: the mechanism has to sit
-  closer to the content. It can never cause a false PASS, and PASS stays
-  NEEDS REVIEW anyway until Q4's shortlist exists.
-  - **Data-table cells:** each cell is one element (recommended). Screen
-    readers read a table cell by cell, so a pause button after a 30-cell
-    table is 30 steps away. This is what `site.UNITS_FN` does now.
-  - **A label and its field:** one element when they share a line (a radio
-    and its text, a checkbox and its text), as screen readers read them as
-    one line. Two elements when the label is stacked above the field,
-    where browse mode reads the label line, then the field (recommended).
-    This is decided mechanically from their boxes. (b) Always one element:
-    simpler, and less strict.
-  - **An iframe:** its content counts inline, in reading order, as if it
-    were part of the page (recommended). Screen readers read into iframes
-    in place. Counting the whole iframe as one element would let a long
-    embedded widget hide how far away the mechanism is. When the iframe
-    *is* the content (an embedded player), its own controls are inside the
-    content and are candidates anyway. ANDI's "one iframe at a time" is a
-    limit of the tool, not how users meet the page.
-  - **Images with no alt text** stay uncounted: screen readers skip them.
-    Images with alt text count (DHS #114).
-- **Q11. Full Chromium only where it matters.** Replay in full Chromium
-  only pages whose recording has cross-site iframes, plus pass T and the
-  probes always. Details in "Full Chromium instead of the headless shell"
-  above. (a) As proposed (recommended). (b) Full Chromium everywhere
-  (+42% suite time). (c) Leave it.
-
-## Order of work (after the answers)
+## Order of work
 
 1. V-checks as tests (fixtures served locally, no network): items 1–16 and
    18. Item 17 (real YouTube/Vimeo) and headed Windows can't be checked
    here.
-2. Specs 2c, 2d at 0.1.0, then 2b, then 2a; build tasks.
+2. Specs 2c, 2d, 2b and 2a at 0.1.0, and the build tasks (done,
+   2026-11-03).
 3. `capture.py` media store; `pipeline.py` second browser and parallel
    start; `motion.py` pass T and the probe; rows on hand-built evidence.
 4. Fixtures:
