@@ -100,13 +100,20 @@ def parse_pages(text: str) -> list[tuple[str, str]]:
 
 
 def other_pages(url: str, listed: list[str]) -> list[str]:
-    """The round's other pages on the same host, in list order, up to the
-    tool's limit: 9.A-9.C and 19.A compare pages of one site. They come from
-    pages.txt (the caller), never from links on a page."""
-    from a11y_assist.pipeline import OTHER_PAGES_MAX, _same_site
+    """The round's other pages on the same host, in list order: 9.A-9.C and
+    19.A compare pages of one site, and more pages make them more reliable.
+    Scans run with no time limit, so the 5-page cap does not apply (Abby,
+    2026-11-03). They come from pages.txt (the caller), never from links on
+    a page."""
+    from a11y_assist.pipeline import OTHER_PAGES_NO_LIMIT_MAX, _same_site
 
     same = [u for u in listed if u != url and _same_site(u, url)]
-    return same[:OTHER_PAGES_MAX]
+    if len(same) > OTHER_PAGES_NO_LIMIT_MAX:
+        raise JudgingError(
+            f"{url}: {len(same)} other pages on its host; one run compares at "
+            f"most {OTHER_PAGES_NO_LIMIT_MAX}"
+        )
+    return same
 
 
 def _pages(rd: Path) -> list[tuple[str, str]]:
@@ -162,7 +169,11 @@ async def scan(rd: Path, settings) -> None:
         others = other_pages(url, [u for u, _ in pages])
         print(f"{pid} {url} (+{len(others)} other pages)", flush=True)
         try:
-            res = await run_tt_tests(settings, url, tests, other_pages=others)
+            # No time limit: a round wants every test's full result (Abby,
+            # 2026-11-02).
+            res = await run_tt_tests(
+                settings, url, tests, no_time_limit=True, other_pages=others
+            )
         except Exception as exc:  # a page that cannot be tested: record why
             state[pid] = {"url": url, "status": "error", "error": str(exc)[:300]}
             _save_state(rd, state)

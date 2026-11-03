@@ -20,7 +20,7 @@ agency page has no margin left, so the next single-page test must find
 time elsewhere); pages too large to walk, or with more than 40 form
 fields, are refused at once with a `no_time_limit` option
 ([solutions/time-budget.md](solutions/time-budget.md)). 9.A–9.C compare
-the page with 1–5 other pages of the same site the caller names
+the page with 1–5 other pages of the same site the caller names (up to 50 with `no_time_limit`)
 (`other_pages`, the run limit +20 s each); without them they are NEEDS
 REVIEW at no cost ([solutions/multi-page.md](solutions/multi-page.md));
 19.A uses the same pages, then runs the site's own search live once if it
@@ -52,7 +52,8 @@ run).
   "other pages not used" note. Real .gov templates matter more than these:
   wait for the agent-eval pages, then add fixtures for whatever they show.
 - **Multi-page testing, one page per call (open; Abby, 2026-11-02).**
-  Current: one call records the tested page plus up to 5 other pages; only
+  Current: one call records the tested page plus up to 5 other pages (50 with
+  `no_time_limit`; more pages make 9.A–9.C and 19.A more reliable); only
   the tested page gets the single-page tests, the others are comparison
   pages for 9.A–9.C and 19.A, and a page too slow for its 20 s share leaves those
   NEEDS REVIEW. Proposed: test each page of a batch in full, in its own
