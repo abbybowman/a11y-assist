@@ -1,11 +1,196 @@
 # Plan: agent-level evaluation (not built)
 
-Status: **draft; decisions recorded 2026-11-01 and 2026-11-02 (sections 4,
-6).** Nothing here is built.
+Status: **draft; decisions recorded 2026-11-01, 2026-11-02 (sections 4,
+6) and 2026-11-03 (section 0, round 1).** Nothing here is built.
 Models and access are decided and the Ask Sage route is checked (section 7).
 The development set (section 2.5) is enough to build the harness; the scored
 pages come from Abby's blind-labeled real sites and seeded faults (2.3, 2.4),
 plus the DHS training pages only if allowed (2.2).
+
+## 0. Round 1: the first two-arm comparison (decided 2026-11-03)
+
+Round 1 is the first comparison of the two arms, on Abby's 9 pages from one
+site. Its main purpose is to show how far along the tests are and where
+accuracy needs work. Wherever this section disagrees with a later one, this
+section holds for round 1. Later rounds follow the rest of the plan unless a
+decision changes it.
+
+### 0.1 Words used here
+
+- **Agent A (tool arm):** a model with this MCP server. It runs the tests and
+  answers the open questions the tool hands back, then reports to the user,
+  as it would for a real person. No separate "answering agent" takes part in
+  an agent eval.
+- **Agent B (baseline arm):** the same model, prompt and pages, with
+  Playwright MCP plus Tavily web search instead of this server. It chooses
+  its own way to test.
+- **Scoring:** code (`evals/scoring.py`) that compares an arm's results with
+  Abby's SCRT files. No model takes part. Round 1 needs only scoring.
+- **Wording judge** (section 5): a model from another family that grades how
+  an agent's final message reports its findings. It is not part of round 1.
+  Both arms' transcripts and final messages are saved, so it can run later.
+  It never sees the keys, so it can also run after the reveal.
+- **Existing tools, names unchanged:** a *judging round*
+  (`evals/judging.py`) drives the tool with a script, and one agent fills in
+  the question packets. The *judge eval* (`evals/judge_eval.py`) tests each
+  spec's open questions on our fixtures. Neither one is an agent eval. Inside
+  the product, "judge" (`JUDGING_MODEL`, `judgment.py`) means whoever answers
+  the open questions. In round 1, that is Agent A.
+
+### 0.2 Steps, in commit order
+
+1. **Start.** Abby commits `evals/judging/round1/pages.txt` (9 pages from one
+   site, each URL with the SHA-256 of its SCRT file) when testing begins, not
+   earlier.
+2. **Freeze.** Each page is recorded once from the live site, including
+   19.A's one site search where it runs. These recordings are the round's
+   pages. Both arms work from these copies, and neither touches the live
+   site. This is the only step that needs the site's network.
+3. **Agent A** runs in one conversation that covers all 9 pages.
+4. **Agent B** runs in one conversation that covers all 9 pages.
+5. **Lock.** Both arms' results, transcripts and step logs are locked, along
+   with the commit, then committed. The existing `lock` is extended to cover
+   them.
+6. **Reveal.** Abby adds her SCRT files to `keys/` and commits.
+7. **Score** (0.5).
+
+### 0.3 Both arms
+
+- The **same model** (Sonnet 5.5; the route is in 0.6), the **same prompt**
+  word for word (0.4), and the same 9 frozen pages.
+- **One run per arm.** Round 1 has no repeats: the token budget does not
+  allow them yet. Round 1's logged cost decides later repeats, or smaller
+  rounds.
+- **One conversation per arm for all 9 pages**, because a real user would
+  ask once. Section 2's "one page, fresh run" rule does not apply to round 1.
+  If an arm runs out of context, that is recorded as its result, not worked
+  around.
+- **Helpers.** Both arms get the same optional tool for handing a task to a
+  helper agent (we don't know how Agent B will go about it). A helper gets
+  its parent's tools and cannot start helpers of its own. Its tokens and
+  time count toward its arm.
+- **Logged for every step**, in the same format for both arms:
+  - each model call, with its start and end time, input, cached and output
+    tokens, and the text it produced;
+  - each tool call, with its name, arguments, result size and wall time;
+  - helpers' calls the same way;
+  - Agent A's tool's own `steps.jsonl`.
+
+  Final messages are kept in full.
+
+### 0.4 The prompt
+
+Both arms get the same text. It contains no TT procedure, no plain-language
+explanations of the criteria (a later round tests plain-language tasks) and
+no links to W3C Understanding pages (those are WCAG 2.2 pages). It says:
+
+- Test these 9 pages against **WCAG 2.0** Level A and AA, the version Section
+  508 incorporates. Test only the criteria listed, not WCAG 2.1 or 2.2.
+- **The 14 criteria this tool covers in full:** 2.1.1, 2.1.2, 2.4.1, 2.4.3,
+  2.4.5, 2.4.7, 3.2.1, 3.2.2, 3.2.3, 3.2.4, 3.3.1, 3.3.2, 3.3.3, 3.3.4.
+- **1.3.1, 2.4.6 and 4.1.2, limited to the labels of form fields.** The tool
+  covers only that part of them (5.B and 5.C; tables, headings and other
+  controls are untested TT tests). The exact wording is drafted with the
+  harness, and Abby reviews it.
+- **The possible results, one line each:**
+  - **Pass**;
+  - **Fail**, naming the failing element;
+  - **Does not apply**;
+  - **Needs review**: unsure, or a person should check.
+
+  Needs review is always allowed, and a wrong Pass is the worst error.
+- **A final machine-readable line** with one result per page per criterion.
+
+The criteria list is generated from the requirements of the tests in
+`checks.REGISTRY` (`catalog.py`), not typed by hand.
+
+### 0.5 Scoring
+
+- **Per TT test (Agent A):** the outcomes in the tool's own reports (the
+  "server outcome", section 4) against the keys.
+- **Per WCAG 2.0 criterion (both arms):** each arm's final line (the
+  "relayed outcome") against the keys rolled up to the criterion:
+  - Fail if any TT test under it fails;
+  - otherwise Needs review if any is Needs review or not performed;
+  - otherwise Pass if any passes;
+  - otherwise Does not apply.
+
+  For 1.3.1, 2.4.6 and 4.1.2, only 5.B and 5.C roll up. Agent A's tool
+  reports are rolled up the same way, which shows any gap between what the
+  tool found and what the agent told the user.
+- The **weights** are those in section 4. Each arm's Fail reasons are listed
+  beside its score, so Abby can see a Fail scored as false because it falls
+  outside the tests (for example, a field's role under 4.1.2).
+- **Efficiency:** tokens (input, cached and output), wall time and tool
+  calls for each arm, and for each page where a page's calls can be
+  separated.
+- The roll-up is eval code in `evals/scoring.py`. It decides no outcome of
+  the tool.
+
+### 0.6 Route
+
+- **Preferred:** Ask Sage's Anthropic route with Sonnet 5.5 Gov, from Abby's
+  laptop on NASA's network (section 7).
+- **Fallback** if more Ask Sage tokens don't arrive in time: the Claude Code
+  CLI on Abby's claude.ai account, run as a separate one-off process for
+  each arm. Abby confirms that her organization's rules allow this route for
+  public .gov pages. Both arms always use the same route; routes are never
+  mixed within a round, and the route is recorded with the results. Compared
+  with Ask Sage, the model is Anthropic's Sonnet 5.5 rather than the Gov
+  version. The CLI also adds one base line ("a Claude agent built on the
+  Claude Agent SDK") and an environment section to each arm's system prompt,
+  the same for both arms.
+- **Isolation check of the fallback (2026-11-03, 4 calls, about $0.03 at
+  list price):**
+  - The first call, with only `--strict-mcp-config` and `--tools ""`, passed
+    through Abby's email, a git attribution reminder and a working-folder
+    path that named the repo.
+  - `--bare` refused to start: it accepts only an API key, not this
+    account's login.
+  - The clean call used `--setting-sources "" --disable-slash-commands
+    --strict-mcp-config --tools "" --no-session-persistence
+    --system-prompt <arm prompt>`. It ran from a neutral empty folder with an
+    empty `HOME`, and with `CLAUDE_CODE_USER_EMAIL`,
+    `CLAUDE_ADDITIONAL_DIRECTORIES`,
+    `CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD`, `CLAUDE_CODE_REMOTE`
+    and the account, organization and session IDs unset.
+  - Evidence: the start-up event listed no tools, MCP servers, skills or
+    commands. The model reported no name, email, memory, CLAUDE.md, skills,
+    project or "a11y" in its context. That is the model's own report, not
+    proof.
+
+  The harness repeats this check at the start of every run and stops if a
+  known value (the email, "a11y", the repo name) appears in the answer.
+- **Not yet verified on the fallback:** attaching the arms' MCP servers and
+  a helper tool; whether this container can reach the site (only the freeze
+  step needs it, and it can run on the laptop instead).
+
+### 0.7 Builds and open items
+
+Builds:
+
+1. **Freeze and replay** (open decision 4). Record each page once. Add a
+   replay option so `a11y_run_tt_tests` tests a given recording; how this
+   fits the hosted deployment is decided when it is built. Replay the same
+   recordings in Playwright MCP through `--init-page` and `routeFromHAR`
+   (designed in section 3, never run).
+2. **The agent loop** for each route (Ask Sage API, Claude Code CLI), with
+   the step log in 0.3.
+3. **The helper tool**, the same for both arms.
+4. **The prompt**, generated as 0.4 describes.
+5. **Per-criterion scoring** in `evals/scoring.py`, and a `lock` that
+   covers both arms.
+
+Installs (ask first): Node packages for Playwright MCP and Tavily MCP on the
+laptop. The Tavily key comes from the environment, never the repository.
+
+Open:
+
+- the wording that limits 1.3.1, 2.4.6 and 4.1.2 to form fields' labels;
+- how a failing element named in Agent B's free text is matched to the key's
+  element;
+- the 19.A site search during Agent A's run must replay from the frozen
+  recording; this needs checking once replay is built.
 
 ## 1. What it measures
 
@@ -324,8 +509,10 @@ evals/agent/
    hackathon's "publicly available" rule; 2.2).
 2. **Open:** whether a second certified tester can label a subset (2.3).
 3. **Open:** the Ask Sage routes for GPT 5.6 Sol and Gemini 4 Argon (section 7).
-4. **Open:** how real pages are frozen and served to both arms (the tool
-   records its own HAR today; the browser baseline needs the same copy).
+4. **Decided for round 1 (section 0.7), not built:** how real pages are
+   frozen and served to both arms. The tool records its own HAR today; it
+   gets an option to replay a given recording, and the browser baseline
+   replays the same copy.
 5. **Decided:** Sonnet 5.5 Gov first; three families with cross-family judging
    for scored runs.
 6. **Decided:** weights in section 4, NEEDS_REVIEW at 0.
@@ -333,3 +520,6 @@ evals/agent/
 8. **Decided:** Phoenix later, only once its trace UI is worth the setup.
 9. **Decided:** tools are prefixed `a11y_` (`a11y_run_tt_tests`,
    `a11y_answer_questions`), so the eval measures the names that ship.
+10. **Decided (2026-11-03):** round 1 as in section 0: one run per arm, one
+    conversation per arm for all 9 pages, a WCAG 2.0 criteria prompt, scored
+    per TT test and per criterion, no wording judge yet.
