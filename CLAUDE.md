@@ -75,7 +75,7 @@ by TT test ID. Package: `a11y_assist` (name is provisional).
   `tools/__init__.py`. Tools are broad and outcome-based, not one per step:
   `a11y_run_tt_tests`, `a11y_answer_questions` and `a11y_read_report` now
   (files `run_tt_tests.py`, `answer_questions.py`, `read_report.py`; the
-  last reads an SCRT or pre-SCRT file and scores it against a reference);
+  last reads an SCRT or pre-SCRT file and lists what changed against another);
   `verify_fix` (an option on a11y_run_tt_tests that takes a saved report),
   merging a partial SCRT file, TT review and export, and fix advice for a
   read report (its own optional tool) planned
@@ -183,7 +183,8 @@ src/a11y_assist/
                 tt://5.1.3/... the TT text (index, tests/{id}, parts/{part})
   scrt.py       SCRT and pre-SCRT files: models, lenient SCRT reader, pre-SCRT
                 from a run's report (copies outcomes; decides none)
-  compare.py    two report files test by test: agreement, false PASS, false FAIL
+  compare.py    two report files test by test: what each says, what changed (neutral;
+                answer-key scoring is evals/scoring.py)
   explain.py    plain-language explanations of tests and results (prompt now,
                 failure reports later)
   prompts/      explain (a command in clients)
@@ -211,6 +212,7 @@ tests/test_baseline_cases.py   every (case, TT test) pair in fixtures/baseline/m
 evals/          judge eval: fresh agents answer the open questions from isolated
                 packets; judge_eval.py, README.md (results of each run);
                 time_budget.py (each phase's cost from steps.jsonl);
+                scoring.py (a tool file against an answer key: false PASS first);
                 judging.py (real pages against a tester's blind SCRT files,
                 commit and reveal; rounds in evals/judging/<round>/)
 runs/           output (git-ignored)

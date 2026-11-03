@@ -1,9 +1,10 @@
-"""Compare two report files test by test: a reference (a person's answer key)
-and a candidate (usually the tool's pre-SCRT file).
+"""Compare two report files test by test: what each file says, and whether
+it changed. Neutral on purpose (Abby, 2026-11-02): either file may be the
+earlier one (before and after a fix), and neither is taken as the truth.
+Scoring one file against an answer key is evaluation methodology and lives
+on top of this, in evals/scoring.py.
 
-Nothing here changes or decides an outcome: it sorts agreement and
-disagreement into the categories tests/scoring.py reports, with a false
-PASS (the worst error, principle 3) counted on its own.
+Nothing here changes or decides an outcome.
 
 A test with several rows (a parent and child issues) is summarized once:
 Fail if any row fails, else Pass if any row passes, else Does Not Apply,
@@ -19,31 +20,17 @@ from urllib.parse import urlsplit
 from pydantic import BaseModel, Field
 
 from a11y_assist import catalog
-from a11y_assist.scrt import PreScrt, Row, ScrtResult
+from a11y_assist.scrt import PreScrt, Row, ScrtResult, Source
 
 _ORDER = (ScrtResult.FAIL, ScrtResult.PASS, ScrtResult.DNA, ScrtResult.NOT_TESTED)
 
 
-class Verdict(str, Enum):
-    AGREE = "agree"
-    FALSE_PASS = "false_pass"  # candidate Pass, reference Fail
-    MISSED_FAIL = "missed_fail"  # candidate Does Not Apply, reference Fail
-    FALSE_FAIL = "false_fail"  # candidate Fail, reference Pass
-    FAIL_NOT_APPLICABLE = "fail_vs_dna"  # candidate Fail, reference Does Not Apply
-    OTHER = "other_mismatch"  # e.g. Pass vs Does Not Apply, Not Tested
-    NEEDS_REVIEW = "needs_review"  # candidate blank: the tool left it to a person
-    NOT_PERFORMED = "not_performed"  # the tool did not perform the test
-    NOT_SCORED = "not_scored"  # reference blank: no answer to score against
-
-
-# The order a report lists disagreements in: worst first.
-SEVERITY = [
-    Verdict.FALSE_PASS,
-    Verdict.MISSED_FAIL,
-    Verdict.FALSE_FAIL,
-    Verdict.FAIL_NOT_APPLICABLE,
-    Verdict.OTHER,
-]
+class Change(str, Enum):
+    SAME = "same"  # both files give the same result
+    CHANGED = "changed"  # both give a result, and they differ
+    ONLY_FIRST = "only_first"  # the second file leaves it blank
+    ONLY_SECOND = "only_second"  # the first file leaves it blank
+    NEITHER = "neither"  # both leave it blank
 
 
 def summary(rows: list[Row]) -> ScrtResult | None:
@@ -51,58 +38,51 @@ def summary(rows: list[Row]) -> ScrtResult | None:
     return next((r for r in _ORDER if r in got), None)
 
 
+def change(first: ScrtResult | None, second: ScrtResult | None) -> Change:
+    if first is None and second is None:
+        return Change.NEITHER
+    if first is None:
+        return Change.ONLY_SECOND
+    if second is None:
+        return Change.ONLY_FIRST
+    return Change.SAME if first == second else Change.CHANGED
+
+
+class Side(BaseModel):
+    """One file's answer for one test."""
+
+    result: ScrtResult | None
+    rows: int = Field(description="Rows for this test (a parent plus child issues).")
+    performed: bool = Field(
+        description="False when the file's maker (the tool) did not perform it."
+    )
+    needs_review: bool = Field(
+        description="A blank the tool left for a person (pre-SCRT files)."
+    )
+    comment: str | None = None
+    source: Source | None = None
+
+
 class TestComparison(BaseModel):
     __test__ = False  # not a pytest test class
 
     test_id: str
     test_name: str
-    verdict: Verdict
-    reference: ScrtResult | None
-    candidate: ScrtResult | None
-    candidate_outcome: str | None = Field(
-        default=None, description="The tool's own outcome when it wrote the row."
-    )
-    spec_version: str | None = None
-    rows: list[str] = Field(default_factory=list, description="Spec rows (audit).")
-    reference_comment: str | None = None
-    candidate_comment: str | None = None
+    change: Change
+    first: Side
+    second: Side
 
 
 class Comparison(BaseModel):
-    reference_page: str | None
-    candidate_page: str | None
+    first_page: str | None
+    second_page: str | None
     same_page: bool
     tests: list[TestComparison]
     counts: dict[str, int]
 
-    def disagreements(self) -> list[TestComparison]:
-        rank = {v: i for i, v in enumerate(SEVERITY)}
-        bad = [t for t in self.tests if t.verdict in rank]
-        return sorted(bad, key=lambda t: (rank[t.verdict], t.test_id))
-
-
-def verdict(
-    ref: ScrtResult | None, cand: ScrtResult | None, performed: bool
-) -> Verdict:
-    if ref is None:
-        return Verdict.NOT_SCORED
-    if not performed:
-        return Verdict.NOT_PERFORMED
-    if cand is None:
-        return Verdict.NEEDS_REVIEW
-    if cand == ref:
-        return Verdict.AGREE
-    if ref is ScrtResult.FAIL:
-        if cand is ScrtResult.PASS:
-            return Verdict.FALSE_PASS
-        if cand is ScrtResult.DNA:
-            return Verdict.MISSED_FAIL
-    if cand is ScrtResult.FAIL:
-        if ref is ScrtResult.PASS:
-            return Verdict.FALSE_FAIL
-        if ref is ScrtResult.DNA:
-            return Verdict.FAIL_NOT_APPLICABLE
-    return Verdict.OTHER
+    def changes(self) -> list[TestComparison]:
+        """Tests whose result differs between the files, in catalog order."""
+        return [t for t in self.tests if t.change not in (Change.SAME, Change.NEITHER)]
 
 
 def page_key(url: str | None) -> str | None:
@@ -115,68 +95,39 @@ def page_key(url: str | None) -> str | None:
     return (u.netloc.lower().removeprefix("www.") + u.path.rstrip("/")) or None
 
 
-def compare(reference: PreScrt, candidate: PreScrt) -> Comparison:
-    ref_rows, cand_rows = reference.results(), candidate.results()
+def _side(rows: list[Row]) -> Side:
+    return Side(
+        result=summary(rows),
+        rows=len(rows),
+        performed=bool(rows) and all(r.source.performed for r in rows),
+        needs_review=any(r.needs_review for r in rows),
+        comment=rows[0].TesterComment if rows else None,
+        source=rows[0].source if rows else None,
+    )
+
+
+def compare(first: PreScrt, second: PreScrt) -> Comparison:
+    a_rows, b_rows = first.results(), second.results()
     tests: list[TestComparison] = []
     for tid in catalog.active_ids():
-        rr, cr = ref_rows.get(tid, []), cand_rows.get(tid, [])
-        src = cr[0].source if cr else None
-        performed = bool(cr) and all(r.source.performed for r in cr)
-        ref, cand = summary(rr), summary(cr)
+        a, b = _side(a_rows.get(tid, [])), _side(b_rows.get(tid, []))
         tests.append(
             TestComparison(
                 test_id=tid,
                 test_name=catalog.tests()[tid]["name"],
-                verdict=verdict(ref, cand, performed),
-                reference=ref,
-                candidate=cand,
-                candidate_outcome=src.outcome if src else None,
-                spec_version=src.spec_version if src else None,
-                rows=src.rows if src else [],
-                reference_comment=rr[0].TesterComment if rr else None,
-                candidate_comment=cr[0].TesterComment if cr else None,
+                change=change(a.result, b.result),
+                first=a,
+                second=b,
             )
         )
-    counts = {v.value: 0 for v in Verdict}
+    counts = {c.value: 0 for c in Change}
     for t in tests:
-        counts[t.verdict.value] += 1
-    rp, cp = reference.Product.P_Location, candidate.Product.P_Location
+        counts[t.change.value] += 1
+    ap, bp = first.Product.P_Location, second.Product.P_Location
     return Comparison(
-        reference_page=rp,
-        candidate_page=cp,
-        same_page=page_key(rp) == page_key(cp),
+        first_page=ap,
+        second_page=bp,
+        same_page=page_key(ap) is not None and page_key(ap) == page_key(bp),
         tests=tests,
         counts=counts,
     )
-
-
-def totals(comparisons: list[Comparison]) -> dict[str, int]:
-    out = {v.value: 0 for v in Verdict}
-    for c in comparisons:
-        for k, n in c.counts.items():
-            out[k] += n
-    return out
-
-
-def rates(counts: dict[str, int]) -> dict[str, str]:
-    """Plain figures: scored tests are those with a reference answer that the
-    tool performed."""
-    scored = sum(
-        counts[v.value]
-        for v in Verdict
-        if v not in (Verdict.NOT_SCORED, Verdict.NOT_PERFORMED)
-    )
-    decided = scored - counts[Verdict.NEEDS_REVIEW.value]
-    agree = counts[Verdict.AGREE.value]
-    return {
-        "scored": str(scored),
-        "agreement (of decided)": f"{agree}/{decided}",
-        "needs review (of scored)": f"{counts[Verdict.NEEDS_REVIEW.value]}/{scored}",
-        "false PASS": str(counts[Verdict.FALSE_PASS.value]),
-        "missed fail (Does Not Apply)": str(counts[Verdict.MISSED_FAIL.value]),
-        "false FAIL": str(counts[Verdict.FALSE_FAIL.value]),
-        "Fail vs Does Not Apply": str(counts[Verdict.FAIL_NOT_APPLICABLE.value]),
-        "other mismatch": str(counts[Verdict.OTHER.value]),
-        "not performed by the tool": str(counts[Verdict.NOT_PERFORMED.value]),
-        "no reference answer": str(counts[Verdict.NOT_SCORED.value]),
-    }

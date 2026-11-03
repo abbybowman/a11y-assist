@@ -47,8 +47,9 @@ TOOL SELECTION GUIDE:
   plain language -> the explain prompt (about = test ID, WCAG criterion or
   words; run_id = a run to explain)
 - Read an SCRT report file (from DHS's SCRT or this server's pre-SCRT
-  file), or score one against a person's answer key -> a11y_read_report
-  (content; compare_to = the reference file)
+  file), or see what changed between two reports of a page (before and after
+  a fix, or a person's report and the tool's) -> a11y_read_report
+  (content; compare_to = the other file; a run:// link works for either)
 - Read the TT text for a test -> resource tt://5.1.3/tests/{{id}} (list of
   all tests: tt://5.1.3/index; a whole part: tt://5.1.3/parts/{{part}})
 - Read a run's full report or evidence, or save the report -> the run://

@@ -315,3 +315,42 @@ def test_a_page_that_could_not_be_tested_shows_in_the_rates(tmp_path):
     rates = judging.score(rd)["rates"]
     assert rates["pages scored"] == "1 of 2"
     assert rates["pages not scored"] == "p02 (no answer key)"
+
+
+# ── Scoring a tool file against an answer key (evals/scoring.py) ────────────
+
+from a11y_assist.compare import compare  # noqa: E402
+from a11y_assist.scrt import ScrtResult as R  # noqa: E402
+from evals.scoring import Verdict, rates, verdict  # noqa: E402
+from evals.scoring import score as score_page  # noqa: E402
+
+
+@pytest.mark.parametrize(
+    "key, tool, performed, expected",
+    [
+        (None, R.PASS, True, Verdict.NOT_SCORED),
+        (R.FAIL, None, False, Verdict.NOT_PERFORMED),
+        (R.FAIL, None, True, Verdict.NEEDS_REVIEW),
+        (R.PASS, R.PASS, True, Verdict.AGREE),
+        (R.FAIL, R.PASS, True, Verdict.FALSE_PASS),
+        (R.FAIL, R.DNA, True, Verdict.MISSED_FAIL),
+        (R.PASS, R.FAIL, True, Verdict.FALSE_FAIL),
+        (R.DNA, R.FAIL, True, Verdict.FAIL_NOT_APPLICABLE),
+        (R.DNA, R.PASS, True, Verdict.OTHER),
+        (R.NOT_TESTED, R.DNA, True, Verdict.OTHER),
+    ],
+)
+def test_verdicts(key, tool, performed, expected):
+    assert verdict(key, tool, performed) is expected
+
+
+def test_scoring_a_tool_file_against_a_persons_file(tmp_path):
+    key = scrt.parse(SAMPLE.read_text())
+    s = score_page(compare(key, scrt.parse(_candidate(tmp_path))))
+    v = {t.test.test_id: t.verdict for t in s.tests}
+    assert v["1.A"] is Verdict.FALSE_PASS  # the key fails it, the tool passes it
+    assert v["4.A"] is Verdict.AGREE
+    assert v["3.A"] is Verdict.NOT_PERFORMED  # the run did not include it
+    assert v["4.B"] is Verdict.NOT_SCORED
+    assert [t.test.test_id for t in s.disagreements()] == ["1.A"]
+    assert rates(s.counts)["false PASS"] == "1"
