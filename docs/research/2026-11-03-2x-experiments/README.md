@@ -56,6 +56,8 @@ plus `site/v264.mp4`, in one folder and pass that folder.
 | 13 | `large_media.py` | `pages/big <har.zip>` | 21 MB video in three ranges: HAR has no bodies; replay error 4 |
 | 14 | `large_media_store.py` | `pages/big <har.zip>` | with the full body saved and ranges served on replay: plays from 40 s with audio |
 | 18 | `parallel_watcher.py` | `<absolute path to a page> <seconds>` | run beside `evals/time_budget.py budget/agency-home.html`; the walk was not slowed |
+| Q11 | `browser_costs.py` | none | launch 68 vs 139 ms, context+page+load 61 vs 151 ms, Tab 2.8 vs 4.7 ms (shell vs full) |
+| Q11 | `cross_browser_replay.py` | `pages/ifr <har.zip>` | recorded in the shell, replayed in full Chromium: out-of-process iframe, video plays, Tab+Enter pauses it |
 
 **What feeds the build directly:** the tile diff in `detection.py`
 (pass T), the media store in `large_media_store.py` (`capture.py`), and

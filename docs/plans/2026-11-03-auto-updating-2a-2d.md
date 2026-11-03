@@ -8,7 +8,7 @@ work.
 **Decided (Abby, 2026-11-03):**
 
 - **Q1:** a second, headless, autoplay-allowed browser for pass T and the
-  mechanism probes.
+  mechanism probes (full Chromium, Q11).
 - **Q2:** pass T runs in parallel with the walk, which changes
   `pipeline.py`. Pages with moving content get extra time.
 - **Q5:** browser tab mute does not satisfy 2.A.
@@ -31,8 +31,8 @@ work.
 - **Q10:** a key combination named in page text may be pressed, as an
   approved exception to principle 5, within the limits in Q10 below.
 
-Still open: the Q6 details and Q11 (full Chromium for the tests) at the
-end.
+Still open: the Q6 details (recommendations given) and Q11 (full Chromium
+only for pages with cross-site iframes) at the end.
 
 The experiments behind every "verified" below are in
 [research/2026-11-03-2x-experiments/](../research/2026-11-03-2x-experiments/README.md).
@@ -252,7 +252,8 @@ focus-only control probe. A page with nothing moving pays only pass T.
 ### Pass T: watch the page over time (new, `motion.py`)
 
 One fresh load of the recorded page with no input, watched for 6.5 s. It
-runs in a second, headless browser with the autoplay flag (Q1), so the
+runs in a second, headless browser with the autoplay flag (Q1; full
+Chromium, Q11), so the
 walk's browser and every other test's evidence are unchanged. In headed
 runs, a second window could take focus from the walk; a headless browser
 opens no window and has no pointer over the page (item 12). TT's
@@ -474,33 +475,58 @@ Which browser runs where today:
 - **A hosted, headless deployment** set to `"chromium"` would also get the
   shell, so it would differ from what users' Chrome does.
 
-Measured 2026-11-03 on this container, with a temporary local switch to
-full Chromium (`channel="chromium"`; not committed):
+Measured 2026-11-03 on this container. A temporary local switch to full
+Chromium (`channel="chromium"`) was used and not committed. Scripts:
+`research/…/browser_costs.py`, `cross_browser_replay.py`.
 
 | | Headless shell | Full Chromium |
 | --- | --- | --- |
-| Test suite (`pytest -n 4`) | 762 passed, 1 xfailed, **10.0 min** | 762 passed, 1 xfailed, **14.2 min** |
+| Test suite (`pytest -n 4`) | 762 passed, 1 xfailed, **10.0 min** | 762 passed, 1 xfailed, **14.2 min (+42%)** |
 | ACT and DHS agreement lines, mismatches | — | identical to the shell |
 | `time_budget.py budget/agency-home.html` | 102.5 s | 102.6 s |
+| Browser launch (median of 5) | 68 ms | 139 ms |
+| New context, page and load (median of 15) | 61 ms | 151 ms |
+| Tab press | 2.8 ms | 4.7 ms |
 
-So full Chromium changes no result and costs nothing per page. Only the
-suite is slower (+42%: more processes per page across 763 tests).
+So full Chromium costs about 90 ms more per page load. A real run hides
+that behind the walk's settle waits (~190 ms per press), which is why the
+agency page came out the same. The suite makes thousands of short loads,
+so there it adds up to +42%.
 
-A rule "pages with iframes run in full Chromium" is hard to apply per
-page: whether a page has iframes is only known after recording, and
-switching would relaunch the browser mid-run. Options:
+**Recording happens once, before any test, and its HAR does not depend on
+the browser.** So the browser that replays it can be chosen after
+recording. Verified: a page with a cross-site iframe was recorded in the
+shell and replayed in full Chromium. The iframe was out-of-process, its
+video played, and Tab, Tab, Enter reached its Pause button and paused it.
+No request failed.
 
-- **(a) Recommended.** Never use the shell for real runs: `"chromium"`
-  launches full Chromium. Add a separate `"chromium-shell"` value for
-  quick local test runs. CI runs the suite in full Chromium, at +4 min.
-- **(b)** Keep the shell for the suite. Iframe tests (4.C F19–F21, V5,
-  the 2.x iframe fixtures) run in full Chromium through a marker. Faster
-  CI, but other shell-only differences stay untested, such as 0 px
-  scrollbars ([windows-chrome-results.md](../solutions/windows-chrome-results.md)).
-- **(c)** Leave it as is.
+**Proposed rule (recommended):**
 
-Either (a) or (b) goes in CLAUDE.md as a global rule, and is built before
-2.x, since it changes `browser.py` and the test setup.
+- **The recorder notes cross-site frames.** It lists the frames whose site
+  differs from the top page's, while it loads the page (it already waits
+  for the page to go idle and scrolls it). This becomes a new
+  `Capture.cross_site_frames` field.
+- **Choosing the replay browser.** When that list is not empty, and the
+  configured browser is `"chromium"`, the replays run in full Chromium.
+  Otherwise they keep the shell. Installed Chrome (`"chrome"`) is
+  unaffected: it is already out-of-process.
+- **Pass T and the 2.x probes always use full Chromium,** in the second,
+  autoplay-allowed browser (Q1). That browser is separate anyway, its few
+  loads make the ~90 ms negligible, and media and motion behave as in
+  Chrome.
+- **The report records which browser replayed the page,** as it records
+  versions today.
+- **What it costs.** Only pages with cross-site iframes pay the extra
+  ~90 ms per load. In the suite that is the 17 fixture files with iframes
+  (9 ACT cases, 8 custom pages), so CI stays near 10 min.
+- **What is left.** A cross-site iframe that appears only after a click
+  is not seen while recording. Its content is still reached, since V5
+  handles in-process frames, but the replay runs in the shell. The walk
+  can log any cross-site frame it meets, so this case shows in the
+  report.
+
+A rule for CLAUDE.md, once approved: "Replays of pages with cross-site
+iframes run in full Chromium, never the headless shell."
 
 ## Q10's limits (decided)
 
@@ -520,15 +546,35 @@ is built.
 
 ## Open questions for Abby
 
-- **Q6 details.**
-  - Each data-table cell one element? (a) Yes, as the reader does now
-    (recommended: the stricter count).
-  - A stacked label above its field: (a) one element with it, as a label
-    and its control are (recommended).
-  - An iframe: (a) one element, its content counted in its own window, as
-    ANDI tests each iframe on its own (recommended). (b) Its units inline.
-- **Q11. Full Chromium for the tests (iframes).** See "Full Chromium
-  instead of the headless shell" below.
+- **Q6 details (recommendations).** Your rule, "when in doubt, the
+  interpretation that clearly leads to better UX and accessibility", points
+  to counting what a screen reader user actually moves through in browse
+  mode. That count is also the stricter one: the mechanism has to sit
+  closer to the content. It can never cause a false PASS, and PASS stays
+  NEEDS REVIEW anyway until Q4's shortlist exists.
+  - **Data-table cells:** each cell is one element (recommended). Screen
+    readers read a table cell by cell, so a pause button after a 30-cell
+    table is 30 steps away. This is what `site.UNITS_FN` does now.
+  - **A label and its field:** one element when they share a line (a radio
+    and its text, a checkbox and its text), as screen readers read them as
+    one line. Two elements when the label is stacked above the field,
+    where browse mode reads the label line, then the field (recommended).
+    This is decided mechanically from their boxes. (b) Always one element:
+    simpler, and less strict.
+  - **An iframe:** its content counts inline, in reading order, as if it
+    were part of the page (recommended). Screen readers read into iframes
+    in place. Counting the whole iframe as one element would let a long
+    embedded widget hide how far away the mechanism is. When the iframe
+    *is* the content (an embedded player), its own controls are inside the
+    content and are candidates anyway. ANDI's "one iframe at a time" is a
+    limit of the tool, not how users meet the page.
+  - **Images with no alt text** stay uncounted: screen readers skip them.
+    Images with alt text count (DHS #114).
+- **Q11. Full Chromium only where it matters.** Replay in full Chromium
+  only pages whose recording has cross-site iframes, plus pass T and the
+  probes always. Details in "Full Chromium instead of the headless shell"
+  above. (a) As proposed (recommended). (b) Full Chromium everywhere
+  (+42% suite time). (c) Leave it.
 
 ## Order of work (after the answers)
 
