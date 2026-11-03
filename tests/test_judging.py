@@ -278,7 +278,8 @@ def test_other_pages_are_the_rounds_pages_on_the_same_host():
     assert judging.other_pages("https://www.b.gov/1", listed) == []
     got = judging.other_pages("https://www.a.gov/2", listed)
     assert got[:2] == ["https://www.a.gov/1", "https://www.a.gov/3"]
-    assert len(got) == 5 and "https://www.a.gov/2" not in got
+    # Every round page on the host (8 here): scans run with no time limit.
+    assert len(got) == 8 and "https://www.a.gov/2" not in got
 
 
 async def test_scan_runs_each_page_and_files_its_results(tmp_path, settings, server):

@@ -121,9 +121,11 @@ def register(mcp: FastMCP) -> None:
         other_pages: Annotated[
             list[Annotated[str, Field(min_length=1, max_length=2048)]],
             Field(
-                max_length=5,
+                max_length=50,
                 description=(
-                    "Up to 5 other pages of the same site (absolute URLs on the "
+                    "Up to 5 other pages of the same site (up to 50 with "
+                    "no_time_limit=true; more pages make those tests more "
+                    "reliable but the call slower) (absolute URLs on the "
                     "tested page's host, each allowed like `url`), for the tests "
                     "that compare pages: 9.A (what repeats, to bypass), 9.B "
                     "(navigation order), 9.C (consistent names) and 19.A (more than "
