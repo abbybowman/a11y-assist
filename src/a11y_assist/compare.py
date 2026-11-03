@@ -107,9 +107,11 @@ def verdict(
 
 def page_key(url: str | None) -> str | None:
     """Scheme-less host and path, no trailing slash, no query or fragment."""
-    if not url:
+    if not url or not url.strip():
         return None
-    u = urlsplit(url.strip())
+    url = url.strip()
+    # Testers type "www.dhs.gov/page" in SCRT; without "//" it parses as a path.
+    u = urlsplit(url if "://" in url else "//" + url)
     return (u.netloc.lower().removeprefix("www.") + u.path.rstrip("/")) or None
 
 

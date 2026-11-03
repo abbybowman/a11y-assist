@@ -166,6 +166,47 @@ def test_score_refuses_changes_after_the_lock(tmp_path, tamper, monkeypatch):
         judging.score(rd)
 
 
+def _key_for(rd: Path, location: str) -> Path:
+    """An answer key naming `location`, hashed into pages.txt (as a tester
+    would hash it) before the lock."""
+    data = json.loads(SAMPLE.read_text("utf-8"))
+    data[0]["Product"]["P_Location"] = location
+    key = rd.parent / "key.json"
+    key.write_text(json.dumps(data), encoding="utf-8")
+    (rd / "pages.txt").write_text(f"https://example.gov/a {judging.sha256(key)}\n")
+    return key
+
+
+def test_a_key_naming_another_page_is_refused(tmp_path):
+    # A hash pasted on the wrong line pairs page A with page B's answers.
+    rd = _round(tmp_path)
+    key = _key_for(rd, "https://example.gov/b")
+    judging.lock(rd)
+    (rd / "keys").mkdir()
+    shutil.copyfile(key, rd / "keys" / "k.json")
+    with pytest.raises(judging.JudgingError, match="names https://example.gov/b"):
+        judging.score(rd)
+
+
+@pytest.mark.parametrize("location", ["example.gov/a/", "https://www.example.gov/a"])
+def test_a_key_naming_the_page_any_way_is_scored(tmp_path, location):
+    rd = _round(tmp_path)
+    key = _key_for(rd, location)
+    judging.lock(rd)
+    (rd / "keys").mkdir()
+    shutil.copyfile(key, rd / "keys" / "k.json")
+    assert judging.score(rd)["counts"]["agree"] == 1
+    assert "by its hash only" not in (rd / "score.md").read_text()
+
+
+def test_a_key_naming_no_page_is_scored_by_hash_and_says_so(tmp_path):
+    rd = _round(tmp_path)  # the sample SCRT file leaves P_Location blank
+    judging.lock(rd)
+    _reveal(rd)
+    judging.score(rd)
+    assert "matched to this page by its hash only" in (rd / "score.md").read_text()
+
+
 def test_other_pages_are_the_rounds_pages_on_the_same_host():
     listed = [
         "https://www.a.gov/1",
