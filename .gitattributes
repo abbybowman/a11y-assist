@@ -1,2 +1,5 @@
 # Vendored third-party files must stay byte-identical (hashes are checked in tests).
 third_party/** -text
+# Judging rounds lock the SHA-256 of their result files and answer keys: git
+# must not rewrite their line endings, or a fresh clone fails the lock.
+evals/judging/** -text
