@@ -376,6 +376,11 @@ class Versions(BaseModel):
     a11y_assist: str
     andi: str
     jquery: str
+    scrt: str | None = Field(
+        default=None,
+        description="SCRT template the pre-SCRT file is built from "
+        "(version and commit).",
+    )
     playwright: str
     browser_channel: str
     browser: str | None
@@ -482,7 +487,9 @@ SAVE_HINT = (
     "The full report is the resource at `report_uri` (not repeated here, to save "
     "context). If the user wants to keep it, read that resource and save it in "
     "their repository (for example a11y-results/<date>-<page>.json) before "
-    "`expires_at`; the server keeps a run only until then."
+    "`expires_at`; the server keeps a run only until then. `pre_scrt_uri` is "
+    "the same results as a pre-SCRT file, for a Trusted Tester's review: save "
+    "it too (for example a11y-results/<date>-<page>.pre-scrt.json)."
 )
 SHARED_DESC = (
     "Evidence several open questions use, given once per result instead of in "
@@ -518,6 +525,11 @@ class RunResult(BaseModel):
     shared_inputs: dict[str, Any] = Field(default_factory=dict, description=SHARED_DESC)
     expires_at: datetime
     report_uri: str = Field(description="run:// resource holding the full report.")
+    pre_scrt_uri: str = Field(
+        description="run:// resource holding the results as a pre-SCRT file "
+        "(SCRT's shape, for a Trusted Tester to review; agent-assisted, not "
+        "loadable in SCRT). Save it with the report."
+    )
     # Kept for in-process callers (pipeline, tests, evals); never sent to the
     # client, which reads report_uri instead (about 60% of a result's size).
     report: Report = Field(exclude=True)
@@ -536,6 +548,11 @@ class AnswerResult(BaseModel):
     page_text: list[dict[str, str]] = Field(default_factory=list)
     shared_inputs: dict[str, Any] = Field(default_factory=dict, description=SHARED_DESC)
     report_uri: str = Field(description="run:// resource holding the full report.")
+    pre_scrt_uri: str = Field(
+        description="run:// resource holding the results as a pre-SCRT file "
+        "(SCRT's shape, for a Trusted Tester to review; agent-assisted, not "
+        "loadable in SCRT). Save it with the report."
+    )
     report: Report = Field(exclude=True)  # see RunResult.report
     errors: list[str] = Field(default_factory=list)
     save_hint: str = SAVE_HINT

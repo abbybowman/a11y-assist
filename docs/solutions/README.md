@@ -29,3 +29,4 @@ took more than an hour to understand; update it when the answer changes.
 | [windows-chrome-results.md](windows-chrome-results.md) | First Windows runs (headless and headed Chrome 156) against Linux: 5.D false PASS, egress tests, one 4.A ACT case; load-only and harness-only failures; stay off the machine in headed runs |
 | [egress-proxy.md](egress-proxy.md) | `route.fetch` goes through the launch proxy; a CONNECT 403 is a response, not an error; HAR replay hangs on failed requests |
 | [multi-page.md](multi-page.md) | Other pages come from the caller; read content, not stops (ACT's text-only blocks); where a skip link lands; stop once bypassed; rules-only cases and the judge eval; 19.A's live search and suggested pages |
+| [scrt-format.md](scrt-format.md) | SCRT's JSON: one-item array, strings, child rows, screenshots inside; a row set back to "No Selection" is dropped on save; child issues shift Global issue choices |
