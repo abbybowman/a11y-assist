@@ -128,7 +128,8 @@ async def test_a_run_writes_a_pre_scrt_file_the_reader_reads(settings, server):
         res = await _call(
             client,
             "a11y_read_report",
-            {"content": content.text, "compare_to": SAMPLE.read_text()},
+            # The run's own file by its link: no need to send it back.
+            {"content": out["pre_scrt_uri"], "compare_to": SAMPLE.read_text()},
         )
         assert not res.is_error
         read = json.loads(res.content[0].text)
@@ -137,8 +138,29 @@ async def test_a_run_writes_a_pre_scrt_file_the_reader_reads(settings, server):
     assert read["tester_named"] is False
     cmp = read["comparison"]
     assert cmp["same_page"] is False  # the sample has no page URL
-    # The sample answers 1.A-4.A; the run performed only 4.C.
-    assert cmp["counts"]["not_performed"] == 4 and cmp["disagreements"] == []
+    # The sample answers 1.A-4.A; the run performed only 4.C. The comparison
+    # lists what changed and never calls either file wrong.
+    assert cmp["counts"]["only_first"] == 4 and cmp["counts"]["only_second"] == 1
+    assert [(c["test_id"], c["compare_to"], c["content"]) for c in cmp["changes"]][
+        -1
+    ] == ("4.C", "blank", "Pass")
+    assert "false" not in json.dumps(cmp["counts"]) + json.dumps(cmp["changes"])
+
+
+async def test_read_report_takes_a_local_path_only_in_dev_mode(settings):
+    async with Client(mcp) as client:
+        local = await _call(client, "a11y_read_report", {"content": str(SAMPLE)})
+        settings.dev_mode = False
+        refused = await _call(client, "a11y_read_report", {"content": str(SAMPLE)})
+        gone = await _call(
+            client,
+            "a11y_read_report",
+            {"content": SAMPLE.read_text(), "compare_to": "run://nope/pre-scrt.json"},
+        )
+    assert json.loads(local.content[0].text)["format"] == "scrt"
+    assert refused.is_error and "DEV_MODE" in refused.content[0].text
+    # The error names the argument that was wrong.
+    assert gone.is_error and gone.content[0].text.startswith("compare_to:")
 
 
 async def test_read_report_of_a_tt_file_and_bad_input():

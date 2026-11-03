@@ -46,9 +46,13 @@ its developers see the pages or the answers first.
 5. **Reveal.** The tester adds their SCRT files to `<round>/keys/` (any
    names: they are matched to pages by hash) and commits.
 6. **Score.** `uv run python evals/judging.py score evals/judging/<round>`
-   writes `score.md` and `score.json`. It stops if a key matches no page or
-   if `pages.txt`, a result or the comparison code changed after the lock
-   (to score with older code, check out the lock commit). Add a line for
+   writes `score.md` and `score.json` (scoring: `evals/scoring.py`, on the
+   neutral comparison in `src/a11y_assist/compare.py`). It stops if a key
+   matches no page, if a key's page (`P_Location`) names a different page
+   than its line in `pages.txt`, or if `pages.txt`, a result or the scoring
+   code changed after the lock (to score with older code, check out the lock
+   commit). The rates open with how many pages were scored and why any were
+   not. Add a line for
    the round below. Do not copy figures into `docs/hackathon/evaluation.md`
    until a final round is chosen.
 

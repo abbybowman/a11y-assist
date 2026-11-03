@@ -13,7 +13,7 @@ from pathlib import Path
 import pytest
 
 from a11y_assist import catalog, scrt
-from a11y_assist.compare import Verdict, compare, rates, summary, verdict
+from a11y_assist.compare import Change, change, compare, summary
 from a11y_assist.models import (
     NOT_CERTIFIED_DISCLAIMER,
     TEST_NOT_PERFORMED_NOTE,
@@ -238,22 +238,18 @@ def test_pre_scrt_round_trips(tmp_path):
 
 
 @pytest.mark.parametrize(
-    "ref, cand, performed, expected",
+    "first, second, expected",
     [
-        (None, R.PASS, True, Verdict.NOT_SCORED),
-        (R.FAIL, None, False, Verdict.NOT_PERFORMED),
-        (R.FAIL, None, True, Verdict.NEEDS_REVIEW),
-        (R.PASS, R.PASS, True, Verdict.AGREE),
-        (R.FAIL, R.PASS, True, Verdict.FALSE_PASS),
-        (R.FAIL, R.DNA, True, Verdict.MISSED_FAIL),
-        (R.PASS, R.FAIL, True, Verdict.FALSE_FAIL),
-        (R.DNA, R.FAIL, True, Verdict.FAIL_NOT_APPLICABLE),
-        (R.DNA, R.PASS, True, Verdict.OTHER),
-        (R.NOT_TESTED, R.DNA, True, Verdict.OTHER),
+        (None, None, Change.NEITHER),
+        (None, R.PASS, Change.ONLY_SECOND),
+        (R.FAIL, None, Change.ONLY_FIRST),
+        (R.PASS, R.PASS, Change.SAME),
+        (R.FAIL, R.PASS, Change.CHANGED),
+        (R.PASS, R.FAIL, Change.CHANGED),
     ],
 )
-def test_verdicts(ref, cand, performed, expected):
-    assert verdict(ref, cand, performed) is expected
+def test_changes(first, second, expected):
+    assert change(first, second) is expected
 
 
 def test_child_rows_summarize_fail_first():
@@ -261,24 +257,26 @@ def test_child_rows_summarize_fail_first():
     assert summary(rows["1.A"]) is R.FAIL and summary(rows["4.B"]) is None
 
 
-def test_compare_a_tool_file_with_a_persons_file(tmp_path):
-    ref = scrt.parse(SAMPLE.read_text())
-    ref.Product.P_Location = "https://www.example.gov/form/"
+def test_compare_is_neutral_before_and_after_a_fix(tmp_path):
+    # A person's report (Fail on 1.A, Pass on 4.A), then the tool's after a
+    # fix: the comparison says what changed, never that a file was wrong.
+    before = scrt.parse(SAMPLE.read_text())
+    before.Product.P_Location = "https://www.example.gov/form/"
     findings = [
-        Finding(test_id=TestId.T1A, test_name="x", outcome=Outcome.PASS),  # false PASS
-        Finding(test_id=TestId.T2A, test_name="x", outcome=Outcome.DNA),  # agree
-        Finding(test_id=TestId.T4A, test_name="x", outcome=Outcome.FAIL),  # false FAIL
+        Finding(test_id=TestId.T1A, test_name="x", outcome=Outcome.PASS),
+        Finding(test_id=TestId.T2A, test_name="x", outcome=Outcome.DNA),
+        Finding(test_id=TestId.T4A, test_name="x", outcome=Outcome.FAIL),
     ]
-    cand = scrt.from_report(_report(findings), _run_dir(tmp_path))
-    c = compare(ref, cand)
+    after = scrt.from_report(_report(findings), _run_dir(tmp_path))
+    c = compare(before, after)
     assert c.same_page  # www., trailing slash and scheme ignored
-    v = {t.test_id: t.verdict for t in c.tests}
-    assert v["1.A"] is Verdict.FALSE_PASS
-    assert v["2.A"] is Verdict.AGREE
-    assert v["4.A"] is Verdict.FALSE_FAIL
-    assert v["3.A"] is Verdict.NOT_PERFORMED  # the run did not include it
-    assert v["4.B"] is Verdict.NOT_SCORED
-    assert [t.test_id for t in c.disagreements()] == ["1.A", "4.A"]  # worst first
-    assert c.counts["not_scored"] == 57 and sum(c.counts.values()) == 61
-    r = rates(c.counts)
-    assert r["agreement (of decided)"] == "1/3" and r["false PASS"] == "1"
+    by = {t.test_id: t for t in c.tests}
+    assert by["1.A"].change is Change.CHANGED
+    assert (by["1.A"].first.result, by["1.A"].second.result) == (R.FAIL, R.PASS)
+    assert by["2.A"].change is Change.SAME
+    assert by["3.A"].change is Change.ONLY_FIRST  # the run did not include it
+    assert not by["3.A"].second.performed
+    assert by["4.B"].change is Change.NEITHER
+    assert [t.test_id for t in c.changes()] == ["1.A", "3.A", "4.A"]
+    assert sum(c.counts.values()) == 61
+    assert "false_pass" not in c.model_dump_json()  # no verdict words

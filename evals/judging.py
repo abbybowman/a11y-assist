@@ -42,20 +42,16 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO))
 
 from a11y_assist import scrt  # noqa: E402
-from a11y_assist.compare import (  # noqa: E402
-    SEVERITY,
-    Comparison,
-    compare,
-    page_key,
-    rates,
-    totals,
-)
+from a11y_assist.compare import compare, page_key  # noqa: E402
+from evals.scoring import SEVERITY, Score, ScoredTest, rates, totals  # noqa: E402
+from evals.scoring import score as score_page  # noqa: E402
 
 MAX_ROUNDS = 3
 # Everything score() reads to decide what counts: a change after the reveal
 # (the tests compared, which pages count) must stop the score.
 CODE = [
     "evals/judging.py",
+    "evals/scoring.py",
     "src/a11y_assist/compare.py",
     "src/a11y_assist/scrt.py",
     "src/a11y_assist/catalog.py",
@@ -328,7 +324,7 @@ def score(rd: Path) -> dict:
     stray = [p.name for h, p in keys.items() if h not in by_hash]
     if stray:
         raise JudgingError(f"Answer keys that match no page's hash: {stray}")
-    comparisons: list[tuple[str, str, Comparison | None, str]] = []
+    comparisons: list[tuple[str, str, Score | None, str]] = []
     for n, (url, h) in enumerate(pages, 1):
         pid = f"p{n:02d}"
         key = keys.get(h)
@@ -350,7 +346,7 @@ def score(rd: Path) -> dict:
                 f"{pid}: the answer key {key.name} names {ref.Product.P_Location}, "
                 f"not {url}: check the hash on that line of pages.txt"
             )
-        c = compare(ref, scrt.parse(cand.read_text("utf-8")))
+        c = score_page(compare(ref, scrt.parse(cand.read_text("utf-8"))))
         comparisons.append((pid, url, c, ""))
     done = [c for _, _, c, _ in comparisons if c]
     tot = totals(done)
@@ -374,10 +370,8 @@ def score(rd: Path) -> dict:
                 "scanned_at": state.get(pid, {}).get("scanned_at"),
                 "skipped": why or None,
                 "counts": c.counts if c else None,
-                "same_page": c.same_page if c else None,
-                "disagreements": [t.model_dump(mode="json") for t in c.disagreements()]
-                if c
-                else [],
+                "same_page": c.comparison.same_page if c else None,
+                "disagreements": [_flat(t) for t in c.disagreements()] if c else [],
             }
             for pid, url, c, why in comparisons
         ],
@@ -388,7 +382,22 @@ def score(rd: Path) -> dict:
     return out
 
 
-def _markdown(out: dict, comparisons, done: list[Comparison]) -> str:
+def _flat(t: ScoredTest) -> dict:
+    """One disagreement: the key's answer, the tool's and its audit trail."""
+    tool = t.test.second.source
+    return {
+        "test_id": t.test.test_id,
+        "test_name": t.test.test_name,
+        "verdict": t.verdict.value,
+        "key": t.test.first.result.value if t.test.first.result else None,
+        "tool": t.test.second.result.value if t.test.second.result else None,
+        "tool_outcome": tool.outcome if tool else None,
+        "spec_version": tool.spec_version if tool else None,
+        "rows": tool.rows if tool else [],
+    }
+
+
+def _markdown(out: dict, comparisons, done: list[Score]) -> str:
     lines = [
         f"# Judging {out['round']}: score",
         "",
@@ -409,7 +418,7 @@ def _markdown(out: dict, comparisons, done: list[Comparison]) -> str:
     per: dict[str, dict[str, int]] = {}
     for c in done:
         for t in c.tests:
-            row = per.setdefault(t.test_id, {})
+            row = per.setdefault(t.test.test_id, {})
             row[t.verdict.value] = row.get(t.verdict.value, 0) + 1
     for tid, r in per.items():
         if not set(r) - {"not_scored", "not_performed"}:
@@ -429,7 +438,7 @@ def _markdown(out: dict, comparisons, done: list[Comparison]) -> str:
         if c is None:
             lines += [f"Not scored: {why}.", ""]
             continue
-        if page_key(c.reference_page) is None:
+        if page_key(c.comparison.first_page) is None:
             lines.append(
                 "The answer key names no page; it was matched to this page by "
                 "its hash only."
@@ -441,13 +450,11 @@ def _markdown(out: dict, comparisons, done: list[Comparison]) -> str:
         lines.append("")
         lines.append("| Test | Verdict | Tester | Tool | Tool outcome | Spec | Rows |")
         lines.append("| --- | --- | --- | --- | --- | --- | --- |")
-        for t in bad:
+        for d in map(_flat, bad):
             lines.append(
-                f"| {t.test_id} | {t.verdict.value} | "
-                f"{t.reference.value if t.reference else ''} | "
-                f"{t.candidate.value if t.candidate else ''} | "
-                f"{t.candidate_outcome or ''} | {t.spec_version or ''} | "
-                f"{' '.join(t.rows)} |"
+                f"| {d['test_id']} | {d['verdict']} | {d['key'] or ''} | "
+                f"{d['tool'] or ''} | {d['tool_outcome'] or ''} | "
+                f"{d['spec_version'] or ''} | {' '.join(d['rows'])} |"
             )
         lines.append("")
     lines.append("Verdicts, worst first: " + ", ".join(v.value for v in SEVERITY) + ".")
