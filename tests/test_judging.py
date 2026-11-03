@@ -124,6 +124,7 @@ def test_lock_then_reveal_then_score(tmp_path):
     assert [d["test_id"] for d in page["disagreements"]] == ["1.A"]
     md = (rd / "score.md").read_text()
     assert "| false PASS | 1 |" in md and "not a certified" in md
+    assert "| pages scored | 1 of 1 |" in md and "| pages not scored | none |" in md
     assert "Scanned 2026-11-02" in md
 
 
@@ -295,3 +296,21 @@ async def test_scan_runs_each_page_and_files_its_results(tmp_path, settings, ser
         assert q["questions"] and "answer_format" in q
     else:
         assert (rd / "results" / "p01" / "pre-scrt.json").is_file()
+
+
+def test_a_page_that_could_not_be_tested_shows_in_the_rates(tmp_path):
+    rd = _round(tmp_path)
+    with (rd / "pages.txt").open("a") as f:
+        f.write(f"https://example.gov/b {H1}\n")
+    state = json.loads((rd / "state.json").read_text())
+    state["p02"] = {
+        "url": "https://example.gov/b",
+        "status": "error",
+        "error": "timeout",
+    }
+    (rd / "state.json").write_text(json.dumps(state))
+    judging.lock(rd)
+    _reveal(rd)
+    rates = judging.score(rd)["rates"]
+    assert rates["pages scored"] == "1 of 2"
+    assert rates["pages not scored"] == "p02 (no answer key)"
