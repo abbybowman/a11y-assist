@@ -1,0 +1,6 @@
+<!doctype html><title>t</title>
+<style>@keyframes spin{to{transform:rotate(360deg)}} .s{animation:spin 2s linear infinite;width:20px;height:20px;background:red}</style>
+<p>Text</p><audio id=a1 src="a.webm" autoplay></audio><audio id=a2 src="a.mp3" autoplay></audio><audio id=a3 src="a.wav" autoplay></audio>
+<div class=s></div><marquee>scrolling</marquee><span id=n>0</span>
+<script>let i=0;setInterval(()=>{document.getElementById('n').textContent=++i},1000);
+const ac=new AudioContext();const o=ac.createOscillator();o.connect(ac.destination);o.start();window.acs=()=>ac.state;</script>
