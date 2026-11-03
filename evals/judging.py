@@ -46,6 +46,7 @@ from a11y_assist.compare import (  # noqa: E402
     SEVERITY,
     Comparison,
     compare,
+    page_key,
     rates,
     totals,
 )
@@ -304,9 +305,16 @@ def score(rd: Path) -> dict:
             )
             comparisons.append((pid, url, None, why))
             continue
-        c = compare(
-            scrt.parse(key.read_text("utf-8")), scrt.parse(cand.read_text("utf-8"))
-        )
+        ref = scrt.parse(key.read_text("utf-8"))
+        # Keys pair with pages by hash only, so a hash pasted on the wrong
+        # line would score one page against another page's answers.
+        named = page_key(ref.Product.P_Location)
+        if named is not None and named != page_key(url):
+            raise JudgingError(
+                f"{pid}: the answer key {key.name} names {ref.Product.P_Location}, "
+                f"not {url}: check the hash on that line of pages.txt"
+            )
+        c = compare(ref, scrt.parse(cand.read_text("utf-8")))
         comparisons.append((pid, url, c, ""))
     done = [c for _, _, c, _ in comparisons if c]
     tot = totals(done)
@@ -378,10 +386,10 @@ def _markdown(out: dict, comparisons, done: list[Comparison]) -> str:
         if c is None:
             lines += [f"Not scored: {why}.", ""]
             continue
-        if not c.same_page:
+        if page_key(c.reference_page) is None:
             lines.append(
-                f"The answer key names another page ({c.reference_page}); check "
-                "the key was hashed for this page."
+                "The answer key names no page; it was matched to this page by "
+                "its hash only."
             )
         bad = c.disagreements()
         if not bad:
