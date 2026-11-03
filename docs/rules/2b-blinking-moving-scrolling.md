@@ -30,6 +30,16 @@ Draft (0.1.0): no outcome until 1.0.0. Plan:
 - a `<marquee>`;
 - a video playing at 3.5 s with more than 5 s left, or looping.
 
+A *color-only change* is a region whose text, image sources and boxes
+stay the same while its colors change (computed `color`,
+`background-color`, `border-color`, `fill` or `stroke` differ between
+reads, and nothing else does). It counts as blinking, so it can be a
+moving region (Abby, 2026-11-03). Blinking is "switch back and forth
+between two visual states in a way that is meant to draw attention" (WCAG
+2.0 and 2.2 Key Terms). It has *two states* when its colors alternate
+between two sets of values, and *three or more* otherwise (a cycle through
+red, green, blue and black, as in ACT efbfc7 inapplicable 3).
+
 For 2.B, *stopped* means no change of the content's pixels during the
 confirm time, the content no longer rendered, or (for a video) paused.
 "Slowed" does not count: 2.B has no frequency mechanism.
@@ -65,7 +75,14 @@ together.
 
 Each moving region that applies is an *instance*.
 
-**3a. Instance rules.** Rows K1–K8 and E1–E4 of [2c-auto-updating.md](2c-auto-updating.md) section 3a, first match wins, with 2.B's meaning of stopped (K3: stopped only; "slowed" is no effect). J1 below is 2.C's J1 (evident), asked once when the same control serves both tests. The text-candidate question is 2.C's J2.
+**3a. Instance rules.** Rows K1–K8 and E1–E4 of [2c-auto-updating.md](2c-auto-updating.md) section 3a, first match wins, with 2.B's meaning of stopped (K3: stopped only; "slowed" is no effect). E1–E4 read 2.C's J1 (evident) as J2 below, asked once when the same control serves both tests. The text-candidate question is 2.C's J2. One row comes before K6:
+
+| # | Evidence pattern | Instance outcome | Source |
+| --- | --- | --- | --- |
+| C1 | The instance is a color-only change with three or more states, and K6's evidence holds (no mechanism) | NEEDS REVIEW: "<content> keeps changing color by itself, and we found no way to stop it. WCAG defines blinking as switching back and forth between two visual states to draw attention. This cycles through <n> colors, so whether it counts as blinking is a call for a person: if it draws attention the way blinking does, it needs a pause control." | Abby, 2026-11-03; WCAG blinking definition; plan (WCAG 2.0 Understanding 2.2.2 review) |
+
+A two-state color change with no mechanism is unambiguous blinking: K6
+gives FAIL, as for any blinking content.
 
 **3b. Page outcome.** As [2c-auto-updating.md](2c-auto-updating.md) section 3b, G1–G5.
 
@@ -112,7 +129,8 @@ evidence does not settle it (a false DNA is as bad as a false PASS).
 | A spinner removed before 5 s | Not moving | V3 |
 | A CSS animation below the first viewport | Moving by its animation timing; the probe as usual | V4 |
 | `<blink>`, `text-decoration: blink` | Not rendered by Chrome: a note only | plan item 9 |
-| Text whose color changes every second, nothing else (ACT efbfc7 inapplicable 3, which is about 2.C) | **OPEN.** Pixels change and text does not, so it reads as moving. Options: (a) blinking, so 2.B applies (recommended: color flicker distracts as blinking does, and it is the better-UX reading); (b) not motion, so 2.B does not apply. Either way 2.C is DOES NOT APPLY, matching ACT and DHS | ACT efbfc7 |
+| Text whose color changes every second, nothing else (ACT efbfc7 inapplicable 3, which is about 2.C) | A color-only change, so blinking (Abby, 2026-11-03). That case cycles four colors, so with no mechanism it is C1, NEEDS REVIEW. Its "Stop color changes" button is in the after window, so the probe normally finds it (K3). 2.C is DOES NOT APPLY, matching ACT and DHS. No WCAG technique or failure mentions color changes. Every blinking technique toggles visibility or frames (SCR22, F50, F47, F4, G11, G152, FLASH36). SL11 alone notes that Color-valued properties can be animated | ACT efbfc7; WCAG 2.0 Understanding 2.2.2 and its techniques (read 2026-11-03) |
+| A color change faster than 3 per second, large and bright enough to be a flash | Also 3.A's concern (Understanding 2.2.2: blinking faster than 3 per second "would also be considered a flash") | 3.A research |
 
 ## 6. What a FAIL records
 

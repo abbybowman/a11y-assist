@@ -64,6 +64,8 @@ Custom pages in `tests/fixtures/2x/` (starting points:
 | css-infinite, css-3s | 2.B moving; not moving |
 | gif-loop, gif-once | 2.B by G152; not moving |
 | marquee | 2.B moving, K6 |
+| color-toggle-2 (red and black every 0.5 s, no control) | 2.B K6 FAIL (two-state blinking) |
+| color-cycle-4 (four colors every 1 s, no control) | 2.B C1 NEEDS REVIEW |
 | canvas-raf | 2.B moving (pixels only) |
 | spinner-2s, spinner-forever-with-controls | Not moving; 2.B J1 essential guard |
 | video-muted-loop | 2.B moving; 2.A DNA |
@@ -122,7 +124,6 @@ network.
 
 ## Left
 
-- The OPEN item in 2.B (a color change only: blinking or not).
 - V1, V4 (scrolled watch), V8, V9, V11 and V13 above; V12 needs Windows.
 - Real YouTube and Vimeo embeds on a normal network (plan item 17).
 - The ER 3 shortlist (6.A, 7.A, 7.E, 12.D, 13.A, 13.B, 13.C, 18.A) before
