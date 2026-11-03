@@ -188,6 +188,39 @@ def test_a_finished_page_keeps_every_recording_and_the_lock_hashes_them(
     assert "results/p01/pages/p2.har.zip" in judging._result_files(rd)
 
 
+async def test_apply_saves_each_page_and_one_bad_file_stops_only_its_page(
+    tmp_path, settings, monkeypatch
+):
+    from types import SimpleNamespace
+
+    import evals.judge_eval as je
+
+    async def fmt():
+        return {}
+
+    async def answered(settings, run_id, answers):
+        return SimpleNamespace(rejected=[], open_questions=[])
+
+    monkeypatch.setattr(je, "_answer_format", fmt)
+    monkeypatch.setattr("a11y_assist.pipeline.answer_questions", answered)
+    rd = tmp_path / "round"
+    state = {
+        pid: {"url": f"https://example.gov/{pid}", "run_id": pid, "round": 1}
+        | {"status": "open"}
+        for pid in ("p01", "p02")
+    }
+    rd.mkdir()
+    (rd / "state.json").write_text(json.dumps(state))
+    for pid, text in (("p01", "{not json"), ("p02", "[]")):
+        d = rd / "packets" / pid / "round1"
+        d.mkdir(parents=True)
+        (d / "answers.json").write_text(text)
+    await judging.apply(rd, settings)
+    got = json.loads((rd / "state.json").read_text())
+    assert got["p01"]["status"] == "open" and "error" in got["p01"]
+    assert got["p02"]["status"] == "done"
+
+
 def test_the_lock_covers_every_file_the_score_reads():
     assert {"evals/judging.py", "src/a11y_assist/catalog.py"} <= set(judging.CODE)
     assert all((judging.REPO / c).is_file() for c in judging.CODE)
