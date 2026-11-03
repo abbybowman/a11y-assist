@@ -4,6 +4,7 @@ the server from."""
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -24,13 +25,16 @@ def _launch_from(cwd: Path, env_file: Path | None = None) -> dict:
         code = PROBE.replace(
             "s = Settings()", f"s = Settings(_env_file={str(env_file)!r})"
         )
+    env = {"PATH": "/usr/bin:/bin"}  # no MCP_PORT / DEV_MODE from the caller
+    if sys.platform == "win32":  # without it, asyncio's import fails (WinError 10106)
+        env["SYSTEMROOT"] = os.environ["SYSTEMROOT"]
     out = subprocess.run(
         [sys.executable, "-c", code],
         cwd=cwd,
         capture_output=True,
         text=True,
         check=True,
-        env={"PATH": "/usr/bin:/bin"},  # no MCP_PORT / DEV_MODE from the caller
+        env=env,
     )
     return json.loads(out.stdout)
 
@@ -54,3 +58,15 @@ def test_an_env_file_is_read_from_any_directory(tmp_path):
     elsewhere = tmp_path / "elsewhere"
     elsewhere.mkdir()
     assert _launch_from(elsewhere, env)["port"] == 9124
+
+
+def test_an_unbuilt_judge_backend_is_refused_at_startup():
+    import pytest
+    from pydantic import ValidationError
+
+    from a11y_assist.config import Settings
+
+    for bad in ("api", "clinet"):
+        with pytest.raises(ValidationError):
+            Settings(_env_file=None, judge_backend=bad)
+    assert Settings(_env_file=None).judge_backend == "client"

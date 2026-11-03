@@ -42,12 +42,12 @@ the name only; say so in its `differs` note. Custom pages in
 | V3 | Checked: ANDI does not report table headers for a field in a cell; the tool computes them from the table (f08) | M5, J1 |
 | V4 | A page CSP that blocks inline scripts stops ANDI; how it shows | A2 |
 | V6 | Checked for 4.F's pass R (f12): ANDI injected at the end of the replay analyses the revealed field. 5.D's fill pass: not covered by a fixture yet | Section 2 (revealed fields) |
-| V5 | Windows headed Chrome: every fixture gives the same outcome (cannot run from Linux) | All rows |
+| V5 | Checked (Windows, installed Chrome 156 headed, 2026-11-02): every 5.A, 5.B and 5.C fixture gives the same outcome | All rows |
 
 ## Left to do
 
 - Fields inside frames and shadow roots are not read (frames: a NEEDS
   REVIEW note).
 - A field revealed by 5.D's fill pass: wired, not yet covered by a fixture.
-- V4 (a page CSP that blocks ANDI) and V5 (Windows headed Chrome).
+- V4 (a page CSP that blocks ANDI).
 - Real government forms: how often nearby text sends a field to J1.

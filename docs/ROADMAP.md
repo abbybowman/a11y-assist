@@ -71,33 +71,40 @@ run).
   agent that hands the run to a subagent sees none of it. Find a way for a
   subagent to relay progress to the main thread (Abby, 2026-11-02), or say
   in the tool description how long to expect.
-- **Progress during long test runs.** The full suite takes about 12 minutes
-  headless on Windows and about 43 minutes headed and serial, and `-q` prints
-  only dots: there is no ETA, nothing names the running test, and a hang
-  looks like a slow run. Print per-test names and elapsed time, plus a rough
-  ETA, to a progress file the agent can read and summarize (Abby,
-  2026-11-01), and keep the hard stop and `faulthandler_timeout` from
-  [solutions/windows-chrome-results.md](solutions/windows-chrome-results.md).
 - **More shared replays (deferred).** 4.A now reuses 4.D's pass W arrows
   and 4.F's pass R Enter presses when they cover what it needs
   (docs/solutions/time-budget.md). Left: 4.C's widget check (P4) and pass W
   at the same stops; 4.C reading pass R (traps inside revealed content);
   5.D and 5.F both filling fields. Build when a realistic page is over the
   limit again; the agency page is at 108 s of 110.
+- **Merge fixture pages (only if suite time matters again).** CI's test step
+  is 8 min 48 s (was 10 min 28 s before PR #5). Next saving: a simplify
+  review of `tests/` lists pages worth merging; a merged page keeps every
+  FAIL tied to its own instance and row, never only the page outcome (Abby,
+  2026-11-02).
 - **Large pages.** Pages over roughly 300 stops cannot be walked in one
   120 s call (F34, 600 links, is refused after ~5 s). Options if this
   matters for real sites: resumable runs (walk in one call, checks in the
   next), or walking P1 and P2 in parallel (headed Chrome focus in a
   background window needs checking on Windows first).
-- **Confirm 4.B alternatives by pressing them.** The last judge-eval mismatch
-  (4.B f02): the agent could not tell whether the named alternative does what
-  the timed press does. Press it normally on a fresh replay and compare its
-  effect with the timed press's (a mechanical check on J2, like 4.C's
-  documented keys).
 - **Starter-template leftovers.** `pyproject.toml` still says "Starter MCP
   server for the GSA MCP hackathon". (The 0.0.0.0 HTTP branch is gone; HTTP
   is loopback-only with Host/Origin checks. Authentication is still needed
   before any hosted deployment.)
+- **Tidy the checks** (from the PR #3 review and a 2026-11-02 cleanup
+  draft that was never approved; recheck each item against the code first;
+  its principle gaps were fixed in PR #6). Sharing: the "could not be
+  performed" note is typed by hand in 19 places (use
+  `models.TEST_NOT_PERFORMED_NOTE`; the harness guards it); 5.G imports 5.F's private
+  helpers (`t5f._errors_of`, `_field_input`, `_label`), so error pass E
+  could be its own module like `labels.py`; `forms.py` exports underscore
+  names; `RunContext.cache` keys are bare strings (a typo silently redoes
+  work); the checks repeat findings, plain-text, question and replay code,
+  and base.py's "add a check" steps say to copy a check. Last: CLAUDE.md's
+  Layout lacks `egress.py`, `redact.py` and `routes.py` and says
+  `verify_fix` where this list says `compare_to`; `_KEY_WORDS` (4.C) and
+  `NO_INSTANCE` (4.E) look unused. Keep `traverse.py` and `pipeline.py`
+  frozen; aim at the current tests, not future ones (Abby, 2026-11-02).
 - **"Test a page" prompt** for operators who are not Trusted Testers: run,
   answer questions (one subagent for all of them), summarize, read
   `report_uri` and offer to save it.

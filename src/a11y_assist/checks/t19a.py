@@ -330,7 +330,7 @@ def _finding(outcome, summary, rows, refs, rationale="", note=False) -> Finding:
         rows=rows,
         evidence_refs=refs,
     )
-    if note:
+    if note or outcome is Outcome.NEEDS_REVIEW:  # principle 2, G3
         f.note = "This test could not be performed"
     return f
 

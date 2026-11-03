@@ -203,6 +203,42 @@ def pytest_sessionstart(session):
         clear_scores()
 
 
+# Progress for long and headed runs, which print only dots under -q (Abby,
+# 2026-11-02). Only the controller writes: xdist forwards every worker's reports.
+PROGRESS = Path(__file__).parent.parent / "runs" / "test-progress.txt"
+_progress = {"t0": time.monotonic(), "total": 0, "done": 0, "failed": []}
+
+
+def pytest_collection_finish(session):
+    _progress["total"] = len(session.items)  # serial runs
+
+
+@pytest.hookimpl(optionalhook=True)
+def pytest_xdist_node_collection_finished(node, ids):
+    _progress["total"] = len(ids)
+
+
+def pytest_runtest_logreport(report):
+    if os.environ.get("PYTEST_XDIST_WORKER"):
+        return
+    if report.failed:
+        _progress["failed"].append(f"{report.nodeid} ({report.when})")
+    if report.when == "call" or (report.when == "setup" and not report.passed):
+        _progress["done"] += 1
+    p = _progress
+    took = time.monotonic() - p["t0"]
+    eta = took / p["done"] * (p["total"] - p["done"]) if p["done"] else 0
+    lines = [
+        f"{p['done']} of {p['total']} done, {took / 60:.1f} min elapsed,"
+        f" about {eta / 60:.0f} min left",
+        f"last: {report.nodeid}",
+        f"failed ({len(p['failed'])}):",
+        *p["failed"],
+    ]
+    PROGRESS.parent.mkdir(exist_ok=True)
+    PROGRESS.write_text("\n".join(lines) + "\n")
+
+
 def pytest_terminal_summary(terminalreporter):
     from .scoring import report_lines
 
