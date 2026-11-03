@@ -58,6 +58,9 @@ plus `site/v264.mp4`, in one folder and pass that folder.
 | 18 | `parallel_watcher.py` | `<absolute path to a page> <seconds>` | run beside `evals/time_budget.py budget/agency-home.html`; the walk was not slowed |
 | Q11 | `browser_costs.py` | none | launch 68 vs 139 ms, context+page+load 61 vs 151 ms, Tab 2.8 vs 4.7 ms (shell vs full) |
 | Q11 | `cross_browser_replay.py` | `pages/ifr <har.zip>` | recorded in the shell, replayed in full Chromium: out-of-process iframe, video plays, Tab+Enter pauses it |
+| 3.A | `flash_realtime.py` | `pages/flash` (run `make_flash_media.py` first) | screenshots 27–28 fps, screencast 55 fps; a 30/s strobe reads as 1.2–2.5/s from screenshots |
+| 3.A | `flash_stepped.py` | `pages/flash` | clock paused and stepped, Web Animations set per step: 4.9, 6.13, 27.2, 0.98 flashes/s (true 5, 6.25, ~29, 1); GIF must be decoded instead (`ImageDecoder`: exactly 5/s) |
+| 3.A | `flash_video.py` | `pages/flash` | video decoded by `requestVideoFrameCallback` at 0.5×: 61 of 61 frames, 5.0 flashes/s (true 5) |
 
 **What feeds the build directly:** the tile diff in `detection.py`
 (pass T), the media store in `large_media_store.py` (`capture.py`), and
