@@ -281,10 +281,17 @@ Ordered by harm. A false PASS or a false DNA is worse than NEEDS REVIEW.
 The agency page uses 108 s of 110, and the budget pages have no moving
 content at all, so they would not show this cost.
 
-- **Pass T alone: ~7 s.** It needs no focus, so it can run **in parallel
-  with the walk's P1**: a separate context, no keys pressed, and Playwright
-  already disables background timer throttling. The pipeline runs collectors
-  in sequence, and `pipeline.py` is frozen, so this needs approval (Q2).
+- **Pass T alone: ~7 s, in parallel with P1** (Q2, decided). Measured
+  2026-11-03 on this 4-CPU Linux container: `time_budget.py
+  budget/agency-home.html`, alone and then beside a second headless
+  browser that took a screenshot every 0.5 s and read `getAnimations()`
+  for the whole run (254 shots in 140 s, worse than pass T's 7 s).
+  - Walk: 45.8 s alone, 43.9 s with the watcher.
+  - Total: 102.5 s alone, 99.8 s with the watcher.
+  - Every check's phase was within 0.4 s.
+
+  One run each, so the differences are noise: the parallel load cost
+  nothing measurable here. Headed Chrome on Windows is not checked.
 - **Mechanism probes: ~1–2 s replay + 5.5 s confirm + 5.5 s control, per
   candidate.** That is up to about 60 s on a carousel page with 6
   candidates. Cap the candidates (activated controls first; stop at the
