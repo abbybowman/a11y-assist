@@ -34,6 +34,13 @@ EXPECTED: dict[str, dict] = {
         "rows": ["M3"],
         "choice": {"J1": {"choice": "no_timing"}},
     },
+    # The named button shows a help line, not the switch: an agent's wrong
+    # "alternative" was a PASS before the alternative press (1.2.0).
+    "f04-hold-alternative-does-other": {
+        "outcome": "NEEDS_REVIEW",
+        "rows": ["M10"],
+        "choice": {"J1": HOLD, "J2": {"choice": "alternative", "element": 2}},
+    },
 }
 REUSED = {"../no_trap.html": {"outcome": "PASS", "rows": ["M1"]}}
 
@@ -81,7 +88,20 @@ def _state(**kw) -> t4b.State4B:
     return t4b.State4B(**{**base, **kw})
 
 
-PROVEN = {"normal": NONE, "timed": EFF, "timed2": EFF}
+LOADED = {"url": "u", "text_sha256": "before"}
+CHANGED = {"url": "u", "text_sha256": "after"}
+PROVEN = {
+    "normal": NONE,
+    "timed": EFF,
+    "timed2": EFF,
+    "normal_end": LOADED,
+    "timed_end": CHANGED,
+}
+ALT = {"choice": "alternative", "element": 2}
+
+
+def _alt(end) -> dict:
+    return {"reached": True, "key": "Enter", "effect": EFF, "end": end}
 
 
 @pytest.mark.parametrize(
@@ -105,6 +125,26 @@ PROVEN = {"normal": NONE, "timed": EFF, "timed2": EFF}
             "M9",
         ),
         ({"proof": PROVEN, "j2": {"choice": "unsure"}}, "NEEDS_REVIEW", "M9"),
+        # An alternative leads to PASS only when pressing it confirms it.
+        ({"proof": PROVEN, "j2": ALT}, "NEEDS_REVIEW", "A?"),
+        ({"proof": PROVEN, "j2": ALT, "alt": _alt(CHANGED)}, "PASS", "M7"),
+        ({"proof": PROVEN, "j2": ALT, "alt": _alt(LOADED)}, "NEEDS_REVIEW", "M10"),
+        (
+            {"proof": PROVEN, "j2": ALT, "alt": {"reached": False}},
+            "NEEDS_REVIEW",
+            "M10",
+        ),
+        # The timed press left the text as the normal press did: nothing to
+        # compare, so the text cannot confirm the alternative.
+        (
+            {
+                "proof": {**PROVEN, "timed_end": LOADED},
+                "j2": ALT,
+                "alt": _alt(LOADED),
+            },
+            "NEEDS_REVIEW",
+            "M10",
+        ),
     ],
 )
 def test_rows_on_recorded_evidence(kw, outcome, row):

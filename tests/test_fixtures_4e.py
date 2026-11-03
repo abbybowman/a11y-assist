@@ -31,6 +31,13 @@ EXPECTED: dict[str, dict] = {
         "rows": ["M10"],
         "choice": "content_only",
     },
+    # The open notice and the sign-up dialog share their nearest 6 ancestors:
+    # a key that stops at 6 levels took the sign-up dialog for the notice.
+    "f09-dialog-beside-open-notice": {
+        "outcome": "FAIL",
+        "rows": ["M9"],
+        "choice": "changes_context",
+    },
 }
 HELPERS = {"f02-other"}
 # Pages from other tests that prove a "not an instance" rule for 4.E.
