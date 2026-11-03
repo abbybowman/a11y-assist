@@ -85,6 +85,12 @@ The main independent evidence.
   bugs. A site used in any development round stays a development site; only
   untouched sites go in the final round. This also keeps sites unspoiled for
   the multi-page tests (9.A to 9.C) later.
+- **Several pages per site** (Abby, 2026-11-03): at least 7 pages of one
+  site, so 9.A-9.C and 19.A have pages to compare. Two pages are the
+  minimum for those tests; more make them more reliable. With
+  `no_time_limit` one call compares the tested page with up to 50 others
+  (5 within the time limit), so every page of a round is compared with all
+  the round's other pages on its host.
 
 ### 2.4 Seeded faults on real pages
 
@@ -136,8 +142,13 @@ visibly badly.
 
 - **Tool arm:** this MCP server only (v1 and v2 system prompts).
 - **Browser baseline:** the same model and task with Microsoft's Playwright
-  MCP (`@playwright/mcp`, version pinned and recorded) and no other tools.
-  It can open the page, press keys and read the page, so it has an equal
+  MCP (`@playwright/mcp`, version pinned and recorded) plus web search
+  (Tavily MCP; Abby, 2026-11-02: a capable agent would look up guidance,
+  and her sites publish no accessibility reports a search could find), no
+  other tools. Frozen pages: Playwright MCP has no HAR option, but its
+  `--init-page` file can call `page.context().routeFromHAR(...)` on the
+  round's HARs (README; not yet run). It can open the page, press keys and
+  read the page, so it has an equal
   chance to do the test without this server's procedure. Given up front
   rather than "ask for what you need," so every run has the same tools;
   it is also the tool Claude recommends unprompted for keyboard testing.
@@ -145,6 +156,12 @@ visibly badly.
   NEEDS_REVIEW. The tool arm must beat it clearly.
 
 ## 4. Scoring (in code)
+
+One scorer for every eval (Abby, 2026-11-02): the verdicts in
+`evals/scoring.py`, which judging rounds already use, on the neutral
+comparison in `src/a11y_assist/compare.py`; the weights below are computed
+from those verdicts. Answer keys are the same SCRT files and the same
+frozen HARs as the judging rounds.
 
 The agent's system prompt asks it to end with one machine-readable line, for
 example `RESULT: {"4.C": "FAIL"}`, or `RESULT: REFUSED`. Two scores per TT
