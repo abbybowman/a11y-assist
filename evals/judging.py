@@ -206,8 +206,15 @@ async def apply(rd: Path, settings) -> None:
         if not f.exists():
             print(f"{pid}: no answers yet")
             continue
-        answers = [Answer.model_validate(a) for a in json.loads(f.read_text())]
-        res = await answer_questions(settings, p["run_id"], answers)
+        try:
+            answers = [Answer.model_validate(a) for a in json.loads(f.read_text())]
+            res = await answer_questions(settings, p["run_id"], answers)
+        except Exception as exc:  # fix the file and rerun: other pages go on
+            p["error"] = str(exc)[:300]
+            print(f"{pid}: {p['error']}")
+            _save_state(rd, state)
+            continue
+        p.pop("error", None)
         p.setdefault("rejected", []).extend(str(r) for r in res.rejected)
         if res.open_questions and not res.rejected and p["round"] < MAX_ROUNDS:
             p["round"] += 1
@@ -220,11 +227,13 @@ async def apply(rd: Path, settings) -> None:
                 res,
                 fmt,
             )
-            continue
-        p["still_open"] = [q.question_id for q in res.open_questions]
-        _finish(rd, settings, pid, p["run_id"])
-        p["status"] = "done"
-    _save_state(rd, state)
+        else:
+            p["still_open"] = [q.question_id for q in res.open_questions]
+            _finish(rd, settings, pid, p["run_id"])
+            p["status"] = "done"
+        # Saved per page: answers are recorded in the run as they are applied,
+        # so a rerun must not apply them again or rewrite the next packet.
+        _save_state(rd, state)
     _report_status(state)
 
 
