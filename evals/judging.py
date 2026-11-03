@@ -343,11 +343,18 @@ def score(rd: Path) -> dict:
         comparisons.append((pid, url, c, ""))
     done = [c for _, _, c, _ in comparisons if c]
     tot = totals(done)
+    # A skipped page leaves the rates silently otherwise: "no false PASS" on
+    # a round that lost a host's pages would read as a clean result.
+    skipped = [f"{pid} ({why})" for pid, _, c, why in comparisons if c is None]
     out = {
         "round": rd.name,
         "scored_at": datetime.now(timezone.utc).isoformat(),
         "lock_commit": lk["code_commit"],
-        "rates": rates(tot),
+        "rates": {
+            "pages scored": f"{len(done)} of {len(comparisons)}",
+            "pages not scored": "; ".join(skipped) or "none",
+            **rates(tot),
+        },
         "counts": tot,
         "pages": [
             {
