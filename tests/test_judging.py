@@ -166,6 +166,33 @@ def test_score_refuses_changes_after_the_lock(tmp_path, tamper, monkeypatch):
         judging.score(rd)
 
 
+def test_a_finished_page_keeps_every_recording_and_the_lock_hashes_them(
+    tmp_path, settings
+):
+    # 9.A-9.C and 19.A are decided on the other pages' HARs; runs expire.
+    run = settings.runs_dir / "r1"
+    (run / "evidence" / "pages").mkdir(parents=True)
+    for rel in ("report.json", "pre-scrt.json", "evidence/page.har.zip"):
+        (run / rel).write_text("x")
+    for name in ("p1.har.zip", "p2.har.zip", "live1.har.zip"):
+        (run / "evidence" / "pages" / name).write_text(name)
+    rd = tmp_path / "round"
+    judging._finish(rd, settings, "p01", "r1")
+    got = sorted(p.relative_to(rd / "results").as_posix() for p in rd.rglob("*.zip"))
+    assert got == [
+        "p01/page.har.zip",
+        "p01/pages/live1.har.zip",
+        "p01/pages/p1.har.zip",
+        "p01/pages/p2.har.zip",
+    ]
+    assert "results/p01/pages/p2.har.zip" in judging._result_files(rd)
+
+
+def test_the_lock_covers_every_file_the_score_reads():
+    assert {"evals/judging.py", "src/a11y_assist/catalog.py"} <= set(judging.CODE)
+    assert all((judging.REPO / c).is_file() for c in judging.CODE)
+
+
 def _key_for(rd: Path, location: str) -> Path:
     """An answer key naming `location`, hashed into pages.txt (as a tester
     would hash it) before the lock."""
