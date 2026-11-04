@@ -111,6 +111,13 @@ on them depends on what round 1's scores show.
 
 ## Done during round 1 (the harness, not the tool)
 
+- Agent B's browser served one recording's failed copy of a file the pages
+  share (NASA's CSS and scripts) on every page; it now routes cleaned
+  copies of the recordings (`frozen-init.cjs`), with a test.
+- In the cloud container, live pages loaded without CSS or scripts (an
+  untrusted gateway certificate on direct connections): `UPSTREAM_PROXY`
+  in `egress.py`, off by default, with tests; checked on a live NASA page.
+
 - A new frozen recording could reuse the file name of one still in use
   (`frozen.py` named it by counting the index): fixed, with a test.
 - Runs of one arm are labeled (`--label`, `results/arm-a-1/`, `arm-a-2/`),

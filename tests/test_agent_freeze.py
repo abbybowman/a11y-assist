@@ -97,3 +97,59 @@ async def test_agent_b_browser_rules(settings, tmp_path):
         assert connected, "live loads go through the egress proxy"
     finally:
         srv.stop()
+
+
+def _fail_in_har(har: Path, path: str) -> None:
+    """Mark `path`'s response failed (status -1) in a recording, as a
+    recording made where the file could not load would have it."""
+    import zipfile
+
+    with zipfile.ZipFile(har) as z:
+        files = {n: z.read(n) for n in z.namelist()}
+    name = next(n for n in files if n.endswith(".har"))
+    data = json.loads(files[name])
+    hit = [e for e in data["log"]["entries"] if e["request"]["url"].endswith(path)]
+    assert hit, f"{path} is not in {har}"
+    for e in hit:
+        e["response"]["status"] = -1
+    files[name] = json.dumps(data).encode()
+    with zipfile.ZipFile(har, "w") as z:
+        for n, b in files.items():
+            z.writestr(n, b)
+
+
+@pytest.mark.skipif(not MCP_BIN.exists(), reason="npm install in evals/agent/node")
+async def test_one_failed_copy_does_not_hide_a_good_one(settings, tmp_path):
+    """Round 1: a recording whose shared files had failed made Agent B's
+    browser fail them on every page, though other recordings held them."""
+    from mcp import ClientSession, StdioServerParameters
+    from mcp.client.stdio import stdio_client
+    from playwright.async_api import async_playwright
+
+    srv = LocalServer()
+    urls = [f"{srv.base}/dyn", f"{srv.base}/landed"]  # both fetch /data.json
+    rd = tmp_path / "round"
+    rd.mkdir()
+    (rd / "pages.txt").write_text("".join(f"{u} {'ab' * 32}\n" for u in urls))
+    try:
+        await freeze(rd, settings)
+    finally:
+        srv.stop()
+    index = json.loads((rd / "frozen" / "index.json").read_text())
+    _fail_in_har(rd / "frozen" / index[urls[1]]["har"], "/data.json")
+    async with async_playwright() as pw:
+        chrome = pw.chromium.executable_path
+    (srv_def,) = browser_arm(rd / "frozen", tmp_path / "out", chrome)
+    params = StdioServerParameters(
+        command=srv_def.command, args=srv_def.args, env=srv_def.env
+    )
+    async with stdio_client(params) as (r, w), ClientSession(r, w) as mcp:
+        await mcp.initialize()
+        await mcp.call_tool("browser_navigate", {"url": urls[0]})
+        await mcp.call_tool("browser_wait_for", {"time": 1})
+        got = _text(
+            await mcp.call_tool(
+                "browser_evaluate", {"function": "() => xhr.textContent"}
+            )
+        )
+    assert '"0.' in got, got[:1500]  # the nonce from /dyn's own recording

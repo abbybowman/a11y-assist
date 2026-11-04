@@ -1,0 +1,340 @@
+- generic [active] [ref=f32e1]:
+  - banner [ref=f32e2]:
+    - generic [ref=f32e3]:
+      - button [ref=f32e5]
+      - link [ref=f32e7] [cursor=pointer]:
+        - /url: https://www.nasa.gov/
+        - img "NASA Logo" [ref=f32e8]
+      - button [ref=f32e10]
+  - banner [ref=f32e13]:
+    - generic [ref=f32e14]:
+      - generic [ref=f32e15]:
+        - list [ref=f32e16]:
+          - listitem [ref=f32e17]:
+            - button "Explore" [ref=f32e18]
+        - search [ref=f32e25]:
+          - text: Search
+          - searchbox "Search" [ref=f32e26]
+          - button "Search" [ref=f32e27]
+      - link [ref=f32e29] [cursor=pointer]:
+        - /url: https://www.nasa.gov/
+        - img "NASA Logo" [ref=f32e30]
+      - navigation "Primary navigation" [ref=f32e31]:
+        - list [ref=f32e33]:
+          - listitem [ref=f32e34]:
+            - button "News & Events" [ref=f32e35]
+          - listitem [ref=f32e39]:
+            - button "Multimedia" [ref=f32e40]
+          - listitem [ref=f32e44]:
+            - link "NASA+" [ref=f32e45] [cursor=pointer]:
+              - /url: https://plus.nasa.gov/
+  - generic [ref=f32e46]:
+    - generic [ref=f32e47]:
+      - search [ref=f32e50]:
+        - text: Search
+        - searchbox "Search" [ref=f32e51]
+        - button "Search" [ref=f32e52]
+      - button [ref=f32e53]
+    - generic [ref=f32e56]:
+      - heading "Suggested Searches" [level=2] [ref=f32e57]
+      - list [ref=f32e58]:
+        - listitem [ref=f32e59]:
+          - link "Artemis" [ref=f32e60] [cursor=pointer]:
+            - /url: https://www.nasa.gov/?search=Artemis
+        - listitem [ref=f32e66]:
+          - link "ISS" [ref=f32e67] [cursor=pointer]:
+            - /url: https://www.nasa.gov/?search=ISS
+        - listitem [ref=f32e73]:
+          - link "Roman" [ref=f32e74] [cursor=pointer]:
+            - /url: https://www.nasa.gov/?search=Roman
+        - listitem [ref=f32e80]:
+          - link "Webb" [ref=f32e81] [cursor=pointer]:
+            - /url: https://www.nasa.gov/?search=Webb
+        - listitem [ref=f32e87]:
+          - link "Quesst" [ref=f32e88] [cursor=pointer]:
+            - /url: https://www.nasa.gov/?search=Quesst
+        - listitem [ref=f32e94]:
+          - link "Moon Base" [ref=f32e95] [cursor=pointer]:
+            - /url: https://www.nasa.gov/?search=Moon%20Base
+        - listitem [ref=f32e101]:
+          - link "View All Topics A-Z" [ref=f32e102] [cursor=pointer]:
+            - /url: https://www.nasa.gov/a-to-z-topics-listing/
+  - main [ref=f32e106]:
+    - article [ref=f32e107]:
+      - generic [ref=f32e109]:
+        - generic [ref=f32e111]:
+          - heading "Kennedy Space Center History" [level=1] [ref=f32e112]
+          - paragraph [ref=f32e113]: After acquiring land along the Florida coast in the 1960s, NASA established as an independent field center located on Merritt Island on March 7, 1962, becoming the agency's launch site for hundreds of human space flight missions, and scientific, commercial, and applications spacecraft.
+        - generic [ref=f32e115]:
+          - link "In this Dec. 7, 1964 aerial photo, Launch Pad 39A is seen under construction. In this Dec. 7, 1964 aerial photo, Launch Pad 39A is seen under construction." [ref=f32e117] [cursor=pointer]:
+            - /url: https://www.nasa.gov/image-detail/618658main_1964-12-07_full/
+            - generic [ref=f32e118]: In this Dec. 7, 1964 aerial photo, Launch Pad 39A is seen under construction.
+            - img "In this Dec. 7, 1964 aerial photo, Launch Pad 39A is seen under construction."
+          - link "Construction of the Vehicle Assembly Building (VAB) at Kennedy Space Center is underway in August 1964. View of the Vehicle Assembly Building at Kennedy Space Center under construction in 1964" [ref=f32e121] [cursor=pointer]:
+            - /url: https://www.nasa.gov/image-detail/ksc-64c-2975_orig/
+            - generic [ref=f32e122]: Construction of the Vehicle Assembly Building (VAB) at Kennedy Space Center is underway in August 1964.
+            - img "View of the Vehicle Assembly Building at Kennedy Space Center under construction in 1964"
+          - link "The Vehicle Assembly Building is under construction in this aerial view taken Nov. 9, 1964 Aerial view of the Vehicle Assembly Building site at Kennedy Space Center showing the building under construction." [ref=f32e125] [cursor=pointer]:
+            - /url: https://www.nasa.gov/image-detail/618597main_1964-11-09_full/
+            - generic [ref=f32e126]: The Vehicle Assembly Building is under construction in this aerial view taken Nov. 9, 1964
+            - img "Aerial view of the Vehicle Assembly Building site at Kennedy Space Center showing the building under construction."
+          - link "An aerial view of Hangar S at Cape Canaveral Air Force Station. An aerial view of Hangar S at Cape Canaveral Air Force Station." [ref=f32e129] [cursor=pointer]:
+            - /url: https://www.nasa.gov/image-detail/1-hangar-s-1/
+            - generic [ref=f32e130]: An aerial view of Hangar S at Cape Canaveral Air Force Station.
+            - img "An aerial view of Hangar S at Cape Canaveral Air Force Station."
+          - link "Behind the Flight Control area in Mercury Mission Control was a glass-enclosed viewing section that consisted of two levels, with... Behind the Flight Control area in Mercury Mission Control was a glass-enclosed viewing section that consisted of two levels, with rows of chairs and standing room at the back." [ref=f32e133] [cursor=pointer]:
+            - /url: https://www.nasa.gov/image-detail/mercury-mission-control-5/
+            - generic [ref=f32e134]: Behind the Flight Control area in Mercury Mission Control was a glass-enclosed viewing section that consisted of two levels, with...
+            - img "Behind the Flight Control area in Mercury Mission Control was a glass-enclosed viewing section that consisted of two levels, with rows of chairs and standing room at the back."
+          - link "S61-01942 (31 Jan. 1961) --- Launch of the Mercury-Redstone 2 (MR-2) vehicle on Jan. 31, 1961. The 16-minute suborbital flight... Launch of the Mercury-Redstone 2 rocket" [ref=f32e137] [cursor=pointer]:
+            - /url: https://www.nasa.gov/image-detail/amf-s61-01942/
+            - generic [ref=f32e138]: S61-01942 (31 Jan. 1961) --- Launch of the Mercury-Redstone 2 (MR-2) vehicle on Jan. 31, 1961. The 16-minute suborbital flight...
+            - img "Launch of the Mercury-Redstone 2 rocket"
+          - link "Astronaut John Glenn outside the Mercury Control Center at Cape Canaveral Astronaut John H. Glenn sits in a convertible car in front of the east side of the Mercury Mission Control building." [ref=f32e141] [cursor=pointer]:
+            - /url: https://www.nasa.gov/image-detail/423041main_shannahs_1_full/
+            - generic [ref=f32e142]: Astronaut John Glenn outside the Mercury Control Center at Cape Canaveral
+            - img "Astronaut John H. Glenn sits in a convertible car in front of the east side of the Mercury Mission Control building." [ref=f32e144]
+          - link "Wernher von Braun explains the Saturn system to President John F. Kennedy at Launch Complex 37 while the president tours... Wernher von Braun explains the Saturn system to President John F. Kennedy at Launch Complex 37 while the president tours the Cape Canaveral Missile Test Annex in 1963." [ref=f32e146] [cursor=pointer]:
+            - /url: https://www.nasa.gov/image-detail/618571main_1962-11-16_full-2/
+            - generic [ref=f32e147]: Wernher von Braun explains the Saturn system to President John F. Kennedy at Launch Complex 37 while the president tours...
+            - img "Wernher von Braun explains the Saturn system to President John F. Kennedy at Launch Complex 37 while the president tours the Cape Canaveral Missile Test Annex in 1963." [ref=f32e149]
+          - link "In the blockhouse of Launch Complex 34 at the Cape Canaveral Missile Test Annex in Florida, President John F. Kennedy... A group of men listen to a presentation at the blockhouse of Launch Complex 34 at the Cape Canaveral Missile Test Annex in Florida. Seated, from the left, are NASA Administrator James E. Webb, Vice President Lyndon B. Johnson, Launch Operations Center Director Kurt H. Debus and President John F. Kennedy." [ref=f32e151] [cursor=pointer]:
+            - /url: https://www.nasa.gov/image-detail/154946main_image_feature_637_ys_full/
+            - generic [ref=f32e152]: In the blockhouse of Launch Complex 34 at the Cape Canaveral Missile Test Annex in Florida, President John F. Kennedy...
+            - img "A group of men listen to a presentation at the blockhouse of Launch Complex 34 at the Cape Canaveral Missile Test Annex in Florida. Seated, from the left, are NASA Administrator James E. Webb, Vice President Lyndon B. Johnson, Launch Operations Center Director Kurt H. Debus and President John F. Kennedy."
+          - link "After arriving at the Cape Canaveral Missile Test Annex Skid Strip on Sept. 11, 1962, President John F. Kennedy is... On Sept. 11, 1962, President John F. Kennedy is welcomed by a color guard and Center Director Kurt Debus (right). An airplane appears in the background." [ref=f32e155] [cursor=pointer]:
+            - /url: https://www.nasa.gov/image-detail/618473main_1962-09-11-2_full/
+            - generic [ref=f32e156]: After arriving at the Cape Canaveral Missile Test Annex Skid Strip on Sept. 11, 1962, President John F. Kennedy is...
+            - img "On Sept. 11, 1962, President John F. Kennedy is welcomed by a color guard and Center Director Kurt Debus (right). An airplane appears in the background."
+          - link "Astronaut John H. Glenn Jr., NASA flight surgeon William Douglas and equipment specialist Joseph W. Schmidt leave crew quarters prior... John Glenn walks with two others as her prepares for his Mercury-Atlas 6 mission" [ref=f32e159] [cursor=pointer]:
+            - /url: https://www.nasa.gov/image-detail/mercury-atlas-6-mission-preparation-february-1962/
+            - generic [ref=f32e160]: Astronaut John H. Glenn Jr., NASA flight surgeon William Douglas and equipment specialist Joseph W. Schmidt leave crew quarters prior...
+            - img "John Glenn walks with two others as her prepares for his Mercury-Atlas 6 mission"
+          - link "Astronaut John Glenn Jr. is honored by President John F. Kennedy after Glenn's historical first manned orbital flight, Mercury-Atlas 6.... President John F. Kennedy stands at a podium in front of the Manned Spacecraft Center to honor astronaut John Glenn, Jr." [ref=f32e163] [cursor=pointer]:
+            - /url: https://www.nasa.gov/image-detail/21-s64-14855/
+            - generic [ref=f32e164]: Astronaut John Glenn Jr. is honored by President John F. Kennedy after Glenn's historical first manned orbital flight, Mercury-Atlas 6....
+            - img "President John F. Kennedy stands at a podium in front of the Manned Spacecraft Center to honor astronaut John Glenn, Jr."
+          - link "CAPE CANAVERAL, Fla. - Mercury astronaut Scott Carpenter stands in front of the Mercury Control Center. Carpenter flew the Aurora... Scott Carpenter stands in his space suit outside the Mercury Control Center with a large NASA insignia on the side" [ref=f32e167] [cursor=pointer]:
+            - /url: https://www.nasa.gov/image-detail/amf-62-ma7-55/
+            - generic [ref=f32e168]: CAPE CANAVERAL, Fla. - Mercury astronaut Scott Carpenter stands in front of the Mercury Control Center. Carpenter flew the Aurora...
+            - img "Scott Carpenter stands in his space suit outside the Mercury Control Center with a large NASA insignia on the side"
+          - link "Christopher Kraft, flight director during Project Mercury, works at his console inside the Flight Control area at Mercury Mission Control. Chris Kraft sits at at a console in mission control pointing to his left" [ref=f32e171] [cursor=pointer]:
+            - /url: https://www.nasa.gov/image-detail/amf-423257main_shannahs_66_full/
+            - generic [ref=f32e172]: Christopher Kraft, flight director during Project Mercury, works at his console inside the Flight Control area at Mercury Mission Control.
+            - img "Chris Kraft sits at at a console in mission control pointing to his left"
+          - link "On Dec. 26, 1963, ownership of the facility officially was transferred from the U.S. Air Force to NASA. Now called... Kennedy Space Station in the Gemini Years" [ref=f32e175] [cursor=pointer]:
+            - /url: https://www.nasa.gov/image-detail/kennedy-space-center-gemini-years/
+            - generic [ref=f32e176]: On Dec. 26, 1963, ownership of the facility officially was transferred from the U.S. Air Force to NASA. Now called...
+            - img "Kennedy Space Station in the Gemini Years"
+          - link "March 9, 1964 view of the Mission Control Flight Control Area for the Gemini Program" [ref=f32e179] [cursor=pointer]:
+            - /url: https://www.nasa.gov/image-detail/433089main_ksc-64c-1868_full/
+          - link "S65-59927 (4 Dec. 1965) --- Fellow astronauts join the Gemini-7 prime crew for breakfast in the Manned Spacecraft Operations Building,... A group of Gemini astronauts enjoy breakfast together before the launch of the Gemini 7 mission" [ref=f32e183] [cursor=pointer]:
+            - /url: https://www.nasa.gov/image-detail/amf-s65-59927/
+            - generic [ref=f32e184]: S65-59927 (4 Dec. 1965) --- Fellow astronauts join the Gemini-7 prime crew for breakfast in the Manned Spacecraft Operations Building,...
+            - img "A group of Gemini astronauts enjoy breakfast together before the launch of the Gemini 7 mission"
+          - link "The Gemini 12 astronauts James Lovell and Edwin Aldrin lifted off aboard a Titan launch vehicle from the Kennedy Space... The Gemini XII spacecraft is launched on a Titan rocket from Kennedy Space Center" [ref=f32e187] [cursor=pointer]:
+            - /url: https://www.nasa.gov/image-detail/amf-9141925/
+            - generic [ref=f32e188]: The Gemini 12 astronauts James Lovell and Edwin Aldrin lifted off aboard a Titan launch vehicle from the Kennedy Space...
+            - img "The Gemini XII spacecraft is launched on a Titan rocket from Kennedy Space Center"
+          - link "S70-54121 (9 Nov. 1970) --- A ground level view at Launch Complex 39, Kennedy Space Center (KSC), showing the Apollo... ground level view showing the Apollo 14 space vehicle leaving the Vehicle Assembly Building." [ref=f32e191] [cursor=pointer]:
+            - /url: https://www.nasa.gov/image-detail/amf-s70-54121/
+            - generic [ref=f32e192]: S70-54121 (9 Nov. 1970) --- A ground level view at Launch Complex 39, Kennedy Space Center (KSC), showing the Apollo...
+            - img "ground level view showing the Apollo 14 space vehicle leaving the Vehicle Assembly Building."
+          - link "The Apollo 11 crew conducting a crew compartment fit and functional check, of the equipment and storage locations, in their... Apollo 11 Crew conduct checks in the command module" [ref=f32e195] [cursor=pointer]:
+            - /url: https://www.nasa.gov/image-detail/apollo-11-crew-conduct-checks-in-the-command-module/
+            - generic [ref=f32e196]: The Apollo 11 crew conducting a crew compartment fit and functional check, of the equipment and storage locations, in their...
+            - img "Apollo 11 Crew conduct checks in the command module"
+          - link "As the Apollo 11 astronauts rehearse their lunar landing mission in simulators, they pause in front of a lunar module... As the Apollo 11 astronauts rehearse their lunar landing mission in simulators, they pause in front of a lunar module mockup in the Flight Crew Training Building area." [ref=f32e199] [cursor=pointer]:
+            - /url: https://www.nasa.gov/image-detail/apollo-11-crew-rehearses-lunar-landing/
+            - generic [ref=f32e200]: As the Apollo 11 astronauts rehearse their lunar landing mission in simulators, they pause in front of a lunar module...
+            - img "As the Apollo 11 astronauts rehearse their lunar landing mission in simulators, they pause in front of a lunar module mockup in the Flight Crew Training Building area."
+          - link "Apollo 11 Commander Neil A. Armstrong leads astronauts Michael Collins and Edwin E. Aldrin, Jr., from the Manned Spacecraft Operations... Apollo 11 Commander Neil A. Armstrong leads astronauts Michael Collins and Edwin E. Aldrin, Jr., from the Manned Spacecraft Operations Building to the transfer van for the eight-mile trip to Pad 39A." [ref=f32e203] [cursor=pointer]:
+            - /url: https://www.nasa.gov/image-detail/apollo-11-flight-crew-prepare-journey-launch-pad-2/
+            - generic [ref=f32e204]: Apollo 11 Commander Neil A. Armstrong leads astronauts Michael Collins and Edwin E. Aldrin, Jr., from the Manned Spacecraft Operations...
+            - img "Apollo 11 Commander Neil A. Armstrong leads astronauts Michael Collins and Edwin E. Aldrin, Jr., from the Manned Spacecraft Operations Building to the transfer van for the eight-mile trip to Pad 39A."
+          - link "The 402-foot-tall mobile service structure is moved away from the Apollo 11 spacecraft at Kennedy’s Launch Pad 39A. The move... The 402-foot-tall mobile service structure is moved away from the Apollo 11 spacecraft at Kennedy’s Launch Pad 39A during a Countdown Demonstration Test." [ref=f32e207] [cursor=pointer]:
+            - /url: https://www.nasa.gov/image-detail/apollo-11-countdown-demonstration-test-2/
+            - generic [ref=f32e208]: The 402-foot-tall mobile service structure is moved away from the Apollo 11 spacecraft at Kennedy’s Launch Pad 39A. The move...
+            - img "The 402-foot-tall mobile service structure is moved away from the Apollo 11 spacecraft at Kennedy’s Launch Pad 39A during a Countdown Demonstration Test."
+          - link "At 9:32 a.m. EDT on July 16, 1969, the Apollo 11 mission launched via a Saturn V rocket on a... Apollo 11 launch" [ref=f32e211] [cursor=pointer]:
+            - /url: https://www.nasa.gov/image-detail/apollo-11-launches-into-history/
+            - generic [ref=f32e212]: At 9:32 a.m. EDT on July 16, 1969, the Apollo 11 mission launched via a Saturn V rocket on a...
+            - img "Apollo 11 launch"
+          - link "Apollo 15 Commander David R. Scott operates the battery-powered lunar surface drill during a training exercise at a man-made replica... David Scott, suited in his lunar EVA suit, trains for his lunar landing at Kennedy Space Center" [ref=f32e215] [cursor=pointer]:
+            - /url: https://www.nasa.gov/image-detail/moon-bound-apollo-15/
+            - generic [ref=f32e216]: Apollo 15 Commander David R. Scott operates the battery-powered lunar surface drill during a training exercise at a man-made replica...
+            - img "David Scott, suited in his lunar EVA suit, trains for his lunar landing at Kennedy Space Center"
+          - link "S71-33786 (11 May 1971) --- The 363-feet tall Apollo (Spacecraft 112/Lunar Module 10/Saturn 510) space vehicle which leaves the Vehicle... The Apollo 15 rocket rolls out of the Vehicle Assembly Building" [ref=f32e219] [cursor=pointer]:
+            - /url: https://www.nasa.gov/image-detail/amf-s71-33786/
+            - generic [ref=f32e220]: S71-33786 (11 May 1971) --- The 363-feet tall Apollo (Spacecraft 112/Lunar Module 10/Saturn 510) space vehicle which leaves the Vehicle...
+            - img "The Apollo 15 rocket rolls out of the Vehicle Assembly Building"
+          - link "Space shuttle Challenger presents a surrealistic impression as it moves through the fog on its way out the 3.5-mile crawlerway... Space shuttle Challenger presents a surrealistic impression as it moves through the fog on its way out the 3.5-mile crawlerway toward Launch Pad 39A." [ref=f32e223] [cursor=pointer]:
+            - /url: https://www.nasa.gov/image-detail/through-fog-2/
+            - generic [ref=f32e224]: Space shuttle Challenger presents a surrealistic impression as it moves through the fog on its way out the 3.5-mile crawlerway...
+            - img "Space shuttle Challenger presents a surrealistic impression as it moves through the fog on its way out the 3.5-mile crawlerway toward Launch Pad 39A."
+          - link "Space shuttle Discovery rolls to the launch pad on April 23, 1999 Space shuttle Discovery rolls from the Vehicle Assembly Building at Kennedy Space Center to the launch pad on April 23, 1999" [ref=f32e227] [cursor=pointer]:
+            - /url: https://www.nasa.gov/image-detail/492789main_99pp0432_full/
+            - generic [ref=f32e228]: Space shuttle Discovery rolls to the launch pad on April 23, 1999
+            - img "Space shuttle Discovery rolls from the Vehicle Assembly Building at Kennedy Space Center to the launch pad on April 23, 1999"
+          - link "May 19, 2006 rollout of space shuttle Discovery, Amid the lights from the fixed and rotating service structures, space shuttle... Space Shuttle Discovery rolls out to the launchpad" [ref=f32e231] [cursor=pointer]:
+            - /url: https://www.nasa.gov/image-detail/492578main_2006-05-19_full/
+            - generic [ref=f32e232]: May 19, 2006 rollout of space shuttle Discovery, Amid the lights from the fixed and rotating service structures, space shuttle...
+            - img "Space Shuttle Discovery rolls out to the launchpad"
+          - link "The STS-107 crew heads for the Astrovan and a ride to Launch Pad 39A for liftoff. A landing at Kennedy... The STS-107 crew heads for the Astrovan and a ride to Launch Pad 39A for liftoff." [ref=f32e235] [cursor=pointer]:
+            - /url: https://www.nasa.gov/image-detail/remembering-columbias-sts-107-astronauts-3/
+            - generic [ref=f32e236]: The STS-107 crew heads for the Astrovan and a ride to Launch Pad 39A for liftoff. A landing at Kennedy...
+            - img "The STS-107 crew heads for the Astrovan and a ride to Launch Pad 39A for liftoff."
+          - link "Under a full moon on Launch Pad 39A at NASA's Kennedy Space Center in Florida, space shuttle Discovery is revealed... Under a full moon on Launch Pad 39A, space shuttle Discovery is revealed after the rotating service structure has been rolled back in preparation to launch on STS-119." [ref=f32e239] [cursor=pointer]:
+            - /url: https://www.nasa.gov/image-detail/moon-over-discovery-2/
+            - generic [ref=f32e240]: Under a full moon on Launch Pad 39A at NASA's Kennedy Space Center in Florida, space shuttle Discovery is revealed...
+            - img "Under a full moon on Launch Pad 39A, space shuttle Discovery is revealed after the rotating service structure has been rolled back in preparation to launch on STS-119."
+          - link "CAPE CANAVERAL, Fla. – Billows of smoke and steam infused with the fiery light from space shuttle Endeavour's launch on... Space shuttle Endeavour launches in a fiery plume of smoke and steam" [ref=f32e243] [cursor=pointer]:
+            - /url: https://www.nasa.gov/image-detail/amf-ksc-2009-4117/
+            - generic [ref=f32e244]: CAPE CANAVERAL, Fla. – Billows of smoke and steam infused with the fiery light from space shuttle Endeavour's launch on...
+            - img "Space shuttle Endeavour launches in a fiery plume of smoke and steam"
+          - link "STS130-S-099 (21 Feb. 2010) --- With landing gear down, space shuttle Endeavour nears touchdown on Runway 15 at the Shuttle... Space Shuttle Endeavour lands at night at Kennedy Space Center in 2010" [ref=f32e247] [cursor=pointer]:
+            - /url: https://www.nasa.gov/image-detail/amf-sts130-s-099/
+            - generic [ref=f32e248]: STS130-S-099 (21 Feb. 2010) --- With landing gear down, space shuttle Endeavour nears touchdown on Runway 15 at the Shuttle...
+            - img "Space Shuttle Endeavour lands at night at Kennedy Space Center in 2010"
+          - link "CAPE CANAVERAL, Fla. – In the Space Station Processing Facility at NASA's Kennedy Space Center, astronauts Terry Virts, left, and... In the Space Station Processing Facility at NASA's Kennedy Space Center in Florida, astronauts Terry Virts, left, and Charles Hobaugh familiarize themselves with the robotic workstation inside the International Space Station's Cupola module." [ref=f32e251] [cursor=pointer]:
+            - /url: https://www.nasa.gov/image-detail/amf-ksc-08pd2199/
+            - generic [ref=f32e252]: CAPE CANAVERAL, Fla. – In the Space Station Processing Facility at NASA's Kennedy Space Center, astronauts Terry Virts, left, and...
+            - img "In the Space Station Processing Facility at NASA's Kennedy Space Center in Florida, astronauts Terry Virts, left, and Charles Hobaugh familiarize themselves with the robotic workstation inside the International Space Station's Cupola module."
+  - contentinfo [ref=f32e254]:
+    - generic [ref=f32e255]:
+      - img "NASA Logo" [ref=f32e257]
+      - generic [ref=f32e259]:
+        - generic [ref=f32e261]:
+          - heading "National Aeronautics and Space Administration" [level=3] [ref=f32e262]
+          - paragraph [ref=f32e263]: NASA explores the unknown in air and space, innovates for the benefit of humanity, and inspires the world through discovery.
+          - list [ref=f32e264]:
+            - listitem [ref=f32e265]:
+              - link "About NASA's Mission" [ref=f32e266] [cursor=pointer]:
+                - /url: https://www.nasa.gov/about/
+          - link "Join Us" [ref=f32e267] [cursor=pointer]:
+            - /url: https://www.nasa.gov/get-involved/
+        - list [ref=f32e274]:
+          - listitem [ref=f32e275]:
+            - link "Home" [ref=f32e276] [cursor=pointer]:
+              - /url: https://www.nasa.gov/
+          - listitem [ref=f32e277]:
+            - link "News & Events" [ref=f32e278] [cursor=pointer]:
+              - /url: https://www.nasa.gov/news/
+          - listitem [ref=f32e279]:
+            - link "Multimedia" [ref=f32e280] [cursor=pointer]:
+              - /url: https://www.nasa.gov/multimedia/
+          - listitem [ref=f32e281]:
+            - link "NASA+" [ref=f32e282] [cursor=pointer]:
+              - /url: https://plus.nasa.gov/
+          - listitem [ref=f32e283]:
+            - link "Missions" [ref=f32e284] [cursor=pointer]:
+              - /url: https://www.nasa.gov/nasa-missions/
+          - listitem [ref=f32e285]:
+            - link "Humans in Space" [ref=f32e286] [cursor=pointer]:
+              - /url: https://www.nasa.gov/humans-in-space/
+          - listitem [ref=f32e287]:
+            - link "Earth" [ref=f32e288] [cursor=pointer]:
+              - /url: https://science.nasa.gov/earth/
+          - listitem [ref=f32e289]:
+            - link "The Solar System" [ref=f32e290] [cursor=pointer]:
+              - /url: https://science.nasa.gov/solar-system/
+          - listitem [ref=f32e291]:
+            - link "The Universe" [ref=f32e292] [cursor=pointer]:
+              - /url: https://science.nasa.gov/universe/
+          - listitem [ref=f32e293]:
+            - link "Science" [ref=f32e294] [cursor=pointer]:
+              - /url: https://science.nasa.gov/
+          - listitem [ref=f32e295]:
+            - link "Aeronautics" [ref=f32e296] [cursor=pointer]:
+              - /url: https://www.nasa.gov/aeronautics/
+          - listitem [ref=f32e297]:
+            - link "Technology" [ref=f32e298] [cursor=pointer]:
+              - /url: https://www.nasa.gov/technology/
+          - listitem [ref=f32e299]:
+            - link "Learning Resources" [ref=f32e300] [cursor=pointer]:
+              - /url: https://www.nasa.gov/learning-resources/
+          - listitem [ref=f32e301]:
+            - link "About NASA" [ref=f32e302] [cursor=pointer]:
+              - /url: https://www.nasa.gov/about/
+          - listitem [ref=f32e303]:
+            - link "NASA en Español (opens in new tab)" [ref=f32e304] [cursor=pointer]:
+              - /url: https://www.nasa.gov/es/
+        - generic [ref=f32e306]:
+          - generic [ref=f32e307]:
+            - heading "Follow NASA" [level=3] [ref=f32e308]
+            - list [ref=f32e309]:
+              - listitem [ref=f32e310]:
+                - link "NASA on Facebook (opens in new tab)" [ref=f32e311] [cursor=pointer]:
+                  - /url: https://www.facebook.com/NASA
+              - listitem [ref=f32e314]:
+                - link "NASA on Instagram (opens in new tab)" [ref=f32e315] [cursor=pointer]:
+                  - /url: https://www.instagram.com/nasa/
+              - listitem [ref=f32e320]:
+                - link "NASA on X (opens in new tab)" [ref=f32e321] [cursor=pointer]:
+                  - /url: https://x.com/NASA
+              - listitem [ref=f32e324]:
+                - link "NASA on YouTube (opens in new tab)" [ref=f32e325] [cursor=pointer]:
+                  - /url: https://www.youtube.com/@NASA
+          - list [ref=f32e328]:
+            - listitem [ref=f32e329]:
+              - link "More NASA Social Accounts" [ref=f32e330] [cursor=pointer]:
+                - /url: https://www.nasa.gov/social-media/
+            - listitem [ref=f32e331]:
+              - link "NASA Newsletters" [ref=f32e332] [cursor=pointer]:
+                - /url: https://www.nasa.gov/nasa-newsletters/
+        - list [ref=f32e334]:
+          - listitem [ref=f32e335]:
+            - link "Sitemap" [ref=f32e336] [cursor=pointer]:
+              - /url: https://www.nasa.gov/sitemap/
+          - listitem [ref=f32e337]:
+            - link "For Media" [ref=f32e338] [cursor=pointer]:
+              - /url: https://www.nasa.gov/news/nasa-media-contacts/
+          - listitem [ref=f32e339]:
+            - link "Privacy Policy" [ref=f32e340] [cursor=pointer]:
+              - /url: https://www.nasa.gov/nasa-web-privacy-policy-and-important-notices/
+          - listitem [ref=f32e341]:
+            - link "FOIA" [ref=f32e342] [cursor=pointer]:
+              - /url: https://www.nasa.gov/foia/
+          - listitem [ref=f32e343]:
+            - link "No FEAR Act" [ref=f32e344] [cursor=pointer]:
+              - /url: https://www.nasa.gov/no-fear-act/
+          - listitem [ref=f32e345]:
+            - link "Office of the IG (opens in new tab)" [ref=f32e346] [cursor=pointer]:
+              - /url: http://oig.nasa.gov/
+          - listitem [ref=f32e347]:
+            - link "Budget & Annual Reports" [ref=f32e348] [cursor=pointer]:
+              - /url: https://www.nasa.gov/budgets-plans-and-reports/
+          - listitem [ref=f32e349]:
+            - link "Agency Financial Reports" [ref=f32e350] [cursor=pointer]:
+              - /url: https://www.nasa.gov/organizations/budget-annual-reports/agency-financial-reports/
+          - listitem [ref=f32e351]:
+            - link "Contact NASA" [ref=f32e352] [cursor=pointer]:
+              - /url: https://www.nasa.gov/contact-nasa/
+          - listitem [ref=f32e353]:
+            - link "Accessibility" [ref=f32e354] [cursor=pointer]:
+              - /url: https://www.nasa.gov/accessibility/
+        - list [ref=f32e356]:
+          - listitem [ref=f32e357]:
+            - generic [ref=f32e358]: "Page Last Updated:"
+            - generic [ref=f32e359]: Jun 23, 2023
+          - listitem [ref=f32e360]:
+            - generic [ref=f32e361]: "Page Editor:"
+            - generic [ref=f32e362]: Michele Ostovar
+          - listitem [ref=f32e363]:
+            - generic [ref=f32e364]: "Responsible NASA Official:"
+            - generic [ref=f32e365]: Abigail Bowman
+  - dialog [ref=f32e366]:
+    - generic [ref=f32e367]:
+      - generic [ref=f32e369]:
+        - heading "Was this page helpful?" [level=2] [ref=f32e373]
+        - generic [ref=f32e378]:
+          - group "Was this page helpful?" [ref=f32e381]:
+            - generic [ref=f32e384]:
+              - generic [ref=f32e385]:
+                - radio "Yes" [checked] [ref=f32e386]
+                - text: "Yes"
+              - generic [ref=f32e387]:
+                - radio "No" [ref=f32e388]
+                - text: "No"
+          - button "Submit" [ref=f32e390]
+      - button "Close" [ref=f32e391]: ×

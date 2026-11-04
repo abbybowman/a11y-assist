@@ -55,6 +55,23 @@ frozen round. Plan: `docs/plans/2026-10-31-agent-eval.md`. Runbook:
   times and tokens. `rate_limit_event` rows give the account's 5-hour and
   7-day use and reset times. `stdin` must be closed, or the CLI waits 3 s
   for input.
+- **A cloud container re-signs direct connections.** `egress.py` connects to
+  the address it checked; in a cloud session that connection gets a
+  certificate from an egress gateway Chromium does not trust
+  (`ERR_CERT_AUTHORITY_INVALID`), while the container's `HTTPS_PROXY`
+  gives the site's real certificate. The top-level page still loads (the
+  navigation guard fetches it another way), so the failure is silent: live
+  pages, and anything frozen there, have HTML but no CSS, fonts or scripts
+  (status -1). Round 1's search page frozen in the container and its live
+  19.A searches had this. Fix: `UPSTREAM_PROXY="$HTTPS_PROXY"`. Check a
+  recording made in a new environment: its CSS and scripts must be status
+  200.
+- **One recording's failed copy of a shared file.** Pages of a site share
+  CSS and scripts. Playwright consults the newest-registered HAR route
+  first, so a recording holding a failed entry (status -1) for a shared
+  file served it on every page (round 1's first Agent B run: 58-107
+  console errors per page). The init-page now routes cleaned copies of the
+  recordings without their failed entries.
 - **The CLI cuts an MCP tool call off at 60 s by default.** Round 1's first
   Agent A attempt (2026-11-04) timed out on every `a11y_run_tt_tests` call
   with other pages, which takes minutes. `cli.py` sets `MCP_TOOL_TIMEOUT` to

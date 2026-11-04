@@ -94,6 +94,10 @@ async def test_a_whole_round(settings, tmp_path):
     sbd = json.loads(sb_file.read_text())
     sbd["pages"] = [urls[0]]
     sb_file.write_text(json.dumps(sbd))
+    # A page recorded as not scored for a run (a broken frozen copy).
+    (rd / "results" / "arm-a" / "not_scored.json").write_text(
+        json.dumps({"pages": [urls[1]], "reason": "broken copy"})
+    )
 
     with pytest.raises(JudgingError, match="Not locked"):
         score(rd)
@@ -109,14 +113,15 @@ async def test_a_whole_round(settings, tmp_path):
     a, b = out["arms"]["arm-a"], out["arms"]["arm-b"]
     # Scored: page 1's 2.4.5 and 2.1.2, page 2's 2.4.5 (the keys leave the rest blank).
     assert a["per_criterion"]["counts"]["agree"] == 2
-    assert a["per_criterion"]["counts"]["no_answer"] == 1  # page 2 left out
+    assert a["per_criterion"]["counts"]["no_answer"] == 0  # page 2 not scored
+    assert a["pages_not_given"] == [urls[1]] and a["not_scored_reason"] == "broken copy"
     assert a["fails"][0]["elements"] == ["the menu"]
     assert b["result_line"] == "missing or malformed"
     assert b["pages_not_given"] == [urls[1]]
     assert b["per_criterion"]["counts"]["no_answer"] == 2  # page 2 not given
     assert b["per_criterion"]["weighted"] == -2
     sv = a["server"]
-    assert sv["pages_not_tested"] == [urls[1]]
+    assert sv["pages_not_tested"] == []  # page 2 not scored for this run
     assert sv["per_tt"]["counts"]["not_performed"] >= 1  # 4.C was not run
     assert a["efficiency"]["tool_calls"] == {"a11y_run_tt_tests": 1}
     assert "Not a certified" in (rd / "agent-score.md").read_text()

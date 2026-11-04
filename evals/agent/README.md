@@ -51,6 +51,11 @@ AGENT_LEAK_VALUES=...       # optional, comma-separated: values the leak check m
 
 Both arms of a round use the same route.
 
+In a cloud session, set `UPSTREAM_PROXY="$HTTPS_PROXY"` for the freeze and
+both arms. The container re-signs direct connections with a certificate
+Chromium does not trust, so live pages would load without their CSS and
+scripts (`docs/solutions/agent-eval-harness.md`). On a laptop, leave it unset.
+
 ## A round, in commit order
 
 Round folder `evals/judging/<round>/`, for example `evals/judging/round1/`.

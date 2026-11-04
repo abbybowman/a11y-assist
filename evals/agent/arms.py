@@ -60,6 +60,8 @@ def tool_arm(frozen: Path, model: str, runs_dir: Path) -> list[Server]:
         "RUNS_DIR": str(runs_dir),
         "RUN_TTL_HOURS": "720",  # kept until the round is locked
     }
+    if os.environ.get("UPSTREAM_PROXY"):  # a cloud container (egress.py)
+        env["UPSTREAM_PROXY"] = os.environ["UPSTREAM_PROXY"]
     return [Server("a11y", sys.executable, ["-m", "a11y_assist.app"], env)]
 
 

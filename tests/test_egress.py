@@ -350,3 +350,69 @@ async def test_unresolvable_name_fails_closed(settings):
     async with EgressProxy(settings, resolver=dns) as proxy:
         status = await _connect_via(proxy, "nowhere.gov:443")
     assert b" 403 " in status
+
+
+class _FakeUpstream:
+    """A CONNECT-only proxy that records each target and tunnels to it."""
+
+    def __init__(self, refuse: bool = False):
+        self.targets: list[str] = []
+        self.refuse = refuse
+
+    async def __aenter__(self):
+        self.server = await asyncio.start_server(self._serve, "127.0.0.1", 0)
+        self.url = f"http://127.0.0.1:{self.server.sockets[0].getsockname()[1]}"
+        return self
+
+    async def __aexit__(self, *exc):
+        self.server.close()
+        await self.server.wait_closed()
+
+    async def _serve(self, reader, writer):
+        head = await reader.readuntil(b"\r\n\r\n")
+        target = head.split(b" ")[1].decode()
+        self.targets.append(target)
+        if self.refuse:
+            writer.write(b"HTTP/1.1 403 Forbidden\r\n\r\n")
+            await writer.drain()
+            writer.close()
+            return
+        host, port = target.rsplit(":", 1)
+        r2, w2 = await asyncio.open_connection(host, int(port))
+        writer.write(b"HTTP/1.1 200 Connection Established\r\n\r\n")
+        await writer.drain()
+
+        async def pipe(r, w):
+            try:
+                while data := await r.read(65536):
+                    w.write(data)
+                    await w.drain()
+            finally:
+                w.close()
+
+        await asyncio.gather(pipe(reader, w2), pipe(r2, writer), return_exceptions=True)
+
+
+async def test_upstream_proxy_tunnels_by_name_after_the_check(settings, server):
+    async with _FakeUpstream() as up:
+        s = settings.model_copy(update={"upstream_proxy": up.url})
+        async with EgressProxy(s) as proxy:
+            reader, writer = await proxy._open("127.0.0.1", server.port)
+            writer.write(b"GET /dyn HTTP/1.1\r\nHost: x\r\nConnection: close\r\n\r\n")
+            await writer.drain()
+            body = await reader.read()
+            writer.close()
+            assert b"200 OK" in body.split(b"\r\n", 1)[0] and b"<title>dyn" in body
+            # The address check still runs first: nothing goes upstream.
+            with pytest.raises(egress.Refused):
+                await proxy._open("127.0.0.2", server.port)
+    assert up.targets == [f"127.0.0.1:{server.port}"]
+
+
+async def test_an_upstream_refusal_is_reported(settings, server):
+    async with _FakeUpstream(refuse=True) as up:
+        s = settings.model_copy(update={"upstream_proxy": up.url})
+        async with EgressProxy(s) as proxy:
+            with pytest.raises(egress.Refused, match="upstream proxy refused"):
+                await proxy._open("127.0.0.1", server.port)
+            assert proxy.refused[-1]["policy"] is False

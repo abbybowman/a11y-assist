@@ -120,6 +120,11 @@ def score(rd: Path) -> dict:
         # Each run is scored on the pages it was given (summary.json): a
         # page corrected after a run (round 1's typo) is not that run's.
         given = {page_key(u) for u in s.get("pages") or []}
+        # A page whose frozen copy was broken for this run, recorded before
+        # the lock with the reason (results/<arm>/not_scored.json).
+        ns = arm_dir / "not_scored.json"
+        excluded = json.loads(ns.read_text()) if ns.is_file() else {}
+        given -= {page_key(u) for u in excluded.get("pages", [])}
         not_given = [u for u in keys if page_key(u) not in given]
         for url in keys:
             if url in not_given:
@@ -148,6 +153,7 @@ def score(rd: Path) -> dict:
         arm = {
             "result_line": "found" if result is not None else "missing or malformed",
             "pages_not_given": not_given,
+            "not_scored_reason": excluded.get("reason"),
             "per_criterion": {
                 "counts": counts,
                 "weighted": weighted(counts),
