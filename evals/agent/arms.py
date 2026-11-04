@@ -24,7 +24,23 @@ class Server:
 
 
 def _base_env() -> dict[str, str]:
-    keep = ("PATH", "HOME", "LANG", "TMPDIR", "SSL_CERT_FILE")
+    # What a browser and Python need to start, on Linux, macOS and Windows;
+    # nothing that describes the user or this session.
+    keep = (
+        "PATH",
+        "HOME",
+        "LANG",
+        "TMPDIR",
+        "TEMP",
+        "TMP",
+        "SSL_CERT_FILE",
+        "PLAYWRIGHT_BROWSERS_PATH",
+        "SYSTEMROOT",
+        "WINDIR",
+        "USERPROFILE",
+        "APPDATA",
+        "LOCALAPPDATA",
+    )
     return {k: os.environ[k] for k in keep if k in os.environ}
 
 
