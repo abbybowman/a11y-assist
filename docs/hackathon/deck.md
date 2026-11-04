@@ -101,7 +101,7 @@ flowchart LR
 
 - One keyboard walk per page feeds every Test 4 check, and 5.D On input
 - Each check declares the extra evidence it needs
-- Time budget: under 60 s per page for Test 4, hard limit 120 s per call (+30 s when content keeps changing by itself, like a ticker)
+- Time budget: under 60 s per page for Test 4, hard limit 120 s per call (+45 s when content keeps changing by itself, like a ticker)
 - A page too large for the limit is refused early; the user can choose to run it with no time limit
 - Replays reuse what the walk saw: realistic agency page 151 s → 97 s, same outcomes
 - Checks reuse each other's replays (4.A reads 4.D's arrow presses and 4.F's Enter presses): with 5.F and 5.G added, both realistic pages still fit with all eleven tests (110.2 s and 97.1 s)

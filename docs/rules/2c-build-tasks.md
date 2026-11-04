@@ -117,7 +117,7 @@ Pass T beside the walk costs nothing measurable. The cost is the moving
 content itself: the ticker changes the DOM every second, so every press
 waits for the settle rule and no replay prefix is quick. This hits every
 page with a ticker, with or without 2.x. **T1 (Abby, 2026-11-04: (c), both):**
-(a) `MOVING_ALLOWANCE_S`, 30 s, added once pass T finds content still
+(a) `MOVING_ALLOWANCE_S`, 45 s, added once pass T finds content still
 changing; (b) the settle rule (`traverse.INIT_JS`, a second count `q`) stops
 waiting on DOM changes inside that content, pushed to every open page when
 pass T ends (`pipeline.SettleIgnore`); `step.mutations` still counts every
@@ -126,11 +126,12 @@ change, for 4.A's and 4.D's evidence, and quick replay prefixes read
 frames only for the 2.x checks). Content below the first screen is found
 from the DOM log (regions of source `dom`, counted only when its text
 really changes: a replayed poll rewriting the same value is not). Measured
-after: the motion page's existing tests finish in 129.5 s of 150 s (walk
-54.0 s, 4.D 10.6 s), and the agency page alone is unchanged at 103.7 s.
-**Left:** with the 2.x drafts the motion page still reaches 150 s, since 2.C
-probes the ticker at the bottom of the page through deep Tab replays
-(28.7 s): trim the probe before 1.0.0.
+after: the motion page's existing tests finish in 129.5 s (walk 54.0 s,
+4.D 10.6 s), and the agency page alone is unchanged at 103.7 s. The probe
+now focuses a top-page control directly (the walk proved Tab reaches it;
+media controls and frames still replay Tab), which took the 2.x probes from
+42.5 s to 25.9 s; with the drafts the motion page needs 155 s, so the
+allowance is 45 s (the figure in T1 (a)), a 165 s limit.
 Found with the same page: a sliding carousel's track sits inside
 a clipping box, so "children moved" now looks at descendants (more than
 20 px), and transform-only slides now count as 2.D changes.

@@ -86,7 +86,7 @@ class Settings(BaseSettings):
     # Extra time for a page with content that keeps changing by itself (a
     # ticker, a carousel), added once pass T finds it (Abby, 2026-11-04, T1
     # (a)): every key press waits longer there, and 2.A-2.C probe it.
-    moving_allowance_s: int = Field(default=30, ge=0, le=300)
+    moving_allowance_s: int = Field(default=45, ge=0, le=300)
     runs_dir: Path = REPO_ROOT / "runs"
     # Runs are working files, not an archive: deleted after this many hours.
     # Durable results belong in the user's codebase (saved from tool output).

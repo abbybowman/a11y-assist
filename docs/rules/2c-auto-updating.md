@@ -145,8 +145,11 @@ and names each content that changed and when it stopped.
 
 1. **Control candidates**, nearest to the content first, then the top
    window:
-   - `ctx.replay` to the candidate. A candidate the walk never reached is
-     unreachable and is noted.
+   - A fresh load with focus on the candidate. A candidate the walk never
+     reached is unreachable and is noted. One the walk reached, in the top
+     page, is focused directly (0.3.0, T1: replaying every Tab press to a
+     ticker at the bottom of a page cost 28.7 s); a media element's own
+     controls and controls in frames get the walk's Tab presses.
    - Press Enter, or Space for a checkbox or switch. A slider gets Home,
      then End, then arrow keys.
    - Move focus off it with Tab.

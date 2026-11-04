@@ -350,13 +350,44 @@ def _watcher(r: Region):
     return audio_watch if r.source == "audio" else watch
 
 
-async def _try(ctx: Any, el: Element, presses: int, keys: list[str], r: Region) -> str:
-    """One fresh load: Tab to the control, press `keys`, Tab off, watch."""
+_FOCUS_JS = """(css) => {
+  const el = document.querySelector(css);
+  if (!el) return false;
+  el.focus();
+  return document.activeElement === el;
+}"""
+
+
+async def _reach(ctx: Any, el: Element, presses: int):
+    """A fresh load with focus on the control. The walk proved Tab reaches
+    it, so a control in the top page is focused directly: replaying Tab to a
+    ticker at the bottom of a page cost about 80 presses per load (28.7 s
+    for one content on the budget page). Focus lands on it alone, not on the
+    controls before it, which suits the focus-only probe. A media element's
+    own controls (inside its shadow root) and controls in frames still get
+    the walk's Tab presses."""
+    if el.frame == 0 and el.role not in ("audio", "video"):
+        s = await open_session(ctx.open_motion, ctx.quiet_ms)
+        try:
+            if await s.page.main_frame.evaluate(_FOCUS_JS, el.css):
+                return s
+        except Exception:
+            pass
+        await s.close()
     s = await replay(ctx.open_motion, ctx.quiet_ms, ["Tab"] * presses, ctx.plan)
+    last = s.traversal.steps[-1].stop if s.traversal.steps else None
+    if last is None or not _at(last.css_path or "", el):
+        await s.close()
+        return None
+    return s
+
+
+async def _try(ctx: Any, el: Element, presses: int, keys: list[str], r: Region) -> str:
+    """One fresh load: focus on the control, press `keys`, Tab off, watch."""
+    s = await _reach(ctx, el, presses)
+    if s is None:
+        return "unreachable"
     try:
-        last = s.traversal.steps[-1].stop if s.traversal.steps else None
-        if last is None or not _at(last.css_path or "", el):
-            return "unreachable"
         url0 = s.page.url
         for k in keys:
             await s.traversal.press(k)
