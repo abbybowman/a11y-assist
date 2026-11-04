@@ -20,3 +20,4 @@
 {"ts":"2026-11-04T19:46:02.494175Z","step":"capture_scroll","status":"ok","detail":{"pass_":1,"page_grew":false}}
 {"ts":"2026-11-04T19:46:03.683045Z","step":"captured_live","status":"ok","detail":{"n":1,"seconds":8.83}}
 {"ts":"2026-11-04T19:46:07.917266Z","step":"collected","status":"ok","detail":{"test":"19.A","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":13.08}}}
+{"ts":"2026-11-04T19:46:22.044589Z","step":"collected","status":"ok","detail":{"test":"4.D","cost":{"loads":2,"presses":55,"quick":41,"slow_redos":0,"seconds":14.12}}}
