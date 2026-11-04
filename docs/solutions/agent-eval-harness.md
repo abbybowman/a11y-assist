@@ -55,6 +55,12 @@ frozen round. Plan: `docs/plans/2026-10-31-agent-eval.md`. Runbook:
   times and tokens. `rate_limit_event` rows give the account's 5-hour and
   7-day use and reset times. `stdin` must be closed, or the CLI waits 3 s
   for input.
+- **The CLI cuts an MCP tool call off at 60 s by default.** Round 1's first
+  Agent A attempt (2026-11-04) timed out on every `a11y_run_tt_tests` call
+  with other pages, which takes minutes. `cli.py` sets `MCP_TOOL_TIMEOUT` to
+  one hour (checked with a 70 s tool). The CLI's MCP log (in its `HOME`,
+  under `.cache/claude-cli-nodejs/*/mcp-logs-<server>/`) shows timeouts the
+  step log cannot: the step log records a result's size, not its text.
 - **Agent B never gets `browser_run_code_unsafe`** (it runs any code in
   Playwright's process: the live site, this machine's files), and its
   WebFetch is refused on the tested site's hosts with the CLI rule

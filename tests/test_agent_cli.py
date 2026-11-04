@@ -93,6 +93,7 @@ async def test_cli_route_isolation_and_log(tmp_path, monkeypatch):
     for c in (leak, run):
         argv, env = c["argv"], c["env"]
         assert not set(DROP) & set(env)  # the email and session ids are gone
+        assert int(env["MCP_TOOL_TIMEOUT"]) >= 3_600_000  # the CLI's default is 60 s
         assert Path(env["HOME"]).name == "home" and env["HOME"] != os.environ["HOME"]
         assert Path(c["cwd"]).name == "work" and c["cwd_files"] == []
         for flag in (
