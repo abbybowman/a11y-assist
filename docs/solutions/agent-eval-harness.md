@@ -9,9 +9,9 @@ frozen round. Plan: `docs/plans/2026-10-31-agent-eval.md`. Runbook:
   replays it, and a URL with no recording is a tool error, never a live
   fetch. `freeze.py` runs 19.A once on each page in "record_missing" mode,
   so the page, its other pages and 19.A's site search are recorded exactly
-  as a live run records them. If Agent A later chooses other pages that
-  make 19.A search when the freeze did not, the search is refused and
-  19.A says so.
+  as a live run records them, plus the pages 19.A suggests (once; their
+  links are not followed). A page outside the frozen set is refused, and
+  the tool says so.
 - **Playwright MCP 0.0.83 writes automatic page snapshots to a file**
   (`[Snapshot](…yml)`), not into the tool result. Agent B has no file
   tools, so it must call `browser_snapshot`, which returns the snapshot
@@ -50,7 +50,9 @@ frozen round. Plan: `docs/plans/2026-10-31-agent-eval.md`. Runbook:
   times and tokens. `rate_limit_event` rows give the account's 5-hour and
   7-day use and reset times. `stdin` must be closed, or the CLI waits 3 s
   for input.
-- **Agent B must never get WebFetch or `browser_run_code_unsafe`.** Either
-  one reaches outside the frozen replay: the live site, or this machine's
-  files. Both routes remove them (`Server.deny`, and the CLI's `--tools`
-  and `--disallowedTools`).
+- **Agent B never gets `browser_run_code_unsafe`** (it runs any code in
+  Playwright's process: the live site, this machine's files), and its
+  WebFetch is refused on the tested site's hosts with the CLI rule
+  `WebFetch(domain:<host>)`, with and without `www.` (checked 2026-11-04:
+  the rule refuses that domain and allows others). Search results show
+  snippets of any site; only fetching the tested pages is blocked.

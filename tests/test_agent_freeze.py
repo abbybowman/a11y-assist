@@ -37,6 +37,14 @@ async def test_freeze_records_every_page_and_the_search(settings, tmp_path):
     index = json.loads((rd / "frozen" / "index.json").read_text())
     assert set(urls) <= set(index)
     assert any("search" in u for u in index)
+    # 19.A suggested the site map for the home page: frozen too, once; its
+    # own links were not followed.
+    log = json.loads((rd / "frozen" / "freeze.json").read_text())
+    assert any(u.endswith("/19a/sitemap.html") for u in index)
+    assert any(e.get("suggested") for e in log["pages"].values())
+    assert not any(
+        u.endswith(("/19a/contact.html", "/19a/t2-status.html")) for u in index
+    )
     assert not any(settings.runs_dir.glob("*/report.json"))  # results discarded
 
 

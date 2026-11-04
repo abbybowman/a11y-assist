@@ -48,10 +48,21 @@ DROP = (
     "CLAUDECODE",
 )
 # Tools every arm gets besides its MCP servers: a helper (one level deep)
-# and an MCP resource reader. Agent B also gets web search, never WebFetch
-# (it could fetch the live site, outside the frozen pages).
+# and an MCP resource reader. Agent B also gets web search and WebFetch, as a
+# capable agent would look up guidance, but WebFetch is refused on the
+# tested site's hosts (Abby, 2026-11-04): the tested pages come only from
+# the frozen copies.
 COMMON_TOOLS = ["Agent", "ListMcpResourcesTool", "ReadMcpResourceTool"]
-ARM_TOOLS = {"a": COMMON_TOOLS, "b": [*COMMON_TOOLS, "WebSearch"]}
+ARM_TOOLS = {"a": COMMON_TOOLS, "b": [*COMMON_TOOLS, "WebSearch", "WebFetch"]}
+
+
+def fetch_denials(hosts: list[str]) -> list[str]:
+    """WebFetch rules for the tested hosts, with and without www."""
+    out: set[str] = set()
+    for h in hosts:
+        h = h.lower().rstrip(".")
+        out |= {h, h.removeprefix("www."), "www." + h.removeprefix("www.")}
+    return [f"WebFetch(domain:{h})" for h in sorted(out) if h]
 
 
 def _now() -> str:
@@ -72,8 +83,13 @@ class ClaudeCodeCLI:
         env["CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH"] = "1"
         return env
 
-    def _args(self, prompt: str, mcp: Path, tools: list[str], servers) -> list[str]:
+    def _args(
+        self, prompt: str, mcp: Path, tools: list[str], servers, hosts=()
+    ) -> list[str]:
         allowed = [f"mcp__{s.name}" for s in servers] + tools
+        denied = [f"mcp__{s.name}__{t}" for s in servers for t in s.deny]
+        if "WebFetch" in tools:
+            denied += fetch_denials(list(hosts))
         return [
             self.binary,
             "-p",
@@ -94,17 +110,13 @@ class ClaudeCodeCLI:
             ",".join(tools),
             "--allowedTools",
             ",".join(allowed),
-            *(
-                ["--disallowedTools", ",".join(denied)]
-                if (denied := [f"mcp__{s.name}__{t}" for s in servers for t in s.deny])
-                else []
-            ),
+            *(["--disallowedTools", ",".join(denied)] if denied else []),
             "--no-session-persistence",
             "--system-prompt",
             task_prompt.SYSTEM,
         ]
 
-    async def _stream(self, prompt, servers, tools, on_event) -> int:
+    async def _stream(self, prompt, servers, tools, on_event, hosts=()) -> int:
         """Run one isolated `claude -p` and call on_event(event, t) per line."""
         with tempfile.TemporaryDirectory(prefix="arm-") as tmp:
             tmp = Path(tmp)
@@ -122,7 +134,7 @@ class ClaudeCodeCLI:
                 )
             )
             proc = await asyncio.create_subprocess_exec(
-                *self._args(prompt, mcp, tools, servers),
+                *self._args(prompt, mcp, tools, servers, hosts),
                 cwd=tmp / "work",
                 env=self._env(tmp / "home"),
                 stdin=asyncio.subprocess.DEVNULL,
@@ -164,7 +176,9 @@ class ClaudeCodeCLI:
         return state
 
     # ── a whole arm ───────────────────────────────────────────────────────
-    async def run(self, task: str, servers: list[Server], arm: str, log) -> dict:
+    async def run(
+        self, task: str, servers: list[Server], arm: str, log, hosts: list[str] = ()
+    ) -> dict:
         calls: dict[str, dict] = {}  # api message id -> model call
         uses: dict[str, dict] = {}  # tool_use id -> tool call
         out: dict[str, Any] = {
@@ -270,7 +284,7 @@ class ClaudeCodeCLI:
                 out["cost_usd_list_price"] = ev.get("total_cost_usd")
             return True
 
-        out["exit_code"] = await self._stream(task, servers, ARM_TOOLS[arm], on)
+        out["exit_code"] = await self._stream(task, servers, ARM_TOOLS[arm], on, hosts)
         if failed_servers:
             out["ended"] = "error: MCP server not connected"
             out["error"] = f"MCP servers not connected: {failed_servers}"

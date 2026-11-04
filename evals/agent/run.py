@@ -399,7 +399,10 @@ async def run_arm(
                 ended = "stopped: context leak"
                 raise RuntimeError(f"Context leak: {summary['leak_check']['leaked']}")
         if isinstance(provider, ClaudeCodeCLI):
-            res = await provider.run(task, servers, arm, log)
+            from urllib.parse import urlsplit
+
+            hosts = sorted({urlsplit(u).hostname or "" for u in urls} - {""})
+            res = await provider.run(task, servers, arm, log, hosts)
             final, ended = res["final"], res["ended"]
             agent.totals, agent.models = res["tokens"], set(res["models"])
             agent.tool_calls = res["tool_calls"]

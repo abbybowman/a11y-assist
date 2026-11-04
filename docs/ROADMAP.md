@@ -117,9 +117,8 @@ run).
   answer questions (one subagent for all of them), summarize, read
   `report_uri` and offer to save it.
 - **Agent-level eval: round 1 and after** (plan: [plans/2026-10-31-agent-eval.md](plans/2026-10-31-agent-eval.md);
-  runbook: `evals/agent/README.md`). Next, in order: Abby approves the
-  four added weights and the forms wording in `evals/agent/prompt.py`;
-  commits `pages.txt` and freezes on her laptop (no model needed), then
+  runbook: `evals/agent/README.md`). Next, in order (weights and forms wording
+  approved 2026-11-04): Abby commits `pages.txt` and freezes on her laptop (no model needed), then
   commits `frozen/`; Agent A, then Agent B at the start of a fresh 5-hour
   window, on the CLI route; lock, reveal, score. Later: the Ask Sage route
   (set `AGENT_API_AUTH_HEADER`; install Tavily MCP for Agent B's search),

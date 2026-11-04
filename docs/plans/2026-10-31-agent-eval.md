@@ -49,7 +49,10 @@ Words used in this plan:
   recorded) and web search. A capable agent would look up guidance, and the
   test sites publish no accessibility reports a search could find. On a
   route whose models have no web search of their own (Ask Sage), search is
-  Tavily MCP (not installed yet); on the claude.ai route, the CLI's own. Agent B
+  Tavily MCP (not installed yet). On the CLI route it is the CLI's
+  WebSearch and WebFetch, with WebFetch refused on the tested site's hosts
+  (Abby, 2026-11-04), so the tested pages come only from the frozen copies.
+  Agent B
   can open a page, press keys and read the page, so it has a fair chance to
   run each test without this server's procedure. Its tools are given up
   front rather than "ask for what you need," so every run has the same
@@ -185,8 +188,9 @@ Understanding pages (those are the WCAG 2.2 versions). It says:
   A missing or malformed line, or a missing entry, scores as wrong.
 
 The criteria list is generated from the requirements of the tests in
-`checks.REGISTRY` (`catalog.py`), never typed by hand. Abby reviews the
-exact wording before round 1 runs.
+`checks.REGISTRY` (`catalog.py`), never typed by hand. The wording,
+including the forms scope, is `evals/agent/prompt.py` (`round1-v1`,
+approved by Abby, 2026-11-04).
 
 ## 5. Steps of a round, in commit order
 
@@ -212,14 +216,17 @@ exact wording before round 1 runs.
   server's frozen pages folder is set to `<round>/frozen/` in
   "record_missing" mode. That records the page, its other pages and 19.A's
   site search exactly as a live run would, under the same allowlist and
-  redirect checks. The runs' results are deleted unread.
+  redirect checks. Where 19.A then suggests pages for the user to add (a
+  site map, the home page, breadcrumbs: same host, at most 5), the page is
+  run once more with them, so they are frozen too (Abby, 2026-11-04). Their
+  own links are not followed. The runs' results are deleted unread.
 - **Agent A:** the server setting `FROZEN_PAGES_DIR` (`frozen.py`), in
   "replay" mode. The server replays each URL's recording and refuses
   (ToolError) a URL with no recording. It is a server setting, not a tool
   input, so neither the agent nor page content can choose a recording.
-  Every report records `frozen_pages`. If Agent A picks other pages that
-  make 19.A search where the freeze did not, that search is refused and
-  19.A says it could not run it.
+  Every report records `frozen_pages`. A page outside the frozen set (for
+  example a link of a suggested page, or a search the freeze did not make)
+  is refused, and the tool says it could not use it.
 - **Agent B:** Playwright MCP's `--init-page` file
   (`evals/agent/node/frozen-init.cjs`) routes every recording of the round
   through `routeFromHAR`. Only the first registered recording aborts what
@@ -338,14 +345,14 @@ server outcomes so any gap between the tool and the agent's report shows:
 For 1.3.1, 2.4.6 and 4.1.2, only 5.B and 5.C roll up (the forms scope in
 4.3). The roll-up is eval code; it decides no outcome of the tool.
 
-**Weights, fixed before any run:**
+**Weights, fixed before any run** (approved by Abby, 2026-11-04):
 
 | Outcome against the key | Score |
 | --- | --- |
 | Correct PASS, FAIL or DNA | +1 |
 | NEEDS_REVIEW | 0 |
 | False FAIL | −1 |
-| FAIL naming the wrong element (none of the key's failing elements are among those reported) | −1, counted as a false FAIL (not scored yet: open question 2) |
+| FAIL naming the wrong element (none of the key's failing elements are among those reported) | −1, counted as a false FAIL (not scored yet: open question 1) |
 | FAIL where the key says Does Not Apply | −1 |
 | Any other mismatch (for example PASS where the key says Does Not Apply) | −1 |
 | No answer: the `RESULT` line is missing, malformed or lacks the entry | −1 |
@@ -448,10 +455,10 @@ Not built or not checked:
    clean and both result lines parsed. A smoke run checks the plumbing,
    not accuracy.
 8. **Tavily MCP**, needed only on the Ask Sage route, whose models have no
-   web search; the CLI route uses the CLI's own `WebSearch`. Agent B never
-   gets `WebFetch` (it could fetch the live site) or Playwright MCP's
-   `browser_run_code_unsafe` (it runs any code in Playwright's process,
-   outside the frozen replay).
+   web search; the CLI route uses the CLI's own `WebSearch` and `WebFetch`
+   (refused on the tested hosts). Agent B never gets Playwright MCP's
+   `browser_run_code_unsafe`: it runs any code in Playwright's process,
+   outside the frozen replay.
 
 ## 13. Layout
 
@@ -475,15 +482,10 @@ evals/judging/<round>/
 
 ## 14. Open questions
 
-1. The exact wording that limits 1.3.1, 2.4.6 and 4.1.2 to form fields'
-   labels (Abby reviews it).
-2. How a failing element that Agent B names in its own words is matched to
+1. How a failing element that Agent B names in its own words is matched to
    the key's element.
-3. Abby's approval of the weights for the four verdicts added in section
-   8: FAIL where the key says Does Not Apply, other mismatches, and no
-   answer at −1; DOES NOT APPLY where the key fails at −3.
-4. The header Ask Sage takes the token in (`AGENT_API_AUTH_HEADER`), as the
+2. The header Ask Sage takes the token in (`AGENT_API_AUTH_HEADER`), as the
    2026-11-01 check used it.
-5. Whether the DHS training pages may be used (3.3).
-6. Whether a second certified tester can label a subset (3.1).
-7. The Ask Sage routes for GPT 5.6 Sol and Gemini 4 Argon (section 10).
+3. Whether the DHS training pages may be used (3.3).
+4. Whether a second certified tester can label a subset (3.1).
+5. The Ask Sage routes for GPT 5.6 Sol and Gemini 4 Argon (section 10).

@@ -103,5 +103,11 @@ async def test_cli_route_isolation_and_log(tmp_path, monkeypatch):
     assert leak["argv"][leak["argv"].index("--tools") + 1] == ""
     argv = run["argv"]
     tools = argv[argv.index("--tools") + 1].split(",")
-    assert "WebSearch" in tools and "WebFetch" not in tools  # never the live site
-    assert argv[argv.index("--disallowedTools") + 1] == "mcp__x__evil"
+    assert "WebSearch" in tools and "WebFetch" in tools
+    # WebFetch is refused on the tested site only: its pages come from the
+    # frozen copies.
+    assert argv[argv.index("--disallowedTools") + 1].split(",") == [
+        "mcp__x__evil",
+        "WebFetch(domain:example.gov)",
+        "WebFetch(domain:www.example.gov)",
+    ]
