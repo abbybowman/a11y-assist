@@ -114,7 +114,10 @@ by TT test ID. Package: `a11y_assist` (name is provisional).
   two kinds of way; one per run; a GET form whose action passes the
   allowlist and is on the tested page's host (every redirect hop checked);
   the term is the tested page's own heading; recorded as its own HAR.
-  Other URLs found on pages are only *suggested* to the user, never visited.
+  Other URLs found on pages are only *suggested* to the user, never visited,
+  with one eval-only exception (Abby, 2026-11-04): freezing a round
+  (`evals/agent/freeze.py`) also records the pages 19.A suggests, once
+  (same host, allowlisted, at most 5), and never follows their links.
 - Hackathon docs: when a TT test, spec version, evaluation method or
   security control changes, update `docs/hackathon/evaluation.md` and the
   matching slide in `docs/hackathon/deck.md` in the same commit. Remove a
