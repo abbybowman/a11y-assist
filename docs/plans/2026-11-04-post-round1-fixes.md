@@ -51,6 +51,31 @@ scores: `evals/judging/round1/`. Eval plan:
   on GitHub's runners).
 - **Status:** not started.
 
+### 4. Agent A chose not to answer the open questions
+
+- **Found:** round 1, `arm-a-1`. Its final message: "I did not answer the
+  tool's open judgment questions." Every finding that needed an answer
+  stayed NEEDS_REVIEW. The process depends on the calling agent answering
+  them (principle 8).
+- **Fix:** make answering harder to skip, in the tool, not in the eval's
+  prompt (a real user's agent gets no special prompt): for example, the
+  result says plainly that the findings are incomplete until the questions
+  are answered, how many there are, and that answering takes one call;
+  check the `a11y_run_tt_tests` and `a11y_answer_questions` descriptions.
+  Then the judge eval on the new wording.
+- **Status:** not started. `arm-a-2` (an unchanged repeat) shows whether it
+  happens every time.
+
+### 5. Parallel calls to one server
+
+- **Found:** round 1, `arm-a-1` ran 2–3 pages at once. The runs share one
+  machine's browser and CPU, so their key-press timing and time limits
+  suffer: the NACA page "hit its time limit" and only 3.2.3 finished.
+- **Fix:** queue calls on one server (one run at a time, the others wait)
+  or give each its own share; say so in the tool's description. Check what
+  the settle rule's timing does under load.
+- **Status:** not started.
+
 ## Observations to decide after scoring
 
 These describe how Agent A used the tool. They are not bugs. Whether to act
@@ -74,6 +99,11 @@ on them depends on what round 1's scores show.
   followed it.
 
 ## Done during round 1 (the harness, not the tool)
+
+- A new frozen recording could reuse the file name of one still in use
+  (`frozen.py` named it by counting the index): fixed, with a test.
+- Runs of one arm are labeled (`--label`, `results/arm-a-1/`, `arm-a-2/`),
+  and each run is scored on the pages it was given.
 
 - One-hour MCP tool timeout on the CLI route (`evals/agent/cli.py`).
 - The CLI route's step log keeps the first 500 characters of each tool

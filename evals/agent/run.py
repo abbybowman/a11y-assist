@@ -356,18 +356,20 @@ async def run_arm(
     servers: list[Server] | None = None,
     check_leaks: bool = True,
     egress_settings=None,
+    label: str | None = None,
 ) -> dict:
     """Run arm "a" or "b" on round folder `rd`; returns the summary.
 
     Agent B's browser connects through an egress proxy (egress.py) with the
     server's own address checks, as Agent A's server does; its live pages
     are logged to results/arm-b/live.jsonl."""
+    name = f"arm-{arm}" + (f"-{label}" if label else "")
     if servers is not None or arm == "a":
-        return await _run_arm(rd, arm, provider, servers, check_leaks)
+        return await _run_arm(rd, arm, provider, servers, check_leaks, name)
     from a11y_assist.config import Settings
     from a11y_assist.egress import EgressProxy
 
-    out = (rd / "results" / f"arm-{arm}").resolve()
+    out = (rd / "results" / name).resolve()
     async with EgressProxy(egress_settings or Settings()) as proxy:
         servers = browser_arm(
             (rd / "frozen").resolve(),
@@ -376,13 +378,13 @@ async def run_arm(
             proxy=proxy.url,
             live_log=out / "live.jsonl",
         )
-        s = await _run_arm(rd, arm, provider, servers, check_leaks)
+        s = await _run_arm(rd, arm, provider, servers, check_leaks, name)
     s["egress_refused"] = proxy.refused[:100]
     (out / "summary.json").write_text(json.dumps(s, indent=1, default=str) + "\n")
     return s
 
 
-async def _run_arm(rd, arm, provider, servers, check_leaks) -> dict:
+async def _run_arm(rd, arm, provider, servers, check_leaks, name) -> dict:
     from evals.judging import _pages
 
     if (rd / "results" / "lock.json").exists():
@@ -390,7 +392,7 @@ async def _run_arm(rd, arm, provider, servers, check_leaks) -> dict:
     frozen = (rd / "frozen").resolve()
     if not (frozen / "index.json").exists():
         raise RuntimeError(f"No frozen pages in {frozen}: run evals.agent.freeze")
-    out = (rd / "results" / f"arm-{arm}").resolve()
+    out = (rd / "results" / name).resolve()
     if out.exists() and any(out.iterdir()):
         raise RuntimeError(f"{out} is not empty: this arm already ran")
     urls = [u for u, _ in _pages(rd)]
@@ -483,12 +485,15 @@ def main(argv: list[str]) -> None:
         help="api: an Anthropic-style API (Ask Sage); cli: the Claude Code CLI",
     )
     ap.add_argument("--model", default="claude-sonnet-5-5", help="cli route only")
+    ap.add_argument(
+        "--label", help="a repeat of an arm: results/arm-<arm>-<label>/ (e.g. 2)"
+    )
     ap.add_argument("round", type=Path)
     a = ap.parse_args(argv)
     provider = (
         ClaudeCodeCLI(a.model) if a.route == "cli" else AnthropicMessages.from_env()
     )
-    s = asyncio.run(run_arm(a.round, a.arm, provider))
+    s = asyncio.run(run_arm(a.round, a.arm, provider, label=a.label))
     print(json.dumps({k: s[k] for k in ("ended", "wall_s", "tokens", "tool_calls")}))
     if s.get("error"):
         sys.exit(s["error"])

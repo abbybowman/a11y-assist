@@ -1,61 +1,61 @@
 {
- "started_at": "2026-11-04T12:41:43.592598+00:00",
+ "started_at": "2026-11-04T13:25:21.181394+00:00",
  "pages": {
   "https://www.nasa.gov/spot-the-station/": {
    "status": "frozen",
    "final_url": "https://www.nasa.gov/spot-the-station/",
    "cross_site_frames": 4,
-   "seconds": 15.2
+   "seconds": 0.2
   },
-  "https://www.nasa.gov/search?=artemis": {
+  "https://www.nasa.gov/?search=artemis": {
    "status": "frozen",
-   "final_url": "https://www.nasa.gov/search?=artemis",
+   "final_url": "https://www.nasa.gov/?search=artemis",
    "cross_site_frames": 0,
-   "seconds": 9.9
+   "seconds": 4.6
   },
   "https://www.nasa.gov/forms/nssc-accounts-receivable": {
    "status": "frozen",
    "final_url": "https://www.nasa.gov/forms/nssc-accounts-receivable/",
    "cross_site_frames": 1,
-   "seconds": 12.8
+   "seconds": 0.2
   },
   "https://www.nasa.gov/careers/": {
    "status": "frozen",
    "final_url": "https://www.nasa.gov/careers/",
    "cross_site_frames": 0,
-   "seconds": 11.1
+   "seconds": 0.1
   },
   "https://www.nasa.gov/missions/": {
    "status": "frozen",
    "final_url": "https://www.nasa.gov/missions/",
    "cross_site_frames": 0,
-   "seconds": 9.0
+   "seconds": 0.1
   },
   "https://www.nasa.gov/mission/artemis-iii/": {
    "status": "frozen",
    "final_url": "https://www.nasa.gov/mission/artemis-iii/",
    "cross_site_frames": 1,
-   "seconds": 10.4
+   "seconds": 0.2
   },
   "https://www.nasa.gov/feature/naca-at-110-special-feature/": {
    "status": "frozen",
    "final_url": "https://www.nasa.gov/feature/naca-at-110-special-feature/",
    "cross_site_frames": 5,
-   "seconds": 19.4
+   "seconds": 0.2
   },
   "https://www.nasa.gov/news-release/nasa-releases-max-power-key-events-for-media-participants/": {
    "status": "frozen",
    "final_url": "https://www.nasa.gov/news-release/nasa-releases-max-power-key-events-for-media-participants/",
    "cross_site_frames": 0,
-   "seconds": 6.9
+   "seconds": 0.1
   },
   "https://www.nasa.gov/gallery/ksc-history/": {
    "status": "frozen",
    "final_url": "https://www.nasa.gov/gallery/ksc-history/",
    "cross_site_frames": 0,
-   "seconds": 7.5
+   "seconds": 0.0
   }
  },
- "finished_at": "2026-11-04T12:43:31.375041+00:00",
+ "finished_at": "2026-11-04T13:25:28.355593+00:00",
  "recordings": 9
 }

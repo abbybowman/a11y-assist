@@ -89,6 +89,12 @@ async def test_a_whole_round(settings, tmp_path):
     sb = await agent_run.run_arm(rd, "b", Scripted("m", agent_b), servers=[])
     assert sa.get("error") is None and sb.get("error") is None, (sa, sb)
 
+    # A run is scored on the pages it was given (round 1's corrected typo).
+    sb_file = rd / "results" / "arm-b" / "summary.json"
+    sbd = json.loads(sb_file.read_text())
+    sbd["pages"] = [urls[0]]
+    sb_file.write_text(json.dumps(sbd))
+
     with pytest.raises(JudgingError, match="Not locked"):
         score(rd)
     lock(rd)
@@ -106,8 +112,9 @@ async def test_a_whole_round(settings, tmp_path):
     assert a["per_criterion"]["counts"]["no_answer"] == 1  # page 2 left out
     assert a["fails"][0]["elements"] == ["the menu"]
     assert b["result_line"] == "missing or malformed"
-    assert b["per_criterion"]["counts"]["no_answer"] == 3
-    assert b["per_criterion"]["weighted"] == -3
+    assert b["pages_not_given"] == [urls[1]]
+    assert b["per_criterion"]["counts"]["no_answer"] == 2  # page 2 not given
+    assert b["per_criterion"]["weighted"] == -2
     sv = a["server"]
     assert sv["pages_not_tested"] == [urls[1]]
     assert sv["per_tt"]["counts"]["not_performed"] >= 1  # 4.C was not run
