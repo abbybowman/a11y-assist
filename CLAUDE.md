@@ -90,6 +90,14 @@ by TT test ID. Package: `a11y_assist` (name is provisional).
   `shared_inputs` (questions name their keys in `shared`); screenshots and
   files in a question are `run://` links, never run-folder paths.
 - Test runs analyze a HAR replay, never the live page, so runs are repeatable.
+  Replays of pages with cross-site iframes run in full Chromium, never the
+  headless shell (`docs/solutions/full-chromium-iframes.md`).
+- Frozen pages (`FROZEN_PAGES_DIR`, evals only) are a server setting, never
+  a tool input: in "replay" mode every page a run loads comes from the
+  folder, and a URL with no recording is a tool error, never fetched live.
+  In "tested_frozen" mode (the agent eval; Abby, 2026-11-04) the tested
+  page must come from the folder, and other pages of its host (other
+  pages, 19.A's search) load live under the usual rules.
 - A page that is never tested (not allowed, cannot load, bad input) is a tool
   error (`ToolError`, isError), not a finding, and leaves no run folder.
 - Hosted deployment is the target; stdio is fine for now. Build nothing that
@@ -142,7 +150,8 @@ src/a11y_assist/
   config.py     Settings (env / .env)
   policy.py     URL allowlist decision (pure)
   browser.py    Chrome launch, fresh contexts, NavigationGuard
-  capture.py    HAR record + replay
+  capture.py    HAR record + replay; notes cross-site frames
+  frozen.py     frozen pages for evals: replay a folder of recordings, or record into it
   andi.py       local ANDI injection; andi_output() reads its per-element analysis
   traverse.py   key passes, CDP focus reading, settle rule, inventory (no outcomes)
   observe.py    what an action changes (Effect): 4.A, 4.B, 4.F and 5.D
@@ -215,6 +224,9 @@ evals/          judge eval: fresh agents answer the open questions from isolated
                 scoring.py (a tool file against an answer key: false PASS first);
                 judging.py (real pages against a tester's blind SCRT files,
                 commit and reveal; rounds in evals/judging/<round>/)
+  agent/        agent eval: freeze.py, prompt.py, arms.py, run.py, providers.py,
+                score.py; node/ (Playwright MCP, pinned; frozen-init.cjs);
+                README.md (how to run a round)
 runs/           output (git-ignored)
 ```
 
@@ -236,6 +248,7 @@ uv run python evals/judge_eval.py prepare /tmp/eval   # judge eval packets ...
 uv run python evals/judge_eval.py apply /tmp/eval     # ... after one agent answers them
 uv run python evals/time_budget.py budget/agency-home.html   # where a run's time goes
 uv run python evals/judging.py scan evals/judging/<round>   # then apply, lock, score (evals/README.md)
+uv run python -m evals.agent.freeze evals/judging/<round>   # agent eval: then run --arm a|b, lock, score
 TEST_BROWSER_CHANNEL=chrome TEST_HEADED=1 uv run pytest   # installed Chrome, visible
 uv run ruff check . && uv run ruff format --check .
 uv run a11y-assist               # stdio MCP server

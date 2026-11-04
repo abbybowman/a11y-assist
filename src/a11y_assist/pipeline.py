@@ -31,12 +31,18 @@ from urllib.parse import urlsplit
 from playwright.async_api import Browser, async_playwright
 
 from a11y_assist import scrt
-from a11y_assist.browser import NavigationBlocked, launch_browser
-from a11y_assist.capture import record, replay_context
+from a11y_assist.browser import (
+    NavigationBlocked,
+    launch_browser,
+    replay_browser_name,
+    replay_in_full_chromium,
+)
+from a11y_assist.capture import replay_context
 from a11y_assist.checks import REGISTRY, RunContext
 from a11y_assist.checks.base import PageRef
 from a11y_assist.config import Settings
 from a11y_assist.egress import EgressProxy
+from a11y_assist.frozen import NotFrozen, obtain
 from a11y_assist.judgment import get_judge, record_answers
 from a11y_assist.models import (
     REVIEW_HEAD,
@@ -91,12 +97,16 @@ def evidence_name(test_id: TestId) -> str:
     return test_id.value.lower().replace(".", "") + ".json"  # "4.C" -> "4c.json"
 
 
-def _opener(get_browser, settings: Settings, har: Path, final_url: str, run):
+def _opener(
+    get_browser, settings: Settings, har: Path, final_url: str, run, frames: list[str]
+):
     """A fresh replay context and page for every load (docs/solutions/
-    fresh-load-per-probe.md)."""
+    fresh-load-per-probe.md). A page with cross-site frames replays in full
+    Chromium (browser.replay_in_full_chromium)."""
+    full = replay_in_full_chromium(settings, frames)
 
     async def new_page():
-        browser = await get_browser()
+        browser = await get_browser(full)
         replay = await replay_context(browser, settings, har, run.log)
         page = await replay.context.new_page()
         await replay.guard.goto(page, final_url)
@@ -111,10 +121,16 @@ def _context(
     get_browser,
     final_url: str,
     deadline: float,
+    frames: list[str],
 ):
     return RunContext(
         new_page=_opener(
-            get_browser, settings, run.evidence_dir / "page.har.zip", final_url, run
+            get_browser,
+            settings,
+            run.evidence_dir / "page.har.zip",
+            final_url,
+            run,
+            frames,
         ),
         quiet_ms=settings.settle_quiet_ms,
         deadline=deadline,
@@ -211,20 +227,35 @@ def _live_recorder(browser, settings, run, report, proxy, final_url, get_browser
         # The same share a caller-named page gets, so a slow search cannot
         # take the later checks' time (19.A W4 on a timeout).
         lc = await asyncio.wait_for(
-            record(browser, settings, url, run.dir / rel, run.log, proxy),
+            obtain(browser, settings, url, run.dir / rel, run.log, proxy, tested=False),
             settings.other_page_s,
         )
         if not _same_site(lc.final_url, final_url):
             raise ValueError("it ended on another host after redirects")
         report.live_pages.append(
-            OtherPage(n=n, url=url, final_url=lc.final_url, har=rel)
+            OtherPage(
+                n=n,
+                url=url,
+                final_url=lc.final_url,
+                har=rel,
+                cross_site_frames=lc.cross_site_frames,
+                frozen=lc.frozen if settings.frozen_pages_dir else None,
+                replay_browser=replay_browser_name(settings, lc.cross_site_frames),
+            )
         )
         run.log("captured_live", n=n, seconds=round(time.monotonic() - t1, 2))
         return PageRef(
             n=100 + n,
             url=url,
             final_url=lc.final_url,
-            new_page=_opener(get_browser, settings, run.dir / rel, lc.final_url, run),
+            new_page=_opener(
+                get_browser,
+                settings,
+                run.dir / rel,
+                lc.final_url,
+                run,
+                lc.cross_site_frames,
+            ),
         )
 
     return record_live
@@ -237,7 +268,12 @@ def _page_refs(get_browser, settings: Settings, run, report: Report) -> list[Pag
             url=p.url,
             final_url=p.final_url or p.url,
             new_page=_opener(
-                get_browser, settings, run.dir / p.har, p.final_url or p.url, run
+                get_browser,
+                settings,
+                run.dir / p.har,
+                p.final_url or p.url,
+                run,
+                p.cross_site_frames,
             ),
         )
         for p in report.other_pages
@@ -277,22 +313,27 @@ def _too_long(exc: WalkTooLong, limit: int) -> str:
 
 
 class _LazyBrowser:
-    """Starts Chrome only if a check needs it (resume often does not)."""
+    """Starts Chrome only if a check needs it (resume often does not); full
+    Chromium only if a page with cross-site frames is replayed."""
 
     def __init__(self, settings: Settings):
         self.settings = settings
-        self._pw = self._browser = self._proxy = None
+        self._pw = self._proxy = None
+        self._browsers: dict[bool, Browser] = {}
 
-    async def get(self) -> Browser:
-        if self._browser is None:
+    async def get(self, full: bool = False) -> Browser:
+        if self._proxy is None:
             self._proxy = await EgressProxy(self.settings).__aenter__()
             self._pw = await async_playwright().start()
-            self._browser = await launch_browser(self._pw, self.settings, self._proxy)
-        return self._browser
+        if full not in self._browsers:
+            self._browsers[full] = await launch_browser(
+                self._pw, self.settings, self._proxy, full_chromium=full
+            )
+        return self._browsers[full]
 
     async def close(self) -> None:
-        if self._browser is not None:
-            await self._browser.close()
+        for b in self._browsers.values():
+            await b.close()
         if self._pw is not None:
             await self._pw.stop()
         if self._proxy is not None:
@@ -438,6 +479,7 @@ async def run_tt_tests(
         versions=collect_versions(settings, None, no_time_limit),
         judge_backend=settings.judge_backend,
         evidence_dir="evidence",
+        frozen_pages=settings.frozen_pages_mode if settings.frozen_pages_dir else None,
     )
     checks = [REGISTRY[t] for t in selected if t in REGISTRY]
     # Other pages are recorded only for a check that compares pages.
@@ -461,9 +503,17 @@ async def run_tt_tests(
 
     async with EgressProxy(settings, log=run.log) as proxy, async_playwright() as pw:
         browser = await launch_browser(pw, settings, proxy)
+        full_browser: list[Browser] = []  # launched on first need
 
-        async def get_browser() -> Browser:
-            return browser
+        async def get_browser(full: bool = False) -> Browser:
+            if not full:
+                return browser
+            if not full_browser:
+                full_browser.append(
+                    await launch_browser(pw, settings, proxy, full_chromium=True)
+                )
+                run.log("browser_launched", kind="full Chromium")
+            return full_browser[0]
 
         try:
             report.versions = collect_versions(settings, browser, no_time_limit)
@@ -473,7 +523,7 @@ async def run_tt_tests(
             t0 = time.monotonic()
             try:
                 cap = await _bounded(
-                    record(browser, settings, url, har, run.log, proxy), hard
+                    obtain(browser, settings, url, har, run.log, proxy), hard
                 )
             except Exception as exc:
                 # The page never loaded: a tool error, and nothing is kept.
@@ -482,12 +532,14 @@ async def run_tt_tests(
                     raise RunRefused(
                         "The page could not be recorded within the time limit."
                     ) from None
-                if isinstance(exc, NavigationBlocked):
+                if isinstance(exc, (NavigationBlocked, NotFrozen)):
                     raise RunRefused(str(exc)) from exc
                 raise RunRefused(
                     f"The page could not be loaded: {safe_error(exc)}"
                 ) from None
             report.final_url = cap.final_url
+            report.cross_site_frames = cap.cross_site_frames
+            report.replay_browser = replay_browser_name(settings, cap.cross_site_frames)
             pages_cut = ""
             for i, other in enumerate(others, 1):
                 await say(0.5, f"Recording other page {i} of {len(others)}")
@@ -499,7 +551,15 @@ async def run_tt_tests(
                     # limit, so a slow one cannot eat the other tests' time.
                     share = hard if no_time_limit else t1 + settings.other_page_s
                     oc = await _bounded(
-                        record(browser, settings, other, run.dir / rel, run.log, proxy),
+                        obtain(
+                            browser,
+                            settings,
+                            other,
+                            run.dir / rel,
+                            run.log,
+                            proxy,
+                            tested=False,
+                        ),
                         min(hard, share),
                     )
                 except TimeoutError:
@@ -517,7 +577,7 @@ async def run_tt_tests(
                     break
                 except Exception as exc:
                     shutil.rmtree(run.dir, ignore_errors=True)
-                    if isinstance(exc, NavigationBlocked):
+                    if isinstance(exc, (NavigationBlocked, NotFrozen)):
                         raise RunRefused(f"Other page {i}: {exc}") from exc
                     raise RunRefused(
                         f"Other page {i} could not be loaded: {safe_error(exc)}"
@@ -529,7 +589,17 @@ async def run_tt_tests(
                         "other pages must be pages of the same site."
                     )
                 report.other_pages.append(
-                    OtherPage(n=i, url=other, final_url=oc.final_url, har=rel)
+                    OtherPage(
+                        n=i,
+                        url=other,
+                        final_url=oc.final_url,
+                        har=rel,
+                        cross_site_frames=oc.cross_site_frames,
+                        frozen=oc.frozen if settings.frozen_pages_dir else None,
+                        replay_browser=replay_browser_name(
+                            settings, oc.cross_site_frames
+                        ),
+                    )
                 )
                 run.log(
                     "captured_other",
@@ -551,7 +621,9 @@ async def run_tt_tests(
                 redirects=cap.redirects,
                 seconds=round(time.monotonic() - t0, 2),
             )
-            ctx = _context(settings, run, get_browser, cap.final_url, soft)
+            ctx = _context(
+                settings, run, get_browser, cap.final_url, soft, cap.cross_site_frames
+            )
             ctx.selected = frozenset(c.test_id.value for c in checks)
             ctx.requested_url = url
             ctx.pages = _page_refs(get_browser, settings, run, report)
@@ -621,7 +693,8 @@ async def run_tt_tests(
                     TIME_NOTE.format(limit=_limit(settings, len(others)))
                 )
         finally:
-            await browser.close()
+            for b in (browser, *full_browser):
+                await b.close()
 
     await say(3, "Evaluating")
     report.findings = []
@@ -673,6 +746,7 @@ async def answer_questions(
             browser.get,
             report.final_url or report.target,
             _soft_deadline(time.monotonic(), settings, no_limit),
+            report.cross_site_frames,
         )
         ctx.pages = _page_refs(browser.get, settings, run, report)
         walk_path = run.evidence_dir / "walk.json"

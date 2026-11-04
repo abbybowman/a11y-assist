@@ -410,6 +410,19 @@ class OtherPage(BaseModel):
     url: str
     final_url: str | None = None
     har: str = Field(description="HAR path relative to the run folder.")
+    cross_site_frames: list[str] = Field(
+        default_factory=list,
+        description="Frames on another host, seen while recording (URLs without "
+        "query). Their presence decides the replay browser.",
+    )
+    replay_browser: str | None = Field(
+        default=None, description="The browser that replayed this page."
+    )
+    frozen: bool | None = Field(
+        default=None,
+        description="With frozen pages (an eval): true if this page came from "
+        "the frozen copies, false if it was recorded live.",
+    )
 
 
 class Report(BaseModel):
@@ -425,6 +438,19 @@ class Report(BaseModel):
     live_pages: list[OtherPage] = Field(
         default_factory=list,
         description="Pages the tool loaded live itself: 19.A's site search only.",
+    )
+    cross_site_frames: list[str] = Field(
+        default_factory=list,
+        description="The tested page's frames on another host, seen while "
+        "recording (URLs without query).",
+    )
+    replay_browser: str | None = Field(
+        default=None, description="The browser that replayed the tested page."
+    )
+    frozen_pages: Literal["replay", "tested_frozen", "record_missing"] | None = Field(
+        default=None,
+        description="Set when the pages came from a folder of frozen "
+        "recordings (an eval), not loaded live by this run.",
     )
     started_at: datetime
     finished_at: datetime | None = None

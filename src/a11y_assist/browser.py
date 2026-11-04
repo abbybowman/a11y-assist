@@ -40,16 +40,47 @@ class PageUnreachable(RuntimeError):
     """A top-level navigation's host could not be connected to."""
 
 
+FULL_CHROMIUM = "full Chromium"
+
+
+def replay_in_full_chromium(settings: Settings, cross_site_frames: list[str]) -> bool:
+    """Replays of a page with cross-site iframes run in full Chromium, never
+    the headless shell: the shell runs those frames in-process, unlike the
+    Chrome users have (docs/solutions/full-chromium-iframes.md). Installed
+    Chrome already runs them out-of-process, and headed "chromium" is
+    already full Chromium."""
+    return (
+        settings.browser_channel == "chromium"
+        and settings.headless
+        and bool(cross_site_frames)
+    )
+
+
+def replay_browser_name(settings: Settings, cross_site_frames: list[str]) -> str:
+    """What the report records as the browser that replays a page."""
+    if replay_in_full_chromium(settings, cross_site_frames):
+        return FULL_CHROMIUM
+    if settings.browser_channel == "chromium":
+        return "headless shell" if settings.headless else FULL_CHROMIUM
+    return settings.browser_channel
+
+
 async def launch_browser(
-    pw: Playwright, settings: Settings, proxy: EgressProxy
+    pw: Playwright, settings: Settings, proxy: EgressProxy, full_chromium: bool = False
 ) -> Browser:
     """Chrome whose only way out is `proxy` (egress.py), which checks the
-    address of every connection. There is no unproxied launch."""
+    address of every connection. There is no unproxied launch.
+
+    `full_chromium` launches Playwright's full Chromium (new headless mode)
+    instead of the configured browser; see replay_in_full_chromium."""
     if not proxy.url:
         raise RuntimeError("The egress proxy is not running")
-    channel = (
-        None if settings.browser_channel == "chromium" else settings.browser_channel
-    )
+    if full_chromium:
+        channel = "chromium"
+    else:
+        channel = (
+            None if settings.browser_channel == "chromium" else settings.browser_channel
+        )
     return await pw.chromium.launch(
         channel=channel,
         headless=settings.headless,

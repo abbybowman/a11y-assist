@@ -32,7 +32,9 @@ What works today:
 | TT 5.1.3 as data | The whole PDF as Markdown plus `tt.json` (all 63 conditions with requirements and WCAG links), checked word for word against the PDF. Served as `tt://5.1.3/index`, `tt://5.1.3/tests/{id}` and `tt://5.1.3/parts/{part}`; every finding links its test (`reference`) and Understanding pages. See `docs/sources/README.md` |
 | `explain(about?, run_id?)` prompt | A command that explains Trusted Tester tests in plain language, before a run (what a test checks, what this tool does for it) or after (what was found, how to fix it). `about` takes a test ID, WCAG criterion, test name or words. Built on `explain.py`, which failure reports will reuse |
 | `run://{run_id}/{path}` resources | `report.json`, `pre-scrt.json`, `evidence/*.json` and screenshots of a run, while it is kept (`RUN_TTL_HOURS`, default 24). Durable results belong in the user's repository |
-| HAR record + replay | Page is recorded once (scrolled to load lazy content); every pass and probe runs against the replay |
+| HAR record + replay | Page is recorded once (scrolled to load lazy content); every pass and probe runs against the replay. A page with cross-site iframes replays in full Chromium, never Playwright's headless shell (which runs those frames in-process, unlike users' Chrome); the report records each page's replay browser |
+| Frozen pages (evals only) | `FROZEN_PAGES_DIR`: a server setting, never a tool input. In "replay" mode every page a run loads (the tested page, other pages, 19.A's search) comes from a folder of recordings, and a URL with none is a tool error, never fetched live. In "tested_frozen" mode (the agent eval) the tested page must be frozen, and other pages of its site load live as usual |
+| Agent eval (`evals/agent/`) | Agent A (a model with this server) against Agent B (the same model with Playwright MCP) on the same frozen pages and WCAG 2.0 prompt, scored against a tester's SCRT files. **Built and tested on fixtures with a scripted model; not yet run on a real model or real pages.** Runbook: [evals/agent/README.md](evals/agent/README.md) |
 | Navigation allowlist | `.gov` and `.mil` by default, enforced on every top-level navigation and redirect hop; `file://` only in dev mode |
 | Connection address checks | Chrome's only way out is a local proxy (`egress.py`) that resolves each host once, refuses it if any answer is a private, loopback, link-local, multicast, reserved or cloud-metadata address (IPv4-mapped and other alternate forms included) or the port is not 80/443, and connects to the address it checked, so DNS rebinding cannot get past it. Covers the page, iframes, subresources, WebSockets and every redirect hop. A refused page is a tool error; refused page parts are listed in the result's `errors` |
 | ANDI 29.2.2 | Vendored, injected from local files, never loaded from ssa.gov. Used by 5.C (what screen readers announce for each form field) and 9.C (names across pages) |
@@ -59,13 +61,16 @@ Known limits:
 - HAR replay freezes network responses, not client-side randomness or time.
 - A page Content-Security-Policy that forbids inline scripts will block ANDI
   injection. No CSP bypass is enabled.
-- Tests run in CI against Playwright's Chromium (headless). Headed Google
+- Tests run in CI against Playwright's Chromium (headless): the headless
+  shell, and full Chromium for pages with cross-site iframes. Headed Google
   Chrome on Windows must be checked locally (see below).
 
 ## TT tests in scope
 
-TT 5.1.3 Test 4 has six tests, 4.A to 4.F. Names are checked against the TT
-5.1.3 PDF, pp. 19–23.
+The implemented tests, with their names and WCAG 2.0 criteria from the TT
+5.1.3 catalog (`tt.json`; `tests/test_readme.py` checks this table against
+`checks.REGISTRY`). Every other active TT test is NEEDS REVIEW, "This test
+could not be performed".
 
 | ID | TT test name | WCAG SC |
 | --- | --- | --- |
@@ -75,6 +80,17 @@ TT 5.1.3 Test 4 has six tests, 4.A to 4.F. Names are checked against the TT
 | 4.D | 2.4.7-focus-visible | 2.4.7 |
 | 4.E | 3.2.1-on-focus | 3.2.1 |
 | 4.F | 2.4.3-focus-order-meaning | 2.4.3 |
+| 5.A | 3.3.2-label-provided | 3.3.2 |
+| 5.B | 2.4.6-label-descriptive | 2.4.6 |
+| 5.C | 1.3.1-programmatic-label | 1.3.1, 4.1.2 |
+| 5.D | 3.2.2-on-input | 3.2.2 |
+| 5.F | 3.3.1-error-identification | 3.3.1 |
+| 5.G | 3.3.3-error-suggestion | 3.3.3 |
+| 5.H | 3.3.4-error-prevention | 3.3.4 |
+| 9.A | 2.4.1-bypass-function | 2.4.1 |
+| 9.B | 3.2.3-consistent-navigation | 3.2.3 |
+| 9.C | 3.2.4-consistent-identification | 3.2.4 |
+| 19.A | 2.4.5-multiple-ways | 2.4.5 |
 
 ## Setup (Windows, Git Bash)
 
@@ -183,11 +199,13 @@ Each run writes `runs/<timestamp>-<id>/`:
 
 ```
 evidence/page.har.zip       recorded page
+evidence/pages/*.har.zip    other pages and 19.A's site search, each recorded
 evidence/walk.json          the shared Tab / Shift+Tab walk
 evidence/4c.json …          each check's evidence (one file per TT test)
 evidence/shots/*.png        screenshots where a check needs them
 steps.jsonl                 step log (URLs without query strings, no page text)
 report.json                 findings, open questions, answers, versions, disclaimer
+pre-scrt.json               the results in SCRT's shape, for a Trusted Tester to review
 ```
 
 `runs/` is git-ignored. Evidence holds page content; treat it as untrusted.
@@ -200,7 +218,8 @@ client starts the server in. Main settings:
 `ALLOWED_DOMAINS`, `DEV_MODE`, `EGRESS_PORTS`, `DEV_ALLOWED_ADDRESSES` (dev
 mode only: addresses the connection check lets through, e.g.
 `["127.0.0.1/32"]` for a local test server), `BROWSER_CHANNEL`, `HEADLESS`,
-`JUDGE_BACKEND`, `JUDGING_MODEL`. Rules spec versions are
+`JUDGE_BACKEND`, `JUDGING_MODEL`, and for evals only `FROZEN_PAGES_DIR` and
+`FROZEN_PAGES_MODE` (`replay`, `tested_frozen` or `record_missing`). Rules spec versions are
 read from each spec's front matter (`spec_version`) and recorded in every report.
 
 ## Contributing
