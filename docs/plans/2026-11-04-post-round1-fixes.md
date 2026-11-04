@@ -60,6 +60,15 @@ on them depends on what round 1's scores show.
   not all 8, and did not set `no_time_limit` on its first calls. 9.A–9.C
   and 19.A get more reliable with more pages. The tool's description could
   say so more plainly.
+- **Other pages are read again on every call** (Abby, 2026-11-04). A frozen
+  other page reuses its recording, but each call loads and reads it again
+  (page units, ANDI names for 9.C); a live other page is recorded afresh
+  on each call, so two calls can see two versions of a shared parent page.
+  Idea: a session cache of each page's recording and reading, so a batch
+  records and reads each page once (and, for the eval, both arms use the
+  same live copy). It fits the ROADMAP's "multi-page testing, one page per
+  call" proposal. Agent A's transcript should show first whether it cut
+  other pages to save time.
 - **Refusals with advice.** The Missions page (98 form fields) was refused
   with advice to call again with `no_time_limit`. Record whether Agent A
   followed it.
