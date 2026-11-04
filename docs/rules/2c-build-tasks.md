@@ -100,6 +100,31 @@ Still open from Q2: the extra time allowance for pages with moving content
   server), `tests/test_act_2a.py` (ACT 80f0bf, 4c31df and aaa1bf, 14
   cases, all as expected; DHS scored none).
 
+**Timing (2026-11-04; `tests/fixtures/budget/agency-home-motion.html`:
+the agency page plus a sliding carousel with a pause button and a ticker
+with no control).** `evals/time_budget.py`, one run each:
+
+| Phase | agency-home | agency-home-motion |
+| --- | --- | --- |
+| Walk | 46.0 s | 62.3 s |
+| 4.D | 7.5 s | 14.3 s |
+| 4.A | 14.6 s | 21.1 s |
+| 2.x probe (shared) | — | 13.6 s |
+| Total, existing tests only | 102.1 s | over 120 s: 4.C, 5.D, 5.F cut short |
+| Total, with the drafts, no limit | — | 166.7 s |
+
+Pass T beside the walk costs nothing measurable. The cost is the moving
+content itself: the ticker changes the DOM every second, so every press
+waits for the settle rule and no replay prefix is quick. This hits every
+page with a ticker, with or without 2.x. **OPEN T1 (for Abby):**
+(a) Q2's extra allowance for pages with moving content (about +45 s here,
+known about 8 s into the run when pass T ends); (b) the settle rule ignores
+DOM changes inside regions pass T found auto-updating (a `traverse.py`
+change, which Q7 kept frozen), which would bring the walk back near 46 s;
+or both. Found with the same page: a sliding carousel's track sits inside
+a clipping box, so "children moved" now looks at descendants (more than
+20 px), and transform-only slides now count as 2.D changes.
+
 Not started: the scrolled watch, loudness and `ImageDecoder` (G152: an
 animated image below the first screen is missed), 2.A (`t2a.py`), the vendored ACT cases for 2.A (4c31df, 80f0bf, aaa1bf), the walk
 cross-check (A2), and 2.D's note for `aria-live="off"`

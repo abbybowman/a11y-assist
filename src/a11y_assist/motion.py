@@ -311,22 +311,27 @@ MOTION_INIT_JS = (
     const colors = M.snaps.map((s) => { const v = s.map.get(el); return v ? v[5] : null; });
     const transforms = M.snaps.map((s) => { const v = s.map.get(el); return v ? v[6] : null; });
     let moved = false;
-    const kids = Array.from(el.children);
+    // Any descendant (capped), not only children: a sliding carousel's track
+    // sits inside a clipping box. More than 20 px against the region: a
+    // ticker gaining a digit nudges the inline text after it, which is not
+    // motion.
+    const kids = Array.from(el.querySelectorAll('*')).slice(0, 400);
     for (let i = 1; i < M.snaps.length && !moved; i++) {
       const a = M.snaps[i - 1].map, b = M.snaps[i].map, pa = a.get(el), pb = b.get(el);
       if (!pa || !pb) continue;
       for (const k of kids) {
         const ka = a.get(k), kb = b.get(k);
-        if (ka && kb && ka[0] && (Math.abs((ka[1] - pa[1]) - (kb[1] - pb[1])) > 1 || Math.abs((ka[2] - pa[2]) - (kb[2] - pb[2])) > 1)) { moved = true; break; }
+        if (ka && kb && ka[0] && (Math.abs((ka[1] - pa[1]) - (kb[1] - pb[1])) > 20 || Math.abs((ka[2] - pa[2]) - (kb[2] - pb[2])) > 20)) { moved = true; break; }
       }
     }
     const rec = (r) => ({ at: r.at, kind: r.kind, attr: r.attr, css: r.el.isConnected ? path(r.el) : '', before: r.before, after: r.after,
         live: r.live ? (r.live.isConnected ? path(r.live) : '') : null, live_at_start: !!(r.live && M.live0.has(r.live)) });
     const mine = M.recs.filter((r) => r.at >= M.t0 && (el === r.el || el.contains(r.el)));
     const changes = mine.filter((r) => r.kind !== 'attr').slice(0, 100).map(rec);
-    // Class and style changes (slides shown by a class): 2.D's changes when
+    // Class and style changes (slides shown by a class or slid by transform): 2.D's changes when
     // a region shows new content with no text change.
-    const attrList = mine.filter((r) => r.kind === 'attr' && r.attr !== 'style').slice(0, 30).map(rec);
+    // Style changes too: a carousel that slides with transform has nothing else.
+    const attrList = mine.filter((r) => r.kind === 'attr').slice(0, 30).map(rec);
     const attrs = mine.filter((r) => r.kind === 'attr').length;
     const focusIn = M.focus.filter((f) => f.at >= M.t0 && (el === f.el || el.contains(f.el))).map((f) => f.at);
     let anims = [];
