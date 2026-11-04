@@ -26,6 +26,14 @@ REVIEW at no cost ([solutions/multi-page.md](solutions/multi-page.md));
 19.A uses the same pages, then runs the site's own search live once if it
 must (the one approved exception to principle 5).
 
+Agent eval ([plan](plans/2026-10-31-agent-eval.md), [runbook](../evals/agent/README.md)):
+the round 1 harness is built and tested on fixtures with a scripted model
+(freeze, both arms, lock, score); it has not run on a real model or real
+pages. Round 1 waits only on Ask Sage tokens for the two agent runs. Its
+first steps need no model: Abby commits `pages.txt`, then the pages are
+frozen. Pages with cross-site iframes now replay in full Chromium
+([solutions/full-chromium-iframes.md](solutions/full-chromium-iframes.md)).
+
 Next: 2.B, 2.C and 2.D (moving, auto-updating and changing content) as one
 batch on the walk's mutation log, 4.E's dialog detection and 5.F's
 live-region rule; then the visual-versus-code cluster. Choose with the
@@ -108,17 +116,19 @@ run).
 - **"Test a page" prompt** for operators who are not Trusted Testers: run,
   answer questions (one subagent for all of them), summarize, read
   `report_uri` and offer to save it.
-- **Agent-level eval** (plan: [plans/2026-10-31-agent-eval.md](plans/2026-10-31-agent-eval.md);
-  runbook: `evals/agent/README.md`). Agent A (a model with this server)
-  against Agent B (the same model with Playwright MCP), the same WCAG 2.0
-  prompt and the same frozen pages, scored in code against the tester's
-  SCRT files. The round 1 harness is built and tested on fixtures with a
-  scripted model. Next: a first real-model run on a fixture site through
-  Ask Sage, then round 1 (9 pages, one run per arm). Open: Tavily MCP for
-  Ask Sage runs, the weights of the four added verdicts, DHS training pages,
-  the GPT and Gemini routes. Also still to cover: a check that fails when a
-  judge-eval agent opens files outside its packet (agent-eval agents get no
-  file tools).
+- **Agent-level eval: round 1 and after** (plan: [plans/2026-10-31-agent-eval.md](plans/2026-10-31-agent-eval.md);
+  runbook: `evals/agent/README.md`). Next, in order: commit `pages.txt`
+  and freeze (no model needed); a first real-model smoke run on the 19.A
+  fixture site through Ask Sage; then Agent A and Agent B on round 1, lock,
+  reveal, score. Before the agent runs: Abby approves the four added
+  weights and the forms wording in `evals/agent/prompt.py`; set
+  `AGENT_API_AUTH_HEADER` to Ask Sage's token header; install Tavily MCP for
+  Agent B's web search (Ask Sage models have none). Later: the Claude Code
+  CLI adapter (only if Ask Sage is unavailable), matching a failing element
+  Agent B names to the key's element, plain-language rounds, repeats, the
+  wording judge, the GPT and Gemini routes, DHS training pages. Also still
+  to cover: a check that fails when a judge-eval agent opens files outside
+  its packet (agent-eval agents get no file tools).
 - **Network-level egress rules** on any host that runs the server, as a
   second layer behind the egress proxy (GSA template). Deployment work.
 - **Untimed browser waits.** Headed test runs stalled for 25 to 50 minutes,

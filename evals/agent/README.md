@@ -8,6 +8,11 @@ Lessons: [docs/solutions/agent-eval-harness.md](../../docs/solutions/agent-eval-
 
 Results are agent-assisted, not certified Trusted Tester results.
 
+**Status:** every step below is tested on the 19.A fixture site with a
+scripted model (`tests/test_agent_*.py`). None has run on a real model, on
+real pages, or on Windows. Steps 1 and 2 need no model, so a round can be
+frozen while it waits for model tokens.
+
 ## Once per machine
 
 ```bash

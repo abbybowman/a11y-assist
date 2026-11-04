@@ -1,4 +1,4 @@
-# Plan: agent-level evaluation (not built)
+# Plan: agent-level evaluation
 
 Status: **round 1's harness is built and tested on fixtures with a scripted
 model; it has not run on a real model or real pages yet.** Runbook:
@@ -246,8 +246,8 @@ route and model IDs (requested and reported) are recorded with the results.
   in repeats), and exact input and output token counts come back. The model
   requested as `claude-sonnet-5-5-gov` reports itself as
   `claude-sonnet-5-5`.
-- **Fallback: the Claude Code CLI on Abby's claude.ai account**, run as a
-  separate one-off process for each arm, used only if Ask Sage tokens don't
+- **Fallback: the Claude Code CLI on Abby's claude.ai account** (its
+  adapter is not built), run as a separate one-off process for each arm, used only if Ask Sage tokens don't
   arrive in time and Abby's organization allows it for public .gov pages.
   The model is Anthropic's Sonnet 5.5, not the Gov version. The CLI adds one
   base line ("a Claude agent built on the Claude Agent SDK") and an
