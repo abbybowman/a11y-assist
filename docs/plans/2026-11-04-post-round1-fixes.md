@@ -64,8 +64,8 @@ scores: `evals/judging/round1/`. Eval plan:
   are answered, how many there are, and that answering takes one call;
   check the `a11y_run_tt_tests` and `a11y_answer_questions` descriptions.
   Then the judge eval on the new wording.
-- **Status:** not started. `arm-a-2`, an unchanged repeat, declined them
-  too ("I did not answer the open questions"): 2 of 2 runs.
+- **Status:** not started. `arm-a-2` and `arm-a-3`, unchanged repeats,
+  made no `a11y_answer_questions` call either: 3 of 3 runs.
 
 ### 5. Parallel calls to one server
 
