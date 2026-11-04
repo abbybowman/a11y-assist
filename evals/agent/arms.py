@@ -21,6 +21,9 @@ class Server:
     command: str
     args: list[str]
     env: dict[str, str] = field(default_factory=dict)
+    # Tools of this server the arm never gets (removed before the model sees
+    # the list, on both routes).
+    deny: list[str] = field(default_factory=list)
 
 
 def _base_env() -> dict[str, str]:
@@ -62,7 +65,8 @@ def browser_arm(frozen: Path, out_dir: Path, executable: str) -> list[Server]:
     """Agent B: Playwright MCP, pinned in evals/agent/node/package.json.
     `executable` is Playwright's full Chromium (the same build Agent A's
     server uses). No sandbox, as Playwright's own default; no WebMCP, so a
-    tested page cannot register tools (page content is untrusted)."""
+    tested page cannot register tools (page content is untrusted). Files
+    are confined to the workspace (Playwright MCP's default)."""
     args = [
         "--headless",
         "--isolated",
@@ -76,4 +80,11 @@ def browser_arm(frozen: Path, out_dir: Path, executable: str) -> list[Server]:
         str(out_dir),
     ]
     env = _base_env() | {"A11Y_FROZEN_DIR": str(frozen)}
-    return [Server("browser", str(PLAYWRIGHT_MCP), args, env)]
+    # browser_run_code_unsafe runs any code in Playwright's own process: it
+    # could open a context the frozen replay does not cover (the live site)
+    # or read files on this machine.
+    return [
+        Server(
+            "browser", str(PLAYWRIGHT_MCP), args, env, deny=["browser_run_code_unsafe"]
+        )
+    ]

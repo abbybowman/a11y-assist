@@ -158,7 +158,10 @@ async def test_arm_b_on_a_frozen_round(settings, tmp_path):
             return Reply([_text("{}")], "end_turn", "m", _usage())
         n = len(messages)
         if n == 1:
-            assert "a11y_run_tt_tests" not in {t["name"] for t in tools}
+            names = {t["name"] for t in tools}
+            assert "a11y_run_tt_tests" not in names
+            assert "browser_navigate" in names
+            assert "browser_run_code_unsafe" not in names  # escapes the replay
             return Reply(
                 [_use("b1", "browser_navigate", {"url": urls[0]})],
                 "tool_use",
