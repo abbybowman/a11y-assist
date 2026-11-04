@@ -63,18 +63,29 @@ scores: `evals/judging/round1/`. Eval plan:
   are answered, how many there are, and that answering takes one call;
   check the `a11y_run_tt_tests` and `a11y_answer_questions` descriptions.
   Then the judge eval on the new wording.
-- **Status:** not started. `arm-a-2` (an unchanged repeat) shows whether it
-  happens every time.
+- **Status:** not started. `arm-a-2`, an unchanged repeat, declined them
+  too ("I did not answer the open questions"): 2 of 2 runs.
 
 ### 5. Parallel calls to one server
 
-- **Found:** round 1, `arm-a-1` ran 2–3 pages at once. The runs share one
-  machine's browser and CPU, so their key-press timing and time limits
-  suffer: the NACA page "hit its time limit" and only 3.2.3 finished.
-- **Fix:** queue calls on one server (one run at a time, the others wait)
-  or give each its own share; say so in the tool's description. Check what
-  the settle rule's timing does under load.
+- **Found:** round 1. Both Agent A runs issued several calls at once. The
+  stdio server ran them one at a time: in `arm-a-2` the calls' durations
+  climb by about 120 s each (120, 239, 359, 478, 601, 720, 840, 959 s), so
+  each waited for the ones before it, and each then had about 120 s, the
+  run limit, so several were cut short ("the tool hit its time limit on
+  several pages"). Even a refusal that needs no browser work (Missions, 98
+  form fields) took 482 s in the queue, against 5 s alone.
+- **Fix:** decide what one server does with concurrent calls: run them
+  side by side (each in its own browser) or say in the tool's description
+  that calls run one at a time and a batch is slower than calls in turn;
+  in either case a call's time limit must not include its wait.
 - **Status:** not started.
+
+### 6. Agent A asked for a shell
+
+- `arm-a-2` called `Bash` once, which the eval does not give (refused:
+  "No such tool available"). Probably to wait for a slow call. Harmless;
+  noted for the agent's behaviour, nothing to fix.
 
 ## Observations to decide after scoring
 
