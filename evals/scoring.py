@@ -27,6 +27,7 @@ class Verdict(str, Enum):
     NEEDS_REVIEW = "needs_review"  # tool blank: left to a person
     NOT_PERFORMED = "not_performed"  # the tool did not perform the test
     NOT_SCORED = "not_scored"  # key blank: no answer to score against
+    NO_ANSWER = "no_answer"  # an agent's RESULT line lacks it, or is malformed
 
 
 # The order a report lists disagreements in: worst first.
@@ -35,8 +36,42 @@ SEVERITY = [
     Verdict.MISSED_FAIL,
     Verdict.FALSE_FAIL,
     Verdict.FAIL_NOT_APPLICABLE,
+    Verdict.NO_ANSWER,
     Verdict.OTHER,
 ]
+
+# The agent eval's weights (docs/plans/2026-10-31-agent-eval.md section 8),
+# fixed before any run. A Does Not Apply where the key fails reports no
+# problem, as a false PASS does; an answer missing from the RESULT line
+# scores as wrong.
+WEIGHTS = {
+    Verdict.AGREE: 1,
+    Verdict.NEEDS_REVIEW: 0,
+    Verdict.FALSE_FAIL: -1,
+    Verdict.FAIL_NOT_APPLICABLE: -1,
+    Verdict.OTHER: -1,
+    Verdict.NO_ANSWER: -1,
+    Verdict.MISSED_FAIL: -3,
+    Verdict.FALSE_PASS: -3,
+}
+
+
+def weighted(counts: dict[str, int]) -> int:
+    return sum(WEIGHTS[v] * counts.get(v.value, 0) for v in WEIGHTS)
+
+
+def rollup(results: list[ScrtResult | None]) -> ScrtResult | None:
+    """TT outcomes under one WCAG criterion, as one result: Fail if any
+    fails; otherwise blank (needs review) if any is blank, not performed or
+    Not Tested; otherwise Pass if any passes; otherwise Does Not Apply.
+    Eval code: it decides no outcome of the tool."""
+    if ScrtResult.FAIL in results:
+        return ScrtResult.FAIL
+    if not results or any(r in (None, ScrtResult.NOT_TESTED) for r in results):
+        return None
+    if ScrtResult.PASS in results:
+        return ScrtResult.PASS
+    return ScrtResult.DNA
 
 
 def verdict(
@@ -121,6 +156,7 @@ def rates(counts: dict[str, int]) -> dict[str, str]:
         "false FAIL": str(counts[Verdict.FALSE_FAIL.value]),
         "Fail vs Does Not Apply": str(counts[Verdict.FAIL_NOT_APPLICABLE.value]),
         "other mismatch": str(counts[Verdict.OTHER.value]),
+        "no answer given": str(counts[Verdict.NO_ANSWER.value]),
         "not performed by the tool": str(counts[Verdict.NOT_PERFORMED.value]),
         "no reference answer": str(counts[Verdict.NOT_SCORED.value]),
     }

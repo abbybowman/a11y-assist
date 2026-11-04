@@ -108,17 +108,17 @@ run).
 - **"Test a page" prompt** for operators who are not Trusted Testers: run,
   answer questions (one subagent for all of them), summarize, read
   `report_uri` and offer to save it.
-- **Agent-level eval** (plan: [plans/2026-10-31-agent-eval.md](plans/2026-10-31-agent-eval.md)).
-  A model drives the tools end to end against a Playwright MCP baseline;
-  outcomes scored in code with fixed weights, wording by a judge from
-  another model family; 5 repeats. Next: build the harness on the
-  development set with Sonnet 5.5 Gov through Ask Sage (route checked
-  2026-11-01). Abby is choosing and blind-labeling real .gov pages, split
-  by site; seeded faults cover keyboard traps. Open: DHS training pages
-  (DHS's terms and the hackathon's "publicly available" rule), the GPT and
-  Gemini routes, and how real pages are frozen for both arms. Also still
-  to cover: a check that fails when a judge-eval agent opens files outside
-  its packet (agent-eval agents get no file tools).
+- **Agent-level eval** (plan: [plans/2026-10-31-agent-eval.md](plans/2026-10-31-agent-eval.md);
+  runbook: `evals/agent/README.md`). Agent A (a model with this server)
+  against Agent B (the same model with Playwright MCP), the same WCAG 2.0
+  prompt and the same frozen pages, scored in code against the tester's
+  SCRT files. The round 1 harness is built and tested on fixtures with a
+  scripted model. Next: a first real-model run on a fixture site through
+  Ask Sage, then round 1 (9 pages, one run per arm). Open: Tavily MCP for
+  Ask Sage runs, the weights of the four added verdicts, DHS training pages,
+  the GPT and Gemini routes. Also still to cover: a check that fails when a
+  judge-eval agent opens files outside its packet (agent-eval agents get no
+  file tools).
 - **Network-level egress rules** on any host that runs the server, as a
   second layer behind the egress proxy (GSA template). Deployment work.
 - **Untimed browser waits.** Headed test runs stalled for 25 to 50 minutes,

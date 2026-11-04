@@ -129,7 +129,7 @@ flowchart LR
 
 **On the slide**
 
-- Pages recorded once and replayed; test pages stored with hashes
+- Pages recorded once and replayed; test pages stored with hashes; pages with cross-site iframes replay in full Chromium
 - ANDI, jQuery and browser automation pinned and recorded in every report
 - Focus read through Chrome DevTools, so page scripts can't fake it
 

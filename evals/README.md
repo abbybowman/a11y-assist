@@ -4,6 +4,9 @@
 judge would say). That tests the rules, not the questions. Here, fresh
 agents answer them for real, seeing only what a consumer agent would get.
 
+The agent eval (a model driving this server, against the same model with
+Playwright MCP) is in `agent/`: see [agent/README.md](agent/README.md).
+
 ## Run
 
 ```bash
