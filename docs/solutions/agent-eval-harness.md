@@ -55,6 +55,16 @@ frozen round. Plan: `docs/plans/2026-10-31-agent-eval.md`. Runbook:
   times and tokens. `rate_limit_event` rows give the account's 5-hour and
   7-day use and reset times. `stdin` must be closed, or the CLI waits 3 s
   for input.
+- **Recordings stay out of git; reports go in.** `.gitignore`'s `runs/`
+  matched every Agent A run folder, so round 1's tool reports were never
+  committed (the first lock covered files only one cloud session had), and
+  the frozen recordings made the repository too large to clone (about
+  200 MB of 56 MB packed). Now `.gitignore` keeps a round's
+  `runs/*/report.json`, `pre-scrt.json` and `steps.jsonl` and drops every
+  `*.har.zip`, `*.png` and `runs/*/evidence/` under `evals/judging/`; the
+  rest goes in an archive outside git, with a SHA-256 manifest
+  (`evals/judging/round1/results/ARCHIVE.md`). Before a lock, check that
+  `git status --ignored` shows nothing the score reads.
 - **A cloud container re-signs direct connections.** `egress.py` connects to
   the address it checked; in a cloud session that connection gets a
   certificate from an egress gateway Chromium does not trust

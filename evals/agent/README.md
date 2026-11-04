@@ -91,7 +91,10 @@ Round folder `evals/judging/<round>/`, for example `evals/judging/round1/`.
    (with each live page it loaded); for Agent B `live.jsonl` (each live page
    and each refusal). A run first checks that the model's context holds nothing of
    the user or this repo, and stops if it does.
-4. **Lock**, then commit:
+4. **Archive, then lock**, then commit. Page recordings, screenshots and
+   tool evidence never go in git (`.gitignore`); zip the round folder with
+   a SHA-256 manifest and keep it outside git, as round 1 did
+   (`evals/judging/round1/results/ARCHIVE.md`). Then:
 
    ```bash
    uv run python evals/judging.py lock evals/judging/<round>

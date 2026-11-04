@@ -31,6 +31,14 @@ htmlcov/
 
 # Run output (evidence, HAR files, screenshots, reports)
 runs/
+# Agent eval rounds keep their tool runs' reports, pre-SCRT files and step
+# logs; page recordings, screenshots and evidence stay out of git, in the
+# round's archive (evals/judging/<round>/results/ARCHIVE.md).
+!evals/judging/*/results/*/runs/
+!evals/judging/*/attempts/*/runs/
+evals/judging/**/*.har.zip
+evals/judging/**/*.png
+evals/judging/**/runs/*/evidence/
 tests/.act_scores/
 
 # Other temp files

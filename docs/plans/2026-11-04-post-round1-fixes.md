@@ -181,6 +181,14 @@ on them depends on what round 1's scores show.
 
 ## Done during round 1 (the harness, not the tool)
 
+- Recordings and screenshots out of git: `.gitignore` had excluded every
+  `runs/` folder, so Agent A's tool reports were not committed, and the
+  frozen recordings made the repository too big to clone. Round 1 was
+  archived (Abby keeps the zips; `results/ARCHIVE.md`), the binaries were
+  removed from history, the reports committed and the round locked again,
+  all before any answer key. Round 2's freeze and arms keep their
+  recordings outside git from the start (runbook step 4).
+
 - Agent B's browser served one recording's failed copy of a file the pages
   share (NASA's CSS and scripts) on every page; it now routes cleaned
   copies of the recordings (`frozen-init.cjs`), with a test.
