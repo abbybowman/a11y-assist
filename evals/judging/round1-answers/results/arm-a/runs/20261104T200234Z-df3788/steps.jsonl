@@ -11,3 +11,4 @@
 {"ts":"2026-11-04T20:02:34.502362Z","step":"captured_other","status":"ok","detail":{"n":4,"final_url":"https://www.nasa.gov/gallery/ksc-history/","seconds":0.01}}
 {"ts":"2026-11-04T20:02:34.502608Z","step":"captured","status":"ok","detail":{"final_url":"https://www.nasa.gov/spot-the-station/","redirects":[],"seconds":0.09}}
 {"ts":"2026-11-04T20:02:34.691449Z","step":"browser_launched","status":"ok","detail":{"kind":"full Chromium"}}
+{"ts":"2026-11-04T20:02:41.654036Z","step":"egress_refused","status":"blocked","detail":{"host":"mtalk.google.com","port":5228,"reason":"port 5228 is not allowed"}}
