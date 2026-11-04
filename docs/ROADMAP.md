@@ -34,10 +34,13 @@ Round 1 runs on the CLI route: Abby commits `pages.txt` and freezes the
 pages on her laptop, then both arms run in a cloud session. Pages with cross-site iframes now replay in full Chromium
 ([solutions/full-chromium-iframes.md](solutions/full-chromium-iframes.md)).
 
-Next: 2.B, 2.C and 2.D (moving, auto-updating and changing content) as one
-batch on the walk's mutation log, 4.E's dialog detection and 5.F's
-live-region rule; then the visual-versus-code cluster. Choose with the
-coverage map and CLAUDE.md's research rule.
+In progress: 2.A, 2.B, 2.C and 2.D (auto-playing and auto-updating content)
+are built as drafts (specs 0.2.0-0.3.0, registered in `tests/drafts.py`),
+with pass T, the mechanism probe and the media store; what is left before
+1.0.0 is in [2c-build-tasks.md](rules/2c-build-tasks.md) (Abby's review of
+the four specs, the scrolled watch, animated images below the first screen,
+audio in an iframe, Windows headed Chrome). Then the visual-versus-code
+cluster. Choose with the coverage map and CLAUDE.md's research rule.
 
 Per-test leftovers live in each `docs/rules/<id>-build-tasks.md` (mostly
 browser checks on Windows headed Chrome, which this Linux container cannot

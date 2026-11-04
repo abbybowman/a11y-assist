@@ -32,3 +32,4 @@ took more than an hour to understand; update it when the answer changes.
 | [scrt-format.md](scrt-format.md) | SCRT's JSON: one-item array, strings, child rows, screenshots inside; a row set back to "No Selection" is dropped on save; child issues shift Global issue choices |
 | [full-chromium-iframes.md](full-chromium-iframes.md) | Headless `chromium` is the shell, which runs cross-site iframes in-process; those pages replay in full Chromium |
 | [agent-eval-harness.md](agent-eval-harness.md) | Freezing a round for two arms; Playwright MCP's snapshots go to a file; read-resource and helper tools; leak check; subprocess environment |
+| [watching-a-page-over-time.md](watching-a-page-over-time.md) | Pass T for 2.A-2.D: its own load and autoplay browser; regions over the whole watch; sampling that does not alias a blink; the probe's clip, slowed and focus-only rules; the media store and #fragments; content that keeps changing slows the walk (T1) |
