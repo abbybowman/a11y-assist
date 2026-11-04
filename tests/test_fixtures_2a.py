@@ -30,6 +30,9 @@ CASES = {
     # The audio's own controls, first on the page (V1): Tab reaches its play
     # button inside the element, and Enter pauses it.
     "t-audio-native": ({}, "NEEDS_REVIEW", "K3/E3"),
+    # Audio in a cross-site frame (full Chromium, out of process), with its
+    # "Stop sound" button first in the frame, the page's first element.
+    "t-audio-frame": ({}, "NEEDS_REVIEW", "K3/E3"),
     # Web Audio: no bytes to measure (A2).
     "t-webaudio": ({}, "NEEDS_REVIEW", "A2"),
 }

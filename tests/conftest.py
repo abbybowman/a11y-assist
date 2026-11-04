@@ -75,6 +75,21 @@ async def browser(settings: Settings):
         await b.close()
 
 
+def _gif(forever: bool) -> bytes:
+    """An animated GIF: 20 frames of 100 ms (2 s), looping forever or once."""
+    import io
+
+    from PIL import Image
+
+    frames = [Image.new("RGB", (40, 40), (12 * i, 0, 255 - 12 * i)) for i in range(20)]
+    out = io.BytesIO()
+    extra = {"loop": 0} if forever else {}
+    frames[0].save(
+        out, "GIF", save_all=True, append_images=frames[1:], duration=100, **extra
+    )
+    return out.getvalue()
+
+
 def _tone(seconds: int = 4, rate: int = 8000, loud: bool = True) -> bytes:
     import io
     import math
@@ -141,6 +156,10 @@ class _Handler(http.server.BaseHTTPRequestHandler):
             return self._send(200, body.encode())
         if self.path == "/tone.wav":  # 4 s, 440 Hz (2.A-2.D fixtures; no files)
             return self._send(200, _tone(), "audio/wav")
+        if self.path in ("/anim-forever.gif", "/anim-once.gif"):  # 2.B, G152
+            return self._send(
+                200, _gif(forever=self.path == "/anim-forever.gif"), "image/gif"
+            )
         tone = re.fullmatch(r"/(tone|silence)(\d+)\.wav", self.path)
         if tone:  # /tone20.wav: 20 s; /silence20.wav: 20 s of silence
             secs = int(tone.group(2))

@@ -22,6 +22,11 @@ CASES = {
     "t-marquee": (NOT_ESSENTIAL, "FAIL", "K6"),
     # Below the first screen: its animation's timing shows it (no frames).
     "t-below-fold": (NOT_ESSENTIAL, "FAIL", "K6"),
+    # An animated image that loops forever, below the first screen: no frame
+    # shows it, G152 on its recorded bytes does.
+    "t-gif-below": (NOT_ESSENTIAL, "FAIL", "K6"),
+    # Plays once for 2 s: not moving for more than 5 s.
+    "t-gif-once": ({}, "DNA", "A2"),
     # Two colours back and forth is blinking: K6. Four colours: C1.
     "t-color-toggle": (NOT_ESSENTIAL, "FAIL", "K6"),
     "t-color-cycle": (NOT_ESSENTIAL, "NEEDS_REVIEW", "C1"),

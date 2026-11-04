@@ -1,0 +1,9 @@
+<!doctype html>
+<html lang="en">
+<head><title>Player</title></head>
+<body>
+<button id="stop">Stop sound</button>
+<audio id="a" autoplay loop src="/tone20.wav"></audio>
+<script>document.getElementById('stop').addEventListener('click', () => document.getElementById('a').pause());</script>
+</body>
+</html>

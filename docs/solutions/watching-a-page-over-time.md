@@ -46,6 +46,11 @@ other test see the page as before. Without the flag, a recorded
   three times, the last after 5 s) add regions for it. A replayed poll writes
   the same value each time, which is not an update.
 
+- Decode media and images in a tool page, never the tested page. Loudness
+  (`OfflineAudioContext`) works on `about:blank`; `ImageDecoder` (G152) does
+  not exist there, because `about:blank` is not a secure context: the image
+  tool page is a fresh context at `http://localhost`, answered by a route.
+
 ## The probe
 
 - Watch a fixed clip of the page, not an element screenshot: Playwright waits

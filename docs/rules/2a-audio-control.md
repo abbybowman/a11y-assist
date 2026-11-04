@@ -27,8 +27,9 @@ it (`checks/t2a.py`, `mechanism.audio_watch`, the media store in
   played from 0 s and was a false FAIL).
 - Loudness is the peak of the whole file (not only the part that plays).
 - 2.C's J2 trigger words gain "mute", "volume", "sound" and "audio".
-- Audio in an iframe is read in its frame, but the probe does not yet find
-  that frame again (V7 for audio: not built). Plan:
+- Audio in an iframe is read in its frame, and the probe finds that frame
+  again by its URL (`t-audio-frame`: a cross-site frame, out of process, its
+  "Stop sound" button the page's first element). Plan:
 [plans/2026-11-03-auto-updating-2a-2d.md](../plans/2026-11-03-auto-updating-2a-2d.md).
 
 **Citations.** Printed pages of TT 5.1.3 (text also in `tt://5.1.3/tests/2.A`). Identify Content, p. 13: before loading, "make sure the browser is not set to block auto-playing content"; audio that "automatically plays (without user activation) for more than 3 seconds" (alerts, sounds, music); none: DNA. Applicability, p. 13. HtT 1 ("a mechanism within the first three elements encountered for the user to pause or stop the audio or to control the volume of only the auto-playing audio"; 1.a the browser allows autoplay), HtT 2–3, p. 13. ER 1 (a mechanism that pauses, stops or controls the volume of only the auto-playing audio), ER 2 ("within the first three elements encountered by the user"), ER 3 (it passes all applicable Test Conditions), p. 13. Notes, p. 13: three elements "for clear measurability" ("the mechanism can be a focusable element or text instructions at the top of the page prior to repetitive content"); a browser's ability to disable autoplay or mute a tab is "acceptable", but not all browsers have it. Appendix B: 5.1.3 changed setup to a browser that does not block autoplay (TT 5.0 said to disable it).

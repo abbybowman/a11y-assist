@@ -136,8 +136,12 @@ Found with the same page: a sliding carousel's track sits inside
 a clipping box, so "children moved" now looks at descendants (more than
 20 px), and transform-only slides now count as 2.D changes.
 
-Not started: the scrolled watch, loudness and `ImageDecoder` (G152: an
-animated image below the first screen is missed), 2.A (`t2a.py`), the vendored ACT cases for 2.A (4c31df, 80f0bf, aaa1bf), the walk
+- G152 (2.B): animated images anywhere on the page, decoded from the
+  recording (`motion._long_images`); `t-gif-below` (loops forever, below the
+  first screen: K6) and `t-gif-once` (2 s once: DNA). Audio in a cross-site
+  iframe (2.A): `t-audio-frame` (K3, then E3).
+
+Not started: the scrolled watch, 2.A (`t2a.py`), the vendored ACT cases for 2.A (4c31df, 80f0bf, aaa1bf), the walk
 cross-check (A2), and 2.D's note for `aria-live="off"`
 carousels (plan risk 11).
 

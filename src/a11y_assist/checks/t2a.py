@@ -97,6 +97,7 @@ def find_audio(mp: MotionPass) -> list[Audio]:
             id="",
             kind="media",
             frame=frame,
+            frame_url=at.frame_url,
             css=css,
             src=at.src,
             duration=at.duration,

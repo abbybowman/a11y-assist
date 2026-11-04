@@ -26,7 +26,9 @@ Draft (0.2.0): no outcome until 1.0.0. 0.2.0 (2026-11-04), from building it: sti
   active time (iterations × duration, infinite included);
 - an animated image whose one play-through times its loop count exceeds
   5 s, by `ImageDecoder` on the recorded bytes (G152; infinite loops
-  included);
+  included). Built: decoded in a tool page of its own at `http://localhost`
+  (answered by a route, no network, no page script), because `ImageDecoder`
+  exists only in a secure context and `about:blank` is not one;
 - a `<marquee>`;
 - a video playing at 3.5 s with more than 5 s left, or looping.
 

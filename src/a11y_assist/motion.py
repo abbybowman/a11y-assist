@@ -370,7 +370,9 @@ MOTION_INIT_JS = (
   // Motion the frames may not show (below the first screen): animations
   // running with more than 5 s of active time, marquees, playing videos,
   // that are not inside a region already found (2.B Terms).
-  M.extras = (known) => {
+  M.images = () => Array.from(new Set(Array.from(document.images)
+    .map((i) => (i.currentSrc || '').split('#')[0]).filter((u) => /^https?:/.test(u)))).slice(0, 30);
+  M.extras = (known, longImages) => {
     const inside = (e) => known.some((css) => { const r = M.held.get(css); return r && (r === e || r.contains(e)); });
     const out = [];
     const add = (e, source, detail) => {
@@ -390,6 +392,12 @@ MOTION_INIT_JS = (
       if (active > 5000) add(a.effect.target, 'animation', (a.animationName || a.transitionProperty || '') + (active === Infinity ? ' (infinite)' : ' ' + Math.round(active) + ' ms'));
     }
     for (const m of document.querySelectorAll('marquee')) add(m, 'marquee', 'marquee');
+    // Animated images over 5 s in all, by G152 (frames x delays x loops,
+    // decoded from the recording in the tool page), wherever they are.
+    for (const i of document.images) {
+      const d = (longImages || {})[(i.currentSrc || '').split('#')[0]];
+      if (d) add(i, 'image', d);
+    }
     // Content the DOM log saw keep changing where no frame showed it (below
     // the first screen): three or more text or child changes, the last at
     // 5 s or later.
@@ -628,6 +636,7 @@ class Timer(BaseModel):
 
 class Media(BaseModel):
     frame: int
+    frame_url: str = ""  # "" in the top page; the probe finds the frame by it
     at: float  # read time, seconds from the start of the watch
     css: str
     tag: str
@@ -703,6 +712,9 @@ class MotionPass(BaseModel):
     polls: list[Poll] = Field(default_factory=list)
     carousels: list[str] = Field(default_factory=list)  # "<frame>|<css>" at 0 s
     blink_markup: bool = False  # <blink> or text-decoration: blink (2.B note)
+    # G152: each animated image's frames, one play-through, loops (-1:
+    # forever) and total (None: forever), decoded from the recording.
+    animated_images: list[dict[str, Any]] = Field(default_factory=list)
     audio_states: list[str] = Field(default_factory=list)  # Web Audio contexts
     iframes: list[str] = Field(default_factory=list)  # iframe sources, every frame
     # Peak level of each media source's recorded bytes, in dBFS, decoded in a
@@ -874,7 +886,7 @@ async def pass_t(
         out.ok, out.error = False, f"the page could not be loaded: {safe_error(exc)}"
         return out
     try:
-        await _watch(page, out, shots, rel, watch_s)
+        await _watch(page, out, shots, rel, watch_s, har)
         if har is not None:
             from a11y_assist.capture import media_index
 
@@ -929,7 +941,12 @@ async def _loudness(context: BrowserContext, har: Path, out: MotionPass) -> None
 
 
 async def _watch(
-    page: Page, out: MotionPass, shots: Path | None, rel: Path | None, watch_s: float
+    page: Page,
+    out: MotionPass,
+    shots: Path | None,
+    rel: Path | None,
+    watch_s: float,
+    har: Path | None = None,
 ) -> None:
     out.elements, out.elements_truncated, where = await read_elements(page)
     starts = await _each_frame(
@@ -985,11 +1002,14 @@ async def _watch(
                 page, "() => window.__a11yMotion ? window.__a11yMotion.snap() : null"
             )
             out.reads.append(round(time.monotonic() - start, 2))
-            for i, _, media in await _each_frame(
+            for i, fr, media in await _each_frame(
                 page, "() => window.__a11yMotion ? window.__a11yMotion.media() : []"
             ):
                 at = round(time.monotonic() - start, 2)
-                out.media += [Media(frame=i, at=at, **m) for m in media or []]
+                url = fr.url[:500] if i else ""
+                out.media += [
+                    Media(frame=i, frame_url=url, at=at, **m) for m in media or []
+                ]
         shot_t = round(time.monotonic() - start, 2)
         png = await screenshot(page)
         img = Image.open(io.BytesIO(png)).convert("RGB")
@@ -1023,7 +1043,8 @@ async def _watch(
                 )
             )
     await _regions(page, pairs, regions, frames_by_key, out)
-    await _extras(page, regions, frames_by_key)
+    long_images = await _long_images(page, har, out) if har is not None else {}
+    await _extras(page, regions, frames_by_key, long_images)
     for key, r in regions.items():
         frame = frames_by_key[key]
         try:
@@ -1137,13 +1158,109 @@ def _states(pngs: list[bytes], regions: dict[str, Region]) -> None:
         regions[k].states = len(s)
 
 
-async def _extras(page, regions: dict[str, Region], frames_by_key) -> None:
+# G152 (2.B Terms): an animated image's frames, delays and loop count, from
+# its recorded bytes, decoded with ImageDecoder in a blank tool page.
+_IMAGE_JS = """async ([b64, type]) => {
+  if (!window.ImageDecoder) return null;
+  const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+  try {
+    const d = new ImageDecoder({ data: bytes, type });
+    await d.tracks.ready;
+    const t = d.tracks.selectedTrack;
+    const n = t.frameCount;
+    let once = 0;
+    for (let i = 0; i < n && i < 500 && n > 1; i++) {
+      const r = await d.decode({ frameIndex: i });
+      once += (r.image.duration || 0) / 1000;
+      r.image.close();
+    }
+    return { frames: n, once_ms: Math.round(once), reps: t.repetitionCount === Infinity ? -1 : t.repetitionCount };
+  } catch (e) { return null; }
+}"""
+IMAGE_MAX_BYTES = 5_000_000
+MOVING_IMAGE_MS = 5000  # TT: "more than 5 seconds"
+
+
+def _image_type(body: bytes) -> str | None:
+    if body[:6] in (b"GIF87a", b"GIF89a"):
+        return "image/gif"
+    if body[:8] == b"\x89PNG\r\n\x1a\n":
+        return "image/png"
+    if body[:4] == b"RIFF" and body[8:12] == b"WEBP":
+        return "image/webp"
+    return None
+
+
+async def _long_images(page, har: Path, out: MotionPass) -> dict[str, str]:
+    """Animated images that play for more than 5 s in all (G152), by URL,
+    with the figures as a detail. Recorded in `out.animated_images`."""
+    import base64
+
+    from a11y_assist.capture import media_body
+
+    srcs: list[str] = []
+    for _, _, got in await _each_frame(
+        page, "() => window.__a11yMotion ? window.__a11yMotion.images() : []"
+    ):
+        srcs += [s for s in got or [] if s not in srcs]
+    found: dict[str, str] = {}
+    tool = tool_ctx = None
+    try:
+        for src in srcs[:30]:
+            body = media_body(har, src)
+            kind = _image_type(body) if body else None
+            if not kind or len(body) > IMAGE_MAX_BYTES:
+                continue
+            if tool is None:
+                tool_ctx, tool = await _secure_tool_page(page)
+            got = await tool.evaluate(
+                _IMAGE_JS, [base64.b64encode(body).decode(), kind]
+            )
+            if not got or got["frames"] < 2:
+                continue
+            total = None if got["reps"] < 0 else got["once_ms"] * (got["reps"] + 1)
+            out.animated_images.append({"src": src[:500], **got, "total_ms": total})
+            if total is None or total > MOVING_IMAGE_MS:
+                found[src] = f"animated image, {got['frames']} frames, " + (
+                    "loops forever" if total is None else f"{total / 1000:g} s in all"
+                )
+    finally:
+        if tool_ctx is not None:
+            await tool_ctx.close()
+    return found
+
+
+TOOL_URL = "http://localhost/a11y-tool"
+
+
+async def _secure_tool_page(page):
+    """A blank page in its own fresh context of the same browser, at
+    http://localhost (a secure context: ImageDecoder exists only there, not
+    on about:blank), answered by a route: no network, no page script."""
+    ctx = await page.context.browser.new_context()
+    await ctx.route(
+        TOOL_URL,
+        lambda r: r.fulfill(
+            status=200,
+            content_type="text/html",
+            body="<!doctype html><title>tool</title>",
+        ),
+    )
+    tool = await ctx.new_page()
+    await tool.goto(TOOL_URL)
+    return ctx, tool
+
+
+async def _extras(
+    page, regions: dict[str, Region], frames_by_key, long_images=None
+) -> None:
     """Regions for motion the frames could not show (2.B Terms)."""
     for i, frame in enumerate(page.frames):
         known = [r.css for r in regions.values() if r.frame == i]
         try:
             got = await frame.evaluate(
-                "(k) => window.__a11yMotion ? window.__a11yMotion.extras(k) : []", known
+                "([k, li]) => window.__a11yMotion ? window.__a11yMotion.extras(k, li) : []",
+                [known, long_images or {}],
             )
         except Exception:
             continue
