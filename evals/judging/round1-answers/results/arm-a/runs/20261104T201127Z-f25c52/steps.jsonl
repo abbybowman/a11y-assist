@@ -1,0 +1,12 @@
+{"ts":"2026-11-04T20:11:27.307859Z","step":"run_start","status":"ok","detail":{"target":"https://www.nasa.gov/","tests":["5.A","5.B","5.C","5.D","5.F","5.G"]}}
+{"ts":"2026-11-04T20:11:27.750229Z","step":"browser_launched","status":"ok","detail":{"version":"153.0.8010.12"}}
+{"ts":"2026-11-04T20:11:27.760219Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/","har":"pages/010.har.zip"}}
+{"ts":"2026-11-04T20:11:27.760420Z","step":"captured","status":"ok","detail":{"final_url":"https://www.nasa.gov/","redirects":[],"seconds":0.01}}
+{"ts":"2026-11-04T20:12:14.736953Z","step":"walk","status":"ok","detail":{"P1":{"end":"wrap","presses":83,"cap":302},"P2":{"end":"wrap","presses":83,"cap":302},"cost":{"loads":2,"presses":166,"quick":0,"slow_redos":0,"seconds":46.97}}}
+{"ts":"2026-11-04T20:12:35.564821Z","step":"collected","status":"ok","detail":{"test":"5.D","cost":{"loads":1,"presses":7,"quick":5,"slow_redos":0,"seconds":20.83}}}
+{"ts":"2026-11-04T20:12:54.591552Z","step":"collected","status":"ok","detail":{"test":"5.F","cost":{"loads":4,"presses":29,"quick":22,"slow_redos":0,"seconds":19.02}}}
+{"ts":"2026-11-04T20:12:54.692497Z","step":"collected","status":"ok","detail":{"test":"5.G","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":0.1}}}
+{"ts":"2026-11-04T20:12:59.774405Z","step":"collected","status":"ok","detail":{"test":"5.A","cost":{"loads":1,"presses":0,"quick":0,"slow_redos":0,"seconds":5.08}}}
+{"ts":"2026-11-04T20:12:59.776328Z","step":"collected","status":"ok","detail":{"test":"5.B","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":0.0}}}
+{"ts":"2026-11-04T20:12:59.779000Z","step":"collected","status":"ok","detail":{"test":"5.C","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":0.0}}}
+{"ts":"2026-11-04T20:12:59.883204Z","step":"run_end","status":"ok","detail":{}}
