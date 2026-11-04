@@ -21,3 +21,16 @@
 {"ts":"2026-11-04T19:46:03.683045Z","step":"captured_live","status":"ok","detail":{"n":1,"seconds":8.83}}
 {"ts":"2026-11-04T19:46:07.917266Z","step":"collected","status":"ok","detail":{"test":"19.A","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":13.08}}}
 {"ts":"2026-11-04T19:46:22.044589Z","step":"collected","status":"ok","detail":{"test":"4.D","cost":{"loads":2,"presses":55,"quick":41,"slow_redos":0,"seconds":14.12}}}
+{"ts":"2026-11-04T19:46:40.331195Z","step":"collected","status":"ok","detail":{"test":"4.F","cost":{"loads":4,"presses":12,"quick":7,"slow_redos":0,"seconds":18.28}}}
+{"ts":"2026-11-04T19:46:48.971562Z","step":"collected","status":"ok","detail":{"test":"4.A","cost":{"loads":1,"presses":0,"quick":0,"slow_redos":0,"seconds":8.63}}}
+{"ts":"2026-11-04T19:46:52.501304Z","step":"collected","status":"ok","detail":{"test":"4.B","cost":{"loads":1,"presses":0,"quick":0,"slow_redos":0,"seconds":3.53}}}
+{"ts":"2026-11-04T19:47:11.428261Z","step":"collected","status":"ok","detail":{"test":"4.C","cost":{"loads":3,"presses":47,"quick":41,"slow_redos":0,"seconds":18.93}}}
+{"ts":"2026-11-04T19:47:11.430855Z","step":"collected","status":"ok","detail":{"test":"4.E","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":0.0}}}
+{"ts":"2026-11-04T19:47:18.862877Z","step":"collected","status":"ok","detail":{"test":"5.D","cost":{"loads":1,"presses":2,"quick":1,"slow_redos":0,"seconds":7.43}}}
+{"ts":"2026-11-04T19:47:22.193807Z","step":"check_error","status":"error","detail":{"test":"5.F","error":"the run reached its time limit before this test finished"}}
+{"ts":"2026-11-04T19:47:22.194538Z","step":"check_error","status":"error","detail":{"test":"5.G","error":"the run reached its time limit before this test finished"}}
+{"ts":"2026-11-04T19:47:22.203462Z","step":"check_error","status":"error","detail":{"test":"5.H","error":"the run reached its time limit before this test finished"}}
+{"ts":"2026-11-04T19:47:22.205782Z","step":"check_error","status":"error","detail":{"test":"5.A","error":"the run reached its time limit before this test finished"}}
+{"ts":"2026-11-04T19:47:22.207017Z","step":"check_error","status":"error","detail":{"test":"5.B","error":"the run reached its time limit before this test finished"}}
+{"ts":"2026-11-04T19:47:22.208248Z","step":"check_error","status":"error","detail":{"test":"5.C","error":"the run reached its time limit before this test finished"}}
+{"ts":"2026-11-04T19:47:22.623503Z","step":"run_end","status":"error","detail":{}}
