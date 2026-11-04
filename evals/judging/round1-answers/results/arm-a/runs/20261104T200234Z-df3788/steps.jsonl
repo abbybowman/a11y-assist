@@ -1,0 +1,13 @@
+{"ts":"2026-11-04T20:02:34.031469Z","step":"run_start","status":"ok","detail":{"target":"https://www.nasa.gov/spot-the-station/","tests":["4.A","4.B","4.C","4.D","4.E","4.F","5.A","5.B","5.C","5.D","5.F","5.G","5.H","9.A","9.B","9.C","19.A"]}}
+{"ts":"2026-11-04T20:02:34.409675Z","step":"browser_launched","status":"ok","detail":{"version":"153.0.8010.12"}}
+{"ts":"2026-11-04T20:02:34.430118Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/spot-the-station/","har":"pages/001.har.zip"}}
+{"ts":"2026-11-04T20:02:34.451313Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/careers/","har":"pages/004.har.zip"}}
+{"ts":"2026-11-04T20:02:34.451749Z","step":"captured_other","status":"ok","detail":{"n":1,"final_url":"https://www.nasa.gov/careers/","seconds":0.02}}
+{"ts":"2026-11-04T20:02:34.468702Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/missions/","har":"pages/005.har.zip"}}
+{"ts":"2026-11-04T20:02:34.469029Z","step":"captured_other","status":"ok","detail":{"n":2,"final_url":"https://www.nasa.gov/missions/","seconds":0.02}}
+{"ts":"2026-11-04T20:02:34.487597Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/mission/artemis-iii/","har":"pages/006.har.zip"}}
+{"ts":"2026-11-04T20:02:34.488069Z","step":"captured_other","status":"ok","detail":{"n":3,"final_url":"https://www.nasa.gov/mission/artemis-iii/","seconds":0.02}}
+{"ts":"2026-11-04T20:02:34.502031Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/gallery/ksc-history/","har":"pages/009.har.zip"}}
+{"ts":"2026-11-04T20:02:34.502362Z","step":"captured_other","status":"ok","detail":{"n":4,"final_url":"https://www.nasa.gov/gallery/ksc-history/","seconds":0.01}}
+{"ts":"2026-11-04T20:02:34.502608Z","step":"captured","status":"ok","detail":{"final_url":"https://www.nasa.gov/spot-the-station/","redirects":[],"seconds":0.09}}
+{"ts":"2026-11-04T20:02:34.691449Z","step":"browser_launched","status":"ok","detail":{"kind":"full Chromium"}}
