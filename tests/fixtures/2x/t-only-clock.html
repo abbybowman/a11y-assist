@@ -1,0 +1,8 @@
+<!doctype html>
+<html lang="en">
+<head><title>Clock</title></head>
+<body>
+<p id="clock">00:00:00</p>
+<script>let s = 0; setInterval(() => { s++; document.getElementById('clock').textContent = '00:00:' + String(s).padStart(2, '0'); }, 1000);</script>
+</body>
+</html>

@@ -52,6 +52,7 @@ from a11y_assist.models import (
     utcnow,
     waiting_head,
 )
+from a11y_assist.motion import MOTION_INIT_JS
 from a11y_assist.policy import check_url
 from a11y_assist.redact import safe_error
 from a11y_assist.resources.runs import run_uri
@@ -121,9 +122,13 @@ def _context(
     final_url: str,
     deadline: float,
 ):
+    har = run.evidence_dir / "page.har.zip"
     return RunContext(
-        new_page=_opener(
-            get_browser, settings, run.evidence_dir / "page.har.zip", final_url, run
+        new_page=_opener(get_browser, settings, har, final_url, run),
+        # Pass T (2.A-2.D). Its own autoplay-allowed browser (plan Q1) comes
+        # with Q11's full-Chromium launch; until then the replay browser.
+        open_motion=_opener(
+            get_browser, settings, har, final_url, run, (MOTION_INIT_JS,)
         ),
         quiet_ms=settings.settle_quiet_ms,
         deadline=deadline,

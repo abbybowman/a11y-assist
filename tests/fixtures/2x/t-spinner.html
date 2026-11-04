@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+<head>
+<title>Loading spinner</title>
+<style>@keyframes spin { to { transform: rotate(360deg); } } #sp { width: 30px; height: 30px; background: #c00; animation: spin 1s linear infinite; }</style>
+</head>
+<body>
+<main>
+<h1>Loading spinner</h1>
+<p>Static text.</p>
+<div id="box"><div id="sp"></div></div>
+</main>
+<script>setTimeout(() => { document.getElementById('box').textContent = 'Loaded.'; }, 1500);</script>
+</body>
+</html>

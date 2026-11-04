@@ -23,9 +23,25 @@ Built, with tests (`tests/test_motion.py`, fixtures `tests/fixtures/2x/t-*.html`
 - `capture.replay_context(init_scripts=...)` (Q7) and the pipeline's
   `_opener` passing them through.
 - `t4e._DIALOGS_JS` moved to `observe.DIALOGS_JS`.
+- `checks/t2c.py` and `checks/t2d.py`, registered in `tests/drafts.py`:
+  2.C section 1 (A1-A5) and every instance row (K1-K8, E1-E4, the 3c ER 3
+  table), J1 and J2 questions and answers; 2.D every row (N1-N6) and its J1
+  and J2. `RunContext.open_motion` gives pass T its load
+  (`motion.collect`, shared in `ctx.cache["motion"]`).
+  - End to end: `tests/test_fixtures_2x.py` (7 pages for both tests, 4
+    scripted-answer runs for 2.D J1 and J2).
+  - 2.C's K and E rows on hand-built evidence: `tests/test_rows_2x.py`.
+  - Until the probe exists, 2.C is NEEDS REVIEW (K7) wherever it applies.
+- OPEN O1 in the 2.C spec (content that stopped changing before 5 s) is
+  built as a hint (NEEDS REVIEW), waiting for Abby.
 
-**Waiting for Q11** (being built on the eval-harness branch): which browser
-runs pass T and the probes. `pass_t` takes an opener and does not choose a
+**Waiting for Q11**, which is built on `agent-eval-round1` (commit
+`21f26cc`: `Capture.cross_site_frames`, `launch_browser(full_chromium=True)`,
+`get_browser(full)`, the report's `replay_browser`; its tests passed here,
+2026-11-04). It merges into this branch with one small conflict in
+`pipeline._opener`. Once merged, the autoplay browser needs one more
+thing: `launch_browser` taking extra arguments (`motion.AUTOPLAY_ARG`).
+Q11 decides which browser runs pass T and the probes. `pass_t` takes an opener and does not choose a
 browser, so nothing here waits on it. These do:
 
 - `Capture.cross_site_frames` and the replay-browser choice (`capture.py`,
@@ -36,9 +52,10 @@ browser, so nothing here waits on it. These do:
 - fixtures that need out-of-process iframes (audio-in-iframe, V7 as a test).
 
 Not started, and not blocked by Q11: the media store (items 13-14), the
-mechanism probe, the scrolled watch, loudness and `ImageDecoder`, the rows
-(`t2c.py`, `t2d.py`, `t2b.py`, `t2a.py`) on hand-built evidence, and the
-vendored ACT cases.
+mechanism probe, the scrolled watch, loudness and `ImageDecoder`, 2.B and
+2.A (`t2b.py`, `t2a.py`), the vendored ACT cases, the walk cross-check (A2),
+the judge eval on the questions, and 2.D's note for `aria-live="off"`
+carousels (plan risk 11).
 
 ## Code changes
 

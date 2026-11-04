@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+<head><title>News that takes focus</title></head>
+<body>
+<main>
+<h1>News that takes focus</h1>
+<p>Static text.</p>
+<p id="news" tabindex="-1" style="width: 400px">No news yet.</p>
+</main>
+<script>
+let n = 0;
+setInterval(() => { const p = document.getElementById('news'); p.textContent = 'New message ' + (++n) + ' from Ana'; p.focus(); }, 1500);
+</script>
+</body>
+</html>

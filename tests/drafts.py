@@ -9,10 +9,12 @@ import pytest
 
 from a11y_assist.checks import REGISTRY
 from a11y_assist.checks.base import Check
+from a11y_assist.checks.t2c import Check2C
+from a11y_assist.checks.t2d import Check2D
 from a11y_assist.models import TestId
 
-# None now: 5.B and 5.H moved to the registry at 1.0.0 (2026-11-02).
-DRAFTS: dict[TestId, Check] = {}
+# 2.C and 2.D: specs at 0.2.0 (docs/rules/2c-build-tasks.md).
+DRAFTS: dict[TestId, Check] = {TestId.T2C: Check2C(), TestId.T2D: Check2D()}
 
 
 @pytest.fixture

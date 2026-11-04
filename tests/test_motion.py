@@ -132,7 +132,8 @@ async def test_carousels(settings, browser, server, tmp_path):
 async def test_dialog_and_focus(settings, browser, server, tmp_path):
     mp = await watch(settings, browser, server, "t-dialog-focus.html", tmp_path)
     assert mp.ok, mp.error
-    assert [d["css"] for d in mp.dialogs_opened] == ["#dlg"]
+    assert [d.css for d in mp.dialogs_opened] == ["#dlg"]
+    assert mp.dialogs_opened[0].keyboard and "session" in mp.dialogs_opened[0].text
     assert any(f.css == "#news" and 1 <= f.t <= 3 for f in mp.focus_moves), (
         mp.focus_moves
     )

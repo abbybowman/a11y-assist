@@ -1,7 +1,7 @@
 ---
 tt_test: 2.D
 tt_name: 4.1.2-change-notify-auto
-spec_version: 0.1.0
+spec_version: 0.2.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -12,14 +12,14 @@ The tool gives each page one 2.D outcome: PASS, FAIL, DOES NOT APPLY or
 NEEDS REVIEW. It never emits NOT TESTED (p. 6). It reads the changes 2.C's
 pass T found; it presses no keys.
 
-Draft (0.1.0): no outcome until 1.0.0. Plan:
+Draft (0.2.0): no outcome until 1.0.0. 0.2.0 (2026-11-04): slides shown by a class count as changes (Terms); instances are 2.C's, still changing at 5 s. Plan:
 [plans/2026-11-03-auto-updating-2a-2d.md](../plans/2026-11-03-auto-updating-2a-2d.md).
 
 **Citations.** Printed pages of TT 5.1.3 (text also in `tt://5.1.3/tests/2.D`). Identify Content, p. 16: "content that changes automatically on the page as part of auto-update"; none: DNA (also p. 15: no auto-updating content makes 2.C and 2.D DNA). Applicability, p. 16. HtT 1.a (dialogs that alert the user; whether they give "sufficient programmatic notification"), 1.b (focus moved to the changed content; whether that is "sufficient to notify the user ... e.g., by describing the change directly in the content to which the focus moved"), 1.c (ANDI structures, "live regions": "Determine whether the changing content is contained within the Live Region"), p. 16. ER, pp. 16–17: PASS if any is true: 1, "a keyboard-accessible dialog"; 2, focus moves to the changed content "AND the content that has changed provides sufficient description about the change"; 3, "The content that has changed is contained in an ARIA Live Region". Note, p. 17: changes caused by user interaction are tested elsewhere.
 
 **Other sources.** DHS course FAQ, [2.D ARIA Live Region in Change Notification](https://github.com/Section508Coordinators/DHSA-TT-200-A/wiki/2.D-ARIA-Live-Region-in-Change-Notification-(Auto-updating)) (Ann Marie Davis, 2019): "you should assume that the screen reader will present the information to the user if it is within the live region ... You are not required to make any other determination except whether change notification appears within the live region." ANDI 29.2.2 (`sandi.js`) counts as live regions `aria-live` polite or assertive, and roles `alert`, `status`, `log`, `marquee` and `timer`. [Understanding 4.1.2](https://www.w3.org/WAI/WCAG22/Understanding/name-role-value.html) (notification of changes to states and values); [Understanding 4.1.3](https://www.w3.org/WAI/WCAG22/Understanding/status-messages.html) (ARIA19, ARIA22, ARIA23) for contrast only: WCAG 2.1, outside Section 508. No ACT rule, no DHS ACT data, no ICT Baseline test (Baseline 5 is User Controls), no Baseline Alignment cases.
 
-**Terms.** Pass T, region, content and element: [2c-auto-updating.md](2c-auto-updating.md) Terms. A *change* is one mutation record inside an auto-updating region during pass T that alters visible text, an image source or rendered children (attribute-only style changes, such as a slide's transform, are not changes of content). A *live region* is an element ANDI counts as one (above) whose `aria-live` is not `off`. It must be present and rendered at 0 s of pass T, before the change; a region added with the change does not count. A change is *in* a live region when its target is inside one.
+**Terms.** Pass T, region, content and element: [2c-auto-updating.md](2c-auto-updating.md) Terms. A *change* is one mutation record inside an auto-updating region during pass T that alters visible text, an image source or rendered children (attribute-only style changes, such as a slide's transform, are not changes of content). When a region showed new content with no such record (a carousel that shows each slide by changing a class), its class and other non-style attribute changes are its changes: otherwise N2 would hold with no change at all, a false PASS. A *live region* is an element ANDI counts as one (above) whose `aria-live` is not `off`. It must be present and rendered at 0 s of pass T, before the change; a region added with the change does not count. A change is *in* a live region when its target is inside one.
 
 ## 1. Applicability
 

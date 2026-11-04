@@ -82,7 +82,7 @@ MOTION_INIT_JS = (
         + """
   if (window.__a11yMotion) return;
   const now = () => performance.timeOrigin + performance.now();
-  const M = { recs: [], attrs: 0, dropped: 0, timers: [], audio: 0, snaps: [], live0: new WeakSet(), held: new Map(), t0: null };
+  const M = { recs: [], attrs: 0, dropped: 0, timers: [], audio: 0, snaps: [], live0: new WeakSet(), held: new Map(), focus: [], t0: null };
   Object.defineProperty(window, '__a11yMotion', { value: M });
   const REC_MAX = 1500, ATTR_MAX = 300, TIMER_MAX = 200;
   const LIVE = LIVE_SELECTOR;
@@ -137,6 +137,8 @@ MOTION_INIT_JS = (
     }
   });
   obs.observe(document, { subtree: true, childList: true, attributes: true, characterData: true, characterDataOldValue: true });
+  // Focus moves with no key pressed (2.D N4), as element references.
+  addEventListener('focusin', (e) => { if (M.focus.length < 100) M.focus.push({ at: now(), el: e.composedPath()[0] }); }, true);
   // Pass T's start: live regions present and rendered now (2.D: a region
   // added with the change does not count).
   M.mark0 = () => {
@@ -148,7 +150,8 @@ MOTION_INIT_JS = (
       M.live0.add(e);
       out.push({ css: path(e), role: e.getAttribute('role') || '', live: norm(e.getAttribute('aria-live')) });
     }
-    return { t0: M.t0, live: out };
+    const car = Array.from(document.querySelectorAll(CAROUSEL)).slice(0, 10).map((e) => path(e));
+    return { t0: M.t0, live: out, carousels: car };
   };
   // What each element shows (2.C Terms, kind): a hash of its visible text,
   // image sources and rendered children, and its box. Text clipped away by
@@ -194,7 +197,8 @@ MOTION_INIT_JS = (
   // Inside a carousel, the region is the whole carousel. An iframe hands its
   // part to its own frame.
   const ov = (r, b) => Math.max(0, Math.min(r.right, b[2]) - Math.max(r.left, b[0])) * Math.max(0, Math.min(r.bottom, b[3]) - Math.max(r.top, b[1]));
-  const covers = (r, b) => r.left <= b[0] + 1 && r.top <= b[1] + 1 && r.right >= b[2] - 1 && r.bottom >= b[3] - 1;
+  // 4 px of slack: a focus ring is drawn just outside its element.
+  const covers = (r, b) => r.left <= b[0] + 4 && r.top <= b[1] + 4 && r.right >= b[2] - 4 && r.bottom >= b[3] - 4;
   // Covering now and at the first read: content that moved there (the slide
   // in view at the end of a sliding carousel) does not cover it.
   const steady = (e, b) => {
@@ -285,10 +289,15 @@ MOTION_INIT_JS = (
         if (ka && kb && ka[0] && (Math.abs((ka[1] - pa[1]) - (kb[1] - pb[1])) > 1 || Math.abs((ka[2] - pa[2]) - (kb[2] - pb[2])) > 1)) { moved = true; break; }
       }
     }
-    const changes = M.recs.filter((r) => r.at >= M.t0 && (el === r.el || el.contains(r.el)) && r.kind !== 'attr').slice(0, 100)
-      .map((r) => ({ at: r.at, kind: r.kind, attr: r.attr, css: r.el.isConnected ? path(r.el) : '', before: r.before, after: r.after,
-        live: r.live ? (r.live.isConnected ? path(r.live) : '') : null, live_at_start: !!(r.live && M.live0.has(r.live)) }));
-    const attrs = M.recs.filter((r) => r.at >= M.t0 && r.kind === 'attr' && (el === r.el || el.contains(r.el))).length;
+    const rec = (r) => ({ at: r.at, kind: r.kind, attr: r.attr, css: r.el.isConnected ? path(r.el) : '', before: r.before, after: r.after,
+        live: r.live ? (r.live.isConnected ? path(r.live) : '') : null, live_at_start: !!(r.live && M.live0.has(r.live)) });
+    const mine = M.recs.filter((r) => r.at >= M.t0 && (el === r.el || el.contains(r.el)));
+    const changes = mine.filter((r) => r.kind !== 'attr').slice(0, 100).map(rec);
+    // Class and style changes (slides shown by a class): 2.D's changes when
+    // a region shows new content with no text change.
+    const attrList = mine.filter((r) => r.kind === 'attr' && r.attr !== 'style').slice(0, 30).map(rec);
+    const attrs = mine.filter((r) => r.kind === 'attr').length;
+    const focusIn = M.focus.filter((f) => f.at >= M.t0 && (el === f.el || el.contains(f.el))).map((f) => f.at);
     let anims = [];
     try {
       anims = el.getAnimations({ subtree: true }).slice(0, 20).map((a) => {
@@ -299,7 +308,7 @@ MOTION_INIT_JS = (
           duration_ms: typeof t.duration === 'number' ? Math.round(t.duration) : 0, state: a.playState };
       });
     } catch (e) {}
-    return { sigs, moved, changes, attrs, anims, text: textOf(el), connected: el.isConnected };
+    return { sigs, moved, changes, attr_list: attrList, attrs, focus_in: focusIn, anims, text: textOf(el), connected: el.isConnected };
   };
   M.media = () => Array.from(document.querySelectorAll('video, audio')).slice(0, 20).map((m) => ({
     css: path(m), tag: m.tagName.toLowerCase(), paused: m.paused, muted: m.muted, volume: m.volume,
@@ -460,6 +469,8 @@ class Region(BaseModel):
     connected: bool = True
     changes: list[Change] = Field(default_factory=list)
     attr_changes: int = 0
+    attr_list: list[Change] = Field(default_factory=list)  # class and other attributes
+    focus_in: list[float] = Field(default_factory=list)  # focus moved into it, s
     animations: list[Animation] = Field(default_factory=list)
     period_s: float | None = None  # median time between pixel changes
     elements: list[int] = Field(default_factory=list)  # Element.i inside it
@@ -515,6 +526,24 @@ class FocusMove(BaseModel):
     type: str = "focusin"
 
 
+class Dialog(BaseModel):
+    css: str
+    name: str = ""
+    role: str = ""
+    text: str = ""
+    keyboard: bool = False  # focus is in it, or it holds a focusable element
+
+
+_DIALOG_FACTS_JS = """(css) => {
+  const d = document.querySelector(css);
+  if (!d) return null;
+  const f = 'a[href], button, input:not([type=hidden]), select, textarea, [tabindex]:not([tabindex^="-"])';
+  return { role: d.getAttribute('role') || (d.tagName === 'DIALOG' ? 'dialog' : ''),
+    text: (d.innerText || '').replace(/\\s+/g, ' ').trim().slice(0, 300),
+    keyboard: d.contains(document.activeElement) || !!d.querySelector(f) };
+}"""
+
+
 class MotionPass(BaseModel):
     ok: bool = True
     error: str = ""
@@ -529,12 +558,13 @@ class MotionPass(BaseModel):
     unmapped_tiles: int = 0  # changed tiles with no element (a frame not read)
     live_regions: list[LiveRegion] = Field(default_factory=list)  # at 0 s
     dialogs_at_start: list[str] = Field(default_factory=list)
-    dialogs_opened: list[dict[str, str]] = Field(default_factory=list)
+    dialogs_opened: list[Dialog] = Field(default_factory=list)
     focus_moves: list[FocusMove] = Field(default_factory=list)
     timers: list[Timer] = Field(default_factory=list)
     audio_connects: int = 0
     media: list[Media] = Field(default_factory=list)
     polls: list[Poll] = Field(default_factory=list)
+    carousels: list[str] = Field(default_factory=list)  # "<frame>|<css>" at 0 s
     dropped_changes: int = 0
     frames_read: int = 0  # document frames read (the top page included)
     elements: list[Element] = Field(default_factory=list)  # at 0 s
@@ -721,6 +751,7 @@ async def _watch(
     for i, _, v in starts:
         for lr in (v or {}).get("live", []):
             out.live_regions.append(LiveRegion(frame=i, **lr))
+        out.carousels += [f"{i}|{c}" for c in (v or {}).get("carousels", [])]
     try:
         out.dialogs_at_start = sorted(
             {d["css"] for d in await page.evaluate(DIALOGS_JS)}
@@ -814,6 +845,11 @@ async def _watch(
         r.text = d["text"]
         r.connected = d["connected"]
         r.attr_changes = d["attrs"]
+        r.attr_list = [
+            Change(**{**c, "t": round((c.pop("at") - epoch0) / 1000, 2)})
+            for c in d["attr_list"]
+        ]
+        r.focus_in = [round((t - epoch0) / 1000, 2) for t in d["focus_in"]]
         r.changes = [
             Change(**{**c, "t": round((c.pop("at") - epoch0) / 1000, 2)})
             for c in d["changes"]
@@ -848,9 +884,11 @@ async def _watch(
         ]
     try:
         now_dialogs = await page.evaluate(DIALOGS_JS)
-        out.dialogs_opened = [
-            d for d in now_dialogs if d["css"] not in out.dialogs_at_start
-        ]
+        for d in now_dialogs:
+            if d["css"] in out.dialogs_at_start:
+                continue
+            facts = await page.evaluate(_DIALOG_FACTS_JS, d["css"]) or {}
+            out.dialogs_opened.append(Dialog(css=d["css"], name=d["name"], **facts))
     except Exception:
         pass
     try:
@@ -935,3 +973,49 @@ async def _regions(page, pairs, regions, frames_by_key, out: MotionPass) -> None
         for key, n in counts.items():
             regions[key].changed_at.append(t)
             regions[key].tiles = max(regions[key].tiles, n)
+
+
+# ── Mechanism probe evidence (2.C spec section 2; 2.A and 2.B use it) ──────
+# The probe itself is not built yet: until it is, every instance has
+# `probed=False` and the checks' rows say so (K7). These models are what it
+# will fill, so the rows can be built and tested on hand-built evidence.
+
+
+class Candidate(BaseModel):
+    element: int  # Element.i
+    window: str  # top | before | after | inside
+    kind: str  # control | text
+    result: str = "untried"  # stopped|slowed|no_effect|unreliable|unreachable|untried
+    focus_only: str | None = None  # the focus-only probe's result, if run
+    key: str | None = None  # a key combination from J2 that was pressed
+    keys: str = ""  # how to reach it ("Tab 4 times, then Enter")
+
+
+class Probe(BaseModel):
+    """The mechanism probe for one content (an instance)."""
+
+    probed: bool = False
+    candidates: list[Candidate] = Field(default_factory=list)
+    reads_failed: bool = False
+    untried: int = 0
+    cannot_try: str = ""  # K5: a mechanism the tool may not try, named
+
+
+async def collect(ctx: Any) -> MotionPass:
+    """Pass T once per call, shared by the 2.x checks (ctx.cache["motion"])."""
+    if "motion" in ctx.cache:
+        return ctx.cache["motion"]
+    if getattr(ctx, "open_motion", None) is None:
+        mp = MotionPass(ok=False, error="the page could not be watched in this run")
+    elif ctx.out_of_time():
+        mp = MotionPass(
+            ok=False,
+            error="the run reached its time limit before the page could be watched",
+        )
+    else:
+        har = ctx.rel / "evidence" / "page.har.zip"
+        mp = await pass_t(
+            ctx.open_motion, har if har.exists() else None, ctx.shots, ctx.rel
+        )
+    ctx.cache["motion"] = mp
+    return mp

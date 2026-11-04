@@ -32,8 +32,9 @@ Draft (0.2.0): no outcome until 1.0.0. 0.2.0 (2026-11-04) defines regions over t
   through `traverse.screenshot()`).
 - *Region*: a group of 20 px tiles that changed in any frame of the watch
   and touch one another, mapped once, at the end of the watch, to the
-  smallest element whose box covers their changed pixels (by overlap, in
-  every frame of the page, iframes included). Built rules (0.2.0):
+  smallest element whose box covers their changed pixels (by overlap, with
+  4 px of slack for a focus ring drawn just outside its element; in every
+  frame of the page, iframes included). Built rules (0.2.0):
   - The groups are taken over the whole watch, not frame by frame: per
     frame, a spinning square's changed pixels landed sometimes on the
     square and sometimes on its box, and slides taking turns gave one
@@ -94,12 +95,22 @@ Draft (0.2.0): no outcome until 1.0.0. 0.2.0 (2026-11-04) defines regions over t
 | # | Evidence | Outcome | Source |
 | --- | --- | --- | --- |
 | A1 | Pass T could not run or read the page (load, frames or reads failed) | NEEDS REVIEW, not performed, with the reason | p. 5; spec rule |
-| A2 | No auto-updating region, but a *hint* that updates exist: the HAR has repeated requests to one address after load (polling, item 10); a timer with a period longer than the watch (item 7); carousel markup; or the walk saw DOM changes on steps where pass T saw none | NEEDS REVIEW, not performed: "the page may update more slowly than we watched, or with data a recording cannot replay; a person should watch it" | p. 15 Identify Content; plan risks 4–5 |
-| A3 | No auto-updating region | DOES NOT APPLY | p. 15 Applicability |
-| A4 | Every auto-updating region's content covers all the page's elements (nothing outside it) | DOES NOT APPLY: it is the only content | p. 15 Applicability |
+| A2 | No instance (an auto-updating region still changing at 5 s; OPEN O1 below), but a *hint* that updates exist: the HAR has repeated requests to one address after load (polling, item 10); a timer with a period longer than the watch (item 7); carousel markup that did not change; an auto-updating region that stopped changing before 5 s; or the walk saw DOM changes on steps where pass T saw none (not built: the 2.x checks do not read the walk yet) | NEEDS REVIEW, not performed: "the page may update more slowly than we watched, or with data a recording cannot replay; a person should watch it" | p. 15 Identify Content; plan risks 4–5 |
+| A3 | No instance | DOES NOT APPLY | p. 15 Applicability |
+| A4 | The instances' content covers all the page's elements (nothing outside it), the elements were all read, and no instance is the whole page (`html`, `body` or `main`: a change placed no more closely, such as a focus ring, is never "the only content") | DOES NOT APPLY: it is the only content | p. 15 Applicability |
 | A5 | Otherwise | Applies; go to section 3. A hint (A2) about other content is a note | |
 
 Not essential: 2.C never excludes content as essential (p. 15 Note).
+
+**OPEN O1 (for Abby): content that stopped changing before 5 s.** TT gives
+2.C no duration. Built as: an auto-updating region is an instance only when
+it is still changing at 5 s; one that stopped earlier (a spinner replaced
+by content at 1.5 s, a late load, or a carousel slower than about 2.5 s
+whose second change fell after the watch) is a hint, so the page is NEEDS
+REVIEW (A2), never DOES NOT APPLY. The cost: pages with late-loading
+content become NEEDS REVIEW instead of DOES NOT APPLY. Alternatives: count
+any change as an instance, or treat a single early change as not
+auto-updating (DNA).
 
 ## 2. Evidence to collect
 
@@ -181,7 +192,7 @@ Each auto-updating region whose content is not excluded is an *instance*.
 | K4 | A key combination from J2 stopped or slowed the content | *Works*; go to J1 | p. 15 HtT 1 (any element; DHS #114); plan Q10 |
 | K5 | J2 named a mechanism the tool cannot try (a combination it may not press, a field that needs a value, a control outside the windows) | NEEDS REVIEW, naming it | Spec rule |
 | K6 | Every control candidate gave no effect, J2 = no for every text candidate (or there are none), and nothing was left untried | No mechanism: FAIL | p. 16 ER 1–2 |
-| K7 | Candidates left untried (time, or a candidate the walk never reached) | NEEDS REVIEW | p. 5 |
+| K7 | The probe has not run (it is not built yet), or control candidates were left untried (time, or a candidate the walk never reached). Text candidates are asked about (J2), never pressed, so they do not count here | NEEDS REVIEW | p. 5 |
 | K8 | Anything else (J2 unsure or unanswered) | NEEDS REVIEW | Spec rule |
 
 After K3 or K4:
