@@ -53,6 +53,7 @@ TILE = 20
 # Bounds that keep one pass small on a busy page; reaching one is recorded.
 MAX_COMPONENTS = 30  # changed-tile groups mapped per frame
 MAX_REGIONS = 40
+MAX_BOXES = 400  # changed-pixel boxes kept per region
 # A frame where more than this share of the viewport's tiles changed is a
 # page-wide change (a dialog's backdrop, a scroll), noted and not mapped.
 PAGE_CHANGE = 0.5
@@ -479,6 +480,9 @@ class Region(BaseModel):
     animations: list[Animation] = Field(default_factory=list)
     period_s: float | None = None  # median time between pixel changes
     elements: list[int] = Field(default_factory=list)  # Element.i inside it
+    # Its changed pixels over the watch, one box per 20 px tile (x0, y0, x1,
+    # y1 in the top page's viewport), capped: which elements really changed.
+    changed_boxes: list[list[int]] = Field(default_factory=list)
 
 
 class LiveRegion(BaseModel):
@@ -967,6 +971,8 @@ async def _regions(page, pairs, regions, frames_by_key, out: MotionPass) -> None
                 r.parts.append(info["part"])
             for i in info["idx"]:
                 owner[ordered[i]] = key
+                if len(r.changed_boxes) < MAX_BOXES:
+                    r.changed_boxes.append(union[ordered[i]])
             hits += len(info["idx"])
         out.unmapped_tiles += len(group) - hits
     if len(components(set(union))) > MAX_COMPONENTS:

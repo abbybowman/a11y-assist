@@ -59,9 +59,21 @@ pass T part; one watch, started before the walk ends).
 Still open from Q2: the extra time allowance for pages with moving content
 (set when the probe exists and is measured on a budget page).
 
+- ACT efbfc7 vendored (`tests/test_act_2c.py`): all 11 cases give our
+  expected outcome. 6/11 agree with DHS; the other 5 are DHS PASS cases
+  that are NEEDS REVIEW here: three gated by ER 3 (the scorer marks them
+  "gated"), the frequency field (K5) and the panel of controls (J2, then
+  K5 or K8). Two fixes it found: J2's trigger words now include "control"
+  and "button" (passed 5 names its control only that way), and A4 now
+  asks that each element's own box overlaps changed pixels (a tag rule
+  failed inapplicable 5, a page that is only a changing number).
+- Judge eval run 15 (`evals/README.md`): 10/10, no false PASS, after 2.C
+  J1 got its image (pass T's first frame), box and position in words.
+  Follow-up: J1's wording when the mechanism is text naming a key.
+
 Not started: the media store (items 13-14), the scrolled watch, loudness and `ImageDecoder`, 2.B and
-2.A (`t2b.py`, `t2a.py`), the vendored ACT cases, the walk cross-check (A2),
-the judge eval on the questions, and 2.D's note for `aria-live="off"`
+2.A (`t2b.py`, `t2a.py`), the vendored ACT cases for 2.A (4c31df, 80f0bf, aaa1bf), the walk
+cross-check (A2), and 2.D's note for `aria-live="off"`
 carousels (plan risk 11).
 
 ## Code changes

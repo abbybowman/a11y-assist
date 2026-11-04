@@ -87,6 +87,8 @@ async def test_2d_questions(page, q, choice, outcome, settings, server, drafts):
             "K4/E3",
         ),
         ("t-hotkey.html", {"J2": {"choice": "no"}}, "FAIL", "K6"),
+        # A button that stops it but says "Options": works, not evident (E1).
+        ("t-options-button.html", {"J1": {"choice": "not_evident"}}, "FAIL", "K3/E1"),
         # A control that makes it update less often counts for 2.C (a
         # frequency control): judged on the time between two changes.
         ("t-slower.html", {"J1": {"choice": "evident"}}, "NEEDS_REVIEW", "K3/E3"),
@@ -108,3 +110,15 @@ async def test_a2_note_says_what_was_checked(settings, server, drafts):  # noqa:
     s = got["2.C"].summary
     assert "6.5 seconds" in s and "after 5 seconds" in s, s
     assert "changed until" in s and "and then stopped" in s, s
+
+
+# For the judge eval (evals/judge_eval.py): pages whose outcome a fresh
+# agent's answers decide, with the outcome a correct agent gets.
+EVAL = {
+    "t-pause-button": ("2.C", "NEEDS_REVIEW"),  # evident; ER 3 holds PASS back
+    "t-options-button": ("2.C", "FAIL"),  # "Options" is not evident
+    "t-slower": ("2.C", "NEEDS_REVIEW"),  # "Update less often": evident
+    "t-hotkey": ("2.C", "NEEDS_REVIEW"),  # J2 gives Ctrl+Shift+P, then J1
+    "t-focus-news": ("2.D", "PASS"),  # "New message 3 from Ana" says it
+    "t-update-dialog": ("2.D", "PASS"),  # "Prices were updated."
+}

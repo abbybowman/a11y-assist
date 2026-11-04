@@ -97,7 +97,7 @@ Draft (0.3.0): no outcome until 1.0.0. 0.2.0 (2026-11-04) defines regions over t
 | A1 | Pass T could not run or read the page (load, frames or reads failed) | NEEDS REVIEW, not performed, with the reason | p. 5; spec rule |
 | A2 | No instance (an auto-updating region still changing at 5 s; OPEN O1 below), but a *hint* that updates exist: the HAR has repeated requests to one address after load (polling, item 10); a timer with a period longer than the watch (item 7); carousel markup that did not change; an auto-updating region that stopped changing before 5 s; or the walk saw DOM changes on steps where pass T saw none (not built: the 2.x checks do not read the walk yet) | NEEDS REVIEW, not performed: "the page may update more slowly than we watched, or with data a recording cannot replay; a person should watch it" | p. 15 Identify Content; plan risks 4–5 |
 | A3 | No instance | DOES NOT APPLY | p. 15 Applicability |
-| A4 | The instances' content covers all the page's elements (nothing outside it), the elements were all read, and no instance is the whole page (`html`, `body` or `main`: a change placed no more closely, such as a focus ring, is never "the only content") | DOES NOT APPLY: it is the only content | p. 15 Applicability |
+| A4 | Every element of the page (all read) is inside an instance and its box overlaps pixels that changed there (0.3.0: inside alone is not enough, since a focus ring once made a region of `<main>` whose heading never changed; a tag rule instead failed ACT efbfc7 inapplicable 5, a page that is only a changing number) | DOES NOT APPLY: it is the only content | p. 15 Applicability |
 | A5 | Otherwise | Applies; go to section 3. A hint (A2) about other content is a note | |
 
 Not essential: 2.C never excludes content as essential (p. 15 Note).
@@ -289,7 +289,7 @@ own: a key press must confirm it (K4).
 
 ### J2. Does this text describe a way to pause, stop or hide the content?
 
-Asked only for text candidates whose text mentions pausing, stopping, hiding, a key, or a control (a key name with `+`, "hotkey", "shortcut", "pause", "stop", "hide", "freeze", "turn off"); other text candidates are "no" mechanically.
+Asked only for text candidates whose text mentions pausing, stopping, hiding, a key, or a control (a key name with `+`, "hotkey", "shortcut", "pause", "stop", "hide", "freeze", "turn off", and, from 0.3.0, "control" and "button": ACT efbfc7 passed 5 names its control only as "activate the "Control changes" button"); other text candidates are "no" mechanically.
 
 **Question:** "input.text is page text near the changing content (input.position). Does it tell users how to pause, stop, hide or slow that content? If it names a key combination, put it in key exactly as written. Answer describes, no or unsure."
 

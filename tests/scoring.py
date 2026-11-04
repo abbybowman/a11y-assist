@@ -42,6 +42,12 @@ def _all_scores() -> dict:
     return out
 
 
+def _gated(rows: list[str]) -> str:
+    """2.A-2.C: the mechanism works, but ER 3's tests are not all built, so
+    PASS is held back (2c spec E3). Not a disagreement."""
+    return " (gated: ER 3)" if any(r.endswith("/E3") for r in rows) else ""
+
+
 def report_lines() -> list[str]:
     ours = _all_scores()
     if not ours:
@@ -67,6 +73,7 @@ def report_lines() -> list[str]:
                 if o != c["dhs_tt51"]:
                     mismatches.append(
                         f"  {cid} ours {o} vs DHS {c['dhs_tt51']} rows {got['rows']}"
+                        + _gated(got["rows"])
                     )
             for rule, exp in c["act_expected"].items():
                 act_n += 1
@@ -74,6 +81,7 @@ def report_lines() -> list[str]:
                 if o != exp:
                     mismatches.append(
                         f"  {cid} ours {o} vs ACT {rule} {exp} rows {got['rows']}"
+                        + _gated(got["rows"])
                     )
         lines.append(
             f"  agreement with DHS TT 5.1: {dhs_ok}/{dhs_n}"

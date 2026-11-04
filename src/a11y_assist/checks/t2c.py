@@ -34,8 +34,11 @@ from a11y_assist.walk import KeyboardWalk
 STILL_CHANGING_S = 5.0
 
 # J2 is asked only for text that mentions a way to stop it (spec section 4).
+# "control" and "button": text that points to another control, such as ACT
+# efbfc7 passed 5's "activate the "Control changes" button" (spec J2).
 MENTION = re.compile(
-    r"\+|hotkey|shortcut|\bpause|\bstop|\bhide|\bfreeze|turn off", re.IGNORECASE
+    r"\+|hotkey|shortcut|\bpause|\bstop|\bhide|\bfreeze|turn off|\bcontrol|\bbutton",
+    re.IGNORECASE,
 )
 
 
@@ -102,16 +105,26 @@ def a2_note(mp: MotionPass, found: list[str]) -> str:
     )
 
 
+def changed(e: Element, r: Region) -> bool:
+    """The element is inside the region and its box overlaps pixels that
+    changed. Inside alone is not enough: a focus ring once made a region of
+    <main>, whose heading and text never changed. Elements in an iframe are
+    in its own coordinates, so for them inside is enough."""
+    if e.i not in r.elements:
+        return False
+    if e.frame or len(e.box) < 4:
+        return True
+    x, y, w, h = e.box
+    return any(
+        b[0] < x + w and x < b[2] and b[1] < y + h and y < b[3] for b in r.changed_boxes
+    )
+
+
 def only_content(mp: MotionPass, inst: list[tuple[str, Region]]) -> bool:
     """A4: the changing content covers every element of the page."""
     if not inst or not mp.elements or mp.elements_truncated:
         return False
-    # Changes we could not place more closely than the whole page are not
-    # "the only content" (a focus ring once made a region of <main>).
-    if any(r.tag in ("html", "body", "main") for _, r in inst):
-        return False
-    inside = {i for _, r in inst for i in r.elements}
-    return inside >= {e.i for e in mp.elements}
+    return all(any(changed(e, r) for _, r in inst) for e in mp.elements)
 
 
 @dataclass
@@ -481,9 +494,24 @@ def evaluate(st: State2C, evidence_refs: list[str]) -> Finding:
 # ── Questions (J1, J2) and answers ────────────────────────────────────────
 
 J1_CHOICES = ["evident", "not_evident", "unsure"]
+POSITION = {
+    "inside": "inside the changing content",
+    "before": "just before the changing content",
+    "after": "just after the changing content",
+    "top": "among the first three items on the page",
+}
+
+
+def _images(evidence_refs: list[str], paths: list[str]) -> list[str]:
+    base = evidence_refs[0].rsplit("/evidence/", 1)[0] if evidence_refs else ""
+    return [f"{base}/{p}" for p in paths if p]
+
+
 J1_QUESTION = (
-    "Pressing input.mechanism stopped the content in input.content (image A "
-    "shows the content and the control). Would a user looking at the page "
+    "Pressing input.mechanism stopped the content in input.content. Image A "
+    "(input.images) is the page as it loaded; the control is at input.box "
+    "(x, y, width, height in that image), and input.position says where it is "
+    "relative to the content. Would a user looking at the page "
     "recognize this control as a way to pause, stop, hide, or slow the "
     "changing content? Answer evident, not_evident or unsure."
 )
@@ -527,13 +555,14 @@ def questions_for(st: State2C, evidence_refs: list[str]) -> list[OpenQuestion]:
                     instance=i.id,
                     question=J2_QUESTION,
                     rubric=J2_RUBRIC,
-                    input={"text": el.name, "position": c.window},
+                    input={"text": el.name, "position": POSITION[c.window]},
                     evidence_paths=evidence_refs,
                 )
             )
         mech = _works(i)
         if mech is not None and not i.j1:
             el = st.mp.elements[mech.element]
+            images = _images(evidence_refs, st.mp.shots[:1])
             out.append(
                 OpenQuestion(
                     question_id=f"2.C-{i.id}-J1",
@@ -545,10 +574,12 @@ def questions_for(st: State2C, evidence_refs: list[str]) -> list[OpenQuestion]:
                     rubric=J1_RUBRIC,
                     input={
                         "mechanism": {"name": el.name, "role": el.role},
+                        "box": el.box,
                         "content": content_name(i.region),
-                        "position": mech.window,
+                        "position": POSITION[mech.window],
+                        "images": images,
                     },
-                    evidence_paths=evidence_refs,
+                    evidence_paths=evidence_refs + images,
                 )
             )
     return out

@@ -42,6 +42,8 @@ RULES = {
     "9.A": ["ye5d6e", "3e12e1", "cf77f2"],
     # 5.B (2.4.6): the visible label describes the field.
     "5.B": ["cc0f0a"],
+    # 2.C (2.2.2): text that changes automatically. DHS scored all 11.
+    "2.C": ["efbfc7"],
 }
 # Pages a case needs that are not assets: the bypass-blocks rules' "other
 # page" (chapter 2), which 9.A's tests name in other_pages.
@@ -169,6 +171,22 @@ EXPECTED = {
         "1d7c2f68": "DNA",
         "a83b1482": "PASS",  # ACT inapplicable (label hidden from AT); DHS PASS
         "e3debccd": "DNA",
+    },
+    # docs/rules/2c-auto-updating.md (draft). PASS is gated by ER 3 (the
+    # mechanism's own tests are not all built), so DHS's PASS cases are
+    # NEEDS_REVIEW here: "gated", not a disagreement (2c-build-tasks.md).
+    "2.C": {
+        "fd32eba8": "NEEDS_REVIEW",  # "Stop changes": K3, E3 (gated)
+        "18adb94c": "NEEDS_REVIEW",  # "Pause changes": K3, E3 (gated)
+        "337477ac": "NEEDS_REVIEW",  # "Hide changing content": K3, E3 (gated)
+        "a17f7d74": "NEEDS_REVIEW",  # a frequency field that needs a value: K5
+        "9f538bf3": "NEEDS_REVIEW",  # opens a panel of controls: J2, then K5
+        "8f0a0534": "FAIL",  # K6
+        "37668beb": "DNA",
+        "7e37318b": "DNA",
+        "49cc7da7": "DNA",  # only its colour changes: not auto-updating
+        "5345dc33": "DNA",
+        "0d1564a1": "DNA",  # the only content (A4)
     },
 }
 
