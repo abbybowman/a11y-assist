@@ -37,3 +37,16 @@ def test_tool_arm_passes_the_upstream_proxy(monkeypatch, tmp_path):
     monkeypatch.setenv("UPSTREAM_PROXY", "http://127.0.0.1:9")
     (srv,) = tool_arm(tmp_path, "m", tmp_path / "runs")
     assert srv.env["UPSTREAM_PROXY"] == "http://127.0.0.1:9"
+
+
+def test_dev_prompt_adds_one_paragraph_before_the_result_line():
+    from evals.agent import prompt_dev
+    from evals.agent.prompt import PROMPT_VERSION
+
+    urls = ["https://www.example.gov/a"]
+    assert prompt_dev.task(urls, PROMPT_VERSION) == task(urls)
+    t = prompt_dev.task(urls, "answers-v1")
+    extra = prompt_dev.EXTRA["answers-v1"]
+    assert t.replace(extra + "\n\n", "") == task(urls)
+    assert t.index(extra) < t.index("RESULT:")
+    assert "a11y_answer_questions" in extra and "no_time_limit" in extra
