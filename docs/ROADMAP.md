@@ -28,10 +28,10 @@ must (the one approved exception to principle 5).
 
 Agent eval ([plan](plans/2026-10-31-agent-eval.md), [runbook](../evals/agent/README.md)):
 the round 1 harness is built and tested on fixtures with a scripted model
-(freeze, both arms, lock, score); it has not run on a real model or real
-pages. Round 1 waits only on Ask Sage tokens for the two agent runs. Its
-first steps need no model: Abby commits `pages.txt`, then the pages are
-frozen. Pages with cross-site iframes now replay in full Chromium
+(freeze, both arms, lock, score), and the Claude Code CLI route was
+smoke-run on a fixture site with Sonnet 5.5. It has not run on real pages.
+Round 1 runs on the CLI route: Abby commits `pages.txt` and freezes the
+pages on her laptop, then both arms run in a cloud session. Pages with cross-site iframes now replay in full Chromium
 ([solutions/full-chromium-iframes.md](solutions/full-chromium-iframes.md)).
 
 Next: 2.B, 2.C and 2.D (moving, auto-updating and changing content) as one
@@ -117,14 +117,13 @@ run).
   answer questions (one subagent for all of them), summarize, read
   `report_uri` and offer to save it.
 - **Agent-level eval: round 1 and after** (plan: [plans/2026-10-31-agent-eval.md](plans/2026-10-31-agent-eval.md);
-  runbook: `evals/agent/README.md`). Next, in order: commit `pages.txt`
-  and freeze (no model needed); a first real-model smoke run on the 19.A
-  fixture site through Ask Sage; then Agent A and Agent B on round 1, lock,
-  reveal, score. Before the agent runs: Abby approves the four added
-  weights and the forms wording in `evals/agent/prompt.py`; set
-  `AGENT_API_AUTH_HEADER` to Ask Sage's token header; install Tavily MCP for
-  Agent B's web search (Ask Sage models have none). Later: the Claude Code
-  CLI adapter (only if Ask Sage is unavailable), matching a failing element
+  runbook: `evals/agent/README.md`). Next, in order: Abby approves the
+  four added weights and the forms wording in `evals/agent/prompt.py`;
+  commits `pages.txt` and freezes on her laptop (no model needed), then
+  commits `frozen/`; Agent A, then Agent B at the start of a fresh 5-hour
+  window, on the CLI route; lock, reveal, score. Later: the Ask Sage route
+  (set `AGENT_API_AUTH_HEADER`; install Tavily MCP for Agent B's search),
+  reported apart from CLI-route rounds; matching a failing element
   Agent B names to the key's element, plain-language rounds, repeats, the
   wording judge, the GPT and Gemini routes, DHS training pages. Also still
   to cover: a check that fails when a judge-eval agent opens files outside

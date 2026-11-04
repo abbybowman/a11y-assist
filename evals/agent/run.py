@@ -32,6 +32,7 @@ from typing import Any
 
 from evals.agent import prompt as task_prompt
 from evals.agent.arms import Server, browser_arm, tool_arm
+from evals.agent.cli import ClaudeCodeCLI
 from evals.agent.providers import ContextExceeded, Provider, Reply
 
 REPO = Path(__file__).resolve().parents[2]
@@ -164,6 +165,8 @@ class Agent:
             await session.initialize()
             self.sessions.append(session)
             for t in (await session.list_tools()).tools:
+                if t.name in s.deny:
+                    continue
                 if t.name in self.tool_owner or t.name in (
                     READ_RESOURCE["name"],
                     HELPER["name"],
@@ -294,24 +297,31 @@ def leak_values() -> list[str]:
     return [v for v in vals if v]
 
 
-async def leak_check(provider: Provider, log: StepLog) -> dict:
+async def leak_check(provider, log: StepLog, servers: list[Server]) -> dict:
     """The arm's context before the task holds nothing of the user, this
-    repo or its memory (plan section 7.2)."""
+    repo or its memory (plan section 7.2). On the CLI route the arm's
+    servers are attached, as in the run."""
     t0 = time.monotonic()
-    reply = await provider.complete(
-        task_prompt.SYSTEM,
-        [{"role": "user", "content": LEAK_QUESTION}],
-        [],
-        1000,
-    )
-    text = "\n".join(b["text"] for b in reply.content if b["type"] == "text")
+    if isinstance(provider, ClaudeCodeCLI):
+        got = await provider.leak_check(servers, LEAK_QUESTION)
+        text, usage, model = got["text"], got["usage"], got["model"]
+        extra = {"init": got["init"]}
+    else:
+        reply = await provider.complete(
+            task_prompt.SYSTEM,
+            [{"role": "user", "content": LEAK_QUESTION}],
+            [],
+            1000,
+        )
+        text = "\n".join(b["text"] for b in reply.content if b["type"] == "text")
+        usage, model, extra = reply.usage, reply.model, {}
     try:
         got = json.loads(text[text.index("{") : text.rindex("}") + 1])
     except ValueError:
         got = {"unparsed": text}
     said = json.dumps(got).lower()
     hits = [v for v in leak_values() if v in said]
-    out = {"answer": got, "leaked": hits, "usage": reply.usage, "model": reply.model}
+    out = {"answer": got, "leaked": hits, "usage": usage, "model": model, **extra}
     log.add(type="leak_check", seconds=round(time.monotonic() - t0, 3), **out)
     return out
 
@@ -384,14 +394,38 @@ async def run_arm(
     final, ended = "", "error"
     try:
         if check_leaks:
-            summary["leak_check"] = await leak_check(provider, log)
+            summary["leak_check"] = await leak_check(provider, log, servers)
             if summary["leak_check"]["leaked"]:
                 ended = "stopped: context leak"
                 raise RuntimeError(f"Context leak: {summary['leak_check']['leaked']}")
-        async with AsyncExitStack() as stack:
-            await agent.connect(servers, stack)
-            summary["tools"] = [t["name"] for t in agent.tools(True)]
-            final, ended = await agent.converse(task)
+        if isinstance(provider, ClaudeCodeCLI):
+            res = await provider.run(task, servers, arm, log)
+            final, ended = res["final"], res["ended"]
+            agent.totals, agent.models = res["tokens"], set(res["models"])
+            agent.tool_calls = res["tool_calls"]
+            agent.transcripts = res["transcript"]
+            for k in (
+                "init",
+                "model_usage",
+                "cli_usage",
+                "cli_duration_ms",
+                "num_turns",
+                "cost_usd_list_price",
+                "exit_code",
+                "stderr",
+                "is_error",
+            ):
+                if k in res:
+                    summary[k] = res[k]
+            limits = res["rate_limits"]
+            summary["usage_windows"] = {"first": limits[:1], "last": limits[-1:]}
+            if res.get("error"):
+                raise RuntimeError(res["error"])
+        else:
+            async with AsyncExitStack() as stack:
+                await agent.connect(servers, stack)
+                summary["tools"] = [t["name"] for t in agent.tools(True)]
+                final, ended = await agent.converse(task)
     except Exception as exc:
         summary["error"] = _describe(exc)[:2000]
     finally:
@@ -417,9 +451,19 @@ def main(argv: list[str]) -> None:
 
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--arm", choices=["a", "b"], required=True)
+    ap.add_argument(
+        "--route",
+        choices=["api", "cli"],
+        default="api",
+        help="api: an Anthropic-style API (Ask Sage); cli: the Claude Code CLI",
+    )
+    ap.add_argument("--model", default="claude-sonnet-5-5", help="cli route only")
     ap.add_argument("round", type=Path)
     a = ap.parse_args(argv)
-    s = asyncio.run(run_arm(a.round, a.arm, AnthropicMessages.from_env()))
+    provider = (
+        ClaudeCodeCLI(a.model) if a.route == "cli" else AnthropicMessages.from_env()
+    )
+    s = asyncio.run(run_arm(a.round, a.arm, provider))
     print(json.dumps({k: s[k] for k in ("ended", "wall_s", "tokens", "tool_calls")}))
     if s.get("error"):
         sys.exit(s["error"])

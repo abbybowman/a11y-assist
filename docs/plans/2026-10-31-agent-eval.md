@@ -238,7 +238,7 @@ exact wording before round 1 runs.
 Both arms use the same route, and routes are never mixed within a round. The
 route and model IDs (requested and reported) are recorded with the results.
 
-- **Preferred: NASA's Ask Sage API** (`https://api.asksage.ai.nasa.gov`),
+- **NASA's Ask Sage API** (`https://api.asksage.ai.nasa.gov`),
   whose Anthropic-compatible route is `/server/anthropic/v1/messages`, with
   Claude Sonnet 5.5 Gov. It works only inside NASA's network, so these runs
   happen from Abby's laptop. One call on 2026-11-01 showed that tool
@@ -246,10 +246,14 @@ route and model IDs (requested and reported) are recorded with the results.
   in repeats), and exact input and output token counts come back. The model
   requested as `claude-sonnet-5-5-gov` reports itself as
   `claude-sonnet-5-5`.
-- **Fallback: the Claude Code CLI on Abby's claude.ai account** (its
-  adapter is not built), run as a separate one-off process for each arm, used only if Ask Sage tokens don't
-  arrive in time and Abby's organization allows it for public .gov pages.
-  The model is Anthropic's Sonnet 5.5, not the Gov version. The CLI adds one
+- **The Claude Code CLI on Abby's claude.ai account** (`--route cli`,
+  `evals/agent/cli.py`; Abby, 2026-11-04: NASA's organization account,
+  public .gov pages), run as a separate one-off process for each arm from a
+  cloud session (a laptop's Claude Code goes through Ask Sage). Round 1 uses
+  this route. Agent B starts at the beginning of a fresh 5-hour usage
+  window; every run logs the account's usage windows. The model is
+  Anthropic's Sonnet 5.5, not the Gov version, so results from this route
+  are reported apart from Ask Sage rounds. The CLI adds one
   base line ("a Claude agent built on the Claude Agent SDK") and an
   environment section to the system prompt, the same for both arms.
 
@@ -390,7 +394,7 @@ one-line reason:
 
 | | Agent (both arms) | Wording judge |
 | --- | --- | --- |
-| Round 1 | Claude Sonnet 5.5 Gov (Ask Sage), or Sonnet 5.5 on the CLI fallback | none |
+| Round 1 | Claude Sonnet 5.5 on the CLI route (Ask Sage tokens ran out) | none |
 | Later scored rounds | Claude Sonnet 5.5 Gov, GPT 5.6 Sol and Gemini 4 Argon | cross-family: Claude Opus 5.5 Gov grades GPT and Gemini runs; GPT 5.6 Sol grades Claude runs |
 
 Ask Sage's Anthropic route lists only Claude models. GPT and Gemini need its
@@ -437,9 +441,17 @@ Not built or not checked:
 
 6. **A first real-model run**, on a fixture site, before round 1. It needs
    Ask Sage (NASA's network) or the CLI route.
-7. **The CLI adapter** (7.1), only if the fallback is needed.
-8. **Tavily MCP**, needed only when the agent's route has no web search of
-   its own.
+7. **The CLI adapter** (7.1): built. Tested against a fake CLI
+   (`tests/test_agent_cli.py`), then smoke-run on the 19.A fixture site
+   with Sonnet 5.5 on 2026-11-04: Agent A on two pages (58 s, $0.12 at list
+   price) and Agent B on one page (27 s, $0.07). Both leak checks were
+   clean and both result lines parsed. A smoke run checks the plumbing,
+   not accuracy.
+8. **Tavily MCP**, needed only on the Ask Sage route, whose models have no
+   web search; the CLI route uses the CLI's own `WebSearch`. Agent B never
+   gets `WebFetch` (it could fetch the live site) or Playwright MCP's
+   `browser_run_code_unsafe` (it runs any code in Playwright's process,
+   outside the frozen replay).
 
 ## 13. Layout
 
@@ -467,13 +479,11 @@ evals/judging/<round>/
    labels (Abby reviews it).
 2. How a failing element that Agent B names in its own words is matched to
    the key's element.
-3. Whether the CLI route works with the arms' MCP servers and the helper
-   tool attached (checked only with none attached).
-4. Abby's approval of the weights for the four verdicts added in section
+3. Abby's approval of the weights for the four verdicts added in section
    8: FAIL where the key says Does Not Apply, other mismatches, and no
    answer at −1; DOES NOT APPLY where the key fails at −3.
-5. The header Ask Sage takes the token in (`AGENT_API_AUTH_HEADER`), as the
+4. The header Ask Sage takes the token in (`AGENT_API_AUTH_HEADER`), as the
    2026-11-01 check used it.
-6. Whether the DHS training pages may be used (3.3).
-7. Whether a second certified tester can label a subset (3.1).
-8. The Ask Sage routes for GPT 5.6 Sol and Gemini 4 Argon (section 10).
+5. Whether the DHS training pages may be used (3.3).
+6. Whether a second certified tester can label a subset (3.1).
+7. The Ask Sage routes for GPT 5.6 Sol and Gemini 4 Argon (section 10).

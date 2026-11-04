@@ -9,9 +9,10 @@ Lessons: [docs/solutions/agent-eval-harness.md](../../docs/solutions/agent-eval-
 Results are agent-assisted, not certified Trusted Tester results.
 
 **Status:** every step below is tested on the 19.A fixture site with a
-scripted model (`tests/test_agent_*.py`). None has run on a real model, on
-real pages, or on Windows. Steps 1 and 2 need no model, so a round can be
-frozen while it waits for model tokens.
+scripted model (`tests/test_agent_*.py`). The CLI route was also
+smoke-run on that site with Sonnet 5.5 (2026-11-04, both arms; it checks
+the plumbing, not accuracy). Nothing has run on real pages, on the Ask
+Sage route, or on Windows. Steps 1 and 2 need no model.
 
 ## Once per machine
 
@@ -37,6 +38,19 @@ AGENT_MODEL=claude-sonnet-5-5-gov
 AGENT_LEAK_VALUES=...       # optional, comma-separated: values the leak check must not see
 ```
 
+## Routes
+
+- `--route api` (default): an Anthropic-style API, Ask Sage on NASA's
+  network. Set the `AGENT_*` variables above.
+- `--route cli`: the Claude Code CLI on the claude.ai account, from a
+  cloud session (a laptop's Claude Code goes through Ask Sage). Each arm
+  runs as an isolated `claude -p` (`cli.py`). Nothing to set; `--model`
+  defaults to `claude-sonnet-5-5`. Every run logs the account's usage
+  windows (`rate_limit` rows in `steps.jsonl`, `usage_windows` in the
+  summary), so a large arm can start at the beginning of a fresh window.
+
+Both arms of a round use the same route.
+
 ## A round, in commit order
 
 Round folder `evals/judging/<round>/`, for example `evals/judging/round1/`.
@@ -54,12 +68,14 @@ Round folder `evals/judging/<round>/`, for example `evals/judging/round1/`.
 3. **Agent A, then Agent B:**
 
    ```bash
-   uv run python -m evals.agent.run --arm a evals/judging/<round>
+   uv run python -m evals.agent.run --route cli --arm a evals/judging/<round>
    ```
 
    ```bash
-   uv run python -m evals.agent.run --arm b evals/judging/<round>
+   uv run python -m evals.agent.run --route cli --arm b evals/judging/<round>
    ```
+
+   (`--route api` for Ask Sage.)
 
    Each run writes `results/arm-<a|b>/`: `steps.jsonl`, `transcript.json`,
    `final.md`, `summary.json`, and for Agent A the tool's own runs in

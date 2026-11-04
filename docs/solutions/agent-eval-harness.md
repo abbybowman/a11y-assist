@@ -40,6 +40,17 @@ frozen round. Plan: `docs/plans/2026-10-31-agent-eval.md`. Runbook:
   TaskGroup".** `run._describe` unwraps them to the first real cause.
 - **The leak check asks for JSON fields,** not free text. "No, 'a11y'
   does not appear" would otherwise trip a substring check.
-- **The Claude Code CLI route** leaked the user's email until `HOME` was
-  an empty folder and the session variables were unset. See plan section
-  7.2. Its adapter is not built.
+- **The Claude Code CLI route** (`cli.py`) leaked the user's email until
+  `HOME` was an empty folder and the session variables were unset (plan
+  section 7.2). In `-p` mode, `--tools` sets the built-in tools (the helper
+  shows as `Task` in the start-up event, `Agent` to the model), and
+  `--allowedTools mcp__<server>` allows a server's tools without prompts.
+  The stream has a `message_start` and a `message_stop` for every model
+  call, subagents included (`parent_tool_use_id`), which give per-call
+  times and tokens. `rate_limit_event` rows give the account's 5-hour and
+  7-day use and reset times. `stdin` must be closed, or the CLI waits 3 s
+  for input.
+- **Agent B must never get WebFetch or `browser_run_code_unsafe`.** Either
+  one reaches outside the frozen replay: the live site, or this machine's
+  files. Both routes remove them (`Server.deny`, and the CLI's `--tools`
+  and `--disallowedTools`).
