@@ -157,6 +157,8 @@ src/a11y_assist/
   observe.py    what an action changes (Effect): 4.A, 4.B, 4.F and 5.D; open dialogs (4.E, 2.D)
   motion.py     pass T for 2.A-2.D (draft specs): one load watched with no input; regions,
                 DOM changes and live regions, timers, media, polls, elements (no outcomes)
+  mechanism.py  the 2.A-2.C mechanism probe: controls near changing content pressed in
+                pass T's browser, the focus-only probe, J2's key (no outcomes)
   forms.py      form fields shared by 5.D, 5.F, 5.G, 5.H: field stops, arrival, page reads
   labels.py     pass L for 5.A, 5.B, 5.C: form components, visible labels, ANDI output
   site.py       other pages of the same site (9.A-9.C, 19.A): units, regions, search forms per page,

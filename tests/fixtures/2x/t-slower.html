@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head><title>Visitor ticker with a speed control</title></head>
+<body>
+<main>
+<h1>Visitor ticker</h1>
+<p>Static text.</p>
+<button id="slow">Update less often</button>
+<div id="tick" style="width: 300px">Visitors today: <span>100</span></div>
+<p>Text after the ticker.</p>
+</main>
+<script>
+let n = 100;
+let timer = setInterval(() => { document.querySelector('#tick span').textContent = ++n; }, 1000);
+document.getElementById('slow').addEventListener('click', () => {
+  clearInterval(timer);
+  timer = setInterval(() => { document.querySelector('#tick span').textContent = ++n; }, 4000);
+});
+</script>
+</body>
+</html>

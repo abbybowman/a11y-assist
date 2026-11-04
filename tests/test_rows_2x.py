@@ -1,5 +1,6 @@
-"""2.C's mechanism rows (K1-K8, E1-E4) on hand-built evidence: no page can
-trigger them until the mechanism probe is built. Expected outcomes live here
+"""2.C's mechanism rows (K1-K8, E1-E4) on hand-built evidence, including
+rows no fixture page triggers reliably (K1, K5, a focus-only probe that
+failed). Expected outcomes live here
 (CLAUDE.md principle 2: the rows are the spec's, copied into t2c.py)."""
 
 from __future__ import annotations
@@ -78,6 +79,22 @@ def txt(result="untried", key=None) -> Candidate:
             None,
             "NEEDS_REVIEW",
             "K2",
+        ),
+        # Focus alone slowed it: still a pause on focus (a flaky false K3 once).
+        (
+            Probe(probed=True, candidates=[ctl("slowed", "slowed")]),
+            None,
+            None,
+            "NEEDS_REVIEW",
+            "K2",
+        ),
+        # The focus-only probe failed: nothing shows the control itself works.
+        (
+            Probe(probed=True, candidates=[ctl("stopped", "unreliable")]),
+            None,
+            None,
+            "NEEDS_REVIEW",
+            "K8",
         ),
         (
             Probe(probed=True, candidates=[ctl("stopped", "no_effect")]),

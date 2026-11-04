@@ -31,9 +31,20 @@ Built, with tests (`tests/test_motion.py`, fixtures `tests/fixtures/2x/t-*.html`
   - End to end: `tests/test_fixtures_2x.py` (7 pages for both tests, 4
     scripted-answer runs for 2.D J1 and J2).
   - 2.C's K and E rows on hand-built evidence: `tests/test_rows_2x.py`.
-  - Until the probe exists, 2.C is NEEDS REVIEW (K7) wherever it applies.
-- OPEN O1 in the 2.C spec (content that stopped changing before 5 s) is
-  built as a hint (NEEDS REVIEW), waiting for Abby.
+- `mechanism.py`: the mechanism probe (2.C section 2) in pass T's
+  browser, with the walk's Tab presses; the focus-only probe; Q10's key
+  press on J2's answer (`t2c.press_answered_keys`, once per run, modifiers
+  plus one key, never the browser's own). 2.C now uses the walk.
+  - Fixtures: a working pause button (K3), a carousel that pauses only on
+    focus (K2), no control (K6), a pause button outside the windows (K6),
+    a hotkey named in the first text (J2, then K4), a frequency control
+    (K3 by slowed).
+  - Two flaky false paths found under load and fixed: a focus-only probe
+    that "slowed" the content fell to K3 (now K2), and "slowed" judged on
+    the first change made a running ticker look slowed (now on the time
+    between two changes).
+- O1 (content that stopped changing before 5 s) is a hint, NEEDS REVIEW,
+  with a note saying what was checked (Abby, 2026-11-04).
 
 **Q11 is merged** (from `main`, 2026-11-04), and pass T runs in its own
 browser: `browser.launch_for(..., autoplay=True)` is full Chromium, always
@@ -48,8 +59,7 @@ pass T part; one watch, started before the walk ends).
 Still open from Q2: the extra time allowance for pages with moving content
 (set when the probe exists and is measured on a budget page).
 
-Not started: the media store (items 13-14), the
-mechanism probe, the scrolled watch, loudness and `ImageDecoder`, 2.B and
+Not started: the media store (items 13-14), the scrolled watch, loudness and `ImageDecoder`, 2.B and
 2.A (`t2b.py`, `t2a.py`), the vendored ACT cases, the walk cross-check (A2),
 the judge eval on the questions, and 2.D's note for `aria-live="off"`
 carousels (plan risk 11).

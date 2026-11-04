@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+<title>Story carousel</title>
+<style>#car { width: 320px; border: 1px solid #999; padding: 8px; } .slide { display: none; height: 40px; } .slide.on { display: block; }</style>
+</head>
+<body>
+<main>
+<h1>Story carousel</h1>
+<p>Static text.</p>
+<div id="car" aria-roledescription="carousel" aria-label="Stories">
+  <div class="slide on">First story</div>
+  <div class="slide">Second story</div>
+  <div class="slide">Third story</div>
+  <button id="prev">Previous</button>
+  <button id="next">Next</button>
+</div>
+<p>Text after the carousel.</p>
+</main>
+<script>
+// Like Slick and Splide's defaults: it pauses while focus is inside it, and
+// has no pause button.
+const s = document.querySelectorAll('#car .slide');
+let k = 0, held = false;
+const show = (d) => { s[k].classList.remove('on'); k = (k + d + s.length) % s.length; s[k].classList.add('on'); };
+setInterval(() => { if (!held) show(1); }, 1200);
+const car = document.getElementById('car');
+car.addEventListener('focusin', () => { held = true; });
+car.addEventListener('focusout', (e) => { if (!car.contains(e.relatedTarget)) held = false; });
+document.getElementById('prev').addEventListener('click', () => show(-1));
+document.getElementById('next').addEventListener('click', () => show(1));
+</script>
+</body>
+</html>

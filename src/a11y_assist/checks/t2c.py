@@ -2,9 +2,9 @@
 (draft: registered in tests/drafts.py only, so the server gives no outcome).
 
 Reads pass T (motion.py, shared with 2.A, 2.B and 2.D) and the mechanism
-probe's evidence (motion.Probe). The probe is not built yet, so every
-instance is "not probed" (K7, NEEDS REVIEW) until it is; its rows are tested
-on hand-built evidence. Only evaluate() and the row tables decide outcomes.
+probe's evidence (mechanism.probe, motion.Probe): up to three instances are
+probed, the rest are "not probed" (K7). The rows are also tested on
+hand-built evidence. Only evaluate() and the row tables decide outcomes.
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from a11y_assist import motion
+from a11y_assist import mechanism, motion
 from a11y_assist.checks.base import RunContext
 from a11y_assist.engine import PageEvidence, Row, page_outcome
 from a11y_assist.models import (
@@ -30,7 +30,7 @@ from a11y_assist.models import (
 from a11y_assist.motion import Element, MotionPass, Probe, Region
 from a11y_assist.walk import KeyboardWalk
 
-# A region still changing at this time is an instance (OPEN O1 in the spec).
+# Still changing at this time: an instance (spec O1; Abby, 2026-11-04).
 STILL_CHANGING_S = 5.0
 
 # J2 is asked only for text that mentions a way to stop it (spec section 4).
@@ -45,6 +45,7 @@ class State2C(BaseModel):
     j1: dict[str, dict[str, Any]] = Field(default_factory=dict)  # by instance id
     j2: dict[str, dict[str, Any]] = Field(default_factory=dict)  # "r1-e12"
     selected: list[str] = Field(default_factory=list)  # TT IDs in this call
+    keys_pressed: int = 0  # J2 key combinations pressed (plan Q10: one per run)
 
 
 # ── Section 1: which regions are instances, and hints ─────────────────────
@@ -52,7 +53,7 @@ class State2C(BaseModel):
 
 def stopped_early(r: Region) -> bool:
     """Stopped changing before 5 s (a spinner replaced by content, a late
-    load, or an update slower than half the watch). OPEN O1 in the spec: not
+    load, or an update slower than half the watch). O1 in the spec (decided): not
     an instance, but a hint, so never DOES NOT APPLY on it."""
     return bool(r.changed_at) and r.changed_at[-1] < STILL_CHANGING_S
 
@@ -77,9 +78,28 @@ def hints(mp: MotionPass) -> list[str]:
     moving = {f"{r.frame}|{r.content_css}" for _, r in instances(mp)}
     if any(c not in moving for c in mp.carousels):
         out.append("it has a carousel that did not change while we watched")
-    if any("updating" in r.kinds and stopped_early(r) for r in mp.regions):
-        out.append("some content changed soon after the page loaded, then stopped")
+    for r in mp.regions:
+        if "updating" in r.kinds and stopped_early(r):
+            out.append(
+                f"{content_name(r).lower()[0]}{content_name(r)[1:]} changed until "
+                f"{r.changed_at[-1]:.1f} s and then stopped, which may be the page "
+                "finishing loading or content that changes more slowly than we "
+                "watched"
+            )
     return out
+
+
+def a2_note(mp: MotionPass, found: list[str]) -> str:
+    """The A2 note (O1, Abby 2026-11-04: say what was checked)."""
+    return (
+        f"We watched this page for {mp.watch_s:g} seconds without touching it, "
+        "looking for content that is still changing by itself after 5 seconds, "
+        "like a carousel, ticker or counter. Nothing was, but we saw signs that "
+        "the page may update by itself: "
+        + "; ".join(found)
+        + ". A person should watch the page for a minute to see whether "
+        "anything keeps changing."
+    )
 
 
 def only_content(mp: MotionPass, inst: list[tuple[str, Region]]) -> bool:
@@ -135,8 +155,11 @@ class Inst:
     slowed_counts: bool = True  # 2.C: a frequency control counts (K3)
 
     def held(self, c) -> bool:
+        return self.held_by(c.result)
+
+    def held_by(self, result: str) -> bool:
         ok = ("stopped", "slowed") if self.slowed_counts else ("stopped",)
-        return c.result in ok
+        return result in ok
 
     def controls(self):
         return [c for c in self.probe.candidates if c.kind == "control"]
@@ -157,7 +180,7 @@ class Inst:
 def _works(i: Inst):
     """The candidate that worked (K3 or K4), or None."""
     for c in i.controls():
-        if i.held(c) and c.focus_only not in (None, "stopped"):
+        if i.held(c) and c.focus_only == "no_effect":
             return c
     for c in i.texts():
         if c.key and i.held(c):
@@ -180,14 +203,21 @@ INSTANCE_ROWS = [
     ),
     Row(
         "K2",
-        lambda i: any(i.held(c) and c.focus_only == "stopped" for c in i.controls()),
+        # Focus alone stopped or slowed it too (a pause on focus).
+        lambda i: any(
+            i.held(c) and c.focus_only is not None and i.held_by(c.focus_only)
+            for c in i.controls()
+        ),
         Outcome.NEEDS_REVIEW,
         "Understanding 2.2.2; plan item 12",
     ),
     Row(
         "K3",
         lambda i: any(
-            i.held(c) and c.focus_only not in (None, "stopped") for c in i.controls()
+            # Only a focus-only probe that saw no effect: one that failed
+            # (unreliable, unreachable) proves nothing.
+            i.held(c) and c.focus_only == "no_effect"
+            for c in i.controls()
         ),
         None,  # works: the E rows decide
         "p. 15 HtT 1-2; G186; G4",
@@ -204,7 +234,8 @@ INSTANCE_ROWS = [
         lambda i: (
             i.probe.probed
             and i.probe.untried == 0
-            and all(c.result == "no_effect" for c in i.controls())
+            and not i.probe.cannot_place
+            and all(c.result in ("no_effect", "not_operable") for c in i.controls())
             and all(i.j2_choice(c) == "no" for c in i.texts())
         ),
         Outcome.FAIL,
@@ -215,6 +246,7 @@ INSTANCE_ROWS = [
         lambda i: (
             not i.probe.probed
             or i.probe.untried > 0
+            or i.probe.cannot_place
             # Text is asked about (J2), never pressed: only controls count.
             or any(c.result in ("unreachable", "untried") for c in i.controls())
         ),
@@ -383,13 +415,7 @@ def evaluate(st: State2C, evidence_refs: list[str]) -> Finding:
         )
         return f
     if row.id == "A2":
-        reason = (
-            "We saw signs that this page updates by itself ("
-            + "; ".join(page.hints)
-            + "), but nothing changed while we watched. A person should watch "
-            "the page for a minute."
-        )
-        f = Finding.not_performed(TestId.T2C, reason)
+        f = Finding.not_performed(TestId.T2C, a2_note(st.mp, page.hints))
         f.rows, f.decided_by, f.evidence_refs = (
             ["A2", "G1"],
             DecidedBy.RULE,
@@ -438,9 +464,8 @@ def evaluate(st: State2C, evidence_refs: list[str]) -> Finding:
     trace.append(gid)
     if page.hints:
         sentences.append(
-            "We also saw signs of updates we did not see happen: "
-            + "; ".join(page.hints)
-            + "."
+            "We also saw signs of other updates that we did not see keep "
+            "changing: " + "; ".join(page.hints) + "."
         )
     head = REVIEW_HEAD if outcome is Outcome.NEEDS_REVIEW else ""
     return _finding(
@@ -550,7 +575,49 @@ def apply_answers(st: State2C, report) -> None:
 
 async def collect(ctx: RunContext, walk: KeyboardWalk | None) -> State2C:
     mp = await motion.collect(ctx)
-    return State2C(mp=mp, selected=sorted(ctx.selected))
+    st = State2C(mp=mp, selected=sorted(ctx.selected))
+    row, page = applicability(mp)
+    if row.id != "A5":
+        return st
+    for n, (iid, r) in enumerate(page.inst):
+        if n >= mechanism.MAX_INSTANCES or ctx.out_of_time() or ctx.open_motion is None:
+            continue  # not probed: K7
+        st.probes[iid] = await mechanism.probe(ctx, mp, walk, r)
+    return st
+
+
+async def press_answered_keys(ctx: RunContext, st: State2C) -> list[str]:
+    """K4 (plan Q10): a key combination J2 found in the page's text, pressed
+    once per run on a fresh load. One that is not modifiers plus one key, or
+    is the browser's own, is not pressed (K5)."""
+    _, page = applicability(st.mp)
+    regions = dict(page.inst)
+    errors: list[str] = []
+    for qid, a in sorted(st.j2.items()):
+        if a.get("choice") != "describes":
+            continue
+        iid, e = qid.split("-e")
+        pr, r = st.probes.get(iid), regions.get(iid)
+        if pr is None or r is None:
+            continue
+        c = next((c for c in pr.candidates if c.element == int(e)), None)
+        if c is None or c.key:
+            continue  # already pressed in this run
+        text = st.mp.elements[c.element].name
+        combo = mechanism.parse_key(a.get("key"))
+        if combo is None:
+            pr.cannot_try = pr.cannot_try or f'what "{text[:80]}" describes'
+            continue
+        if mechanism.browser_key(combo):
+            pr.cannot_try = pr.cannot_try or f"{combo}, which the browser itself uses"
+            continue
+        if st.keys_pressed >= 1 or ctx.open_motion is None:
+            pr.cannot_try = pr.cannot_try or f"{combo} (one combination per run)"
+            continue
+        st.keys_pressed += 1
+        c.key = combo
+        c.result = await mechanism.press_named_key(ctx, r, combo)
+    return errors
 
 
 class Check2C:
@@ -558,13 +625,14 @@ class Check2C:
 
     test_id = TestId.T2C
     state_type = State2C
-    uses_walk = False
+    uses_walk = True  # the probe reaches controls with the walk's Tab presses
     uses_motion = True  # pass T, started beside the walk
     about = (
         "It watches the page for a few seconds without touching it, and finds "
         "content that changes by itself, like carousels, tickers and counters. "
-        "For now a person must check that each one can be paused, stopped or "
-        "hidden: the tool does not yet try the controls near it."
+        "It then tries the controls in the three items before and after each "
+        "one, and the first three on the page, with the keyboard, and checks "
+        "that the content stops. A person checks what the tool cannot try."
     )
 
     def walk_extras(self) -> list:
@@ -581,7 +649,7 @@ class Check2C:
 
     async def resume(self, ctx: RunContext, state: State2C, report) -> list[str]:
         apply_answers(state, report)
-        return []
+        return await press_answered_keys(ctx, state)
 
 
 __all__ = ["Check2C", "State2C", "applicability", "instances", "content_name"]

@@ -14,7 +14,7 @@ from pydantic import BaseModel, Field
 
 from a11y_assist import motion
 from a11y_assist.checks.base import RunContext
-from a11y_assist.checks.t2c import applicability, content_name
+from a11y_assist.checks.t2c import a2_note, applicability, content_name
 from a11y_assist.engine import PageEvidence, Row, page_outcome
 from a11y_assist.models import (
     REVIEW_HEAD,
@@ -165,10 +165,7 @@ def evaluate(st: State2D, evidence_refs: list[str]) -> Finding:
         reason = (
             st.mp.error or "pass T failed"
             if row.id == "A1"
-            else "We saw signs that this page updates by itself ("
-            + "; ".join(page.hints)
-            + "), but nothing changed while we watched. A person should watch "
-            "the page for a minute."
+            else a2_note(st.mp, page.hints)
         )
         f = Finding.not_performed(TestId.T2D, reason)
         f.rows, f.decided_by, f.evidence_refs = (

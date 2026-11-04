@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="en">
+<head><title>Ticker with no control</title></head>
+<body>
+<main>
+<h1>Ticker with no control</h1>
+<p>Static text.</p>
+<div id="tick" style="width: 300px">Visitors today: <span>100</span></div>
+<p>Text after the ticker.</p>
+<a href="/elsewhere.html">About this site</a>
+</main>
+<script>let n = 100; setInterval(() => { document.querySelector('#tick span').textContent = ++n; }, 1000);</script>
+</body>
+</html>

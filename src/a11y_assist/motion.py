@@ -359,7 +359,8 @@ ELEMENTS_JS = (
     if (drop.has(i) || el.closest('[aria-hidden="true"]')) return;
     const u = r.units[i];
     keep.push(el);
-    out.push({ kind: u.kind, role: u.role, name: (u.name || '').slice(0, 200), css: u.css, box: u.box, stop: !!u.stop });
+    out.push({ kind: u.kind, role: u.role, name: (u.name || '').slice(0, 200), css: u.css, box: u.box, stop: !!u.stop,
+      href: u.href_attr === undefined ? null : u.href_attr });
   });
   if (window.__a11yMotion) window.__a11yMotion.els = keep;
   return { elements: out, truncated: r.truncated };
@@ -376,6 +377,8 @@ class Element(BaseModel):
     css: str
     box: list[int] = Field(default_factory=list)  # page x, y, width, height
     stop: bool = False  # natively tabbable or tabindex >= 0
+    href: str | None = None  # a link's href attribute as written
+    frame_url: str = ""  # "" in the top page
 
 
 async def read_elements(page: Page) -> tuple[list[Element], bool, dict]:
@@ -413,7 +416,11 @@ async def read_elements(page: Page) -> tuple[list[Element], bool, dict]:
                 truncated = True
                 return
             where[(index, j)] = len(out)
-            out.append(Element(i=len(out), frame=index, **u))
+            out.append(
+                Element(
+                    i=len(out), frame=index, frame_url=frame.url if index else "", **u
+                )
+            )
 
     await visit(page.main_frame, 0)
     return out, truncated, where
@@ -975,16 +982,18 @@ async def _regions(page, pairs, regions, frames_by_key, out: MotionPass) -> None
 
 
 # ── Mechanism probe evidence (2.C spec section 2; 2.A and 2.B use it) ──────
-# The probe itself is not built yet: until it is, every instance has
-# `probed=False` and the checks' rows say so (K7). These models are what it
-# will fill, so the rows can be built and tested on hand-built evidence.
+# Filled by mechanism.probe; an instance it did not reach has
+# `probed=False`, and the checks' rows say so (K7).
 
 
 class Candidate(BaseModel):
     element: int  # Element.i
     window: str  # top | before | after | inside
     kind: str  # control | text
-    result: str = "untried"  # stopped|slowed|no_effect|unreliable|unreachable|untried
+    # stopped | slowed | no_effect | unreliable | unreachable | untried, or not
+    # pressed: field (needs a value, K5) | not_operable (a link that goes
+    # somewhere: following it is not pausing)
+    result: str = "untried"
     focus_only: str | None = None  # the focus-only probe's result, if run
     key: str | None = None  # a key combination from J2 that was pressed
     keys: str = ""  # how to reach it ("Tab 4 times, then Enter")
@@ -996,7 +1005,8 @@ class Probe(BaseModel):
     probed: bool = False
     candidates: list[Candidate] = Field(default_factory=list)
     reads_failed: bool = False
-    untried: int = 0
+    untried: int = 0  # controls not tried (time, or the per-content cap)
+    cannot_place: bool = False  # no element inside the content: windows unknown
     cannot_try: str = ""  # K5: a mechanism the tool may not try, named
 
 

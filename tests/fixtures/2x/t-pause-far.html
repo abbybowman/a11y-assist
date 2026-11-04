@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head><title>Visitor ticker, far control</title></head>
+<body>
+<main>
+<h1>Visitor ticker, far control</h1>
+<p>One.</p>
+<p>Two.</p>
+<p>Three.</p>
+<button id="pause">Pause</button>
+<p>Four.</p>
+<p>Five.</p>
+<p>Six.</p>
+<div id="tick" style="width: 300px">Visitors today: <span>100</span></div>
+<p>Seven.</p>
+<p>Eight.</p>
+<p>Nine.</p>
+</main>
+<script>
+let n = 100;
+const timer = setInterval(() => { document.querySelector('#tick span').textContent = ++n; }, 1000);
+document.getElementById('pause').addEventListener('click', () => clearInterval(timer));
+</script>
+</body>
+</html>

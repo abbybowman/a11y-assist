@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+<head><title>Visitor counter</title></head>
+<body>
+<p>Press Ctrl+Shift+P to stop the counter.</p>
+<main>
+<h1>Visitor counter</h1>
+<p>Static text.</p>
+<div id="tick" style="width: 300px">Visitors today: <span>100</span></div>
+</main>
+<script>
+let n = 100;
+const timer = setInterval(() => { document.querySelector('#tick span').textContent = ++n; }, 1000);
+addEventListener('keydown', (e) => { if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'p') clearInterval(timer); });
+</script>
+</body>
+</html>

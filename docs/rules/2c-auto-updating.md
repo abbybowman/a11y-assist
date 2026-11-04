@@ -1,7 +1,7 @@
 ---
 tt_test: 2.C
 tt_name: 2.2.2-auto-updating
-spec_version: 0.2.0
+spec_version: 0.3.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -14,7 +14,7 @@ NEEDS REVIEW. It never emits NOT TESTED (p. 6). **PASS is gated** (Abby,
 can apply to it is built (G4 and section 3c). This spec also defines what
 2.A, 2.B and 2.D share: pass T, regions, elements and the mechanism probe.
 
-Draft (0.2.0): no outcome until 1.0.0. 0.2.0 (2026-11-04) defines regions over the whole watch and adds polling seen during the watch (Terms, section 2), from building pass T. Order of work and research:
+Draft (0.3.0): no outcome until 1.0.0. 0.2.0 (2026-11-04) defines regions over the whole watch and adds polling seen during the watch (Terms, section 2), from building pass T. 0.3.0 (2026-11-04): the mechanism probe as built (section 2: what is pressed, how "slowed" is judged, the caps), K2 and K3 on the focus-only probe, O1 decided. Order of work and research:
 [plans/2026-11-03-auto-updating-2a-2d.md](../plans/2026-11-03-auto-updating-2a-2d.md)
 ("plan" below; "item N" means its numbered "Verified" items).
 
@@ -102,15 +102,16 @@ Draft (0.2.0): no outcome until 1.0.0. 0.2.0 (2026-11-04) defines regions over t
 
 Not essential: 2.C never excludes content as essential (p. 15 Note).
 
-**OPEN O1 (for Abby): content that stopped changing before 5 s.** TT gives
-2.C no duration. Built as: an auto-updating region is an instance only when
+**O1: content that stopped changing before 5 s** (Abby, 2026-11-04: keep
+as built, and the note says what was checked). TT gives 2.C no duration.
+The rule: an auto-updating region is an instance only when
 it is still changing at 5 s; one that stopped earlier (a spinner replaced
 by content at 1.5 s, a late load, or a carousel slower than about 2.5 s
 whose second change fell after the watch) is a hint, so the page is NEEDS
 REVIEW (A2), never DOES NOT APPLY. The cost: pages with late-loading
-content become NEEDS REVIEW instead of DOES NOT APPLY. Alternatives: count
-any change as an instance, or treat a single early change as not
-auto-updating (DNA).
+content become NEEDS REVIEW instead of DOES NOT APPLY. The A2 note says
+how long we watched, that we looked for content still changing after 5 s,
+and names each content that changed and when it stopped.
 
 ## 2. Evidence to collect
 
@@ -163,14 +164,34 @@ auto-updating (DNA).
    focus-only probe did not stop the content. The number of candidates
    left untried is recorded.
 
-A probe's result for the content:
+A probe's result for the content (`mechanism.py`, as built in 0.3.0):
 
 - *Stopped*: no change during the confirm time, or the content is no
   longer rendered (hidden).
-- *Slowed*: it changes, but its period grew by at least half (a frequency
-  control).
-- *No effect*: it changed during the confirm time with no longer period.
-- *Unreliable*: the replay failed, or the page navigated away.
+- *Slowed*: it changes, but every time between two changes, and the quiet
+  after the last one, is at least 1.5 times its period (a frequency
+  control). Never judged on the first change alone: where the watch starts
+  in the content's cycle is chance, and a 1 s ticker's first change came
+  1.6 s in.
+- *No effect*: two changes closer than 1.5 times its period, or any change
+  when pass T measured no period.
+- *Unreliable*: the replay failed, the content could not be found, or the
+  page navigated away.
+- *Unreachable*: the walk never focused it, or the replay ended elsewhere.
+
+Not pressed:
+
+- a text field, search box, combo box, spin button or list box: it needs a
+  value (K5, naming it);
+- a link whose href goes somewhere (not `#` or `javascript:`): following it
+  is not pausing, so it is not a mechanism (K6 counts it with no effect).
+
+Caps (reaching one is K7): 8 control candidates per content, 3 contents per
+page. The probe looks at the content's own pixels (an element screenshot)
+every 0.5 s, after 0.6 s for transitions to end; focus moves off with Tab.
+Content with no element inside it cannot be placed among the elements, so
+its before and after windows are unknown (K7). Controls inside iframes are
+matched to the walk's stops by frame URL and path.
 
 **Time budget.** Pass T runs beside P1 at no measurable cost (item 18).
 The probes cost ~1–2 s per candidate rejected within one period, plus
@@ -187,8 +208,8 @@ Each auto-updating region whose content is not excluded is an *instance*.
 | # | Evidence pattern | Instance outcome | Source |
 | --- | --- | --- | --- |
 | K1 | The content's reads failed, or no candidate held and some probe was unreliable | NEEDS REVIEW | Spec rule |
-| K2 | A control candidate stopped or slowed the content, and its focus-only probe also stopped it | NEEDS REVIEW: "it stops when the control is focused, which may be a pause on focus; a person should check that the control itself pauses it" | Understanding 2.2.2 (a pause must not tie up focus); plan item 12 |
-| K3 | A control candidate stopped (or, for 2.C, slowed) the content, and its focus-only probe did not | *Works*; go to J1 (evident) | p. 15 HtT 1–2; G186; G4 |
+| K2 | A control candidate stopped or slowed the content, and its focus-only probe also stopped or slowed it (0.2.0: slowed counts; a carousel that resumes when focus leaves it read as slowed both ways) | NEEDS REVIEW: "it stops when the control is focused, which may be a pause on focus; a person should check that the control itself pauses it" | Understanding 2.2.2 (a pause must not tie up focus); plan item 12 |
+| K3 | A control candidate stopped (or, for 2.C, slowed) the content, and its focus-only probe saw no effect (a focus-only probe that failed proves nothing: K8) | *Works*; go to J1 (evident) | p. 15 HtT 1–2; G186; G4 |
 | K4 | A key combination from J2 stopped or slowed the content | *Works*; go to J1 | p. 15 HtT 1 (any element; DHS #114); plan Q10 |
 | K5 | J2 named a mechanism the tool cannot try (a combination it may not press, a field that needs a value, a control outside the windows) | NEEDS REVIEW, naming it | Spec rule |
 | K6 | Every control candidate gave no effect, J2 = no for every text candidate (or there are none), and nothing was left untried | No mechanism: FAIL | p. 16 ER 1–2 |
