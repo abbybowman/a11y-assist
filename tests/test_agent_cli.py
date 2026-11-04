@@ -84,6 +84,7 @@ async def test_cli_route_isolation_and_log(tmp_path, monkeypatch):
     # Durations come from when stream lines arrive; under load they can come
     # in one batch, so only their presence is checked, not a minimum.
     assert tool["seconds"] >= 0 and tool["result_chars"] > 0
+    assert "result!" in tool["result_preview"]
     model = [r for r in steps if r["type"] == "model"]
     assert all(isinstance(r["seconds"], float) for r in model)
     transcript = json.loads((out / "transcript.json").read_text())

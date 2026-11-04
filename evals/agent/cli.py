@@ -264,6 +264,8 @@ class ClaudeCodeCLI:
                         u["seconds"] = round(t - u["t0"], 3)
                         u["is_error"] = bool(b.get("is_error"))
                         u["result_chars"] = len(text)
+                        # Enough to see an error or a refusal (untrusted text).
+                        u["result_preview"] = text[:500]
                         out["tool_calls"][u["name"]] = (
                             out["tool_calls"].get(u["name"], 0) + 1
                         )
