@@ -48,7 +48,6 @@ class State2C(BaseModel):
     j1: dict[str, dict[str, Any]] = Field(default_factory=dict)  # by instance id
     j2: dict[str, dict[str, Any]] = Field(default_factory=dict)  # "r1-e12"
     selected: list[str] = Field(default_factory=list)  # TT IDs in this call
-    keys_pressed: int = 0  # J2 key combinations pressed (plan Q10: one per run)
 
 
 # ── Section 1: which regions are instances, and hints ─────────────────────
@@ -321,9 +320,12 @@ E_ROWS = [
 ]
 
 
-def instance_outcome(i: Inst, selected: list[str]) -> tuple[list[str], Outcome, dict]:
-    """(rows, outcome, details) for one instance, first match wins."""
-    for row in INSTANCE_ROWS:
+def instance_outcome(
+    i: Inst, selected: list[str], rows: list[Row] | None = None
+) -> tuple[list[str], Outcome, dict]:
+    """(rows, outcome, details) for one instance, first match wins. 2.A and
+    2.B pass their own table (2.C's rows with a row of their own)."""
+    for row in rows or INSTANCE_ROWS:
         if not row.when(i):
             continue
         if row.outcome is not None:
@@ -613,42 +615,15 @@ async def collect(ctx: RunContext, walk: KeyboardWalk | None) -> State2C:
     for n, (iid, r) in enumerate(page.inst):
         if n >= mechanism.MAX_INSTANCES or ctx.out_of_time() or ctx.open_motion is None:
             continue  # not probed: K7
-        st.probes[iid] = await mechanism.probe(ctx, mp, walk, r)
+        st.probes[iid] = await mechanism.probe_shared(ctx, mp, walk, r)
     return st
 
 
 async def press_answered_keys(ctx: RunContext, st: State2C) -> list[str]:
-    """K4 (plan Q10): a key combination J2 found in the page's text, pressed
-    once per run on a fresh load. One that is not modifiers plus one key, or
-    is the browser's own, is not pressed (K5)."""
+    """K4 (plan Q10), through mechanism.press_answered (once per run)."""
     _, page = applicability(st.mp)
-    regions = dict(page.inst)
-    errors: list[str] = []
-    for qid, a in sorted(st.j2.items()):
-        if a.get("choice") != "describes":
-            continue
-        iid, e = qid.split("-e")
-        pr, r = st.probes.get(iid), regions.get(iid)
-        if pr is None or r is None:
-            continue
-        c = next((c for c in pr.candidates if c.element == int(e)), None)
-        if c is None or c.key:
-            continue  # already pressed in this run
-        text = st.mp.elements[c.element].name
-        combo = mechanism.parse_key(a.get("key"))
-        if combo is None:
-            pr.cannot_try = pr.cannot_try or f'what "{text[:80]}" describes'
-            continue
-        if mechanism.browser_key(combo):
-            pr.cannot_try = pr.cannot_try or f"{combo}, which the browser itself uses"
-            continue
-        if st.keys_pressed >= 1 or ctx.open_motion is None:
-            pr.cannot_try = pr.cannot_try or f"{combo} (one combination per run)"
-            continue
-        st.keys_pressed += 1
-        c.key = combo
-        c.result = await mechanism.press_named_key(ctx, r, combo)
-    return errors
+    await mechanism.press_answered(ctx, st.mp, st.j2, st.probes, dict(page.inst))
+    return []
 
 
 class Check2C:

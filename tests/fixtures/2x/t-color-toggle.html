@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en">
+<head><title>Sale notice</title></head>
+<body>
+<main>
+<h1>Sale notice</h1>
+<p>Static text.</p>
+<p id="sale" style="font: bold 20px sans-serif">Sale ends today</p>
+<p>Text after the notice.</p>
+</main>
+<script>
+let on = false;
+setInterval(() => { on = !on; document.getElementById('sale').style.color = on ? 'red' : 'black'; }, 500);
+</script>
+</body>
+</html>

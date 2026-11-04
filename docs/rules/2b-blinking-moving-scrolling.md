@@ -1,7 +1,7 @@
 ---
 tt_test: 2.B
 tt_name: 2.2.2-blinking-moving-scrolling
-spec_version: 0.1.0
+spec_version: 0.2.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -13,14 +13,14 @@ NEEDS REVIEW. It never emits NOT TESTED (p. 6). PASS is gated as in 2.C:
 a working mechanism gives NEEDS REVIEW until every test that can apply to
 it is built ([2c-auto-updating.md](2c-auto-updating.md) section 3c).
 
-Draft (0.1.0): no outcome until 1.0.0. Plan:
+Draft (0.2.0): no outcome until 1.0.0. 0.2.0 (2026-11-04), from building it: still moving and colour-only as below; motion below the first screen; content with no element inside is placed by document order; one probe per content shared with 2.C; J1 can only lead to DNA; the text question is J3. Plan:
 [plans/2026-11-03-auto-updating-2a-2d.md](../plans/2026-11-03-auto-updating-2a-2d.md).
 
 **Citations.** Printed pages of TT 5.1.3 (text also in `tt://5.1.3/tests/2.B`). Identify Content, p. 14: before loading, "make sure the browser is not set to block auto-playing content"; visual content that "Starts moving, blinking, or scrolling without user activation (including videos, synchronized media, and scrolling text)", "Moves, blinks, or scrolls continuously for more than 5 seconds", and "Is not the only content on the page"; "EXCLUDE content where the movement, blinking, or scrolling of the content is essential"; none: DNA. Notes, p. 14: content that moves without changing is 2.B only; content that changes is 2.C; both when both. Applicability, p. 14. HtT 1 ("an evident mechanism ... within the first three elements that the user would encounter OR within three elements before/after the moving/blinking/scrolling content"), HtT 2–3, p. 14. ER 1 (an evident mechanism that can pause, stop or hide the content), ER 2 (where), ER 3 (it passes all applicable Test Conditions), p. 14. Appendix B: 5.1.3 made the mechanism "evident".
 
 **Other sources.** [Understanding 2.2.2](https://www.w3.org/WAI/WCAG22/Understanding/pause-stop-hide.html): moving, blinking and scrolling is content where "the visible content conveys a sense of motion" (motion pictures, animations, scrolling tickers); a preload animation can be essential when no interaction is possible during it (Note 4); a pause must not tie up focus. Sufficient [G4](https://www.w3.org/WAI/WCAG22/Techniques/general/G4), [G11](https://www.w3.org/WAI/WCAG22/Techniques/general/G11) (blinking stops within 5 s), [G152](https://www.w3.org/WAI/WCAG22/Techniques/general/G152) (an animated GIF: frames × delays × loops ≤ 5 s), [G186](https://www.w3.org/WAI/WCAG22/Techniques/general/G186), [G191](https://www.w3.org/WAI/WCAG22/Techniques/general/G191) (reload without blinking), [SCR22](https://www.w3.org/WAI/WCAG22/Techniques/client-side-script/SCR22), [SCR33](https://www.w3.org/WAI/WCAG22/Techniques/client-side-script/SCR33); failures [F16](https://www.w3.org/WAI/WCAG22/Techniques/failures/F16), [F50](https://www.w3.org/WAI/WCAG22/Techniques/failures/F50), F7; F4 and F47 (`text-decoration: blink`, `<blink>`) are obsolete and do not blink in Chrome (plan item 9). No ACT rule for moving content; DHS course issues [#203](https://github.com/Section508Coordinators/DHSA-TT-200-A/issues/203) (a pause control within three elements of a video passes) and [#425](https://github.com/Section508Coordinators/DHSA-TT-200-A/issues/425) (a working disable-animation button passes). ICT Testing Baseline 3.1 21.B-MovingInfo. No Baseline Alignment cases.
 
-**Terms.** Pass T, frame, region, content, kind, element, windows, candidate, period, the mechanism probe and rows K1–K8, E1–E4: [2c-auto-updating.md](2c-auto-updating.md) (Terms, sections 2 and 3). A *moving region* is a region of kind moving, or auto-updating whose children also move, that is *still moving*: it changes in frames after 5 s from the start of the load, and no gap between its changes is longer than its period plus 1 s. It is also moving when the reads show any of:
+**Terms.** Pass T, frame, region, content, kind, element, windows, candidate, period, the mechanism probe and rows K1–K8, E1–E4: [2c-auto-updating.md](2c-auto-updating.md) (Terms, sections 2 and 3). A *moving region* is a region of kind moving, or auto-updating whose children also move, that is *still moving*: it changes in frames after 5 s from the start of the load, and in at least three frames over the watch (0.2.0: 0.1.0 also asked that no gap be longer than its period plus 1 s, which random colours repeating for two seconds broke on ACT efbfc7 inapplicable 3; frames alternate 0.35 s and 0.45 s apart, since at a steady 0.5 s a 0.5 s blink was caught in the same state every frame). It is also moving when the reads show any of these, found anywhere on the page, below the first screen included (`motion.extras`):
 
 - an animation (`getAnimations()`) running at load with more than 5 s of
   active time (iterations × duration, infinite included);
@@ -30,10 +30,14 @@ Draft (0.1.0): no outcome until 1.0.0. Plan:
 - a `<marquee>`;
 - a video playing at 3.5 s with more than 5 s left, or looping.
 
-A *color-only change* is a region whose text, image sources and boxes
-stay the same while its colors change (computed `color`,
-`background-color`, `border-color`, `fill` or `stroke` differ between
-reads, and nothing else does). It counts as blinking, so it can be a
+A *color-only change* is a region whose text, image sources, boxes and
+transforms stay the same while its pixels change, that is not drawn
+content (canvas, image, video, SVG, iframe, marquee), and that shows a sign
+of styling: computed `color`, `background-color`, `border-color`, `fill`,
+`stroke`, `opacity` or `visibility` differ between reads, its style
+changed, or an animation runs on it (0.2.0: three reads alone missed a
+cycle that came back to its first colour on the reads). Its *states* are
+the distinct looks of its box over the frames. It counts as blinking, so it can be a
 moving region (Abby, 2026-11-03). Blinking is "switch back and forth
 between two visual states in a way that is meant to draw attention" (WCAG
 2.0 and 2.2 Key Terms). It has *two states* when its colors alternate

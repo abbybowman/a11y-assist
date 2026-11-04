@@ -167,6 +167,9 @@ src/a11y_assist/
   engine.py     shared first-match tables and page rows G1-G5
   checks/       one module per TT test, registered in checks/__init__.py;
                 base.py has the interface and the "add a check" steps
+    t2b.py      2.B moving, blinking (draft): moving regions, colour-only states, J1 essential
+    t2c.py      2.C auto-updating (draft): pass T regions, the mechanism probe, J1-J2
+    t2d.py      2.D change notification (draft): live regions, focus, dialogs, J1-J2
     t4a.py      4.A keyboard access: pointer and hover scans, clicks, Enter/Space
     t4b.py      4.B keystroke timing: timing words, key-press proof
     t4c.py      4.C no keyboard trap: exit probes, rows, plain summary

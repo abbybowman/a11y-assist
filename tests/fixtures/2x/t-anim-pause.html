@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+<head>
+<title>Spinning badge with a pause button</title>
+<style>@keyframes spin { to { transform: rotate(360deg); } } #badge { width: 40px; height: 40px; background: #c00; margin: 20px; animation: spin 2s linear infinite; } #badge.still { animation-play-state: paused; }</style>
+</head>
+<body>
+<main>
+<h1>Spinning badge</h1>
+<p>Static text.</p>
+<button id="pause">Pause animation</button>
+<div id="badge"></div>
+<p>Text after the badge.</p>
+</main>
+<script>document.getElementById('pause').addEventListener('click', () => document.getElementById('badge').classList.toggle('still'));</script>
+</body>
+</html>

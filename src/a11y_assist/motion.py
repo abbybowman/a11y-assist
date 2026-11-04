@@ -41,13 +41,17 @@ from pydantic import BaseModel, Field
 
 from a11y_assist.browser import AUTOPLAY_ARG, MOTION_BROWSER  # noqa: F401
 from a11y_assist.observe import DIALOGS_JS
+from a11y_assist.redact import safe_error
 from a11y_assist.site import UNITS_FN
 from a11y_assist.traverse import PATH_JS, screenshot
 
 # TT: "more than 5 seconds" (2.B) and "more than 3 seconds" (2.A); the
 # watch is 6.5 s at the top of the page (Abby, 2026-11-03, plan Q3).
 WATCH_S = 6.5
-FRAME_S = 0.5
+# Frames alternate 0.35 s and 0.45 s apart (0.4 s on average): at a steady
+# 0.5 s, a blink of 0.5 s per state was seen in the same state every frame.
+FRAME_STEPS = (0.35, 0.45)
+FRAME_S = sum(FRAME_STEPS) / len(FRAME_STEPS)
 READS_AT = (0.0, 3.5, 6.5)
 TILE = 20
 # Bounds that keep one pass small on a busy page; reaching one is recorded.
@@ -170,6 +174,13 @@ MOTION_INIT_JS = (
       const inClip = r.width > 0 && r.height > 0 && r.right > clip[0] && r.left < clip[2] && r.bottom > clip[1] && r.top < clip[3];
       const self = !fade && cs.visibility !== 'hidden' && (inClip || cs.display === 'contents');
       let h = 2166136261, n = 0;
+      // What it looks like apart from its content (2.B: a colour-only
+      // change is blinking) and how it is placed (a spinner rotates).
+      let ch = 2166136261, th = 2166136261;
+      if (self) {
+        ch = H(ch, [cs.color, cs.backgroundColor, cs.borderTopColor, cs.fill, cs.stroke, cs.opacity, cs.visibility].join('|'));
+      }
+      th = H(th, cs.transform + '|' + cs.translate + '|' + cs.rotate + '|' + cs.scale);
       if (self) {
         for (const t of el.childNodes) if (t.nodeType === 3) { const s = norm(t.textContent); if (s) { h = H(h, s); n++; } }
         if (el.tagName === 'IMG') { h = H(h, 'img:' + (el.currentSrc || el.src || '')); n++; }
@@ -177,9 +188,14 @@ MOTION_INIT_JS = (
         if ((el.tagName === 'INPUT' && el.type !== 'hidden') || el.tagName === 'TEXTAREA') { h = H(h, 'v:' + el.value); n++; }
       }
       const kids = el.shadowRoot ? [...el.shadowRoot.children, ...el.children] : el.children;
-      for (const k of kids) { const hk = visit(k, c, fade); if (hk) { h = H(h, String(hk)); n++; } }
+      for (const k of kids) {
+        const hk = visit(k, c, fade);
+        if (hk) { h = H(h, String(hk)); n++; }
+        const v = map.get(k);
+        if (v) { ch = H(ch, String(v[5])); th = H(th, String(v[6])); }
+      }
       const out = n ? h >>> 0 : 0;
-      map.set(el, [out, Math.round(r.left), Math.round(r.top), Math.round(r.width), Math.round(r.height)]);
+      map.set(el, [out, Math.round(r.left), Math.round(r.top), Math.round(r.width), Math.round(r.height), ch >>> 0, th >>> 0]);
       return out;
     };
     const t = now();
@@ -252,7 +268,21 @@ MOTION_INIT_JS = (
   M.regionsAt = (bs) => {
     if (!bs.length) return [];
     const all = bs.map((_, i) => i);
-    const { el: top, covered } = cover(bs);
+    let { el: top, covered } = cover(bs);
+    // A running animation's target whose box, grown by half its size (a
+    // rotated square reaches about 0.21 of its side past its box), covers the
+    // changed pixels is the region: a spinning badge, not the <main> around
+    // it, whose other content never changed.
+    const bx = bboxOf(bs);
+    let best = null, area = Infinity;
+    for (const a of document.getAnimations()) {
+      const t = a.effect && a.effect.target;
+      if (!t || t.nodeType !== 1 || a.playState !== 'running' || !(top === t || top.contains(t))) continue;
+      const r = t.getBoundingClientRect(), g = Math.max(r.width, r.height) / 2;
+      const grown = { left: r.left - g, top: r.top - g, right: r.right + g, bottom: r.bottom + g };
+      if (covers(grown, bx) && r.width * r.height < area) { best = t; area = r.width * r.height; }
+    }
+    if (best) { top = best; covered = true; }
     const frames = Array.from(document.querySelectorAll('iframe, frame'));
     return split(top, all, bs, 0).map(([el0, idx]) => {
       if (el0.tagName === 'IFRAME' || el0.tagName === 'FRAME') {
@@ -278,6 +308,8 @@ MOTION_INIT_JS = (
     const el = M.held.get(css);
     if (!el) return null;
     const sigs = M.snaps.map((s) => { const v = s.map.get(el); return v ? v[0] : null; });
+    const colors = M.snaps.map((s) => { const v = s.map.get(el); return v ? v[5] : null; });
+    const transforms = M.snaps.map((s) => { const v = s.map.get(el); return v ? v[6] : null; });
     let moved = false;
     const kids = Array.from(el.children);
     for (let i = 1; i < M.snaps.length && !moved; i++) {
@@ -307,7 +339,7 @@ MOTION_INIT_JS = (
           duration_ms: typeof t.duration === 'number' ? Math.round(t.duration) : 0, state: a.playState };
       });
     } catch (e) {}
-    return { sigs, moved, changes, attr_list: attrList, attrs, focus_in: focusIn, anims, text: textOf(el), connected: el.isConnected };
+    return { sigs, colors, transforms, moved, changes, attr_list: attrList, attrs, focus_in: focusIn, anims, text: textOf(el), connected: el.isConnected };
   };
   M.media = () => Array.from(document.querySelectorAll('video, audio')).slice(0, 20).map((m) => ({
     css: path(m), tag: m.tagName.toLowerCase(), paused: m.paused, muted: m.muted, volume: m.volume,
@@ -315,14 +347,59 @@ MOTION_INIT_JS = (
     controls: m.controls, error: m.error ? m.error.code : null,
     decoded: typeof m.webkitAudioDecodedByteCount === 'number' ? m.webkitAudioDecodedByteCount : null,
     src: (m.currentSrc || '').slice(0, 500) }));
-  M.facts = () => ({ timers: M.timers, audio: M.audio, dropped: M.dropped });
+  // <blink> and text-decoration: blink do not blink in Chrome (plan item 9):
+  // a note for 2.B only.
+  const blinkMarkup = () => {
+    if (document.querySelector('blink')) return true;
+    const all = document.querySelectorAll('body *');
+    for (let i = 0; i < all.length && i < 3000; i++) {
+      if ((getComputedStyle(all[i]).textDecorationLine || '').includes('blink')) return true;
+    }
+    return false;
+  };
+  M.facts = () => ({ timers: M.timers, audio: M.audio, dropped: M.dropped, blink: blinkMarkup() });
+  // Motion the frames may not show (below the first screen): animations
+  // running with more than 5 s of active time, marquees, playing videos,
+  // that are not inside a region already found (2.B Terms).
+  M.extras = (known) => {
+    const inside = (e) => known.some((css) => { const r = M.held.get(css); return r && (r === e || r.contains(e)); });
+    const out = [];
+    const add = (e, source, detail) => {
+      if (!e || e.nodeType !== 1 || inside(e) || out.length >= 10) return;
+      const css = path(e);
+      if (out.some((o) => o.css === css)) return;
+      M.held.set(css, e);
+      known.push(css);
+      const r = e.getBoundingClientRect();
+      out.push({ css, tag: e.tagName.toLowerCase(), source, detail,
+        box: [Math.round(r.left + scrollX), Math.round(r.top + scrollY), Math.round(r.width), Math.round(r.height)] });
+    };
+    for (const a of document.getAnimations()) {
+      if (a.playState !== 'running' || !a.effect) continue;
+      const t = a.effect.getComputedTiming();
+      const active = t.iterations === Infinity ? Infinity : (t.iterations || 0) * (typeof t.duration === 'number' ? t.duration : 0);
+      if (active > 5000) add(a.effect.target, 'animation', (a.animationName || a.transitionProperty || '') + (active === Infinity ? ' (infinite)' : ' ' + Math.round(active) + ' ms'));
+    }
+    for (const m of document.querySelectorAll('marquee')) add(m, 'marquee', 'marquee');
+    for (const v of document.querySelectorAll('video')) {
+      if (!v.paused && (v.loop || (isFinite(v.duration) && v.duration - v.currentTime > 5))) add(v, 'video', v.loop ? 'playing, looping' : 'playing');
+    }
+    return out;
+  };
   // The elements (read at 0 s, ELEMENTS_JS) inside a region's element.
   M.inside = (css) => {
     const el = M.held.get(css);
-    if (!el || !M.els) return [];
+    if (!el || !M.els) return { inside: [], next: null };
     const out = [];
     M.els.forEach((e, i) => { if (el === e || el.contains(e)) out.push(i); });
-    return out;
+    // Content with no element inside it (an empty spinning box) is placed
+    // by document order: the first element that follows it.
+    let next = null;
+    if (!out.length) {
+      next = M.els.findIndex((e) => el.compareDocumentPosition(e) & Node.DOCUMENT_POSITION_FOLLOWING);
+      if (next < 0) next = M.els.length;
+    }
+    return { inside: out, next };
   };
 })()"""
     )
@@ -468,6 +545,13 @@ class Region(BaseModel):
     changed_at: list[float] = Field(default_factory=list)  # frame times
     tiles: int = 0
     sigs: list[int | None] = Field(default_factory=list)  # per read
+    colors: list[int | None] = Field(default_factory=list)  # per read (2.B)
+    transforms: list[int | None] = Field(default_factory=list)  # per read
+    states: int = 0  # distinct looks of its box over the frames (top page; capped)
+    # pixels (changed in the frames), or what showed motion the frames could
+    # not: animation (over 5 s of active time), marquee or video (2.B Terms)
+    source: str = "pixels"
+    source_detail: str = ""
     updated: bool = False
     children_moved: bool = False
     kinds: list[str] = Field(default_factory=list)
@@ -480,6 +564,9 @@ class Region(BaseModel):
     animations: list[Animation] = Field(default_factory=list)
     period_s: float | None = None  # median time between pixel changes
     elements: list[int] = Field(default_factory=list)  # Element.i inside it
+    # With no element inside: the first element after it in reading order
+    # (len(elements) when none follows), so its windows can still be counted.
+    next_element: int | None = None
     # Its changed pixels over the watch, one box per 20 px tile (x0, y0, x1,
     # y1 in the top page's viewport), capped: which elements really changed.
     changed_boxes: list[list[int]] = Field(default_factory=list)
@@ -575,6 +662,7 @@ class MotionPass(BaseModel):
     media: list[Media] = Field(default_factory=list)
     polls: list[Poll] = Field(default_factory=list)
     carousels: list[str] = Field(default_factory=list)  # "<frame>|<css>" at 0 s
+    blink_markup: bool = False  # <blink> or text-decoration: blink (2.B note)
     dropped_changes: int = 0
     frames_read: int = 0  # document frames read (the top page included)
     elements: list[Element] = Field(default_factory=list)  # at 0 s
@@ -735,12 +823,12 @@ async def pass_t(
     try:
         context, page = await open_page()
     except Exception as exc:
-        out.ok, out.error = False, f"the page could not be loaded: {type(exc).__name__}"
+        out.ok, out.error = False, f"the page could not be loaded: {safe_error(exc)}"
         return out
     try:
         await _watch(page, out, shots, rel, watch_s)
     except Exception as exc:  # recorded, never raised (A1)
-        out.ok, out.error = False, f"the page could not be read: {type(exc).__name__}"
+        out.ok, out.error = False, f"the page could not be read: {safe_error(exc)}"
     finally:
         await context.close()
     return out
@@ -790,6 +878,7 @@ async def _watch(
     regions: dict[str, Region] = {}
     frames_by_key: dict[str, Frame] = {}
     pairs: list[tuple[float, dict[tuple[int, int], list[int]]]] = []
+    pngs: list[bytes] = []  # every frame, for each region's states
     reads = list(READS_AT[:-1]) + [watch_s]
     start = time.monotonic()
     prev: Image.Image | None = None
@@ -817,11 +906,13 @@ async def _watch(
             out.shots.append(str(path.relative_to(rel)) if rel else str(path))
         if prev is not None and prev.size == img.size:
             pairs.append((shot_t, changed_tiles(prev, img)))
+        pngs.append(png)
         prev = img
         n += 1
         if time.monotonic() - start >= watch_s and not reads:
             break
-        wait = FRAME_S - (time.monotonic() - start - shot_t)
+        step = FRAME_STEPS[n % len(FRAME_STEPS)]
+        wait = step - (time.monotonic() - start - shot_t)
         if wait > 0:
             await asyncio.sleep(wait)
 
@@ -838,6 +929,7 @@ async def _watch(
                 )
             )
     await _regions(page, pairs, regions, frames_by_key, out)
+    await _extras(page, regions, frames_by_key)
     for key, r in regions.items():
         frame = frames_by_key[key]
         try:
@@ -851,6 +943,8 @@ async def _watch(
             continue
         epoch0 = t0_epoch
         r.sigs = d["sigs"]
+        r.colors = d["colors"]
+        r.transforms = d["transforms"]
         r.children_moved = bool(d["moved"])
         r.text = d["text"]
         r.connected = d["connected"]
@@ -868,14 +962,22 @@ async def _watch(
         gaps = [b - a for a, b in zip(r.changed_at, r.changed_at[1:])]
         r.period_s = round(statistics.median(gaps), 2) if gaps else None
         r.kinds = _kinds(r)
+        if r.source != "pixels" and "moving" not in r.kinds:
+            r.kinds.append("moving")
         try:
-            local = await frame.evaluate(
-                "(css) => window.__a11yMotion ? window.__a11yMotion.inside(css) : []",
+            got = await frame.evaluate(
+                "(css) => window.__a11yMotion ? window.__a11yMotion.inside(css) : null",
                 r.css,
             )
         except Exception:
-            local = []
+            got = None
+        local = (got or {}).get("inside", [])
         r.elements = sorted(where[(r.frame, j)] for j in local if (r.frame, j) in where)
+        nxt = (got or {}).get("next")
+        if not r.elements and nxt is not None:
+            here = sorted(i for (f, j), i in where.items() if f == r.frame and j >= nxt)
+            r.next_element = here[0] if here else len(out.elements)
+    _states(pngs, regions)
     out.regions = sorted(regions.values(), key=lambda r: (r.box[1:2], r.box[0:1]))
 
     for i, _, facts in await _each_frame(
@@ -884,6 +986,7 @@ async def _watch(
         if not facts:
             continue
         out.audio_connects += facts["audio"]
+        out.blink_markup = out.blink_markup or bool(facts.get("blink"))
         out.dropped_changes += facts["dropped"]
         counts: dict[tuple[str, int], int] = {}
         for tm in facts["timers"]:
@@ -911,6 +1014,59 @@ async def _watch(
                 out.focus_moves.append(FocusMove(t=round(at, 2), css=e.get("css")))
     except Exception:
         pass
+
+
+MAX_STATES = 10
+
+
+def _states(pngs: list[bytes], regions: dict[str, Region]) -> None:
+    """How many distinct looks each top-page region's box had over the
+    frames (2.B: two states blink; three or more is C1)."""
+    boxes = {
+        k: r.box
+        for k, r in regions.items()
+        if r.frame == 0 and len(r.box) == 4 and r.box[2] > 0 and r.box[3] > 0
+    }
+    if not boxes or not pngs:
+        return
+    seen: dict[str, set[bytes]] = {k: set() for k in boxes}
+    for png in pngs:
+        img = Image.open(io.BytesIO(png)).convert("RGB")
+        w, h = img.size
+        for k, (x, y, bw, bh) in boxes.items():
+            crop = (max(0, x), max(0, y), min(w, x + bw), min(h, y + bh))
+            if crop[0] < crop[2] and crop[1] < crop[3] and len(seen[k]) <= MAX_STATES:
+                seen[k].add(img.crop(crop).tobytes())
+    for k, s in seen.items():
+        regions[k].states = len(s)
+
+
+async def _extras(page, regions: dict[str, Region], frames_by_key) -> None:
+    """Regions for motion the frames could not show (2.B Terms)."""
+    for i, frame in enumerate(page.frames):
+        known = [r.css for r in regions.values() if r.frame == i]
+        try:
+            got = await frame.evaluate(
+                "(k) => window.__a11yMotion ? window.__a11yMotion.extras(k) : []", known
+            )
+        except Exception:
+            continue
+        for e in got or []:
+            key = f"{i}|{e['css']}"
+            if key in regions or len(regions) >= MAX_REGIONS:
+                continue
+            regions[key] = Region(
+                key=key,
+                frame=i,
+                frame_url=frame.url[:500] if i else "",
+                css=e["css"],
+                tag=e["tag"],
+                content_css=e["css"],
+                box=e["box"],
+                source=e["source"],
+                source_detail=e["detail"][:200],
+            )
+            frames_by_key[key] = frame
 
 
 async def _regions(page, pairs, regions, frames_by_key, out: MotionPass) -> None:

@@ -71,8 +71,25 @@ Still open from Q2: the extra time allowance for pages with moving content
   J1 got its image (pass T's first frame), box and position in words.
   Follow-up: J1's wording when the mechanism is text naming a key.
 
-Not started: the media store (items 13-14), the scrolled watch, loudness and `ImageDecoder`, 2.B and
-2.A (`t2b.py`, `t2a.py`), the vendored ACT cases for 2.A (4c31df, 80f0bf, aaa1bf), the walk
+- 2.B (`checks/t2b.py`, spec 0.2.0, draft): moving regions (still moving
+  after 5 s in at least three frames; long animations, marquees and
+  playing videos anywhere on the page), colour-only changes and their
+  states (C1), J1 essential (DNA only, with the loading guard), J2 evident
+  and J3 text (2.C's questions), the `<blink>` note. One probe per content
+  shared with 2.C (`mechanism.probe_shared`, early stop only on a real
+  stop); J2/J3 keys once per run across tests (`evidence/keys.json`).
+  Fixtures: `tests/test_fixtures_2b.py` (12 pages and the ACT colour cycle
+  with its Stop button, which 2.B sees as blinking with a working control).
+  Found while building: frames at a steady 0.5 s caught a 0.5 s blink in
+  the same state every time (now 0.35/0.45 s); an empty spinning box could
+  not be placed among the elements (now by document order); a rotating
+  square's pixels made a region of `<main>` (now the animation's target);
+  the probe's element screenshots waited forever on a spinning badge (now
+  a fixed clip of the page). Seen once under -n 8 and not again in three
+  runs: pass T failing with a bare "Error" (its message is now kept).
+
+Not started: the media store (items 13-14), the scrolled watch, loudness and `ImageDecoder` (G152: an
+animated image below the first screen is missed), 2.A (`t2a.py`), the vendored ACT cases for 2.A (4c31df, 80f0bf, aaa1bf), the walk
 cross-check (A2), and 2.D's note for `aria-live="off"`
 carousels (plan risk 11).
 

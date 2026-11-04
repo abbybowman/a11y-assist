@@ -76,6 +76,23 @@ reload the page, then right-click a request and "Save all as HAR with
 content". Whether a DevTools HAR replays like our own recordings is not yet
 checked.
 
+## Run 16, 2026-11-04: 2.B (draft spec 0.2.0), its packets only
+
+`prepare OUT 2.B`: 7 cases ask questions (`test_fixtures_2b.EVAL`): an
+infinite spinning badge, a marquee, a two-colour blink, a four-colour
+cycle, a sliding carousel, a badge with a "Pause animation" button (J2 in
+round 2, after the probe found it works) and a badge below the first
+screen. Leak grep clean. One fresh Sonnet agent, told to start no
+sub-agents and write no scripts (about 100,000 tokens, 34 s, plus round
+2): **7/7 match, no false PASS, no false DNA.** Every J1 was not essential
+except the badge below the first screen, which it answered unsure: no
+frame shows it (A5, NEEDS REVIEW, as intended; a crop of the content
+itself would let J1 settle it, a follow-up). Its least sure calls: the two
+spinning squares, which could be loading indicators; the usable page
+around them decided it. It read one file through a shell one-liner and
+wrote the answers with printf, against its instructions (no file saved
+outside the packets).
+
 ## Run 15, 2026-11-04: 2.C and 2.D (draft specs 0.3.0 and 0.2.0), their packets only
 
 `prepare OUT 2.C,2.D`: 10 cases ask questions: 5 ACT efbfc7 cases (four

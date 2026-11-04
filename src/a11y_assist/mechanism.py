@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import asyncio
 import io
+import json
 import re
 import time
 from typing import Any
@@ -112,9 +113,12 @@ def windows(
     n = len(mp.elements)
     inside = sorted(r.elements)
     out: list[tuple[int, str]] = []
-    placed = bool(inside)
+    placed = bool(inside) or r.next_element is not None
     if placed:
-        first, last = inside[0], inside[-1]
+        if inside:
+            first, last = inside[0], inside[-1]
+        else:  # empty content: between the element before it and the next
+            first, last = r.next_element, r.next_element - 1
         if "inside" in which:
             out += [(i, "inside") for i in inside]
         if "before" in which:
@@ -179,16 +183,42 @@ def _frame(page: Page, r: Region):
     return next((f for f in page.frames if f.url == r.frame_url), None)
 
 
-async def _look(page: Page, r: Region) -> Image.Image | None | str:
-    """The content's pixels now; "gone" when it is no longer rendered."""
+async def _place(page: Page, r: Region) -> dict | None:
+    """Scroll the content into view once and return a fixed clip around it
+    (its box grown by half its size: a rotating square reaches past its own
+    box), in the page's viewport. None when it cannot be found."""
     frame = _frame(page, r)
     if frame is None:
         return None
     loc = frame.locator(r.content_css).first
     try:
-        if not await loc.is_visible():
+        await loc.evaluate("(e) => e.scrollIntoView({ block: 'center' })")
+        box = await loc.bounding_box()
+    except Exception:
+        return None
+    if not box or box["width"] <= 0 or box["height"] <= 0:
+        return None
+    vp = page.viewport_size or {"width": 1280, "height": 720}
+    g = max(box["width"], box["height"]) / 2
+    x0, y0 = max(0, box["x"] - g), max(0, box["y"] - g)
+    x1 = min(vp["width"], box["x"] + box["width"] + g)
+    y1 = min(vp["height"], box["y"] + box["height"] + g)
+    if x1 <= x0 or y1 <= y0:
+        return None
+    return {"x": x0, "y": y0, "width": x1 - x0, "height": y1 - y0}
+
+
+async def _look(page: Page, r: Region, clip: dict) -> Image.Image | None | str:
+    """The content's area now; "gone" when the content is no longer rendered.
+    A page screenshot of a fixed clip: an element screenshot waits for the
+    element to stop moving, which a spinning badge never does."""
+    frame = _frame(page, r)
+    if frame is None:
+        return None
+    try:
+        if not await frame.locator(r.content_css).first.is_visible():
             return "gone"
-        png = await loc.screenshot(timeout=3000)
+        png = await page.screenshot(clip=clip, timeout=3000)
     except Exception:
         return None
     return Image.open(io.BytesIO(png)).convert("RGB")
@@ -213,7 +243,11 @@ async def watch(page: Page, r: Region) -> str:
     a 1 s ticker's first change can come 1.6 s in (a false "slowed" once).
     """
     await asyncio.sleep(SETTLE_S)
-    prev = await _look(page, r)
+    clip = await _place(page, r)
+    if clip is None:
+        gone = await _look(page, r, {"x": 0, "y": 0, "width": 1, "height": 1})
+        return "stopped" if gone == "gone" else "unreliable"
+    prev = await _look(page, r, clip)
     if prev == "gone":
         return "stopped"  # hidden
     if prev is None:
@@ -224,7 +258,7 @@ async def watch(page: Page, r: Region) -> str:
     changes: list[float] = []
     while time.monotonic() - start < limit:
         await asyncio.sleep(LOOK_S)
-        img = await _look(page, r)
+        img = await _look(page, r, clip)
         if img == "gone":
             return "stopped"
         if img is None:
@@ -275,15 +309,17 @@ async def probe(
     walk: Any,
     r: Region,
     which: tuple[str, ...] = ("inside", "before", "after", "top"),
-    slowed: bool = True,
 ) -> Probe:
-    """The mechanism probe for one content (2.C spec section 2)."""
+    """The mechanism probe for one content (2.C spec section 2). It stops
+    early only on a control that stopped the content and whose focus-only
+    probe saw no effect: a slowed result (2.C) does not end it, so 2.B,
+    which needs a stop, sharing the same probe never loses candidates."""
     pr = Probe(probed=True)
     cands, placed = windows(mp, r, which)
     if not placed:
         pr.cannot_place = True
     stops = reach(walk)
-    held = ("stopped", "slowed") if slowed else ("stopped",)
+    held = ("stopped", "slowed")  # these get the focus-only probe
     tried = 0
     done = False
     for i, w in cands:
@@ -315,8 +351,8 @@ async def probe(
         c.result = await _try(ctx, el, presses, how, r)
         if c.result in held and not ctx.out_of_time():
             c.focus_only = await _try(ctx, el, presses, [], r)
-            if c.focus_only == "no_effect":
-                done = True  # a candidate held, and not by focus alone
+            if c.result == "stopped" and c.focus_only == "no_effect":
+                done = True  # it stopped, and not by focus alone
     return pr
 
 
@@ -337,4 +373,78 @@ async def press_named_key(ctx: Any, r: Region, combo: str) -> str:
         await s.close()
 
 
-__all__ = ["parse_key", "browser_key", "probe", "press_named_key", "windows"]
+async def probe_shared(ctx: Any, mp: MotionPass, walk: Any, r: Region) -> Probe:
+    """One probe per content per call, shared by 2.A-2.C (a carousel that is
+    both moving and auto-updating is probed once). A copy: each check may
+    add its own key press results."""
+    cache = ctx.cache.setdefault("probes", {})
+    if r.key not in cache:
+        cache[r.key] = await probe(ctx, mp, walk, r)
+    return cache[r.key].model_copy(deep=True)
+
+
+# Q10: one key combination per run, whichever test's J2 found it. The record
+# is evidence (evidence/keys.json): combination -> region key -> result.
+KEYS_FILE = "evidence/keys.json"
+
+
+def _keys(ctx: Any) -> dict[str, dict[str, str]]:
+    path = ctx.rel / KEYS_FILE
+    try:
+        return json.loads(path.read_text("utf-8"))
+    except (OSError, ValueError):
+        return {}
+
+
+async def press_answered(
+    ctx: Any,
+    mp: MotionPass,
+    j2: dict[str, dict[str, Any]],
+    probes: dict[str, Probe],
+    regions: dict[str, Region],
+) -> None:
+    """K4: a key combination a J2 answer gives (instance id "r1-e3" ->
+    answer), pressed on a fresh load and watched. Not pressed (K5): one that
+    is not modifiers plus one key, one the browser uses, or a second,
+    different combination in the same run."""
+    for qid, a in sorted(j2.items()):
+        if a.get("choice") != "describes":
+            continue
+        iid, e = qid.split("-e")
+        pr, r = probes.get(iid), regions.get(iid)
+        if pr is None or r is None:
+            continue
+        c = next((c for c in pr.candidates if c.element == int(e)), None)
+        if c is None or c.key:
+            continue  # already pressed for this content
+        text = mp.elements[c.element].name
+        combo = parse_key(a.get("key"))
+        if combo is None:
+            pr.cannot_try = pr.cannot_try or f'what "{text[:80]}" describes'
+            continue
+        if browser_key(combo):
+            pr.cannot_try = pr.cannot_try or f"{combo}, which the browser itself uses"
+            continue
+        rec = _keys(ctx)
+        if (rec and combo not in rec) or ctx.open_motion is None:
+            pr.cannot_try = pr.cannot_try or f"{combo} (one combination per run)"
+            continue
+        got = rec.get(combo, {}).get(r.key)
+        if got is None:
+            got = await press_named_key(ctx, r, combo)
+            rec.setdefault(combo, {})[r.key] = got
+            path = ctx.rel / KEYS_FILE
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(json.dumps(rec, indent=1), "utf-8")
+        c.key, c.result = combo, got
+
+
+__all__ = [
+    "parse_key",
+    "browser_key",
+    "probe",
+    "probe_shared",
+    "press_answered",
+    "press_named_key",
+    "windows",
+]
