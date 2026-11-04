@@ -106,6 +106,16 @@ class _Handler(http.server.BaseHTTPRequestHandler):
         if self.path == "/slow.html":  # answers after the run's time limit
             time.sleep(16)
             return self._send(200, b"<!doctype html><title>slow</title><p>late")
+        if self.path == "/framed":  # a cross-site iframe (localhost vs 127.0.0.1)
+            body = (
+                "<!doctype html><html lang=en><title>framed</title>"
+                "<a href='#top'>Top link</a>"
+                f"<iframe title=inner src='http://localhost:{port}/inner'></iframe>"
+            )
+            return self._send(200, body.encode())
+        if self.path == "/inner":
+            body = "<!doctype html><title>inner</title><button>Inner</button>"
+            return self._send(200, body.encode())
         if self.path == "/data.json":
             return self._send(
                 200, json.dumps({"n": nonce}).encode(), "application/json"

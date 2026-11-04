@@ -35,3 +35,5 @@ tests/.act_scores/
 
 # Other temp files
 temp/
+# Agent eval: Playwright MCP (npm install in evals/agent/node)
+node_modules/
