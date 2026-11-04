@@ -40,9 +40,10 @@ Words used in this plan:
 
 ## 2. The two arms
 
-- **The same for both arms:** model, task prompt (word for word), frozen
-  pages, route (section 7), the optional helper tool, and a tool that reads
-  MCP resources (section 7.3).
+- **The same for both arms:** model, task prompt (word for word), the
+  frozen tested pages and the live rest of their site (section 6), route
+  (section 7), the optional helper tool, and a tool that reads MCP
+  resources (section 7.3).
 - **Agent A** has only this MCP server, which it may run with
   `no_time_limit`: the eval wants every test's full result.
 - **Agent B** has Playwright MCP (`@playwright/mcp`, version pinned and
@@ -50,10 +51,12 @@ Words used in this plan:
   test sites publish no accessibility reports a search could find. On a
   route whose models have no web search of their own (Ask Sage), search is
   Tavily MCP (not installed yet). On the CLI route it is the CLI's
-  WebSearch and WebFetch, with WebFetch refused on the tested site's hosts
-  (Abby, 2026-11-04), so the tested pages come only from the frozen copies.
-  Agent B
-  can open a page, press keys and read the page, so it has a fair chance to
+  WebSearch and WebFetch for guidance (W3C, WebAIM and so on), with
+  WebFetch refused on the tested site's hosts (Abby, 2026-11-04): Agent B
+  reaches that site only through its browser (section 6). Agent A gets no
+  web search or fetch: the hypothesis is that the tool's researched,
+  mechanical procedure beats an agent free to look anything up. Agent B can
+  open a page, press keys and read the page, so it has a fair chance to
   run each test without this server's procedure. Its tools are given up
   front rather than "ask for what you need," so every run has the same
   tools.
@@ -195,49 +198,56 @@ approved by Abby, 2026-11-04).
 ## 5. Steps of a round, in commit order
 
 1. **Start.** Abby commits `pages.txt` when testing begins.
-2. **Freeze** (section 6). Every page is recorded once from the live site.
-   This is the only step that touches the site.
-3. **Run Agent A**, then **Agent B**, on the frozen pages (section 7).
-4. **Lock.** `evals/judging.py lock` covers both arms' results, transcripts
-   and step logs, along with the code commit. Then commit.
+2. **Freeze** (section 6). The tested pages are recorded once from the
+   live site; Abby compares each frozen page's footer timestamp with her
+   own testing.
+3. **Run Agent A**, then **Agent B**, close together (section 6: other
+   pages of the site are live, and the site may change).
+4. **Lock.** `evals/judging.py lock` covers both arms' results, transcripts,
+   step logs and live-page records, the frozen pages, and the code commit.
+   Then commit.
 5. **Reveal.** Abby adds her SCRT files to `keys/` and commits.
 6. **Score** (section 8).
 
-## 6. Freezing and replay
+## 6. Frozen tested pages, live rest of the site (Abby, 2026-11-04)
 
-- **What is frozen:** each page of the round. That includes every request
-  the tool would make for it live: the page itself, the round's other pages
-  (9.A-9.C, 19.A), and 19.A's one site search where it runs. The recordings
-  are the round's pages. Both arms work from these copies, and neither arm
-  touches the live site. A request that isn't in the recordings is refused
-  and logged, never fetched live.
-- **How a round is frozen** (`evals/agent/freeze.py`): each page is run
-  once with 19.A only, with the round's other pages on its host. The
-  server's frozen pages folder is set to `<round>/frozen/` in
-  "record_missing" mode. That records the page, its other pages and 19.A's
-  site search exactly as a live run would, under the same allowlist and
-  redirect checks. Where 19.A then suggests pages for the user to add (a
-  site map, the home page, breadcrumbs: same host, at most 5), the page is
-  run once more with them, so they are frozen too (Abby, 2026-11-04). Their
-  own links are not followed. Both arms get these pages the same way: from
-  the frozen copies, never live. The runs' results are deleted unread.
-- **Agent A:** the server setting `FROZEN_PAGES_DIR` (`frozen.py`), in
-  "replay" mode. The server replays each URL's recording and refuses
-  (ToolError) a URL with no recording. It is a server setting, not a tool
-  input, so neither the agent nor page content can choose a recording.
-  Every report records `frozen_pages`. A page outside the frozen set (for
-  example a link of a suggested page, or a search the freeze did not make)
-  is refused, and the tool says it could not use it.
+- **The tested pages are frozen, for both arms.** `evals/agent/freeze.py`
+  records each page of `pages.txt` once, as a live run records it (the
+  allowlist and every redirect hop checked, scrolled to load lazy
+  content), into `<round>/frozen/`. Neither arm can load a tested page's
+  live version, so both test the same copy as the tester's key.
+- **Every other page of the tested site's hosts is live, for both arms:**
+  site maps, search results, any route an agent tries. 19.A asks whether a
+  page can be reached more than one way, and only the live site can answer
+  an agent's own search or route. A frozen search page answers only the one
+  search the freeze made.
+- **Agent A:** the server's `FROZEN_PAGES_DIR` setting (`frozen.py`) in
+  "tested_frozen" mode. The tested page must be frozen (otherwise a tool
+  error, with nothing fetched); other pages and 19.A's search are recorded
+  live under the server's usual rules (allowlisted, the tested page's host,
+  every redirect hop checked), each saved in the run. Every report records
+  `frozen_pages`, and each other page says whether it was frozen. It is a
+  server setting, not a tool input, so neither the agent nor page content
+  chooses it.
 - **Agent B:** Playwright MCP's `--init-page` file
-  (`evals/agent/node/frozen-init.cjs`) routes every recording of the round
-  through `routeFromHAR`. Only the first registered recording aborts what
-  none of them holds. It also fails the requests that failed while
-  recording (saved with status -1), as `capture.replay_context` does;
-  otherwise Playwright's replay waits on them forever.
-- **Not frozen:** Tavily's web search. It is research about guidance, not
-  the page under test.
-- HAR replay freezes network responses only. Client-side randomness and the
-  clock can still vary between arms.
+  (`evals/agent/node/frozen-init.cjs`) serves the tested pages from their
+  recordings, loads other pages of the same hosts live, and refuses pages
+  on any other host. Each live page and each refusal is logged to
+  `results/arm-b/live.jsonl`. A live page's own images and scripts load
+  from wherever they come from. The browser's connections go through the
+  same egress proxy as Agent A's (`egress.py`: no private, loopback or
+  metadata addresses). A frozen page's requests that its recording lacks
+  are aborted, and requests that failed while recording (status -1) fail
+  again, as `capture.replay_context` does; otherwise Playwright's replay
+  waits on them forever.
+- **Guidance stays open to Agent B only:** web search, and WebFetch for any
+  host but the tested site's (section 2). Agent A has neither; its
+  procedure is the tool's.
+- **What this costs:** 9.A-9.C and 19.A can differ between arms or repeats
+  if the live site changes, so the arms run close together; every live
+  page each arm loaded is in the round's results. The other tests run on
+  the frozen copies only. HAR replay freezes network responses, not
+  client-side randomness or the clock.
 
 ## 7. Running an arm
 
@@ -428,45 +438,42 @@ The server itself needs no key: open questions go back to the calling agent
 
 ## 12. Build order
 
-Built and tested on the 19.A fixture site with a scripted model, with the
-fixture server stopped after freezing (`tests/test_frozen.py`,
-`test_agent_freeze.py`, `test_agent_run.py`, `test_agent_score.py`,
-`test_full_chromium.py`):
+Built and tested on the 19.A fixture site with a scripted model
+(`tests/test_frozen.py`, `test_agent_freeze.py`, `test_agent_run.py`,
+`test_agent_score.py`, `test_agent_cli.py`, `test_full_chromium.py`):
 
-1. **Freeze and replay** (section 6): the server's frozen pages setting,
-   the freeze step, and Playwright MCP's init-page file; full Chromium for
-   pages with cross-site iframes.
+1. **Frozen tested pages, live rest of the site** (section 6): the freeze
+   step; the server's "tested_frozen" mode; Agent B's init-page file, live
+   log and egress proxy; full Chromium for pages with cross-site iframes.
 2. **The task prompt** (4.3), generated from `checks.REGISTRY`.
-3. **The agent loop and step log** (section 7), with the Anthropic-style
-   adapter, which serves Ask Sage and the claude.ai API alike, checked
-   against a local stand-in for the API.
+3. **The agent loop and step log** (section 7): the Anthropic-style API
+   adapter (Ask Sage), checked against a local stand-in for the API, and
+   the Claude Code CLI adapter, checked against a fake CLI.
 4. **The helper and resource tools**, the same for both arms.
 5. **Scoring:** the roll-up, the weights and the "no answer" verdict in
    `evals/scoring.py`; the `RESULT` reader and the arm scores in
    `evals/agent/score.py`; a `lock` that covers both arms and `frozen/`.
+6. **A smoke run on the CLI route** (2026-11-04, Sonnet 5.5, on the 19.A
+   fixture site, before section 6's live rule): Agent A on two pages (58 s,
+   $0.12 at list price), Agent B on one page (27 s, $0.07). Both leak
+   checks were clean and both result lines parsed. It checks the plumbing,
+   not accuracy.
 
 Not built or not checked:
 
-6. **A first real-model run**, on a fixture site, before round 1. It needs
-   Ask Sage (NASA's network) or the CLI route.
-7. **The CLI adapter** (7.1): built. Tested against a fake CLI
-   (`tests/test_agent_cli.py`), then smoke-run on the 19.A fixture site
-   with Sonnet 5.5 on 2026-11-04: Agent A on two pages (58 s, $0.12 at list
-   price) and Agent B on one page (27 s, $0.07). Both leak checks were
-   clean and both result lines parsed. A smoke run checks the plumbing,
-   not accuracy.
-8. **Tavily MCP**, needed only on the Ask Sage route, whose models have no
-   web search; the CLI route uses the CLI's own `WebSearch` and `WebFetch`
-   (refused on the tested hosts). Agent B never gets Playwright MCP's
-   `browser_run_code_unsafe`: it runs any code in Playwright's process,
-   outside the frozen replay.
+7. **Real pages**: round 1 is the first run on them, and the first with live
+   pages during the arms.
+8. **The Ask Sage route** with a real model, and **Tavily MCP**, needed only
+   there (its models have no web search). Agent B never gets Playwright
+   MCP's `browser_run_code_unsafe`: it runs any code in Playwright's
+   process, outside the frozen copies and the egress proxy.
 
 ## 13. Layout
 
 ```
-src/a11y_assist/frozen.py   the frozen pages setting (replay, or record into the folder)
+src/a11y_assist/frozen.py   the frozen pages setting (replay, tested_frozen, or record into the folder)
 evals/agent/
-  freeze.py      record a round's pages once (python -m evals.agent.freeze <round>)
+  freeze.py      record a round's tested pages once (python -m evals.agent.freeze <round>)
   prompt.py      the task prompt, from checks.REGISTRY
   arms.py        each arm's MCP servers and their environment
   run.py         run one arm (python -m evals.agent.run --arm a|b <round>)
@@ -477,7 +484,8 @@ evals/agent/
 evals/judging/<round>/
   pages.txt, frozen/, keys/,
   results/arm-a/, results/arm-b/ (steps.jsonl, transcript.json, final.md,
-  summary.json; Agent A's tool runs in runs/), results/lock.json,
+  summary.json; Agent A's tool runs in runs/, with their live pages;
+  Agent B's live.jsonl), results/lock.json,
   agent-score.md and agent-score.json
 ```
 

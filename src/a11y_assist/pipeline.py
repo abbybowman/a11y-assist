@@ -227,7 +227,7 @@ def _live_recorder(browser, settings, run, report, proxy, final_url, get_browser
         # The same share a caller-named page gets, so a slow search cannot
         # take the later checks' time (19.A W4 on a timeout).
         lc = await asyncio.wait_for(
-            obtain(browser, settings, url, run.dir / rel, run.log, proxy),
+            obtain(browser, settings, url, run.dir / rel, run.log, proxy, tested=False),
             settings.other_page_s,
         )
         if not _same_site(lc.final_url, final_url):
@@ -239,6 +239,7 @@ def _live_recorder(browser, settings, run, report, proxy, final_url, get_browser
                 final_url=lc.final_url,
                 har=rel,
                 cross_site_frames=lc.cross_site_frames,
+                frozen=lc.frozen if settings.frozen_pages_dir else None,
                 replay_browser=replay_browser_name(settings, lc.cross_site_frames),
             )
         )
@@ -550,7 +551,15 @@ async def run_tt_tests(
                     # limit, so a slow one cannot eat the other tests' time.
                     share = hard if no_time_limit else t1 + settings.other_page_s
                     oc = await _bounded(
-                        obtain(browser, settings, other, run.dir / rel, run.log, proxy),
+                        obtain(
+                            browser,
+                            settings,
+                            other,
+                            run.dir / rel,
+                            run.log,
+                            proxy,
+                            tested=False,
+                        ),
                         min(hard, share),
                     )
                 except TimeoutError:
@@ -586,6 +595,7 @@ async def run_tt_tests(
                         final_url=oc.final_url,
                         har=rel,
                         cross_site_frames=oc.cross_site_frames,
+                        frozen=oc.frozen if settings.frozen_pages_dir else None,
                         replay_browser=replay_browser_name(
                             settings, oc.cross_site_frames
                         ),

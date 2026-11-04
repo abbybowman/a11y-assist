@@ -91,7 +91,7 @@ def script(urls):
             )
         if n == 5:
             report, helper = _results(messages)
-            assert '"frozen_pages": "replay"' in report["content"][0]["text"]
+            assert '"frozen_pages": "tested_frozen"' in report["content"][0]["text"]
             assert helper["content"][0]["text"] == "helper says hi"
             return Reply(
                 [_text('Done.\nRESULT: {"x": {}}')], "end_turn", "m-reported", _usage()

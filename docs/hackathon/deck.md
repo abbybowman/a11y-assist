@@ -165,7 +165,7 @@ flowchart LR
 - We didn't write our own answer key, because that would measure agreement with ourselves.
 - **[FILL: whether open questions were answered by a script or by Claude in the scored run.]**
 - **[PENDING]** Held-out real .gov pages, labeled blind by a certified tester in SCRT and scored by commit and reveal: page list and answer-file hashes committed when a round starts, the tool's results locked before the answers are added (`evals/judging.py`).
-- **[PENDING]** Agent-level evaluation against a browser-agent baseline (same model with Playwright MCP): blind-labeled real .gov pages and seeded faults (DHS training-course pages if allowed), three model families through NASA's Ask Sage, outcomes scored in code and wording by a judge from another family. Round 1 first: 9 pages, one run per arm (Sonnet 5.5 through the Claude Code CLI), the same WCAG 2.0 criteria prompt, scored per TT test and per criterion.
+- **[PENDING]** Agent-level evaluation against a browser-agent baseline (same model with Playwright MCP): blind-labeled real .gov pages and seeded faults (DHS training-course pages if allowed), three model families through NASA's Ask Sage, outcomes scored in code and wording by a judge from another family. Round 1 first: 9 pages, one run per arm (Sonnet 5.5 through the Claude Code CLI), the same WCAG 2.0 criteria prompt, tested pages frozen and the rest of the site live, scored per TT test and per criterion.
 
 ---
 

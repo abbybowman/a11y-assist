@@ -418,6 +418,11 @@ class OtherPage(BaseModel):
     replay_browser: str | None = Field(
         default=None, description="The browser that replayed this page."
     )
+    frozen: bool | None = Field(
+        default=None,
+        description="With frozen pages (an eval): true if this page came from "
+        "the frozen copies, false if it was recorded live.",
+    )
 
 
 class Report(BaseModel):
@@ -442,7 +447,7 @@ class Report(BaseModel):
     replay_browser: str | None = Field(
         default=None, description="The browser that replayed the tested page."
     )
-    frozen_pages: Literal["replay", "record_missing"] | None = Field(
+    frozen_pages: Literal["replay", "tested_frozen", "record_missing"] | None = Field(
         default=None,
         description="Set when the pages came from a folder of frozen "
         "recordings (an eval), not loaded live by this run.",

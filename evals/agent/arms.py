@@ -53,7 +53,9 @@ def tool_arm(frozen: Path, model: str, runs_dir: Path) -> list[Server]:
         "BROWSER_CHANNEL": "chromium",
         "HEADLESS": "true",
         "FROZEN_PAGES_DIR": str(frozen),
-        "FROZEN_PAGES_MODE": "replay",
+        # The tested pages only from the frozen copies; other pages of the
+        # tested site, and 19.A's search, live as usual (Abby, 2026-11-04).
+        "FROZEN_PAGES_MODE": "tested_frozen",
         "JUDGING_MODEL": model,  # Agent A answers the open questions
         "RUNS_DIR": str(runs_dir),
         "RUN_TTL_HOURS": "720",  # kept until the round is locked
@@ -61,7 +63,13 @@ def tool_arm(frozen: Path, model: str, runs_dir: Path) -> list[Server]:
     return [Server("a11y", sys.executable, ["-m", "a11y_assist.app"], env)]
 
 
-def browser_arm(frozen: Path, out_dir: Path, executable: str) -> list[Server]:
+def browser_arm(
+    frozen: Path,
+    out_dir: Path,
+    executable: str,
+    proxy: str | None = None,
+    live_log: Path | None = None,
+) -> list[Server]:
     """Agent B: Playwright MCP, pinned in evals/agent/node/package.json.
     `executable` is Playwright's full Chromium (the same build Agent A's
     server uses). No sandbox, as Playwright's own default; no WebMCP, so a
@@ -78,8 +86,12 @@ def browser_arm(frozen: Path, out_dir: Path, executable: str) -> list[Server]:
         str(INIT_PAGE),
         "--output-dir",
         str(out_dir),
+        *(["--proxy-server", proxy] if proxy else []),
     ]
     env = _base_env() | {"A11Y_FROZEN_DIR": str(frozen)}
+    if live_log is not None:
+        live_log.parent.mkdir(parents=True, exist_ok=True)
+        env["A11Y_LIVE_LOG"] = str(live_log)
     # browser_run_code_unsafe runs any code in Playwright's own process: it
     # could open a context the frozen replay does not cover (the live site)
     # or read files on this machine.

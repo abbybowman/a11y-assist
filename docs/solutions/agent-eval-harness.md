@@ -4,14 +4,19 @@
 frozen round. Plan: `docs/plans/2026-10-31-agent-eval.md`. Runbook:
 `evals/agent/README.md`.
 
-- **Freezing reuses the server.** `FROZEN_PAGES_DIR` (`frozen.py`) is a
-  server setting: "record_missing" records a URL and adds it; "replay"
-  replays it, and a URL with no recording is a tool error, never a live
-  fetch. `freeze.py` runs 19.A once on each page in "record_missing" mode,
-  so the page, its other pages and 19.A's site search are recorded exactly
-  as a live run records them, plus the pages 19.A suggests (once; their
-  links are not followed). A page outside the frozen set is refused, and
-  the tool says so.
+- **Frozen tested pages, live rest of the site.** A frozen search results
+  page answers only the one search the freeze made, so 19.A (and an
+  agent's own routes) needs the live site; the tested pages must still be
+  the copies the key was made on. `FROZEN_PAGES_DIR` (`frozen.py`) is a
+  server setting: "record_missing" records a URL and adds it (the freeze),
+  "tested_frozen" requires the tested page to be frozen and records other
+  same-host pages live (Agent A), "replay" refuses anything not frozen.
+  Agent B's init-page applies the same split in its browser, logs each
+  live page, and its connections go through `egress.py`, as Agent A's do.
+- **Init-page route order.** Playwright runs the most recently registered
+  route first. The rule for what no recording answers (live, refused or
+  aborted) is registered first, so it runs last; every HAR then uses
+  `notFound: "fallback"`.
 - **Playwright MCP 0.0.83 writes automatic page snapshots to a file**
   (`[Snapshot](…yml)`), not into the tool result. Agent B has no file
   tools, so it must call `browser_snapshot`, which returns the snapshot
@@ -22,9 +27,9 @@ frozen round. Plan: `docs/plans/2026-10-31-agent-eval.md`. Runbook:
   page registers itself (WebMCP). Agent B runs with `--no-sandbox` (our
   server's Playwright default) and `--no-webmcp`, because page content
   must never choose a tool.
-- **Its HAR replay needs two fixes.** With several HARs on one page, only
-  the first registered may use `notFound: "abort"`: later routes run
-  first, so an aborting later HAR would hide the others. Requests that
+- **Its HAR replay needs care.** With several HARs on one page, none may
+  use `notFound: "abort"`: later routes run first, so an aborting HAR
+  would hide the others and the live rule. Requests that
   failed while recording (status -1) must be failed again, or the replay
   waits forever (`egress-proxy.md`). Its HAR zips use data descriptors, so
   the init-page reads the zip's central directory.

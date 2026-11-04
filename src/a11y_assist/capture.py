@@ -35,6 +35,7 @@ class Capture:
     # Frames on another host than the top page, seen while recording. Their
     # replays run in full Chromium (browser.replay_in_full_chromium).
     cross_site_frames: list[str] = field(default_factory=list)
+    frozen: bool = False  # replayed from a frozen pages folder (frozen.py)
 
 
 async def record(

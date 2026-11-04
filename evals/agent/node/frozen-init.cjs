@@ -1,10 +1,19 @@
-// Agent B's replay of a round's frozen pages (docs/plans/2026-10-31-agent-eval.md
+// Agent B's browser for a round (docs/plans/2026-10-31-agent-eval.md
 // section 6). Playwright MCP runs this on each page it opens (--init-page).
-// A11Y_FROZEN_DIR is the folder evals/agent/freeze.py wrote (index.json + HARs).
-// Every recording is served; a request no recording holds is aborted, never
-// fetched live. Requests that failed while recording (status -1) are failed
-// again, as capture.replay_context does: Playwright's HAR replay would
-// otherwise wait on them forever.
+//
+// - The round's tested pages come only from their frozen copies
+//   (A11Y_FROZEN_DIR: index.json + HARs), never live, as for Agent A.
+// - Other pages of the tested site's hosts load live, as Agent A's server
+//   loads other pages and 19.A's search live. Each live page is logged to
+//   A11Y_LIVE_LOG (JSON lines), so the round stays auditable.
+// - A page on any other host is refused. A live page's own images and
+//   scripts load from wherever they come from; the browser's connections
+//   go through the harness's egress proxy (--proxy-server), which refuses
+//   private, loopback and metadata addresses, as for Agent A.
+// - A frozen page's requests that are not in its recording are aborted, and
+//   requests that failed while recording (status -1) fail again, as
+//   capture.replay_context does: Playwright's HAR replay would otherwise wait
+//   on them forever.
 const fs = require("fs");
 const path = require("path");
 const zlib = require("zlib");
@@ -38,15 +47,62 @@ function harEntries(file) {
   return [];
 }
 
+function key(u) {
+  try {
+    const x = new URL(u);
+    x.hash = "";
+    return x.href;
+  } catch {
+    return u;
+  }
+}
+
+function host(u) {
+  try {
+    return new URL(u).hostname.toLowerCase();
+  } catch {
+    return "";
+  }
+}
+
 module.exports.default = async function ({ page }) {
   const dir = process.env.A11Y_FROZEN_DIR;
   if (!dir) throw new Error("A11Y_FROZEN_DIR is not set");
   const index = JSON.parse(fs.readFileSync(path.join(dir, "index.json"), "utf8"));
-  const hars = [...new Set(Object.values(index).map((p) => path.join(dir, p.har)))];
-  if (!hars.length) throw new Error("No frozen pages in " + dir);
-  // Later routes run first: the first HAR aborts what none of them holds.
-  for (const [i, har] of hars.entries()) {
-    await page.routeFromHAR(har, { notFound: i === 0 ? "abort" : "fallback" });
+  const pages = Object.values(index);
+  if (!pages.length) throw new Error("No frozen pages in " + dir);
+  const tested = new Set(pages.flatMap((p) => [key(p.url), key(p.final_url)]));
+  const hosts = new Set(pages.flatMap((p) => [host(p.url), host(p.final_url)]));
+  const liveLog = process.env.A11Y_LIVE_LOG;
+  const note = (row) => {
+    if (liveLog) {
+      fs.appendFileSync(liveLog, JSON.stringify({ ts: new Date().toISOString(), ...row }) + "\n");
+    }
+  };
+  // Registered first, so it runs last: what no recording answered.
+  await page.route("**", async (route) => {
+    const req = route.request();
+    const url = req.url();
+    let frame = null;
+    try {
+      frame = req.frame();
+    } catch {}
+    const topLevel = req.isNavigationRequest() && frame && !frame.parentFrame();
+    if (topLevel) {
+      if (tested.has(key(url))) return route.abort("blockedbyclient"); // frozen only
+      if (hosts.has(host(url))) {
+        note({ url, live: true });
+        return route.continue();
+      }
+      note({ url, refused: "not the tested site" });
+      return route.abort("blockedbyclient");
+    }
+    if (tested.has(key(page.url()))) return route.abort("failed"); // as the replay
+    return route.continue();
+  });
+  const hars = [...new Set(pages.map((p) => path.join(dir, p.har)))];
+  for (const har of hars) {
+    await page.routeFromHAR(har, { notFound: "fallback" });
   }
   const failed = new Set();
   for (const har of hars) {
@@ -55,6 +111,6 @@ module.exports.default = async function ({ page }) {
     }
   }
   if (failed.size) {
-    await page.route((url) => failed.has(url.href), (route) => route.abort("failed"));
+    await page.route((u) => failed.has(u.href), (route) => route.abort("failed"));
   }
 };

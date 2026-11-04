@@ -95,6 +95,9 @@ by TT test ID. Package: `a11y_assist` (name is provisional).
 - Frozen pages (`FROZEN_PAGES_DIR`, evals only) are a server setting, never
   a tool input: in "replay" mode every page a run loads comes from the
   folder, and a URL with no recording is a tool error, never fetched live.
+  In "tested_frozen" mode (the agent eval; Abby, 2026-11-04) the tested
+  page must come from the folder, and other pages of its host (other
+  pages, 19.A's search) load live under the usual rules.
 - A page that is never tested (not allowed, cannot load, bad input) is a tool
   error (`ToolError`, isError), not a finding, and leaves no run folder.
 - Hosted deployment is the target; stdio is fine for now. Build nothing that
@@ -114,10 +117,7 @@ by TT test ID. Package: `a11y_assist` (name is provisional).
   two kinds of way; one per run; a GET form whose action passes the
   allowlist and is on the tested page's host (every redirect hop checked);
   the term is the tested page's own heading; recorded as its own HAR.
-  Other URLs found on pages are only *suggested* to the user, never visited,
-  with one eval-only exception (Abby, 2026-11-04): freezing a round
-  (`evals/agent/freeze.py`) also records the pages 19.A suggests, once
-  (same host, allowlisted, at most 5), and never follows their links.
+  Other URLs found on pages are only *suggested* to the user, never visited.
 - Hackathon docs: when a TT test, spec version, evaluation method or
   security control changes, update `docs/hackathon/evaluation.md` and the
   matching slide in `docs/hackathon/deck.md` in the same commit. Remove a

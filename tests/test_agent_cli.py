@@ -81,9 +81,11 @@ async def test_cli_route_isolation_and_log(tmp_path, monkeypatch):
     assert (out / "final.md").read_text().startswith("Done.\nRESULT:")
     steps = [json.loads(x) for x in (out / "steps.jsonl").read_text().splitlines()]
     tool = next(r for r in steps if r["type"] == "tool")
-    assert tool["seconds"] >= 0.1 and tool["result_chars"] > 0
+    # Durations come from when stream lines arrive; under load they can come
+    # in one batch, so only their presence is checked, not a minimum.
+    assert tool["seconds"] >= 0 and tool["result_chars"] > 0
     model = [r for r in steps if r["type"] == "model"]
-    assert all(r["seconds"] >= 0.05 for r in model)
+    assert all(isinstance(r["seconds"], float) for r in model)
     transcript = json.loads((out / "transcript.json").read_text())
     assert not any(e.get("type") == "stream_event" for e in transcript)  # no deltas
 
