@@ -83,6 +83,19 @@ class Settings(BaseSettings):
     # Durable results belong in the user's codebase (saved from tool output).
     run_ttl_hours: float = Field(default=24, gt=0)
 
+    # ── Frozen pages (evals only) ─────────────────────────────────────────────
+    # A folder of recordings made once (evals/agent/freeze.py). When set, the
+    # server replays a URL's recording instead of loading it live: the tested
+    # page, other pages and 19.A's site search. "replay" refuses a URL with no
+    # recording (a tool error, nothing fetched live); "tested_frozen" (the
+    # agent eval) requires a recording of the tested page, and records other
+    # pages of the same host live as usual (other pages, 19.A's search);
+    # "record_missing" records a URL live and adds it (the freeze step). A
+    # server setting, never a tool input: neither the caller nor page content
+    # chooses a recording.
+    frozen_pages_dir: Path | None = None
+    frozen_pages_mode: Literal["replay", "tested_frozen", "record_missing"] = "replay"
+
     # ── Vendored tools ────────────────────────────────────────────────────────
     third_party_dir: Path = REPO_ROOT / "third_party"
 

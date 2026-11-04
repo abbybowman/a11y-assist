@@ -98,6 +98,7 @@ class RunContext:
     # A fresh load with pass T's hooks (motion.MOTION_INIT_JS) before page
     # scripts, for 2.A-2.D (motion.collect). None when not available.
     open_motion: NewPage | None = None
+    motion_browser: str = ""  # what runs those loads, for the evidence
 
     def out_of_time(self) -> bool:
         """Past the checks' deadline (4.C spec section 2, Run limits). Use it

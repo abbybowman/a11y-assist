@@ -26,6 +26,14 @@ REVIEW at no cost ([solutions/multi-page.md](solutions/multi-page.md));
 19.A uses the same pages, then runs the site's own search live once if it
 must (the one approved exception to principle 5).
 
+Agent eval ([plan](plans/2026-10-31-agent-eval.md), [runbook](../evals/agent/README.md)):
+the round 1 harness is built and tested on fixtures with a scripted model
+(freeze, both arms, lock, score), and the Claude Code CLI route was
+smoke-run on a fixture site with Sonnet 5.5. It has not run on real pages.
+Round 1 runs on the CLI route: Abby commits `pages.txt` and freezes the
+pages on her laptop, then both arms run in a cloud session. Pages with cross-site iframes now replay in full Chromium
+([solutions/full-chromium-iframes.md](solutions/full-chromium-iframes.md)).
+
 Next: 2.B, 2.C and 2.D (moving, auto-updating and changing content) as one
 batch on the walk's mutation log, 4.E's dialog detection and 5.F's
 live-region rule; then the visual-versus-code cluster. Choose with the
@@ -108,15 +116,15 @@ run).
 - **"Test a page" prompt** for operators who are not Trusted Testers: run,
   answer questions (one subagent for all of them), summarize, read
   `report_uri` and offer to save it.
-- **Agent-level eval** (plan: [plans/2026-10-31-agent-eval.md](plans/2026-10-31-agent-eval.md)).
-  A model drives the tools end to end against a Playwright MCP baseline;
-  outcomes scored in code with fixed weights, wording by a judge from
-  another model family; 5 repeats. Next: build the harness on the
-  development set with Sonnet 5.5 Gov through Ask Sage (route checked
-  2026-11-01). Abby is choosing and blind-labeling real .gov pages, split
-  by site; seeded faults cover keyboard traps. Open: DHS training pages
-  (DHS's terms and the hackathon's "publicly available" rule), the GPT and
-  Gemini routes, and how real pages are frozen for both arms. Also still
+- **Agent-level eval: round 1 and after** (plan: [plans/2026-10-31-agent-eval.md](plans/2026-10-31-agent-eval.md);
+  runbook: `evals/agent/README.md`). Next, in order (weights and forms wording
+  approved 2026-11-04): Abby commits `pages.txt` and freezes on her laptop (no model needed), then
+  commits `frozen/`; Agent A, then Agent B at the start of a fresh 5-hour
+  window, on the CLI route; lock, reveal, score. Later: the Ask Sage route
+  (set `AGENT_API_AUTH_HEADER`; install Tavily MCP for Agent B's search),
+  reported apart from CLI-route rounds; matching a failing element
+  Agent B names to the key's element, plain-language rounds, repeats, the
+  wording judge, the GPT and Gemini routes, DHS training pages. Also still
   to cover: a check that fails when a judge-eval agent opens files outside
   its packet (agent-eval agents get no file tools).
 - **Network-level egress rules** on any host that runs the server, as a

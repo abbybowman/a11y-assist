@@ -35,23 +35,20 @@ Built, with tests (`tests/test_motion.py`, fixtures `tests/fixtures/2x/t-*.html`
 - OPEN O1 in the 2.C spec (content that stopped changing before 5 s) is
   built as a hint (NEEDS REVIEW), waiting for Abby.
 
-**Waiting for Q11**, which is built on `agent-eval-round1` (commit
-`21f26cc`: `Capture.cross_site_frames`, `launch_browser(full_chromium=True)`,
-`get_browser(full)`, the report's `replay_browser`; its tests passed here,
-2026-11-04). It merges into this branch with one small conflict in
-`pipeline._opener`. Once merged, the autoplay browser needs one more
-thing: `launch_browser` taking extra arguments (`motion.AUTOPLAY_ARG`).
-Q11 decides which browser runs pass T and the probes. `pass_t` takes an opener and does not choose a
-browser, so nothing here waits on it. These do:
+**Q11 is merged** (from `main`, 2026-11-04), and pass T runs in its own
+browser: `browser.launch_for(..., autoplay=True)` is full Chromium, always
+headless, with `--autoplay-policy=no-user-gesture-required` (Q1), launched
+only when a 2.x check is selected. Pass T starts as a task beside the walk
+(Q2; `ctx.cache["motion_task"]`, awaited by `motion.collect`). Pass T's
+evidence records its browser (`MotionPass.browser`). Tests:
+`tests/test_motion_browser.py` (autoplay plays only with the flag, V2's
+first part; regions and live regions inside an out-of-process frame, V7's
+pass T part; one watch, started before the walk ends).
 
-- `Capture.cross_site_frames` and the replay-browser choice (`capture.py`,
-  `browser.py`, `pipeline.py`);
-- the second, autoplay-allowed, full-Chromium browser (Q1) and starting
-  pass T beside P1 (Q2): the launch is the same code Q11 adds;
-- the report field naming the replay browser;
-- fixtures that need out-of-process iframes (audio-in-iframe, V7 as a test).
+Still open from Q2: the extra time allowance for pages with moving content
+(set when the probe exists and is measured on a budget page).
 
-Not started, and not blocked by Q11: the media store (items 13-14), the
+Not started: the media store (items 13-14), the
 mechanism probe, the scrolled watch, loudness and `ImageDecoder`, 2.B and
 2.A (`t2b.py`, `t2a.py`), the vendored ACT cases, the walk cross-check (A2),
 the judge eval on the questions, and 2.D's note for `aria-live="off"`
@@ -131,12 +128,12 @@ network.
 | ID | Verify | Rules that depend on it | Status |
 | --- | --- | --- | --- |
 | V1 | Tab reaches a `<video controls>` element's own buttons in Chrome, and Enter or Space on its play button pauses it | 2.A native controls | Not checked |
-| V2 | Autoplay plays on replay only with the flag (item 1); loudness from bytes separates silent from audible (item 4); muted and short audio are not instances | 2.A Terms, A3 | Checked (scratch) |
+| V2 | Autoplay plays on replay only with the flag (item 1); loudness from bytes separates silent from audible (item 4); muted and short audio are not instances | 2.A Terms, A3 | Flag: test (`test_autoplay_plays_only_in_the_motion_browser`; a page's own `play()` on a script-made blob plays even without it, so the test uses `<audio autoplay src>`); loudness and instances not built |
 | V3 | `ImageDecoder` gives frames, loops and duration for GIF, APNG and WebP (item 8); pixel diffs separate still-moving from stopped-before-5 s (item 6) | 2.B Terms | Checked (scratch) |
 | V4 | Timer hooks catch a period longer than the watch (item 7); the scrolled watch sees a below-the-fold animation | 2.C A2, 2.B | Hook: test (`test_kinds`, a 10 s interval); scrolled watch not built |
 | V5 | Polling repeats the first response on replay, and the HAR lists every poll (item 10) | 2.C A2 | Test (`test_polling_is_in_the_har`): the replay repeats the first response; the HAR held only one or two polls (recording stops at network idle), so pass T also counts requests during the watch |
 | V6 | Slick and Splide pause on focus and resume when it leaves; four of six libraries pause on hover (item 12). Vendor the libraries for the fixtures | 2.C K2 | Checked (scratch, libraries from the network) |
-| V7 | Full Chromium puts cross-site iframes out-of-process; media state, pixels and Tab work through them (items 15–16); a shell recording replays in full Chromium (Q11) | Q11; 2.A–2.D in frames | Checked (scratch) |
+| V7 | Full Chromium puts cross-site iframes out-of-process; media state, pixels and Tab work through them (items 15–16); a shell recording replays in full Chromium (Q11) | Q11; 2.A–2.D in frames | Out-of-process and replay: `tests/test_full_chromium.py` (main); pass T's regions, live regions and elements in such a frame: `test_cross_site_frame_in_full_chromium`; media and Tab in it not yet |
 | V8 | A live region added in the same task as its text is told apart from one present at 0 s | 2.D Terms | Not checked |
 | V9 | Home, End and arrows on a volume slider set the media's volume to 0 | 2.A | Not checked |
 | V10 | Media fetched in several ranges fails on replay, and the media store fixes it (items 13–14) | 2.A, 2.B A1 | Checked (scratch) |

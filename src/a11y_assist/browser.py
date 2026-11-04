@@ -40,27 +40,83 @@ class PageUnreachable(RuntimeError):
     """A top-level navigation's host could not be connected to."""
 
 
+FULL_CHROMIUM = "full Chromium"
+# TT 5.1.3's setup: a browser "not set to block autoplay". Without it, media
+# in a HAR replay never starts (2.A-2.D plan, item 1). Only pass T's browser
+# gets it, so the walk and every other test see the page as before (Q1).
+AUTOPLAY_ARG = "--autoplay-policy=no-user-gesture-required"
+MOTION_BROWSER = "full Chromium, headless, autoplay allowed"
+
+
+def replay_in_full_chromium(settings: Settings, cross_site_frames: list[str]) -> bool:
+    """Replays of a page with cross-site iframes run in full Chromium, never
+    the headless shell: the shell runs those frames in-process, unlike the
+    Chrome users have (docs/solutions/full-chromium-iframes.md). Installed
+    Chrome already runs them out-of-process, and headed "chromium" is
+    already full Chromium."""
+    return (
+        settings.browser_channel == "chromium"
+        and settings.headless
+        and bool(cross_site_frames)
+    )
+
+
+def replay_browser_name(settings: Settings, cross_site_frames: list[str]) -> str:
+    """What the report records as the browser that replays a page."""
+    if replay_in_full_chromium(settings, cross_site_frames):
+        return FULL_CHROMIUM
+    if settings.browser_channel == "chromium":
+        return "headless shell" if settings.headless else FULL_CHROMIUM
+    return settings.browser_channel
+
+
 async def launch_browser(
-    pw: Playwright, settings: Settings, proxy: EgressProxy
+    pw: Playwright,
+    settings: Settings,
+    proxy: EgressProxy,
+    full_chromium: bool = False,
+    extra_args: tuple[str, ...] = (),
+    headless: bool | None = None,
 ) -> Browser:
     """Chrome whose only way out is `proxy` (egress.py), which checks the
-    address of every connection. There is no unproxied launch."""
+    address of every connection. There is no unproxied launch.
+
+    `full_chromium` launches Playwright's full Chromium (new headless mode)
+    instead of the configured browser; see replay_in_full_chromium.
+    `extra_args` and `headless` serve pass T's browser (launch_for)."""
     if not proxy.url:
         raise RuntimeError("The egress proxy is not running")
-    channel = (
-        None if settings.browser_channel == "chromium" else settings.browser_channel
-    )
+    if full_chromium:
+        channel = "chromium"
+    else:
+        channel = (
+            None if settings.browser_channel == "chromium" else settings.browser_channel
+        )
     return await pw.chromium.launch(
         channel=channel,
-        headless=settings.headless,
+        headless=settings.headless if headless is None else headless,
         args=[
             *settings.browser_args,
+            *extra_args,
             # No UDP outside the proxy (WebRTC could otherwise reach any address).
             "--force-webrtc-ip-handling-policy=disable_non_proxied_udp",
         ],
         # Playwright adds <-loopback>, so loopback goes through the proxy too.
         proxy={"server": proxy.url},
     )
+
+
+async def launch_for(
+    pw: Playwright, settings: Settings, proxy: EgressProxy, full: bool, autoplay: bool
+) -> Browser:
+    """The browser for one kind of load: the configured browser, full
+    Chromium (cross-site frames, Q11), or pass T's (autoplay: full Chromium,
+    always headless so a headed run's walk keeps its window and focus, Q1)."""
+    if autoplay:
+        return await launch_browser(
+            pw, settings, proxy, True, (AUTOPLAY_ARG,), headless=True
+        )
+    return await launch_browser(pw, settings, proxy, full_chromium=full)
 
 
 async def new_context(

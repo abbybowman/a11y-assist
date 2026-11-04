@@ -559,6 +559,7 @@ class Check2C:
     test_id = TestId.T2C
     state_type = State2C
     uses_walk = False
+    uses_motion = True  # pass T, started beside the walk
     about = (
         "It watches the page for a few seconds without touching it, and finds "
         "content that changes by itself, like carousels, tickers and counters. "

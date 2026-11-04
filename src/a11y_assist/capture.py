@@ -12,6 +12,7 @@ import zipfile
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlsplit
 
 from playwright.async_api import Browser, BrowserContext
 
@@ -19,7 +20,10 @@ from a11y_assist.andi import install_andi_routes
 from a11y_assist.browser import LogFn, NavigationGuard, new_context
 from a11y_assist.config import Settings
 from a11y_assist.egress import EgressProxy
+from a11y_assist.redact import safe_url
 from a11y_assist.traverse import INIT_JS
+
+MAX_FRAMES_KEPT = 20  # enough to show why; the decision needs only one
 
 
 @dataclass
@@ -28,6 +32,10 @@ class Capture:
     final_url: str
     har_path: Path
     redirects: list[dict[str, Any]] = field(default_factory=list)
+    # Frames on another host than the top page, seen while recording. Their
+    # replays run in full Chromium (browser.replay_in_full_chromium).
+    cross_site_frames: list[str] = field(default_factory=list)
+    frozen: bool = False  # replayed from a frozen pages folder (frozen.py)
 
 
 async def record(
@@ -59,9 +67,34 @@ async def record(
             await _idle(page, log, 3_000)
             grew = await page.evaluate("document.documentElement.scrollHeight") > height
             log("capture_scroll", pass_=i + 1, page_grew=grew)
+        frames = cross_site_frames(page.url, [f.url for f in page.frames[1:]])
+        if frames:
+            log("capture_cross_site_frames", count=len(frames))
     finally:
         await ctx.close()  # writes the HAR
-    return Capture(url, final_url, har_path, guard.redirects)
+    return Capture(url, final_url, har_path, guard.redirects, frames)
+
+
+def _host(url: str) -> str:
+    try:
+        return (urlsplit(url).hostname or "").lower().rstrip(".")
+    except ValueError:
+        return ""
+
+
+def cross_site_frames(top_url: str, frame_urls: list[str]) -> list[str]:
+    """Frame URLs (query and fragment dropped) on another host than the top
+    page. Another host is wider than Chrome's "site" (same registrable
+    domain), so a same-site subdomain also counts: that only costs a slower
+    replay, never a different one. about:blank, data: and srcdoc frames share
+    the parent's process and are skipped."""
+    top = _host(top_url)
+    out = {
+        safe_url(u)
+        for u in frame_urls
+        if u.startswith(("http:", "https:")) and _host(u) not in ("", top)
+    }
+    return sorted(out)[:MAX_FRAMES_KEPT]
 
 
 def _failed_urls(har_path: Path) -> set[str]:

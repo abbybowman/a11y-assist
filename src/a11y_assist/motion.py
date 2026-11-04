@@ -39,6 +39,7 @@ from PIL import Image, ImageChops
 from playwright.async_api import BrowserContext, Frame, Page
 from pydantic import BaseModel, Field
 
+from a11y_assist.browser import AUTOPLAY_ARG, MOTION_BROWSER  # noqa: F401
 from a11y_assist.observe import DIALOGS_JS
 from a11y_assist.site import UNITS_FN
 from a11y_assist.traverse import PATH_JS, screenshot
@@ -56,9 +57,6 @@ MAX_REGIONS = 40
 # page-wide change (a dialog's backdrop, a scroll), noted and not mapped.
 PAGE_CHANGE = 0.5
 
-# The autoplay setting TT 5.1.3 asks for ("browser not set to block
-# autoplay"): without it, media in a HAR replay never starts (item 1).
-AUTOPLAY_ARG = "--autoplay-policy=no-user-gesture-required"
 
 OpenPage = Callable[[], Awaitable[tuple[BrowserContext, Page]]]
 
@@ -548,6 +546,7 @@ class MotionPass(BaseModel):
     ok: bool = True
     error: str = ""
     watch_s: float = WATCH_S
+    browser: str = ""  # the browser that ran pass T (browser.MOTION_BROWSER)
     frames: list[float] = Field(default_factory=list)  # times of each frame
     shots: list[str] = Field(default_factory=list)  # run-folder paths
     reads: list[float] = Field(default_factory=list)  # times of the reads
@@ -1005,6 +1004,9 @@ async def collect(ctx: Any) -> MotionPass:
     """Pass T once per call, shared by the 2.x checks (ctx.cache["motion"])."""
     if "motion" in ctx.cache:
         return ctx.cache["motion"]
+    started = ctx.cache.get("motion_task")  # the pipeline's, beside the walk
+    if started is not None and started is not asyncio.current_task():
+        return await started
     if getattr(ctx, "open_motion", None) is None:
         mp = MotionPass(ok=False, error="the page could not be watched in this run")
     elif ctx.out_of_time():
@@ -1017,5 +1019,6 @@ async def collect(ctx: Any) -> MotionPass:
         mp = await pass_t(
             ctx.open_motion, har if har.exists() else None, ctx.shots, ctx.rel
         )
+    mp.browser = getattr(ctx, "motion_browser", "")
     ctx.cache["motion"] = mp
     return mp

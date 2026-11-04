@@ -45,8 +45,9 @@ measurements and the order of work.
 
 **Building (2026-11-04).** Pass T (`motion.py`) is built and tested; status
 and what waits for Q11 are in [2c-build-tasks.md](../rules/2c-build-tasks.md).
-Q11 itself (the replay-browser choice, `Capture.cross_site_frames`, and the
-full-Chromium launch) is being built on the eval-harness branch.
+Q11 (the replay-browser choice, `Capture.cross_site_frames`, the
+full-Chromium launch) came from the eval branch through `main`; pass T now
+runs in its own autoplay browser beside the walk (Q1, Q2).
 
 Nothing is left open in this plan. Questions that come up while building
 go in the specs as OPEN marks.

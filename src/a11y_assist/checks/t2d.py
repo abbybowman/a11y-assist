@@ -341,6 +341,7 @@ class Check2D:
     test_id = TestId.T2D
     state_type = State2D
     uses_walk = False
+    uses_motion = True  # pass T, started beside the walk
     about = (
         "It watches the page for a few seconds without touching it. For each "
         "piece of content that changes by itself, it checks that screen reader "
