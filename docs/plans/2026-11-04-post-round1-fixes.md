@@ -88,6 +88,22 @@ scores: `evals/judging/round1/`. Eval plan:
   "No such tool available"). Probably to wait for a slow call. Harmless;
   noted for the agent's behaviour, nothing to fix.
 
+### 6b. A tool result too large for the client
+
+- **Found:** round 1. The search page's result was over the Claude Code
+  CLI's limit for an MCP result, so the CLI saved it to a file and gave the
+  agent the path. The eval's agent had no file tools: `arm-a-2` went on
+  without that page's results, and `arm-a-3` stopped mid-task with no
+  result line. A Claude Code user's agent can read the file, but every
+  client has some limit, and CLAUDE.md asks for small tool output.
+- **Fix (the tool):** keep `a11y_run_tt_tests`' result under common client
+  limits on a busy page (large evidence in `shared_inputs` and `run://`
+  resources, not inline); measure the round 1 search page's result. The
+  harness now gives both arms `Read`, allowed only in the CLI's folder of
+  saved results (`cli.py`; checked: a saved result read, a repo file
+  refused).
+- **Status:** the harness part done; the tool part not started.
+
 ### 7. The freeze should check its own recordings (the harness)
 
 - **Found:** round 1 twice. A typo in `pages.txt` froze NASA's "Page Not

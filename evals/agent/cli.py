@@ -85,12 +85,21 @@ class ClaudeCodeCLI:
         # The CLI cuts an MCP tool call off at 60 s by default; a run of the
         # tool with other pages takes minutes (round 1's first attempt, 2026-11-04).
         env["MCP_TOOL_TIMEOUT"] = str(MCP_TOOL_TIMEOUT_MS)
+
         return env
 
     def _args(
-        self, prompt: str, mcp: Path, tools: list[str], servers, hosts=()
+        self, prompt: str, mcp: Path, tools: list[str], servers, hosts=(), home=None
     ) -> list[str]:
         allowed = [f"mcp__{s.name}" for s in servers] + tools
+        if tools and home is not None:
+            # The CLI saves a large tool result to a file under its home and
+            # gives the model the path (round 1: the search page's result in
+            # arm-a-2 and arm-a-3, which the agent could not open). Read is
+            # allowed in that folder only, for both arms, as a Claude Code
+            # user's agent could read it.
+            tools = [*tools, "Read"]
+            allowed += [f"Read(/{home}/.claude/projects/**)"]
         denied = [f"mcp__{s.name}__{t}" for s in servers for t in s.deny]
         if "WebFetch" in tools:
             denied += fetch_denials(list(hosts))
@@ -138,7 +147,7 @@ class ClaudeCodeCLI:
                 )
             )
             proc = await asyncio.create_subprocess_exec(
-                *self._args(prompt, mcp, tools, servers, hosts),
+                *self._args(prompt, mcp, tools, servers, hosts, tmp / "home"),
                 cwd=tmp / "work",
                 env=self._env(tmp / "home"),
                 stdin=asyncio.subprocess.DEVNULL,

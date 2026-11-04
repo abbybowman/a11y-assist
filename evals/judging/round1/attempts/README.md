@@ -44,3 +44,14 @@ again at about 14:55 UTC with its CSS and scripts. Agent A's runs were not
 affected on the 8 pages frozen on Abby's laptop; `arm-a-2`'s search page
 result used the broken copy and is not scored. Agent A's live 19.A searches
 in `arm-a-1` and `arm-a-2` loaded without their scripts.
+
+## arm-a-3, first attempt (2026-11-04, 15:08-15:27 UTC)
+
+Agent A's third run ended without a result line. The search page's tool
+result was over the CLI's output limit, so the CLI saved it to a file and
+gave the agent the path; the agent had no file tools (it tried Bash, a
+helper and the resource list), then ended its turn "waiting" with no
+results. Fixed in `evals/agent/cli.py`: both arms get `Read`, allowed only
+in the CLI's folder of saved tool results. The same limit hid the search
+page's result from `arm-a-2` (not scored for that page anyway). Agent A was
+run again as `arm-a-3`.

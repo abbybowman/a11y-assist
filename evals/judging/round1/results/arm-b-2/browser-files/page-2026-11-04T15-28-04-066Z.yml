@@ -1,0 +1,405 @@
+- generic [ref=f11e1]:
+  - banner [ref=f11e2]:
+    - generic [ref=f11e3]:
+      - generic [ref=f11e4]:
+        - list [ref=f11e5]:
+          - listitem [ref=f11e6]:
+            - button "Explore" [ref=f11e7] [cursor=pointer]
+        - search [ref=f11e15]:
+          - generic [ref=f11e16]: Search
+          - searchbox "Search" [ref=f11e17]
+      - link [ref=f11e19] [cursor=pointer]:
+        - /url: https://www.nasa.gov/
+        - img "NASA Logo" [ref=f11e20]
+      - navigation "Primary navigation" [ref=f11e21]:
+        - list [ref=f11e23]:
+          - listitem [ref=f11e24]:
+            - button "News & Events" [ref=f11e25]
+          - listitem [ref=f11e30]:
+            - button "Multimedia" [ref=f11e31]
+          - listitem [ref=f11e36]:
+            - link "NASA+ Live" [ref=f11e37] [cursor=pointer]:
+              - /url: https://plus.nasa.gov/
+  - text: Live
+  - main [ref=f11e38]:
+    - article [ref=f11e39]:
+      - generic [ref=f11e41]:
+        - heading "NSSC Accounts Receivable" [level=2] [ref=f11e45]
+        - generic [ref=f11e49]:
+          - paragraph [ref=f11e51]: "* indicates a required field"
+          - generic [ref=f11e52]:
+            - generic [ref=f11e54]:
+              - paragraph [ref=f11e56]: All fields are required unless otherwise stated. Never include sensitive or personal information like your Social Security number, as e-mail isn’t necessarily secure. Use postal mail for sensitive information.
+              - heading "Requestor Information" [level=3] [ref=f11e58]
+              - generic [ref=f11e59]:
+                - generic [ref=f11e60]:
+                  - text: "Requestor NASA Site:"
+                  - generic [ref=f11e61]: "*"
+                - combobox "Requestor NASA Site:*" [ref=f11e63]:
+                  - option "NASA Headquarters" [selected]
+                  - option "Ames Research Center"
+                  - option "Armstrong Flight Research Center"
+                  - option "Glenn Research Center"
+                  - option "Goddard Flight Research Center"
+                  - option "Johnson Space Center"
+                  - option "Kennedy Space Center"
+                  - option "Langley Research Center"
+                  - option "Marshall Space Flight Center"
+                  - option "NASA Shared Services Center"
+                  - option "Office of Inspector General"
+                  - option "Stennis Space Center"
+                  - option "Other (Please Specify)"
+              - group "Requestor Name:*" [ref=f11e64]:
+                - generic [ref=f11e65]:
+                  - text: "Requestor Name:"
+                  - generic [ref=f11e66]: "*"
+                - generic [ref=f11e67]:
+                  - generic [ref=f11e68]:
+                    - textbox "First" [ref=f11e69]
+                    - generic [ref=f11e70]: First
+                  - generic [ref=f11e71]:
+                    - textbox "Last" [ref=f11e72]
+                    - generic [ref=f11e73]: Last
+              - generic [ref=f11e74]:
+                - generic [ref=f11e75]:
+                  - text: "Requestor Email:"
+                  - generic [ref=f11e76]: "*"
+                - textbox "Requestor Email:*" [ref=f11e78]
+              - generic [ref=f11e79]:
+                - generic [ref=f11e80]:
+                  - text: "Requestor Phone Number:"
+                  - generic [ref=f11e81]: "*"
+                - textbox "Requestor Phone Number:*" [ref=f11e83]:
+                  - /placeholder: (999) 999-9999
+              - generic [ref=f11e84]:
+                - heading "Accounts Receivable Information" [level=3] [ref=f11e85]
+                - generic [ref=f11e86]: Please reference the crosswalk from NASA fund codes to Treasury Account Symbols (TAS) guide for assistance in completing the TAS/BETC field.
+              - generic [ref=f11e87]:
+                - generic [ref=f11e88]:
+                  - text: "Customer/Vendor Name:"
+                  - generic [ref=f11e89]: "*"
+                - textbox "Customer/Vendor Name:*" [ref=f11e91]
+              - generic [ref=f11e92]:
+                - generic [ref=f11e93]:
+                  - text: "Type of Amount:"
+                  - generic [ref=f11e94]: "*"
+                - combobox "Type of Amount:*" [ref=f11e96]:
+                  - option "Exact" [selected]
+                  - option "Estimated"
+              - generic [ref=f11e97]:
+                - generic [ref=f11e98]:
+                  - text: "Type of Receivable:"
+                  - generic [ref=f11e99]: "*"
+                - combobox "Type of Receivable:*" [ref=f11e101]:
+                  - option "Advance" [selected]
+                  - option "SEWP"
+              - generic [ref=f11e102]:
+                - generic [ref=f11e103]:
+                  - text: "Amount:"
+                  - generic [ref=f11e104]: "*"
+                - textbox "Amount:*" [ref=f11e106]
+              - group "Estimated Date:*" [ref=f11e107]:
+                - generic [ref=f11e108]:
+                  - text: "Estimated Date:"
+                  - generic [ref=f11e109]: "*"
+                - generic [ref=f11e110]:
+                  - generic [ref=f11e111]:
+                    - generic [ref=f11e112]: Month
+                    - combobox "Month" [ref=f11e113]:
+                      - option "Month" [selected]
+                      - option "1"
+                      - option "2"
+                      - option "3"
+                      - option "4"
+                      - option "5"
+                      - option "6"
+                      - option "7"
+                      - option "8"
+                      - option "9"
+                      - option "10"
+                      - option "11"
+                      - option "12"
+                  - generic [ref=f11e114]:
+                    - generic [ref=f11e115]: Day
+                    - combobox "Day" [ref=f11e116]:
+                      - option "Day" [selected]
+                      - option "1"
+                      - option "2"
+                      - option "3"
+                      - option "4"
+                      - option "5"
+                      - option "6"
+                      - option "7"
+                      - option "8"
+                      - option "9"
+                      - option "10"
+                      - option "11"
+                      - option "12"
+                      - option "13"
+                      - option "14"
+                      - option "15"
+                      - option "16"
+                      - option "17"
+                      - option "18"
+                      - option "19"
+                      - option "20"
+                      - option "21"
+                      - option "22"
+                      - option "23"
+                      - option "24"
+                      - option "25"
+                      - option "26"
+                      - option "27"
+                      - option "28"
+                      - option "29"
+                      - option "30"
+                      - option "31"
+                  - generic [ref=f11e117]:
+                    - generic [ref=f11e118]: Year
+                    - combobox "Year" [ref=f11e119]:
+                      - option "Year" [selected]
+                      - option "2027"
+                      - option "2026"
+                      - option "2025"
+                      - option "2024"
+                      - option "2023"
+                      - option "2022"
+                      - option "2021"
+                      - option "2020"
+                      - option "2019"
+                      - option "2018"
+                      - option "2017"
+                      - option "2016"
+                      - option "2015"
+                      - option "2014"
+                      - option "2013"
+                      - option "2012"
+                      - option "2011"
+                      - option "2010"
+                      - option "2009"
+                      - option "2008"
+                      - option "2007"
+                      - option "2006"
+                      - option "2005"
+                      - option "2004"
+                      - option "2003"
+                      - option "2002"
+                      - option "2001"
+                      - option "2000"
+                      - option "1999"
+                      - option "1998"
+                      - option "1997"
+                      - option "1996"
+                      - option "1995"
+                      - option "1994"
+                      - option "1993"
+                      - option "1992"
+                      - option "1991"
+                      - option "1990"
+                      - option "1989"
+                      - option "1988"
+                      - option "1987"
+                      - option "1986"
+                      - option "1985"
+                      - option "1984"
+                      - option "1983"
+                      - option "1982"
+                      - option "1981"
+                      - option "1980"
+                      - option "1979"
+                      - option "1978"
+                      - option "1977"
+                      - option "1976"
+                      - option "1975"
+                      - option "1974"
+                      - option "1973"
+                      - option "1972"
+                      - option "1971"
+                      - option "1970"
+                      - option "1969"
+                      - option "1968"
+                      - option "1967"
+                      - option "1966"
+                      - option "1965"
+                      - option "1964"
+                      - option "1963"
+                      - option "1962"
+                      - option "1961"
+                      - option "1960"
+                      - option "1959"
+                      - option "1958"
+                      - option "1957"
+                      - option "1956"
+                      - option "1955"
+                      - option "1954"
+                      - option "1953"
+                      - option "1952"
+                      - option "1951"
+                      - option "1950"
+                      - option "1949"
+                      - option "1948"
+                      - option "1947"
+                      - option "1946"
+                      - option "1945"
+                      - option "1944"
+                      - option "1943"
+                      - option "1942"
+                      - option "1941"
+                      - option "1940"
+                      - option "1939"
+                      - option "1938"
+                      - option "1937"
+                      - option "1936"
+                      - option "1935"
+                      - option "1934"
+                      - option "1933"
+                      - option "1932"
+                      - option "1931"
+                      - option "1930"
+                      - option "1929"
+                      - option "1928"
+                      - option "1927"
+                      - option "1926"
+                      - option "1925"
+                      - option "1924"
+                      - option "1923"
+                      - option "1922"
+                      - option "1921"
+                      - option "1920"
+              - generic [ref=f11e120]:
+                - generic [ref=f11e121]: "TAS / BETC (Optional):"
+                - textbox "TAS / BETC (Optional):" [ref=f11e123]
+              - generic [ref=f11e124]:
+                - generic [ref=f11e125]:
+                  - text: "Purpose:"
+                  - generic [ref=f11e126]: "*"
+                - textbox "Purpose:*" [ref=f11e128]
+              - iframe [ref=f11e133]
+            - button "Submit to NSSC" [ref=f11e135]
+  - contentinfo [ref=f11e136]:
+    - generic [ref=f11e137]:
+      - img "NASA Logo" [ref=f11e139]
+      - generic [ref=f11e141]:
+        - generic [ref=f11e143]:
+          - heading "National Aeronautics and Space Administration" [level=3] [ref=f11e144]
+          - paragraph [ref=f11e145]: NASA explores the unknown in air and space, innovates for the benefit of humanity, and inspires the world through discovery.
+          - list [ref=f11e146]:
+            - listitem [ref=f11e147]:
+              - link "About NASA's Mission" [ref=f11e148] [cursor=pointer]:
+                - /url: https://www.nasa.gov/about/
+          - link "Join Us" [ref=f11e149] [cursor=pointer]:
+            - /url: https://www.nasa.gov/get-involved/
+        - list [ref=f11e156]:
+          - listitem [ref=f11e157]:
+            - link "Home" [ref=f11e158] [cursor=pointer]:
+              - /url: https://www.nasa.gov/
+          - listitem [ref=f11e159]:
+            - link "News & Events" [ref=f11e160] [cursor=pointer]:
+              - /url: https://www.nasa.gov/news/
+          - listitem [ref=f11e161]:
+            - link "Multimedia" [ref=f11e162] [cursor=pointer]:
+              - /url: https://www.nasa.gov/multimedia/
+          - listitem [ref=f11e163]:
+            - link "NASA+ Live" [ref=f11e164] [cursor=pointer]:
+              - /url: https://plus.nasa.gov/
+          - listitem [ref=f11e165]:
+            - link "Missions" [ref=f11e166] [cursor=pointer]:
+              - /url: https://www.nasa.gov/nasa-missions/
+          - listitem [ref=f11e167]:
+            - link "Humans in Space" [ref=f11e168] [cursor=pointer]:
+              - /url: https://www.nasa.gov/humans-in-space/
+          - listitem [ref=f11e169]:
+            - link "Earth" [ref=f11e170] [cursor=pointer]:
+              - /url: https://science.nasa.gov/earth/
+          - listitem [ref=f11e171]:
+            - link "The Solar System" [ref=f11e172] [cursor=pointer]:
+              - /url: https://science.nasa.gov/solar-system/
+          - listitem [ref=f11e173]:
+            - link "The Universe" [ref=f11e174] [cursor=pointer]:
+              - /url: https://science.nasa.gov/universe/
+          - listitem [ref=f11e175]:
+            - link "Science" [ref=f11e176] [cursor=pointer]:
+              - /url: https://science.nasa.gov/
+          - listitem [ref=f11e177]:
+            - link "Aeronautics" [ref=f11e178] [cursor=pointer]:
+              - /url: https://www.nasa.gov/aeronautics/
+          - listitem [ref=f11e179]:
+            - link "Technology" [ref=f11e180] [cursor=pointer]:
+              - /url: https://www.nasa.gov/technology/
+          - listitem [ref=f11e181]:
+            - link "Learning Resources" [ref=f11e182] [cursor=pointer]:
+              - /url: https://www.nasa.gov/learning-resources/
+          - listitem [ref=f11e183]:
+            - link "About NASA" [ref=f11e184] [cursor=pointer]:
+              - /url: https://www.nasa.gov/about/
+          - listitem [ref=f11e185]:
+            - link "NASA en Español (opens in new tab)" [ref=f11e186] [cursor=pointer]:
+              - /url: https://www.nasa.gov/es/
+              - text: NASA en Español
+              - generic [ref=f11e187]: (opens in new tab)
+        - generic [ref=f11e189]:
+          - generic [ref=f11e190]:
+            - heading "Follow NASA" [level=3] [ref=f11e191]
+            - list [ref=f11e192]:
+              - listitem [ref=f11e193]:
+                - link "NASA on Facebook (opens in new tab)" [ref=f11e194] [cursor=pointer]:
+                  - /url: https://www.facebook.com/NASA
+              - listitem [ref=f11e197]:
+                - link "NASA on Instagram (opens in new tab)" [ref=f11e198] [cursor=pointer]:
+                  - /url: https://www.instagram.com/nasa/
+              - listitem [ref=f11e203]:
+                - link "NASA on X (opens in new tab)" [ref=f11e204] [cursor=pointer]:
+                  - /url: https://x.com/NASA
+              - listitem [ref=f11e207]:
+                - link "NASA on YouTube (opens in new tab)" [ref=f11e208] [cursor=pointer]:
+                  - /url: https://www.youtube.com/@NASA
+          - list [ref=f11e211]:
+            - listitem [ref=f11e212]:
+              - link "More NASA Social Accounts" [ref=f11e213] [cursor=pointer]:
+                - /url: https://www.nasa.gov/social-media/
+            - listitem [ref=f11e214]:
+              - link "NASA Newsletters" [ref=f11e215] [cursor=pointer]:
+                - /url: https://www.nasa.gov/nasa-newsletters/
+        - list [ref=f11e217]:
+          - listitem [ref=f11e218]:
+            - link "Sitemap" [ref=f11e219] [cursor=pointer]:
+              - /url: https://www.nasa.gov/sitemap/
+          - listitem [ref=f11e220]:
+            - link "For Media" [ref=f11e221] [cursor=pointer]:
+              - /url: https://www.nasa.gov/news/nasa-media-contacts/
+          - listitem [ref=f11e222]:
+            - link "Privacy Policy" [ref=f11e223] [cursor=pointer]:
+              - /url: https://www.nasa.gov/nasa-web-privacy-policy-and-important-notices/
+          - listitem [ref=f11e224]:
+            - link "FOIA" [ref=f11e225] [cursor=pointer]:
+              - /url: https://www.nasa.gov/foia/
+          - listitem [ref=f11e226]:
+            - link "No FEAR Act" [ref=f11e227] [cursor=pointer]:
+              - /url: https://www.nasa.gov/no-fear-act/
+          - listitem [ref=f11e228]:
+            - link "Office of the IG (opens in new tab)" [ref=f11e229] [cursor=pointer]:
+              - /url: http://oig.nasa.gov/
+              - text: Office of the IG
+              - generic [ref=f11e230]: (opens in new tab)
+          - listitem [ref=f11e231]:
+            - link "Budget & Annual Reports" [ref=f11e232] [cursor=pointer]:
+              - /url: https://www.nasa.gov/budgets-plans-and-reports/
+          - listitem [ref=f11e233]:
+            - link "Agency Financial Reports" [ref=f11e234] [cursor=pointer]:
+              - /url: https://www.nasa.gov/organizations/budget-annual-reports/agency-financial-reports/
+          - listitem [ref=f11e235]:
+            - link "Contact NASA" [ref=f11e236] [cursor=pointer]:
+              - /url: https://www.nasa.gov/contact-nasa/
+          - listitem [ref=f11e237]:
+            - link "Accessibility" [active] [ref=f11e238] [cursor=pointer]:
+              - /url: https://www.nasa.gov/accessibility/
+        - list [ref=f11e240]:
+          - listitem [ref=f11e241]:
+            - generic [ref=f11e242]: "Page Last Updated:"
+            - generic [ref=f11e243]: Jan 03, 2025
+          - listitem [ref=f11e244]:
+            - generic [ref=f11e245]: "Page Editor:"
+            - generic [ref=f11e246]: Christina Chinowsky
+          - listitem [ref=f11e247]:
+            - generic [ref=f11e248]: "Responsible NASA Official:"
+            - generic [ref=f11e249]: Abigail Bowman
