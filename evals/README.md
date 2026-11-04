@@ -26,6 +26,12 @@ are told to open nothing else and to list every file they opened.
 
 ## Judging rounds: real pages against a tester's blind SCRT files
 
+A round can be scored two ways, both against the same keys by commit and
+reveal: the scan below (a script drives the tool; one agent fills in the
+question packets), or the agent eval (`agent/README.md`: a model drives the
+tool itself, beside a Playwright MCP baseline, on frozen copies of the
+pages). Round 1 uses the agent eval.
+
 `evals/judging.py` scores the tool on real .gov pages against a certified
 Trusted Tester's SCRT files, by commit and reveal, so neither the tool nor
 its developers see the pages or the answers first.

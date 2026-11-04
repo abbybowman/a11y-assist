@@ -65,3 +65,14 @@ async def test_example_3_runs_as_described(settings, monkeypatch):
     [finding] = done["findings"]
     assert finding["outcome"] == "FAIL"
     assert "Keyboard focus gets trapped on this page" in finding["summary"]
+
+
+def test_tests_in_scope_table_matches_the_registry():
+    from a11y_assist import catalog
+    from a11y_assist.checks import REGISTRY
+
+    text = (REPO_ROOT / "README.md").read_text("utf-8")
+    section = text.split("## TT tests in scope", 1)[1].split("\n## ", 1)[0]
+    rows = re.findall(r"^\| (\d+\.[A-Z]) \| (\S+) \|", section, re.M)
+    assert [i for i, _ in rows] == [t.value for t in TestId if t in REGISTRY]
+    assert all(catalog.tests()[i]["name"] == name for i, name in rows)
