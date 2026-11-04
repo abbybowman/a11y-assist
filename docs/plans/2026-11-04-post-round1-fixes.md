@@ -28,6 +28,10 @@ scores: `evals/judging/round1/`. Eval plan:
   can reload.
 - **Test:** a fixture whose iframe removes itself, or reloads, while the
   inventory runs. It must give a run with findings, not a tool error.
+- **Also:** the crash left a run folder with no report
+  (`results/arm-a-1/runs/20261104T125122Z-6e3198/`), though CLAUDE.md says a
+  call that ends in a tool error leaves none. The pipeline should remove it,
+  or keep it as a failed run the report links to.
 - **Status:** not started.
 
 ### 2. MCP clients' tool timeouts
@@ -128,6 +132,20 @@ scores: `evals/judging/round1/`. Eval plan:
   and the usage-window change for each run, beside wall time. A tool call's
   duration includes its wait in the server's queue (fix 5), so the per-run
   wall time is the efficiency figure, not the sum of call durations.
+- **Status:** not started.
+
+### 9. After the lock: what Agent A would have answered (not scored)
+
+- No Agent A run answered its open questions, so round 1 shows nothing of
+  the answering half of the process. The three runs' reports keep all 119
+  open questions with their evidence (`results/arm-a-*/runs/*/report.json`).
+- **Plan:** a development run, never scored: an agent answers those saved
+  questions with `a11y_answer_questions` on copies of the run folders, and
+  the answers are compared with the revealed keys, so we learn which
+  questions the agent gets right before fix 4 changes how they are asked.
+  The run folders' frozen recordings are pointer files; copy each named
+  recording back (its SHA-256 is in the pointer) before a step replays the
+  page. nasa.gov is a development site from now on (eval plan section 3.1).
 - **Status:** not started.
 
 ## Observations to decide after scoring
