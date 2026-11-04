@@ -70,6 +70,13 @@ async def test_playwright_mcp_replays_the_frozen_round(settings, tmp_path):
         stext = "".join(c.text for c in snap.content if hasattr(c, "text"))
         assert "heading" in stext and "Apply for benefits" in stext, stext[:2000]
         port = urls[0].split(":")[2].split("/")[0]
+        # The page 19.A suggested (frozen by freeze.py) opens for Agent B as
+        # it does for Agent A: the same frozen copy, never the live site.
+        smap = await mcp.call_tool(
+            "browser_navigate", {"url": f"http://127.0.0.1:{port}/19a/sitemap.html"}
+        )
+        sm = "".join(c.text for c in smap.content if hasattr(c, "text"))
+        assert not smap.is_error and "Page Title: Site map" in sm, sm[:2000]
         miss = await mcp.call_tool(
             "browser_navigate", {"url": f"http://127.0.0.1:{port}/19a/not-frozen.html"}
         )
