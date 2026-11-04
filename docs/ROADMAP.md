@@ -45,6 +45,7 @@ run).
 
 ## Soon
 
+- **Fixes found in agent eval round 1:** [plans/2026-11-04-post-round1-fixes.md](plans/2026-11-04-post-round1-fixes.md) (a detached-frame crash, client tool timeouts, CI for Agent B's tests). Before the next round.
 - **MCP client tool timeouts (found 2026-11-04).** The Claude Code CLI in a
   cloud session cut every MCP tool call off at 60 s by default
   (`MCP_TOOL_TIMEOUT`); one `a11y_run_tt_tests` call may take up to
