@@ -1,0 +1,23 @@
+{"ts":"2026-11-04T19:49:08.042624Z","step":"run_start","status":"ok","detail":{"target":"https://www.nasa.gov/mission/artemis-iii/","tests":["4.A","4.B","4.C","4.D","4.E","4.F","5.A","5.B","5.C","5.D","5.F","5.G","5.H","9.A","9.B","9.C","19.A"]}}
+{"ts":"2026-11-04T19:49:10.325458Z","step":"browser_launched","status":"ok","detail":{"version":"153.0.8010.12"}}
+{"ts":"2026-11-04T19:49:10.402767Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/mission/artemis-iii/","har":"pages/006.har.zip"}}
+{"ts":"2026-11-04T19:49:10.673705Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/careers/","har":"pages/004.har.zip"}}
+{"ts":"2026-11-04T19:49:10.674022Z","step":"captured_other","status":"ok","detail":{"n":1,"final_url":"https://www.nasa.gov/careers/","seconds":0.1}}
+{"ts":"2026-11-04T19:49:10.925371Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/missions/","har":"pages/005.har.zip"}}
+{"ts":"2026-11-04T19:49:10.928207Z","step":"captured_other","status":"ok","detail":{"n":2,"final_url":"https://www.nasa.gov/missions/","seconds":0.14}}
+{"ts":"2026-11-04T19:49:11.438679Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/gallery/ksc-history/","har":"pages/009.har.zip"}}
+{"ts":"2026-11-04T19:49:11.439027Z","step":"captured_other","status":"ok","detail":{"n":3,"final_url":"https://www.nasa.gov/gallery/ksc-history/","seconds":0.06}}
+{"ts":"2026-11-04T19:49:11.647006Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/spot-the-station/","har":"pages/001.har.zip"}}
+{"ts":"2026-11-04T19:49:11.647600Z","step":"captured_other","status":"ok","detail":{"n":4,"final_url":"https://www.nasa.gov/spot-the-station/","seconds":0.01}}
+{"ts":"2026-11-04T19:49:11.678524Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/sitemap/","live":true}}
+{"ts":"2026-11-04T19:49:19.809656Z","step":"capture_scroll","status":"ok","detail":{"pass_":1,"page_grew":false}}
+{"ts":"2026-11-04T19:49:23.268245Z","step":"captured_other","status":"ok","detail":{"n":5,"final_url":"https://www.nasa.gov/sitemap/","seconds":11.59}}
+{"ts":"2026-11-04T19:49:23.268446Z","step":"captured","status":"ok","detail":{"final_url":"https://www.nasa.gov/mission/artemis-iii/","redirects":[],"seconds":12.93}}
+{"ts":"2026-11-04T19:49:23.676375Z","step":"browser_launched","status":"ok","detail":{"kind":"full Chromium"}}
+{"ts":"2026-11-04T19:49:44.033849Z","step":"egress_refused","status":"blocked","detail":{"host":"mtalk.google.com","port":5228,"reason":"port 5228 is not allowed"}}
+{"ts":"2026-11-04T19:52:50.551097Z","step":"walk","status":"ok","detail":{"P1":{"end":"wrap","presses":82,"cap":272},"P2":{"end":"wrap","presses":82,"cap":272},"cost":{"loads":2,"presses":164,"quick":0,"slow_redos":0,"seconds":207.26}}}
+{"ts":"2026-11-04T19:54:05.456870Z","step":"collected","status":"ok","detail":{"test":"9.A","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":74.89}}}
+{"ts":"2026-11-04T19:54:05.497844Z","step":"collected","status":"ok","detail":{"test":"9.B","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":0.0}}}
+{"ts":"2026-11-04T19:55:04.721752Z","step":"egress_refused","status":"blocked","detail":{"host":"mtalk.google.com","port":5228,"reason":"port 5228 is not allowed"}}
+{"ts":"2026-11-04T19:55:58.305265Z","step":"collected","status":"ok","detail":{"test":"9.C","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":112.77}}}
+{"ts":"2026-11-04T19:55:58.312395Z","step":"collected","status":"ok","detail":{"test":"19.A","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":0.0}}}
