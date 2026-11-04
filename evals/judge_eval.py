@@ -35,6 +35,7 @@ from a11y_assist.config import Settings  # noqa: E402
 from a11y_assist.models import Answer, TestId  # noqa: E402
 from a11y_assist.pipeline import answer_questions, run_tt_tests  # noqa: E402
 from tests import (  # noqa: E402
+    test_fixtures_2a,
     test_fixtures_2b,
     test_fixtures_2x,
     test_fixtures_4a,
@@ -157,6 +158,16 @@ def cases() -> list[dict]:
                 "root": "fix",
                 "path": f"19a/{page}.html",
                 "pages": [f"19a/{o}.html" for o in others],
+                "expected": exp,
+            }
+        )
+    for name, exp in test_fixtures_2a.EVAL.items():
+        out.append(
+            {
+                "case": f"2.A-{name}",
+                "tt": "2.A",
+                "root": "fix",
+                "path": f"2x/{name}.html",
                 "expected": exp,
             }
         )

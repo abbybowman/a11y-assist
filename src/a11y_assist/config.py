@@ -72,6 +72,11 @@ class Settings(BaseSettings):
     # settle_quiet_ms: the settle rule's DOM-quiet window after each key press.
     settle_quiet_ms: int = Field(default=150, ge=50, le=1000)
     record_scroll_passes: int = Field(default=1, ge=0, le=50)
+    # The media store (2.A-2.D plan Q9): media saved in full while recording
+    # so its byte ranges replay. None lifts the cap (a run with
+    # no_time_limit, the user's choice when a file was over it).
+    media_cap_mb: float | None = Field(default=50, gt=0)
+    media_cap_s: float | None = Field(default=15, gt=0)
     # Wall clock for one a11y_run_tt_tests call: short enough for HTTP proxies when
     # hosted. Tests not finished in time are NEEDS_REVIEW with the reason.
     run_limit_s: int = Field(default=120, ge=10)

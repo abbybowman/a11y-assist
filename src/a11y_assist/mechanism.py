@@ -160,6 +160,23 @@ def activation(el: Element) -> list[str] | str:
     return ["Enter"]
 
 
+def _at(css_path: str, el: Element) -> bool:
+    """The walk's stop is this element, or (media controls, V1) a control
+    inside its shadow root: PATH_JS puts a space at a shadow boundary."""
+    return css_path == el.css or (
+        el.role in ("audio", "video") and css_path.startswith(el.css + " ")
+    )
+
+
+def _presses(stops: dict[tuple[str, str], int], el: Element) -> int | None:
+    frame = el.frame_url if el.frame else ""
+    hit = stops.get((frame, el.css))
+    if hit is None and el.role in ("audio", "video"):
+        inside = [n for (f, css), n in stops.items() if f == frame and _at(css, el)]
+        hit = min(inside) if inside else None
+    return hit
+
+
 def reach(walk: Any) -> dict[tuple[str, str], int]:
     """(frame URL or "", CSS path) -> P1 presses that reach it."""
     out: dict[tuple[str, str], int] = {}
@@ -283,12 +300,62 @@ async def watch(page: Page, r: Region) -> str:
     return "no_effect"
 
 
+AUDIO_CONFIRM_S = 3.5  # 2.A spec Terms
+
+# The audio's state in its own frame: media by path, or Web Audio contexts.
+_AUDIO_JS = """(css) => {
+  if (!css) {
+    const M = window.__a11yMotion;
+    const states = M ? Array.from(M.ctxs).map((c) => c.state) : [];
+    return { web: states };
+  }
+  const m = document.querySelector(css);
+  if (!m) return null;
+  return { paused: m.paused, muted: m.muted, volume: m.volume, ended: m.ended };
+}"""
+
+
+async def audio_watch(page: Page, r: Region) -> str:
+    """2.A's stopped: for the 3.5 s after focus leaves, the media stays
+    paused, muted or at volume 0 (Web Audio: every context suspended or
+    closed). Media that reached its end is "unreliable": a clip that ran out
+    by itself must never be credited to a control."""
+    await asyncio.sleep(SETTLE_S)
+    frame = _frame(page, r)
+    if frame is None:
+        return "unreliable"
+    start = time.monotonic()
+    while True:
+        try:
+            st = await frame.evaluate(
+                _AUDIO_JS, r.content_css if r.tag != "audiocontext" else ""
+            )
+        except Exception:
+            return "unreliable"
+        if st is None:
+            return "stopped"  # the media element is gone
+        if "web" in st:
+            if any(x == "running" for x in st["web"]):
+                return "no_effect"
+        elif st["ended"]:
+            return "unreliable"
+        elif not (st["paused"] or st["muted"] or st["volume"] == 0):
+            return "no_effect"
+        if time.monotonic() - start >= AUDIO_CONFIRM_S:
+            return "stopped"
+        await asyncio.sleep(LOOK_S)
+
+
+def _watcher(r: Region):
+    return audio_watch if r.source == "audio" else watch
+
+
 async def _try(ctx: Any, el: Element, presses: int, keys: list[str], r: Region) -> str:
     """One fresh load: Tab to the control, press `keys`, Tab off, watch."""
     s = await replay(ctx.open_motion, ctx.quiet_ms, ["Tab"] * presses, ctx.plan)
     try:
         last = s.traversal.steps[-1].stop if s.traversal.steps else None
-        if last is None or last.css_path != el.css:
+        if last is None or not _at(last.css_path or "", el):
             return "unreachable"
         url0 = s.page.url
         for k in keys:
@@ -296,7 +363,7 @@ async def _try(ctx: Any, el: Element, presses: int, keys: list[str], r: Region) 
         if s.page.url.split("#")[0] != url0.split("#")[0]:
             return "unreliable"  # it navigated away
         await s.traversal.press("Tab")
-        return await watch(s.page, r)
+        return await _watcher(r)(s.page, r)
     except Exception:
         return "unreliable"
     finally:
@@ -315,8 +382,10 @@ async def probe(
     probe saw no effect: a slowed result (2.C) does not end it, so 2.B,
     which needs a stop, sharing the same probe never loses candidates."""
     pr = Probe(probed=True)
+    if r.source == "audio":
+        which = ("top",)  # 2.A ER 2: the first three elements only
     cands, placed = windows(mp, r, which)
-    if not placed:
+    if not placed and set(which) - {"top"}:
         pr.cannot_place = True
     stops = reach(walk)
     held = ("stopped", "slowed")  # these get the focus-only probe
@@ -341,7 +410,7 @@ async def probe(
         if tried >= MAX_CONTROLS or ctx.out_of_time():
             pr.untried += 1
             continue
-        presses = stops.get((el.frame_url if el.frame else "", el.css))
+        presses = _presses(stops, el)
         if presses is None:
             c.result = "unreachable"  # the walk never focused it
             continue
@@ -366,7 +435,7 @@ async def press_named_key(ctx: Any, r: Region, combo: str) -> str:
     s = await open_session(ctx.open_motion, ctx.quiet_ms)
     try:
         await s.traversal.press(combo)
-        return await watch(s.page, r)
+        return await _watcher(r)(s.page, r)
     except Exception:
         return "unreliable"
     finally:

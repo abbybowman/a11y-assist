@@ -85,7 +85,7 @@ MOTION_INIT_JS = (
         + """
   if (window.__a11yMotion) return;
   const now = () => performance.timeOrigin + performance.now();
-  const M = { recs: [], attrs: 0, dropped: 0, timers: [], audio: 0, snaps: [], live0: new WeakSet(), held: new Map(), focus: [], t0: null };
+  const M = { recs: [], attrs: 0, dropped: 0, timers: [], audio: 0, snaps: [], live0: new WeakSet(), held: new Map(), focus: [], ctxs: new Set(), t0: null };
   Object.defineProperty(window, '__a11yMotion', { value: M });
   const REC_MAX = 1500, ATTR_MAX = 300, TIMER_MAX = 200;
   const LIVE = LIVE_SELECTOR;
@@ -114,7 +114,7 @@ MOTION_INIT_JS = (
   if (window.AudioNode) {
     const cn = AudioNode.prototype.connect;
     AudioNode.prototype.connect = function (d, ...a) {
-      try { if (window.AudioDestinationNode && d instanceof AudioDestinationNode) M.audio++; } catch (e) {}
+      try { if (window.AudioDestinationNode && d instanceof AudioDestinationNode) { M.audio++; M.ctxs.add(d.context); } } catch (e) {}
       return cn.call(this, d, ...a);
     };
   }
@@ -357,7 +357,11 @@ MOTION_INIT_JS = (
     }
     return false;
   };
-  M.facts = () => ({ timers: M.timers, audio: M.audio, dropped: M.dropped, blink: blinkMarkup() });
+  M.facts = () => ({ timers: M.timers, audio: M.audio, dropped: M.dropped, blink: blinkMarkup(),
+    // Web Audio contexts playing to the speakers (2.A), and the iframes'
+    // sources (2.A: a YouTube or Vimeo player cannot be measured).
+    audio_states: Array.from(M.ctxs).map((c) => c.state),
+    iframes: Array.from(document.querySelectorAll('iframe')).map((f) => (f.src || '').slice(0, 500)).slice(0, 30) });
   // Motion the frames may not show (below the first screen): animations
   // running with more than 5 s of active time, marquees, playing videos,
   // that are not inside a region already found (2.B Terms).
@@ -440,6 +444,18 @@ ELEMENTS_JS = (
     out.push({ kind: u.kind, role: u.role, name: (u.name || '').slice(0, 200), css: u.css, box: u.box, stop: !!u.stop,
       href: u.href_attr === undefined ? null : u.href_attr });
   });
+  // A media element's own controls (V1): one control element, at its place
+  // in document order; the walk focuses its play button inside it.
+  for (const m of document.querySelectorAll('audio[controls], video[controls]')) {
+    if (!shown(m) || m.closest('[aria-hidden="true"]')) continue;
+    let at = keep.findIndex((e) => m.compareDocumentPosition(e) & Node.DOCUMENT_POSITION_FOLLOWING);
+    if (at < 0) at = keep.length;
+    const b = m.getBoundingClientRect();
+    keep.splice(at, 0, m);
+    out.splice(at, 0, { kind: 'control', role: m.tagName.toLowerCase(), name: 'media controls', css: path(m),
+      box: [Math.round(b.x + scrollX), Math.round(b.y + scrollY), Math.round(b.width), Math.round(b.height)],
+      stop: true, href: null });
+  }
   if (window.__a11yMotion) window.__a11yMotion.els = keep;
   return { elements: out, truncated: r.truncated };
 }"""
@@ -663,6 +679,14 @@ class MotionPass(BaseModel):
     polls: list[Poll] = Field(default_factory=list)
     carousels: list[str] = Field(default_factory=list)  # "<frame>|<css>" at 0 s
     blink_markup: bool = False  # <blink> or text-decoration: blink (2.B note)
+    audio_states: list[str] = Field(default_factory=list)  # Web Audio contexts
+    iframes: list[str] = Field(default_factory=list)  # iframe sources, every frame
+    # Peak level of each media source's recorded bytes, in dBFS, decoded in a
+    # tool page (never the tested page); None when it could not be decoded.
+    loudness: dict[str, float | None] = Field(default_factory=dict)
+    # The media store's index from the recording (capture.media_index):
+    # url, size, type, file (None when not stored) and over_cap.
+    media_store: list[dict[str, Any]] = Field(default_factory=list)
     dropped_changes: int = 0
     frames_read: int = 0  # document frames read (the top page included)
     elements: list[Element] = Field(default_factory=list)  # at 0 s
@@ -827,11 +851,57 @@ async def pass_t(
         return out
     try:
         await _watch(page, out, shots, rel, watch_s)
+        if har is not None:
+            from a11y_assist.capture import media_index
+
+            out.media_store = media_index(har)
+            await _loudness(context, har, out)
     except Exception as exc:  # recorded, never raised (A1)
         out.ok, out.error = False, f"the page could not be read: {safe_error(exc)}"
     finally:
         await context.close()
     return out
+
+
+# Loudness (2.A spec Terms; plan item 4): ACT's own "silent" video has a real
+# audio track (-91 dB), so a track's presence is not sound. Decoded with
+# OfflineAudioContext in a blank tool page of the same browser, never the
+# tested page; audible is a peak above -40 dBFS.
+LOUDNESS_MAX_BYTES = 20_000_000
+_LOUDNESS_JS = """async (b64) => {
+  const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+  const ctx = new OfflineAudioContext(1, 1, 44100);
+  try {
+    const buf = await ctx.decodeAudioData(bytes.buffer);
+    let peak = 0;
+    for (let ch = 0; ch < buf.numberOfChannels; ch++) {
+      const d = buf.getChannelData(ch);
+      for (let i = 0; i < d.length; i++) { const v = Math.abs(d[i]); if (v > peak) peak = v; }
+    }
+    return peak > 0 ? 20 * Math.log10(peak) : -200;
+  } catch (e) { return null; }
+}"""
+
+
+async def _loudness(context: BrowserContext, har: Path, out: MotionPass) -> None:
+    import base64
+
+    from a11y_assist.capture import media_body
+
+    srcs = sorted({m.src for m in out.media if m.src.startswith(("http:", "https:"))})
+    if not srcs:
+        return
+    tool = await context.new_page()  # about:blank: no page script runs here
+    try:
+        for src in srcs[:10]:
+            body = media_body(har, src)
+            if body is None or len(body) > LOUDNESS_MAX_BYTES:
+                out.loudness[src] = None
+                continue
+            got = await tool.evaluate(_LOUDNESS_JS, base64.b64encode(body).decode())
+            out.loudness[src] = None if got is None else round(float(got), 1)
+    finally:
+        await tool.close()
 
 
 async def _watch(
@@ -987,6 +1057,8 @@ async def _watch(
             continue
         out.audio_connects += facts["audio"]
         out.blink_markup = out.blink_markup or bool(facts.get("blink"))
+        out.audio_states += facts.get("audio_states", [])
+        out.iframes += facts.get("iframes", [])
         out.dropped_changes += facts["dropped"]
         counts: dict[tuple[str, int], int] = {}
         for tm in facts["timers"]:

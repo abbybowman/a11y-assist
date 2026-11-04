@@ -44,6 +44,8 @@ RULES = {
     "5.B": ["cc0f0a"],
     # 2.C (2.2.2): text that changes automatically. DHS scored all 11.
     "2.C": ["efbfc7"],
+    # 2.A (1.4.2): audio control. DHS scored none of these rules.
+    "2.A": ["80f0bf", "4c31df", "aaa1bf"],
 }
 # Pages a case needs that are not assets: the bypass-blocks rules' "other
 # page" (chapter 2), which 9.A's tests name in other_pages.
@@ -187,6 +189,24 @@ EXPECTED = {
         "49cc7da7": "DNA",  # only its colour changes: not auto-updating
         "5345dc33": "DNA",
         "0d1564a1": "DNA",  # the only content (A4)
+    },
+    # docs/rules/2a-audio-control.md (draft). A working control is NEEDS
+    # REVIEW while ER 3's tests are not all built ("gated").
+    "2.A": {
+        "0d2dcde8": "NEEDS_REVIEW",  # <audio controls>: its play button, K3/E3
+        "3e932531": "NEEDS_REVIEW",  # <video controls>: K3/E3
+        "29ea904e": "NEEDS_REVIEW",  # "Play" (a toggle) pauses it: K3/E3
+        "f9af87d3": "NEEDS_REVIEW",  # "Pause": K3/E3
+        "7304f139": "NEEDS_REVIEW",  # buttons with no name still work: K3/E3
+        "968b12b1": "FAIL",  # no control: K6
+        "b712209d": "FAIL",  # no control: K6
+        "53b7029c": "FAIL",  # its buttons are display: none: K6
+        "7c96453d": "FAIL",  # its buttons are aria-hidden: not elements, K6
+        "e4d78b50": "DNA",  # plays 2 s (#t=8,10): not more than 3 s
+        "2b0af09b": "DNA",  # starts at 25 s: 3 s or less left
+        "ffa08bb0": "DNA",  # muted
+        "7d3d7214": "DNA",  # a silent track (loudness)
+        "b5c74f9d": "DNA",  # no autoplay
     },
 }
 

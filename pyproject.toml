@@ -66,6 +66,7 @@ addopts = "-m 'not slow' -n auto"
 "src/a11y_assist/andi.py" = ["E501"]
 "src/a11y_assist/motion.py" = ["E501"]
 "src/a11y_assist/checks/t2b.py" = ["E501"]
+"src/a11y_assist/checks/t2a.py" = ["E501"]
 # Scratch experiments kept as research evidence (not imported, not tests):
 # embedded JavaScript, and helpers shared by exec between scripts.
 "docs/research/**" = ["E501", "E741", "F821", "F841"]

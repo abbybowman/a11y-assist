@@ -11,6 +11,7 @@ import http.server
 import json
 import os
 import random
+import re
 import threading
 import time
 from collections import Counter
@@ -74,7 +75,7 @@ async def browser(settings: Settings):
         await b.close()
 
 
-def _tone(seconds: int = 4, rate: int = 8000) -> bytes:
+def _tone(seconds: int = 4, rate: int = 8000, loud: bool = True) -> bytes:
     import io
     import math
     import struct
@@ -87,7 +88,9 @@ def _tone(seconds: int = 4, rate: int = 8000) -> bytes:
         w.setframerate(rate)
         w.writeframes(
             b"".join(
-                struct.pack("<h", int(12000 * math.sin(2 * math.pi * 440 * i / rate)))
+                struct.pack(
+                    "<h", int(12000 * loud * math.sin(2 * math.pi * 440 * i / rate))
+                )
                 for i in range(seconds * rate)
             )
         )
@@ -138,6 +141,12 @@ class _Handler(http.server.BaseHTTPRequestHandler):
             return self._send(200, body.encode())
         if self.path == "/tone.wav":  # 4 s, 440 Hz (2.A-2.D fixtures; no files)
             return self._send(200, _tone(), "audio/wav")
+        tone = re.fullmatch(r"/(tone|silence)(\d+)\.wav", self.path)
+        if tone:  # /tone20.wav: 20 s; /silence20.wav: 20 s of silence
+            secs = int(tone.group(2))
+            return self._send(
+                200, _tone(secs, loud=tone.group(1) == "tone"), "audio/wav"
+            )
         if self.path == "/data.json":
             return self._send(
                 200, json.dumps({"n": nonce}).encode(), "application/json"

@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="en">
+<head><title>Welcome</title></head>
+<body>
+<button id="stop">Stop sound</button>
+<main>
+<h1>Welcome</h1>
+<p>Static text.</p>
+<audio id="a" autoplay loop src="/tone20.wav"></audio>
+</main>
+<script>document.getElementById('stop').addEventListener('click', () => document.getElementById('a').pause());</script>
+</body>
+</html>

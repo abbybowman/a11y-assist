@@ -76,6 +76,19 @@ reload the page, then right-click a request and "Save all as HAR with
 content". Whether a DevTools HAR replays like our own recordings is not yet
 checked.
 
+## Run 17, 2026-11-04: 2.A (draft spec 0.2.0), its packets only
+
+`prepare OUT 2.A`: one case asks a question (2.A asks none of its own):
+the page's first text, "Press Ctrl+Shift+M to mute the sound." (J2).
+Preparing it showed that 2.A had borrowed 2.C's J2 wording ("pause, stop,
+hide or slow"), which leaves out muting and the volume that 2.A's ER 1
+counts: a careful agent could have answered no, a false FAIL. 2.A now has
+its own J2 ("pause or stop that audio, or turn its volume down or mute
+it"). Leak grep clean. One fresh Sonnet agent, told to use file tools
+only: **1/1 match**: describes, key Ctrl+Shift+M; the tool pressed it once
+and the audio was muted (K4, then E3, gated). It opened only packet
+files.
+
 ## Run 16, 2026-11-04: 2.B (draft spec 0.2.0), its packets only
 
 `prepare OUT 2.B`: 7 cases ask questions (`test_fixtures_2b.EVAL`): an

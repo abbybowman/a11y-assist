@@ -150,7 +150,7 @@ src/a11y_assist/
   config.py     Settings (env / .env)
   policy.py     URL allowlist decision (pure)
   browser.py    Chrome launch, fresh contexts, NavigationGuard
-  capture.py    HAR record + replay; notes cross-site frames
+  capture.py    HAR record + replay; notes cross-site frames; the media store (2.A-2.D)
   frozen.py     frozen pages for evals: replay a folder of recordings, or record into it
   andi.py       local ANDI injection; andi_output() reads its per-element analysis
   traverse.py   key passes, CDP focus reading, settle rule, inventory (no outcomes)
@@ -167,6 +167,7 @@ src/a11y_assist/
   engine.py     shared first-match tables and page rows G1-G5
   checks/       one module per TT test, registered in checks/__init__.py;
                 base.py has the interface and the "add a check" steps
+    t2a.py      2.A audio control (draft): auto-playing audio, loudness, the top-window probe
     t2b.py      2.B moving, blinking (draft): moving regions, colour-only states, J1 essential
     t2c.py      2.C auto-updating (draft): pass T regions, the mechanism probe, J1-J2
     t2d.py      2.D change notification (draft): live regions, focus, dialogs, J1-J2

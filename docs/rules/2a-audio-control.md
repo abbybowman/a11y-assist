@@ -1,7 +1,7 @@
 ---
 tt_test: 2.A
 tt_name: 1.4.2-audio-control
-spec_version: 0.1.0
+spec_version: 0.2.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -13,7 +13,22 @@ NEEDS REVIEW. It never emits NOT TESTED (p. 6). PASS is gated as in 2.C:
 a working mechanism gives NEEDS REVIEW until every test that can apply to
 it is built ([2c-auto-updating.md](2c-auto-updating.md) section 3c).
 
-Draft (0.1.0): no outcome until 1.0.0. Plan:
+Draft (0.2.0): no outcome until 1.0.0. 0.2.0 (2026-11-04), from building
+it (`checks/t2a.py`, `mechanism.audio_watch`, the media store in
+`capture.py`):
+
+- A media element's own controls (`controls`) are one control element at
+  its place in reading order; the walk's stop on its play button inside
+  the element reaches it (V1, verified: Enter pauses it).
+- Media that reached its end during the probe is "unreliable", never
+  stopped: a clip that ran out must not be credited to a control.
+- The media store keys files without their `#fragment`, so a file played
+  from `#t=8,10` can seek on replay (ACT 80f0bf passed 2; before this it
+  played from 0 s and was a false FAIL).
+- Loudness is the peak of the whole file (not only the part that plays).
+- 2.C's J2 trigger words gain "mute", "volume", "sound" and "audio".
+- Audio in an iframe is read in its frame, but the probe does not yet find
+  that frame again (V7 for audio: not built). Plan:
 [plans/2026-11-03-auto-updating-2a-2d.md](../plans/2026-11-03-auto-updating-2a-2d.md).
 
 **Citations.** Printed pages of TT 5.1.3 (text also in `tt://5.1.3/tests/2.A`). Identify Content, p. 13: before loading, "make sure the browser is not set to block auto-playing content"; audio that "automatically plays (without user activation) for more than 3 seconds" (alerts, sounds, music); none: DNA. Applicability, p. 13. HtT 1 ("a mechanism within the first three elements encountered for the user to pause or stop the audio or to control the volume of only the auto-playing audio"; 1.a the browser allows autoplay), HtT 2–3, p. 13. ER 1 (a mechanism that pauses, stops or controls the volume of only the auto-playing audio), ER 2 ("within the first three elements encountered by the user"), ER 3 (it passes all applicable Test Conditions), p. 13. Notes, p. 13: three elements "for clear measurability" ("the mechanism can be a focusable element or text instructions at the top of the page prior to repetitive content"); a browser's ability to disable autoplay or mute a tab is "acceptable", but not all browsers have it. Appendix B: 5.1.3 changed setup to a browser that does not block autoplay (TT 5.0 said to disable it).

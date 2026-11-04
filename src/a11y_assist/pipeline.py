@@ -484,6 +484,11 @@ async def run_tt_tests(
             await progress(step, 4, message)
 
     t_start = time.monotonic()
+    if no_time_limit:
+        # The user's choice also lifts the media store's cap (plan Q9).
+        settings = settings.model_copy(
+            update={"media_cap_mb": None, "media_cap_s": None}
+        )
     decision = check_url(url, settings.allowed_domains, settings.dev_mode)
     if not decision.allowed:
         raise RunRefused(f"URL not allowed: {decision.reason}")

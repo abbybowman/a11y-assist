@@ -37,7 +37,9 @@ STILL_CHANGING_S = 5.0
 # "control" and "button": text that points to another control, such as ACT
 # efbfc7 passed 5's "activate the "Control changes" button" (spec J2).
 MENTION = re.compile(
-    r"\+|hotkey|shortcut|\bpause|\bstop|\bhide|\bfreeze|turn off|\bcontrol|\bbutton",
+    r"\+|hotkey|shortcut|\bpause|\bstop|\bhide|\bfreeze|turn off|\bcontrol|\bbutton"
+    # 2.A: text about the sound ("Press M to mute the sound").
+    r"|\bmute|\bvolume|\bsound|\baudio",
     re.IGNORECASE,
 )
 
@@ -321,7 +323,10 @@ E_ROWS = [
 
 
 def instance_outcome(
-    i: Inst, selected: list[str], rows: list[Row] | None = None
+    i: Inst,
+    selected: list[str],
+    rows: list[Row] | None = None,
+    e_rows: list[Row] | None = None,
 ) -> tuple[list[str], Outcome, dict]:
     """(rows, outcome, details) for one instance, first match wins. 2.A and
     2.B pass their own table (2.C's rows with a row of their own)."""
@@ -334,7 +339,7 @@ def instance_outcome(
         el = i.elements[mech.element]
         missing = er3_missing(er3_tests(el, i.region.frame > 0), selected)
         e = {"j1": (i.j1 or {}).get("choice", ""), "missing": missing, "mech": el}
-        erow = next(r for r in E_ROWS if r.when(e))
+        erow = next(r for r in (e_rows or E_ROWS) if r.when(e))
         return [row.id, erow.id], erow.outcome, e
     raise AssertionError("K8 always matches")
 
