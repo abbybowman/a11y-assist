@@ -109,6 +109,7 @@ def _opener(
     frames: list[str],
     init_scripts: tuple[str, ...] = (),
     autoplay: bool = False,
+    ignore: SettleIgnore | None = None,
 ):
     """A fresh replay context and page for every load (docs/solutions/
     fresh-load-per-probe.md). A page with cross-site frames replays in full
@@ -124,9 +125,58 @@ def _opener(
         )
         page = await replay.context.new_page()
         await replay.guard.goto(page, final_url)
+        if ignore is not None:
+            await ignore.join(page)
         return replay.context, page
 
     return new_page
+
+
+class SettleIgnore:
+    """Content pass T found still changing by itself (a ticker, a carousel):
+    the settle rule stops waiting on its DOM changes (traverse.INIT_JS
+    setIgnore; Abby, 2026-11-04, T1 (b)). Pages of the tested page join it;
+    when pass T ends, the list goes to every page still open (the walk's
+    included) and to each page opened after."""
+
+    def __init__(self) -> None:
+        self.sels: dict[str, list[str]] = {}
+        self.pages: list = []
+
+    async def _apply(self, page) -> None:
+        for frame in page.frames:
+            key = "" if frame == page.main_frame else frame.url
+            sels = self.sels.get(key)
+            if not sels:
+                continue
+            try:
+                await frame.evaluate(
+                    "(s) => window.__a11yLog && window.__a11yLog.setIgnore(s)", sels
+                )
+            except Exception:
+                continue
+
+    async def join(self, page) -> None:
+        self.pages = [p for p in self.pages if not p.is_closed()]
+        self.pages.append(page)
+        if self.sels:
+            await self._apply(page)
+
+    async def set(self, sels: dict[str, list[str]]) -> None:
+        self.sels = sels
+        for page in [p for p in self.pages if not p.is_closed()]:
+            await self._apply(page)
+
+
+async def _watch_then_ignore(ctx, run, extend=None, keep_shots=True):
+    mp = await motion.collect(ctx, keep_shots)
+    sels = motion.settle_ignore(mp)
+    if sels and ctx.settle_ignore is not None:
+        await ctx.settle_ignore.set(sels)
+        run.log("settle_ignore", regions=sum(len(v) for v in sels.values()))
+    if sels and extend is not None:
+        extend()
+    return mp
 
 
 def _context(
@@ -138,8 +188,11 @@ def _context(
     frames: list[str],
 ):
     har = run.evidence_dir / "page.har.zip"
+    ignore = SettleIgnore()
     return RunContext(
-        new_page=_opener(get_browser, settings, har, final_url, run, frames),
+        new_page=_opener(
+            get_browser, settings, har, final_url, run, frames, ignore=ignore
+        ),
         # Pass T (2.A-2.D) in its own browser: full Chromium, headless, with
         # autoplay allowed (plan Q1, Q11), so the walk's browser is unchanged.
         open_motion=_opener(
@@ -151,7 +204,9 @@ def _context(
             frames,
             (MOTION_INIT_JS,),
             autoplay=True,
+            ignore=ignore,
         ),
+        settle_ignore=ignore,
         motion_browser=MOTION_BROWSER,
         quiet_ms=settings.settle_quiet_ms,
         deadline=deadline,
@@ -527,6 +582,17 @@ async def run_tt_tests(
     states: dict[TestId, Any] = {}
     walk: KeyboardWalk | None = None
     motion_task: asyncio.Task | None = None
+    allowance = [0]  # T1 (a): seconds added once pass T finds moving content
+
+    def extend() -> None:
+        if no_time_limit or allowance[0]:
+            return
+        allowance[0] = settings.moving_allowance_s
+        if ctx_ref:
+            ctx_ref[0].deadline += allowance[0]
+        run.log("time_allowance", seconds=allowance[0])
+
+    ctx_ref: list = []
 
     async with EgressProxy(settings, log=run.log) as proxy, async_playwright() as pw:
         browser = await launch_browser(pw, settings, proxy)
@@ -652,17 +718,30 @@ async def run_tt_tests(
             ctx = _context(
                 settings, run, get_browser, cap.final_url, soft, cap.cross_site_frames
             )
+            ctx_ref.append(ctx)
             ctx.selected = frozenset(c.test_id.value for c in checks)
             ctx.requested_url = url
             ctx.pages = _page_refs(get_browser, settings, run, report)
             ctx.record_live = _live_recorder(
                 browser, settings, run, report, proxy, cap.final_url, get_browser
             )
-            if any(getattr(c, "uses_motion", False) for c in checks):
+            if any(getattr(c, "uses_motion", False) for c in checks) or any(
+                needs_walk(c, ctx) for c in checks
+            ):
                 # Pass T beside the walk, in its own browser (plan Q2; no
                 # measurable cost to the walk, item 18). The 2.x checks await
-                # this task through motion.collect.
-                motion_task = asyncio.create_task(motion.collect(ctx))
+                # this task through motion.collect. It also runs for the walk
+                # alone: what it finds still changing, the settle rule stops
+                # waiting on (T1 (b)).
+                motion_task = asyncio.create_task(
+                    _watch_then_ignore(
+                        ctx,
+                        run,
+                        extend,
+                        # Frames are evidence for 2.x questions only.
+                        any(getattr(c, "uses_motion", False) for c in checks),
+                    )
+                )
                 ctx.cache["motion_task"] = motion_task
             if any(needs_walk(c, ctx) for c in checks):
                 await say(1, "Walking the page with Tab and Shift+Tab")
@@ -704,7 +783,9 @@ async def run_tt_tests(
                 await say(2, f"Checking {c.test_id.value}")
                 try:
                     with metered() as cost:
-                        state = await _bounded(c.collect(ctx, walk), hard)
+                        state = await _bounded(
+                            c.collect(ctx, walk), hard + allowance[0]
+                        )
                 except TimeoutError:
                     msg = "the run reached its time limit before this test finished"
                     run.log("check_error", "error", test=c.test_id.value, error=msg)
@@ -724,7 +805,7 @@ async def run_tt_tests(
             hard_cut = any("time limit" in e for e in report.errors)
             if ctx.timed_out or walk_cut or hard_cut:
                 report.errors.append(
-                    TIME_NOTE.format(limit=_limit(settings, len(others)))
+                    TIME_NOTE.format(limit=_limit(settings, len(others)) + allowance[0])
                 )
         finally:
             if motion_task is not None and not motion_task.done():

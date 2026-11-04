@@ -66,6 +66,8 @@ def still_moving(r: Region) -> bool:
     could not (a long animation, a marquee, a playing video). 0.1.0 also
     asked that no gap be longer than its period plus 1 s, which random
     colours that repeat for two seconds broke (ACT efbfc7 inapplicable 3)."""
+    if r.source == "dom":
+        return False  # content that changes off screen: not seen to move
     if r.source != "pixels":
         return True
     t = r.changed_at

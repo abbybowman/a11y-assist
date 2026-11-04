@@ -390,6 +390,24 @@ MOTION_INIT_JS = (
       if (active > 5000) add(a.effect.target, 'animation', (a.animationName || a.transitionProperty || '') + (active === Infinity ? ' (infinite)' : ' ' + Math.round(active) + ' ms'));
     }
     for (const m of document.querySelectorAll('marquee')) add(m, 'marquee', 'marquee');
+    // Content the DOM log saw keep changing where no frame showed it (below
+    // the first screen): three or more text or child changes, the last at
+    // 5 s or later.
+    // Only changes that change its text: a poll that writes the same value
+    // again (a replay answers every poll alike) is not an update.
+    const byEl = new Map();
+    for (const r of M.recs) {
+      if (r.kind === 'attr' || r.at < M.t0 || !r.el || !r.el.isConnected) continue;
+      const v = byEl.get(r.el) || { n: 0, last: 0, text: null };
+      if (r.after !== v.text) {
+        if (v.text !== null) { v.n++; v.last = Math.max(v.last, r.at); }
+        v.text = r.after;
+      }
+      byEl.set(r.el, v);
+    }
+    for (const [e, v] of byEl) {
+      if (v.n >= 3 && v.last - M.t0 >= 5000) add(e, 'dom', v.n + ' changes');
+    }
     for (const v of document.querySelectorAll('video')) {
       if (!v.paused && (v.loop || (isFinite(v.duration) && v.duration - v.currentTime > 5))) add(v, 'video', v.loop ? 'playing, looping' : 'playing');
     }
@@ -570,7 +588,8 @@ class Region(BaseModel):
     transforms: list[int | None] = Field(default_factory=list)  # per read
     states: int = 0  # distinct looks of its box over the frames (top page; capped)
     # pixels (changed in the frames), or what showed motion the frames could
-    # not: animation (over 5 s of active time), marquee or video (2.B Terms)
+    # not: animation (over 5 s of active time), marquee or video (2.B Terms),
+    # or dom: content the DOM log saw keep changing off screen (2.C)
     source: str = "pixels"
     source_detail: str = ""
     updated: bool = False
@@ -1037,7 +1056,7 @@ async def _watch(
         gaps = [b - a for a, b in zip(r.changed_at, r.changed_at[1:])]
         r.period_s = round(statistics.median(gaps), 2) if gaps else None
         r.kinds = _kinds(r)
-        if r.source != "pixels" and "moving" not in r.kinds:
+        if r.source not in ("pixels", "dom") and "moving" not in r.kinds:
             r.kinds.append("moving")
         try:
             got = await frame.evaluate(
@@ -1249,7 +1268,26 @@ class Probe(BaseModel):
     cannot_try: str = ""  # K5: a mechanism the tool may not try, named
 
 
-async def collect(ctx: Any) -> MotionPass:
+SETTLE_IGNORE_FROM_S = 5.0  # still changing then: it keeps changing
+
+
+def settle_ignore(mp: MotionPass) -> dict[str, list[str]]:
+    """Regions still changing by themselves at the end of the watch, by frame
+    ("" for the top page, else the frame's URL), for the settle rule to stop
+    waiting on (T1 (b)). Only content that keeps changing: a change that
+    ends (a late load) is waited for as before."""
+    out: dict[str, list[str]] = {}
+    if not mp.ok:
+        return out
+    for r in mp.regions:
+        if r.source != "pixels" or (
+            r.changed_at and r.changed_at[-1] >= SETTLE_IGNORE_FROM_S
+        ):
+            out.setdefault(r.frame_url if r.frame else "", []).append(r.css)
+    return out
+
+
+async def collect(ctx: Any, keep_shots: bool = True) -> MotionPass:
     """Pass T once per call, shared by the 2.x checks (ctx.cache["motion"])."""
     if "motion" in ctx.cache:
         return ctx.cache["motion"]
@@ -1266,7 +1304,10 @@ async def collect(ctx: Any) -> MotionPass:
     else:
         har = ctx.rel / "evidence" / "page.har.zip"
         mp = await pass_t(
-            ctx.open_motion, har if har.exists() else None, ctx.shots, ctx.rel
+            ctx.open_motion,
+            har if har.exists() else None,
+            ctx.shots if keep_shots else None,
+            ctx.rel,
         )
     mp.browser = getattr(ctx, "motion_browser", "")
     ctx.cache["motion"] = mp

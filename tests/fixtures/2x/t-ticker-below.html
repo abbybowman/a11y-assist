@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="en">
+<head><title>Visitor counter further down</title></head>
+<body>
+<main>
+<h1>Visitor counter further down</h1>
+<p>Static text.</p>
+<div style="height: 1500px"></div>
+<p id="visits" style="width: 300px">Visitors today: <span>1200</span></p>
+</main>
+<script>let n = 1200; setInterval(() => { document.querySelector('#visits span').textContent = ++n; }, 1000);</script>
+</body>
+</html>

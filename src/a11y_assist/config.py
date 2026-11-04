@@ -83,6 +83,10 @@ class Settings(BaseSettings):
     # Seconds the run limit grows by for each other page of the same site the
     # caller names (9.A-9.C: recording it and reading it; Abby, 2026-11-02).
     other_page_s: int = Field(default=20, ge=5)
+    # Extra time for a page with content that keeps changing by itself (a
+    # ticker, a carousel), added once pass T finds it (Abby, 2026-11-04, T1
+    # (a)): every key press waits longer there, and 2.A-2.C probe it.
+    moving_allowance_s: int = Field(default=30, ge=0, le=300)
     runs_dir: Path = REPO_ROOT / "runs"
     # Runs are working files, not an archive: deleted after this many hours.
     # Durable results belong in the user's codebase (saved from tool output).

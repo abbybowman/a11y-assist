@@ -118,3 +118,20 @@ async def test_pass_t_runs_beside_the_walk(settings, server, drafts):  # noqa: F
     by = {f.test_id.value: f for f in res.report.findings}
     assert by["2.D"].outcome.value == "PASS", by["2.D"].rows
     assert "4.C" in by  # the walk ran beside it
+
+
+async def test_moving_content_gets_ignored_and_more_time(settings, server, drafts):  # noqa: F811
+    """T1 (a) and (b): pass T runs beside the walk; the ticker is handed to
+    the settle rule and the run limit grows. (With only the walk's tests on a
+    page this short, the run ends before pass T and cancels it: 2.D waits.)"""
+    res = await run_tt_tests(
+        settings, f"{server.base}/2x/t-ticker-below.html", [TestId.T4C, TestId.T2D]
+    )
+    assert res.errors == [], res.errors
+    path = settings.runs_dir / res.run_id / "steps.jsonl"
+    events = {
+        json.loads(line)["step"]: json.loads(line)
+        for line in path.read_text().splitlines()
+    }
+    assert events["settle_ignore"]["detail"]["regions"] == 1
+    assert events["time_allowance"]["detail"]["seconds"] == settings.moving_allowance_s

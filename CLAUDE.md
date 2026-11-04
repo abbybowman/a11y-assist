@@ -107,6 +107,8 @@ by TT test ID. Package: `a11y_assist` (name is provisional).
   call stays within `RUN_LIMIT_S`
   (default 120 s) so it survives HTTP proxy timeouts, plus `OTHER_PAGE_S`
   (default 20 s) for each other page the caller names (Abby, 2026-11-02),
+  plus `MOVING_ALLOWANCE_S` (default 30 s) once pass T finds content that
+  keeps changing by itself (Abby, 2026-11-04, T1),
   unless the caller sets `no_time_limit` for a page the run refused as too
   large (the user's choice).
 - Other pages of the same site (`other_pages`, 9.A-9.C) come only from the

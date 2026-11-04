@@ -4,6 +4,8 @@ in-process, unlike the Chrome people use."""
 
 from __future__ import annotations
 
+import json
+
 from playwright.async_api import async_playwright
 
 from a11y_assist.browser import (
@@ -91,4 +93,10 @@ async def test_page_without_frames_stays_in_the_shell(settings, server):
     res = await run_tt_tests(settings, f"{server.base}/dyn", [TestId.T4C])
     run_dir = settings.runs_dir / res.run_id
     assert '"replay_browser": "headless shell"' in (run_dir / "report.json").read_text()
-    assert "full Chromium" not in (run_dir / "steps.jsonl").read_text()
+    # Pass T's own browser is full Chromium (plan Q1); the replays are not.
+    kinds = [
+        e["detail"].get("kind")
+        for e in map(json.loads, (run_dir / "steps.jsonl").read_text().splitlines())
+        if e["step"] == "browser_launched"
+    ]
+    assert FULL_CHROMIUM not in kinds, kinds

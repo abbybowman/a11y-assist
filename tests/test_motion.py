@@ -222,3 +222,38 @@ async def test_elements(settings, browser, server, tmp_path):
     ], names
     assert [e.i for e in els] == list(range(len(els)))
     assert {e.frame for e in els if e.name in ("Frame button",)} == {1}
+
+
+async def test_ticker_below_the_first_screen(settings, browser, server, tmp_path):
+    """No frame shows it, but the DOM log sees it keep changing: a region of
+    source dom, auto-updating, not moving (2.C, not 2.B)."""
+    mp = await watch(settings, browser, server, "t-ticker-below.html", tmp_path)
+    assert mp.ok, mp.error
+    [r] = [r for r in mp.regions if r.source == "dom"]
+    assert r.css == "#visits > span" and r.kinds == ["updating"], r
+    from a11y_assist.motion import settle_ignore
+
+    assert settle_ignore(mp) == {"": ["#visits > span"]}
+
+
+async def test_settle_ignores_content_that_keeps_changing(settings, browser, server):
+    """T1 (b): once told, the settle rule stops waiting on a ticker's changes
+    (traverse.INIT_JS setIgnore); the total count still sees them."""
+    from a11y_assist.traverse import INIT_JS, _read_logs, settle
+
+    ctx = await browser.new_context()
+    await ctx.add_init_script(INIT_JS)
+    page = await ctx.new_page()
+    await page.goto(f"{server.base}/2x/t-ticker-below.html")
+    try:
+        # A 1 s ticker: with a 1.2 s quiet window the page never settles.
+        assert not await settle(page, 1200, 2500)
+        await page.evaluate("() => window.__a11yLog.setIgnore(['#visits'])")
+        await page.wait_for_timeout(1300)
+        m0, *_ = await _read_logs(page)
+        assert await settle(page, 1200, 2500)
+        await page.wait_for_timeout(1100)
+        m1, *_ = await _read_logs(page)
+        assert m1 > m0  # still counted for effects (4.A, 4.D)
+    finally:
+        await ctx.close()
