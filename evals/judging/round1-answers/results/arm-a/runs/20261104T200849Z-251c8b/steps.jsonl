@@ -34,3 +34,4 @@
 {"ts":"2026-11-04T20:12:00.873265Z","step":"collected","status":"ok","detail":{"test":"5.B","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":0.0}}}
 {"ts":"2026-11-04T20:12:00.981991Z","step":"collected","status":"ok","detail":{"test":"5.C","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":0.11}}}
 {"ts":"2026-11-04T20:12:01.317641Z","step":"run_end","status":"error","detail":{}}
+{"ts":"2026-11-04T20:17:05.773087Z","step":"answers_recorded","status":"ok","detail":{"accepted":["4.F-o1-J1","5.B-f1-J1","5.H-J1","9.C-p2-40-J1","9.C-p2-41-J1","9.C-p2-42-J1"],"rejected":[],"errors":[]}}

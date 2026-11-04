@@ -10,3 +10,4 @@
 {"ts":"2026-11-04T20:12:59.776328Z","step":"collected","status":"ok","detail":{"test":"5.B","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":0.0}}}
 {"ts":"2026-11-04T20:12:59.779000Z","step":"collected","status":"ok","detail":{"test":"5.C","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":0.0}}}
 {"ts":"2026-11-04T20:12:59.883204Z","step":"run_end","status":"ok","detail":{}}
+{"ts":"2026-11-04T20:17:13.761777Z","step":"answers_recorded","status":"ok","detail":{"accepted":["5.A-c2-J1","5.B-f1-J1","5.C-c5-J1","5.C-c6-J1","5.C-c7-J1","5.C-c8-J1","5.C-c9-J1","5.C-c10-J1","5.C-c11-J1","5.C-c12-J1","5.C-c13-J1","5.C-c14-J1","5.C-c15-J1","5.C-c16-J1","5.C-c17-J1","5.C-c18-J1","5.C-c19-J1","5.C-c20-J1","5.C-c21-J1","5.C-c22-J1"],"rejected":[],"errors":[]}}

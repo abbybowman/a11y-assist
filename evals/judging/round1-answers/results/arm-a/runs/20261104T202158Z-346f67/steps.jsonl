@@ -1,0 +1,15 @@
+{"ts":"2026-11-04T20:21:58.596550Z","step":"run_start","status":"ok","detail":{"target":"https://www.nasa.gov/gallery/ksc-history/","tests":["4.A","4.B","4.C","4.D","4.E","4.F","5.A","5.B","5.C","5.D","5.F","5.G","5.H","9.A","9.B","9.C","19.A"]}}
+{"ts":"2026-11-04T20:21:59.226472Z","step":"browser_launched","status":"ok","detail":{"version":"153.0.8010.12"}}
+{"ts":"2026-11-04T20:21:59.250433Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/gallery/ksc-history/","har":"pages/009.har.zip"}}
+{"ts":"2026-11-04T20:21:59.263002Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/careers/","har":"pages/004.har.zip"}}
+{"ts":"2026-11-04T20:21:59.263317Z","step":"captured_other","status":"ok","detail":{"n":1,"final_url":"https://www.nasa.gov/careers/","seconds":0.01}}
+{"ts":"2026-11-04T20:21:59.276850Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/missions/","har":"pages/005.har.zip"}}
+{"ts":"2026-11-04T20:21:59.277180Z","step":"captured_other","status":"ok","detail":{"n":2,"final_url":"https://www.nasa.gov/missions/","seconds":0.01}}
+{"ts":"2026-11-04T20:21:59.302001Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/mission/artemis-iii/","har":"pages/006.har.zip"}}
+{"ts":"2026-11-04T20:21:59.302281Z","step":"captured_other","status":"ok","detail":{"n":3,"final_url":"https://www.nasa.gov/mission/artemis-iii/","seconds":0.02}}
+{"ts":"2026-11-04T20:21:59.316424Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/spot-the-station/","har":"pages/001.har.zip"}}
+{"ts":"2026-11-04T20:21:59.316668Z","step":"captured_other","status":"ok","detail":{"n":4,"final_url":"https://www.nasa.gov/spot-the-station/","seconds":0.01}}
+{"ts":"2026-11-04T20:21:59.316725Z","step":"captured","status":"ok","detail":{"final_url":"https://www.nasa.gov/gallery/ksc-history/","redirects":[],"seconds":0.08}}
+{"ts":"2026-11-04T20:23:28.356478Z","step":"walk","status":"ok","detail":{"P1":{"end":"wrap","presses":75,"cap":269},"P2":{"end":"wrap","presses":75,"cap":269},"cost":{"loads":2,"presses":150,"quick":0,"slow_redos":0,"seconds":89.02}}}
+{"ts":"2026-11-04T20:23:28.795017Z","step":"browser_launched","status":"ok","detail":{"kind":"full Chromium"}}
+{"ts":"2026-11-04T20:23:29.099598Z","step":"browser_launched","status":"ok","detail":{"kind":"full Chromium"}}
