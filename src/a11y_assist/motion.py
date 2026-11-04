@@ -1,0 +1,937 @@
+"""Pass T: one fresh load of the recorded page, watched with no input
+(2.C spec section 2; shared by 2.A, 2.B, 2.C and 2.D).
+
+Records facts only: frames and the regions whose pixels changed, what each
+region's content did (its text, image sources and rendered children at three
+reads), DOM changes with their targets and the live region around each,
+timers, Web Audio use, animations, media state per frame, dialogs, focus
+moves with no key pressed, and polls in the HAR. Which test applies, and its
+outcome, is each 2.x check's rules.
+
+Pass T takes an opener (`OpenPage`): a fresh replay load with
+`MOTION_INIT_JS` added before page scripts (plan Q7). Which browser that
+load runs in is the pipeline's choice (plan Q1 and Q11), not this module's.
+
+Verified behavior this module depends on (plan "Verified" items; tests in
+tests/test_motion.py):
+  * Pixel differences classify motion; DOM signals do not (item 6). Tiles
+    map to elements by overlap, not by their centre.
+  * Timer hooks run before page scripts and see periods longer than the
+    watch (item 7).
+  * The replay answers every repeat of a request with its first recorded
+    response, so polling shows only in the HAR (item 10).
+"""
+
+from __future__ import annotations
+
+import asyncio
+import io
+import json
+import statistics
+import time
+import zipfile
+from collections.abc import Awaitable, Callable
+from datetime import datetime
+from pathlib import Path
+from typing import Any
+
+from PIL import Image, ImageChops
+from playwright.async_api import BrowserContext, Frame, Page
+from pydantic import BaseModel, Field
+
+from a11y_assist.observe import DIALOGS_JS
+from a11y_assist.site import UNITS_FN
+from a11y_assist.traverse import PATH_JS, screenshot
+
+# TT: "more than 5 seconds" (2.B) and "more than 3 seconds" (2.A); the
+# watch is 6.5 s at the top of the page (Abby, 2026-11-03, plan Q3).
+WATCH_S = 6.5
+FRAME_S = 0.5
+READS_AT = (0.0, 3.5, 6.5)
+TILE = 20
+# Bounds that keep one pass small on a busy page; reaching one is recorded.
+MAX_COMPONENTS = 30  # changed-tile groups mapped per frame
+MAX_REGIONS = 40
+# A frame where more than this share of the viewport's tiles changed is a
+# page-wide change (a dialog's backdrop, a scroll), noted and not mapped.
+PAGE_CHANGE = 0.5
+
+# The autoplay setting TT 5.1.3 asks for ("browser not set to block
+# autoplay"): without it, media in a HAR replay never starts (item 1).
+AUTOPLAY_ARG = "--autoplay-policy=no-user-gesture-required"
+
+OpenPage = Callable[[], Awaitable[tuple[BrowserContext, Page]]]
+
+# ANDI 29.2.2's live regions (sandi.js): aria-live polite or assertive, and
+# roles alert, status, log, marquee and timer (2.D spec, Terms). An element
+# whose aria-live is anything else (off) is not one.
+LIVE_SELECTOR = (
+    "[aria-live],[role=alert],[role=status],[role=log],[role=marquee],[role=timer]"
+)
+# Carousel containers (2.C spec, Terms): the content is the whole carousel.
+CAROUSEL_SELECTOR = (
+    "[aria-roledescription~=carousel i],.slick-slider,.splide,.swiper,"
+    ".carousel,.glide,.flickity-enabled"
+)
+
+# Runs in every frame before page scripts, after traverse.INIT_JS.
+MOTION_INIT_JS = (
+    (
+        "(() => {"
+        + PATH_JS
+        + """
+  if (window.__a11yMotion) return;
+  const now = () => performance.timeOrigin + performance.now();
+  const M = { recs: [], attrs: 0, dropped: 0, timers: [], audio: 0, snaps: [], live0: new WeakSet(), held: new Map(), t0: null };
+  Object.defineProperty(window, '__a11yMotion', { value: M });
+  const REC_MAX = 1500, ATTR_MAX = 300, TIMER_MAX = 200;
+  const LIVE = LIVE_SELECTOR;
+  const CAROUSEL = CAROUSEL_SELECTOR;
+  const norm = (s) => (s || '').replace(/\\s+/g, ' ').trim();
+  const isLive = (e) => {
+    if (!e.matches(LIVE)) return false;
+    if (!e.hasAttribute('aria-live')) return true;
+    const v = norm(e.getAttribute('aria-live')).toLowerCase();
+    return v === 'polite' || v === 'assertive';
+  };
+  const liveOf = (el) => { for (let e = el; e; e = e.parentElement) if (isLive(e)) return e; return null; };
+  // Timers (2.C A2: a period longer than the watch, item 7).
+  const si = window.setInterval, st = window.setTimeout;
+  window.setInterval = function (f, ms, ...a) {
+    const v = Number(ms) || 0;
+    if (v >= 1000 && M.timers.length < TIMER_MAX) M.timers.push({ kind: 'interval', ms: Math.round(v), at: now() });
+    return si.call(this, f, ms, ...a);
+  };
+  window.setTimeout = function (f, ms, ...a) {
+    const v = Number(ms) || 0;
+    if (v >= 1000 && M.timers.length < TIMER_MAX) M.timers.push({ kind: 'timeout', ms: Math.round(v), at: now() });
+    return st.call(this, f, ms, ...a);
+  };
+  // Web Audio connected to the speakers (2.A, item 5).
+  if (window.AudioNode) {
+    const cn = AudioNode.prototype.connect;
+    AudioNode.prototype.connect = function (d, ...a) {
+      try { if (window.AudioDestinationNode && d instanceof AudioDestinationNode) M.audio++; } catch (e) {}
+      return cn.call(this, d, ...a);
+    };
+  }
+  // DOM changes with their targets (2.D: the change, and the live region
+  // around it at the time). The <head> is skipped: the tool's screenshots
+  // add and remove a style element there.
+  const textOf = (el) => norm(el && (el.innerText !== undefined ? el.innerText : el.textContent)).slice(0, 200);
+  const meaningful = (nodes) => Array.from(nodes).some((n) => n.nodeType === 1 || (n.nodeType === 3 && norm(n.textContent)));
+  const obs = new MutationObserver((rs) => {
+    const at = now();
+    for (const r of rs) {
+      const el = r.target.nodeType === 1 ? r.target : r.target.parentElement;
+      if (!el || (el.closest && el.closest('head'))) continue;
+      let kind;
+      if (r.type === 'characterData') kind = 'text';
+      else if (r.type === 'childList') { if (!meaningful(r.addedNodes) && !meaningful(r.removedNodes)) continue; kind = 'children'; }
+      else kind = ['src', 'srcset', 'poster'].includes(r.attributeName) ? 'src' : 'attr';
+      if (kind === 'attr') { if (M.attrs >= ATTR_MAX) { M.dropped++; continue; } M.attrs++; }
+      if (M.recs.length >= REC_MAX) { M.dropped++; continue; }
+      M.recs.push({ at, kind, attr: r.attributeName || null, el, live: liveOf(el),
+        before: r.type === 'characterData' ? norm(r.oldValue).slice(0, 200) : '',
+        after: kind === 'text' || kind === 'children' ? textOf(el) : '' });
+    }
+  });
+  obs.observe(document, { subtree: true, childList: true, attributes: true, characterData: true, characterDataOldValue: true });
+  // Pass T's start: live regions present and rendered now (2.D: a region
+  // added with the change does not count).
+  M.mark0 = () => {
+    M.t0 = now();
+    const vis = (e) => e.checkVisibility ? e.checkVisibility({ visibilityProperty: true }) : e.getClientRects().length > 0;
+    const out = [];
+    for (const e of document.querySelectorAll(LIVE)) {
+      if (!isLive(e) || !vis(e)) continue;
+      M.live0.add(e);
+      out.push({ css: path(e), role: e.getAttribute('role') || '', live: norm(e.getAttribute('aria-live')) });
+    }
+    return { t0: M.t0, live: out };
+  };
+  // What each element shows (2.C Terms, kind): a hash of its visible text,
+  // image sources and rendered children, and its box. Text clipped away by
+  // an overflow ancestor (a sliding carousel's other slides) is not shown.
+  const H = (h, s) => { for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619) >>> 0; return h; };
+  M.snap = () => {
+    const map = new WeakMap();
+    const visit = (el, clip, faded) => {
+      let cs;
+      try { cs = getComputedStyle(el); } catch (e) { return 0; }
+      if (cs.display === 'none') return 0;
+      const r = el.getBoundingClientRect();
+      const fade = faded || parseFloat(cs.opacity) === 0;
+      let c = clip;
+      if (cs.display !== 'contents' && (cs.overflowX !== 'visible' || cs.overflowY !== 'visible'))
+        c = [Math.max(clip[0], r.left), Math.max(clip[1], r.top), Math.min(clip[2], r.right), Math.min(clip[3], r.bottom)];
+      const inClip = r.width > 0 && r.height > 0 && r.right > clip[0] && r.left < clip[2] && r.bottom > clip[1] && r.top < clip[3];
+      const self = !fade && cs.visibility !== 'hidden' && (inClip || cs.display === 'contents');
+      let h = 2166136261, n = 0;
+      if (self) {
+        for (const t of el.childNodes) if (t.nodeType === 3) { const s = norm(t.textContent); if (s) { h = H(h, s); n++; } }
+        if (el.tagName === 'IMG') { h = H(h, 'img:' + (el.currentSrc || el.src || '')); n++; }
+        if (cs.backgroundImage && cs.backgroundImage !== 'none') { h = H(h, 'bg:' + cs.backgroundImage); n++; }
+        if ((el.tagName === 'INPUT' && el.type !== 'hidden') || el.tagName === 'TEXTAREA') { h = H(h, 'v:' + el.value); n++; }
+      }
+      const kids = el.shadowRoot ? [...el.shadowRoot.children, ...el.children] : el.children;
+      for (const k of kids) { const hk = visit(k, c, fade); if (hk) { h = H(h, String(hk)); n++; } }
+      const out = n ? h >>> 0 : 0;
+      map.set(el, [out, Math.round(r.left), Math.round(r.top), Math.round(r.width), Math.round(r.height)]);
+      return out;
+    };
+    const t = now();
+    if (document.body) visit(document.body, [-1e9, -1e9, 1e9, 1e9], false);
+    M.snaps.push({ at: t, map });
+    return t;
+  };
+  // Regions for a group of changed tiles (2.C Terms, region). `boxes` are
+  // the changed pixels' bounding boxes, one per tile, in viewport pixels.
+  // The group goes to the smallest element whose box covers it, by overlap
+  // (not by tile centres, which missed edge tiles; item 6). When its
+  // changed pixels fall in two or more of that element's children, one in
+  // each, each child's part is its own region (two widgets side by side).
+  // Inside a carousel, the region is the whole carousel. An iframe hands its
+  // part to its own frame.
+  const ov = (r, b) => Math.max(0, Math.min(r.right, b[2]) - Math.max(r.left, b[0])) * Math.max(0, Math.min(r.bottom, b[3]) - Math.max(r.top, b[1]));
+  const covers = (r, b) => r.left <= b[0] + 1 && r.top <= b[1] + 1 && r.right >= b[2] - 1 && r.bottom >= b[3] - 1;
+  // Covering now and at the first read: content that moved there (the slide
+  // in view at the end of a sliding carousel) does not cover it.
+  const steady = (e, b) => {
+    if (!covers(e.getBoundingClientRect(), b)) return false;
+    const v = M.snaps.length ? M.snaps[0].map.get(e) : null;
+    return !v || covers({ left: v[1], top: v[2], right: v[1] + v[3], bottom: v[2] + v[4] }, b);
+  };
+  const bboxOf = (bs) => [Math.min(...bs.map((b) => b[0])), Math.min(...bs.map((b) => b[1])), Math.max(...bs.map((b) => b[2])), Math.max(...bs.map((b) => b[3]))];
+  const rendered = (e) => { try { return getComputedStyle(e).display !== 'none'; } catch (x) { return false; } };
+  const cover = (bs) => {
+    const bx = bboxOf(bs), seen = new Set();
+    const step = Math.max(1, Math.floor(bs.length / 24));
+    for (let i = 0; i < bs.length; i += step) {
+      const b = bs[i];
+      for (const e of document.elementsFromPoint((b[0] + b[2]) / 2, (b[1] + b[3]) / 2)) seen.add(e);
+    }
+    let best = null, area = Infinity, over = null, most = 0, overArea = Infinity;
+    for (const e of seen) {
+      const r = e.getBoundingClientRect(), a = r.width * r.height;
+      if (steady(e, bx)) { if (a < area) { area = a; best = e; } }
+      else { const o = ov(r, bx); if (o > most || (o === most && a < overArea)) { most = o; over = e; overArea = a; } }
+    }
+    return { el: best || over || document.body, covered: !!best };
+  };
+  const split = (el, idx, bs, depth) => {
+    if (depth > 12 || idx.length < 2 || el.tagName === 'IFRAME' || el.tagName === 'FRAME') return [[el, idx]];
+    const kids = (el.shadowRoot ? [...el.shadowRoot.children, ...el.children] : Array.from(el.children))
+      .filter(rendered).map((c) => [c, c.getBoundingClientRect()]);
+    const parts = new Map();
+    for (const i of idx) {
+      const hit = kids.filter(([, r]) => ov(r, bs[i]) > 0);
+      if (hit.length !== 1) return [[el, idx]];
+      const c = hit[0][0];
+      if (!parts.has(c)) parts.set(c, []);
+      parts.get(c).push(i);
+    }
+    if (parts.size < 2) return [[el, idx]];
+    const out = [];
+    for (const [c, sub] of parts) {
+      // The smallest descendant of c covering its part.
+      let e = c;
+      const bx = bboxOf(sub.map((i) => bs[i]));
+      for (let k = 0; k < 30; k++) {
+        const next = Array.from(e.children).filter(rendered).find((d) => steady(d, bx));
+        if (!next) break;
+        e = next;
+      }
+      out.push(...split(e, sub, bs, depth + 1));
+    }
+    return out;
+  };
+  M.regionsAt = (bs) => {
+    if (!bs.length) return [];
+    const all = bs.map((_, i) => i);
+    const { el: top, covered } = cover(bs);
+    const frames = Array.from(document.querySelectorAll('iframe, frame'));
+    return split(top, all, bs, 0).map(([el0, idx]) => {
+      if (el0.tagName === 'IFRAME' || el0.tagName === 'FRAME') {
+        const r = el0.getBoundingClientRect();
+        return { frame: frames.indexOf(el0), dx: r.left + el0.clientLeft, dy: r.top + el0.clientTop, idx };
+      }
+      const car = el0.closest(CAROUSEL);
+      let el = car || el0;
+      // An element that was not on the page at the first read (replaced
+      // with innerHTML every second): its region is the ancestor that was.
+      const first = M.snaps.length ? M.snaps[0].map : null;
+      while (first && !first.has(el) && el.parentElement && el !== document.body) el = el.parentElement;
+      const css = path(el);
+      M.held.set(css, el);
+      const r = el.getBoundingClientRect();
+      return { css, tag: el.tagName.toLowerCase(), part: el !== el0 ? path(el0) : null, carousel: !!car, covered, idx,
+        box: [Math.round(r.left + scrollX), Math.round(r.top + scrollY), Math.round(r.width), Math.round(r.height)] };
+    });
+  };
+  // A region at the end of the watch: what it showed at each read, whether
+  // its children moved, its DOM changes and their live regions.
+  M.describe = (css) => {
+    const el = M.held.get(css);
+    if (!el) return null;
+    const sigs = M.snaps.map((s) => { const v = s.map.get(el); return v ? v[0] : null; });
+    let moved = false;
+    const kids = Array.from(el.children);
+    for (let i = 1; i < M.snaps.length && !moved; i++) {
+      const a = M.snaps[i - 1].map, b = M.snaps[i].map, pa = a.get(el), pb = b.get(el);
+      if (!pa || !pb) continue;
+      for (const k of kids) {
+        const ka = a.get(k), kb = b.get(k);
+        if (ka && kb && ka[0] && (Math.abs((ka[1] - pa[1]) - (kb[1] - pb[1])) > 1 || Math.abs((ka[2] - pa[2]) - (kb[2] - pb[2])) > 1)) { moved = true; break; }
+      }
+    }
+    const changes = M.recs.filter((r) => r.at >= M.t0 && (el === r.el || el.contains(r.el)) && r.kind !== 'attr').slice(0, 100)
+      .map((r) => ({ at: r.at, kind: r.kind, attr: r.attr, css: r.el.isConnected ? path(r.el) : '', before: r.before, after: r.after,
+        live: r.live ? (r.live.isConnected ? path(r.live) : '') : null, live_at_start: !!(r.live && M.live0.has(r.live)) }));
+    const attrs = M.recs.filter((r) => r.at >= M.t0 && r.kind === 'attr' && (el === r.el || el.contains(r.el))).length;
+    let anims = [];
+    try {
+      anims = el.getAnimations({ subtree: true }).slice(0, 20).map((a) => {
+        const t = a.effect ? a.effect.getComputedTiming() : {};
+        const target = a.effect && a.effect.target;
+        return { css: target && target.nodeType === 1 ? path(target) : '', name: a.animationName || a.transitionProperty || a.id || '',
+          infinite: t.iterations === Infinity, iterations: t.iterations === Infinity ? 0 : (t.iterations || 0),
+          duration_ms: typeof t.duration === 'number' ? Math.round(t.duration) : 0, state: a.playState };
+      });
+    } catch (e) {}
+    return { sigs, moved, changes, attrs, anims, text: textOf(el), connected: el.isConnected };
+  };
+  M.media = () => Array.from(document.querySelectorAll('video, audio')).slice(0, 20).map((m) => ({
+    css: path(m), tag: m.tagName.toLowerCase(), paused: m.paused, muted: m.muted, volume: m.volume,
+    time: m.currentTime, duration: isFinite(m.duration) ? m.duration : null, loop: m.loop, autoplay: m.autoplay,
+    controls: m.controls, error: m.error ? m.error.code : null,
+    decoded: typeof m.webkitAudioDecodedByteCount === 'number' ? m.webkitAudioDecodedByteCount : null,
+    src: (m.currentSrc || '').slice(0, 500) }));
+  M.facts = () => ({ timers: M.timers, audio: M.audio, dropped: M.dropped });
+  // The elements (read at 0 s, ELEMENTS_JS) inside a region's element.
+  M.inside = (css) => {
+    const el = M.held.get(css);
+    if (!el || !M.els) return [];
+    const out = [];
+    M.els.forEach((e, i) => { if (el === e || el.contains(e)) out.push(i); });
+    return out;
+  };
+})()"""
+    )
+    .replace("LIVE_SELECTOR", json.dumps(LIVE_SELECTOR))
+    .replace("CAROUSEL_SELECTOR", json.dumps(CAROUSEL_SELECTOR))
+)
+
+
+# Elements (2.C Terms; Abby, 2026-11-03, plan Q6): what a screen reader reads
+# as one unit, in reading order. site.UNITS_FN's units (as 9.A-9.C and 19.A
+# read them), with three rules of its own: a label on the same line as its
+# control is one element with it, content inside aria-hidden="true" is not an
+# element, and an iframe's content is read in its own frame and counted at
+# the iframe's place (pass_t splices it in). Images without alt text are
+# already skipped by UNITS_FN; each table cell's own text is its own unit.
+ELEMENTS_CAP = 600
+ELEMENTS_JS = (
+    "(cap) => {"
+    + UNITS_FN
+    + r"""
+  const r = units(cap);
+  const drop = new Set();
+  r.els.forEach((el, i) => {
+    if (r.units[i].kind !== 'control' || !el.labels) return;
+    for (const lab of el.labels) {
+      const j = r.els.findIndex((e, k) => k !== i && r.units[k].kind === 'text' && (e === lab || lab.contains(e)));
+      if (j < 0) continue;
+      const a = lab.getBoundingClientRect(), b = el.getBoundingClientRect();
+      const shared = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
+      if (shared >= Math.min(a.height, b.height) / 2) drop.add(j);
+    }
+  });
+  const keep = [], out = [];
+  r.els.forEach((el, i) => {
+    if (drop.has(i) || el.closest('[aria-hidden="true"]')) return;
+    const u = r.units[i];
+    keep.push(el);
+    out.push({ kind: u.kind, role: u.role, name: (u.name || '').slice(0, 200), css: u.css, box: u.box, stop: !!u.stop });
+  });
+  if (window.__a11yMotion) window.__a11yMotion.els = keep;
+  return { elements: out, truncated: r.truncated };
+}"""
+)
+
+
+class Element(BaseModel):
+    i: int  # position in reading order, iframe content inline
+    frame: int  # index in page.frames
+    kind: str  # text | heading | image | control
+    role: str = ""
+    name: str = ""
+    css: str
+    box: list[int] = Field(default_factory=list)  # page x, y, width, height
+    stop: bool = False  # natively tabbable or tabindex >= 0
+
+
+async def read_elements(page: Page) -> tuple[list[Element], bool, dict]:
+    """Elements of every frame, inline at each iframe's place. Returns the
+    elements, whether a cap cut them short, and (frame index, local index)
+    -> element index, for `inside`."""
+    out: list[Element] = []
+    where: dict[tuple[int, int], int] = {}
+    truncated = False
+
+    async def visit(frame: Frame, depth: int) -> None:
+        nonlocal truncated
+        try:
+            got = await frame.evaluate(ELEMENTS_JS, ELEMENTS_CAP)
+        except Exception:
+            truncated = True
+            return
+        truncated = truncated or got["truncated"]
+        index = page.frames.index(frame) if frame in page.frames else -1
+        for j, u in enumerate(got["elements"]):
+            if u["kind"] == "frame":
+                child = None
+                if depth < 3:
+                    try:
+                        h = await frame.query_selector(u["css"])
+                        child = await h.content_frame() if h else None
+                    except Exception:
+                        child = None
+                if child is not None:
+                    await visit(child, depth + 1)
+                else:
+                    truncated = True  # a frame not read: its content is missing
+                continue
+            if len(out) >= ELEMENTS_CAP:
+                truncated = True
+                return
+            where[(index, j)] = len(out)
+            out.append(Element(i=len(out), frame=index, **u))
+
+    await visit(page.main_frame, 0)
+    return out, truncated, where
+
+
+class Change(BaseModel):
+    """One DOM change inside a region during the watch (2.D spec, Terms)."""
+
+    t: float  # seconds from the start of the watch
+    kind: str  # text | children | src
+    attr: str | None = None
+    css: str = ""  # the changed element ("" once it left the page)
+    before: str = ""
+    after: str = ""
+    live: str | None = None  # the live region around it when it changed
+    live_at_start: bool = False  # that live region was there at 0 s
+
+
+class Animation(BaseModel):
+    css: str = ""
+    name: str = ""
+    infinite: bool = False
+    iterations: float = 0
+    duration_ms: int = 0
+    state: str = ""
+
+
+class Region(BaseModel):
+    """Tiles that changed together, mapped to the smallest element covering
+    them (2.C spec, Terms). `kinds` follows the Terms: "updating" when what
+    it shows changed between reads, "moving" when its pixels changed but
+    what it shows did not, or its children moved."""
+
+    key: str  # "<frame>|<css>"
+    frame: int  # index in page.frames (0: the top page)
+    frame_url: str = ""
+    css: str
+    tag: str = ""
+    content_css: str  # what the mechanism windows are counted around
+    carousel: bool = False  # the region is a carousel (2.C Terms)
+    parts: list[str] = Field(default_factory=list)  # elements merged into it
+    covered: bool = True  # an element covered every changed tile
+    box: list[int] = Field(default_factory=list)  # page x, y, width, height
+    changed_at: list[float] = Field(default_factory=list)  # frame times
+    tiles: int = 0
+    sigs: list[int | None] = Field(default_factory=list)  # per read
+    updated: bool = False
+    children_moved: bool = False
+    kinds: list[str] = Field(default_factory=list)
+    text: str = ""  # its text at the end, capped
+    connected: bool = True
+    changes: list[Change] = Field(default_factory=list)
+    attr_changes: int = 0
+    animations: list[Animation] = Field(default_factory=list)
+    period_s: float | None = None  # median time between pixel changes
+    elements: list[int] = Field(default_factory=list)  # Element.i inside it
+
+
+class LiveRegion(BaseModel):
+    frame: int
+    css: str
+    role: str = ""
+    live: str = ""
+
+
+class Timer(BaseModel):
+    frame: int
+    kind: str  # interval | timeout
+    ms: int
+    count: int = 1
+
+
+class Media(BaseModel):
+    frame: int
+    at: float  # read time, seconds from the start of the watch
+    css: str
+    tag: str
+    paused: bool
+    muted: bool
+    volume: float
+    time: float
+    duration: float | None = None
+    loop: bool = False
+    autoplay: bool = False
+    controls: bool = False
+    error: int | None = None
+    decoded: int | None = None
+    src: str = ""
+
+
+class Poll(BaseModel):
+    """Requests repeated to one address: in the HAR, or made during pass T
+    (item 10: the replay answers every repeat with the first response, so
+    the page cannot show new data). Recording stops once the network is
+    idle, so a page polling every second may show only once in the HAR."""
+
+    url: str
+    count: int
+    gap_ms: int | None = None  # median gap between repeats
+    source: str = "har"  # har (while recording) | watch (requests in pass T)
+
+
+class FocusMove(BaseModel):
+    t: float
+    css: str | None = None
+    type: str = "focusin"
+
+
+class MotionPass(BaseModel):
+    ok: bool = True
+    error: str = ""
+    watch_s: float = WATCH_S
+    frames: list[float] = Field(default_factory=list)  # times of each frame
+    shots: list[str] = Field(default_factory=list)  # run-folder paths
+    reads: list[float] = Field(default_factory=list)  # times of the reads
+    viewport: list[int] = Field(default_factory=list)  # width, height
+    regions: list[Region] = Field(default_factory=list)
+    regions_capped: bool = False
+    page_changes: list[float] = Field(default_factory=list)  # most of it changed
+    unmapped_tiles: int = 0  # changed tiles with no element (a frame not read)
+    live_regions: list[LiveRegion] = Field(default_factory=list)  # at 0 s
+    dialogs_at_start: list[str] = Field(default_factory=list)
+    dialogs_opened: list[dict[str, str]] = Field(default_factory=list)
+    focus_moves: list[FocusMove] = Field(default_factory=list)
+    timers: list[Timer] = Field(default_factory=list)
+    audio_connects: int = 0
+    media: list[Media] = Field(default_factory=list)
+    polls: list[Poll] = Field(default_factory=list)
+    dropped_changes: int = 0
+    frames_read: int = 0  # document frames read (the top page included)
+    elements: list[Element] = Field(default_factory=list)  # at 0 s
+    elements_truncated: bool = False
+
+
+def changed_tiles(
+    a: Image.Image, b: Image.Image, tile: int = TILE
+) -> dict[tuple[int, int], list[int]]:
+    """(column, row) of every tile with any pixel different between frames,
+    with the bounding box of its changed pixels (x0, y0, x1, y1, viewport
+    pixels)."""
+    diff = ImageChops.difference(a, b).convert("L").point(lambda v: 255 if v else 0)
+    if diff.getbbox() is None:
+        return {}
+    w, h = diff.size
+    cols, rows = -(-w // tile), -(-h // tile)
+    # Pad to whole tiles, then a box reduce: any changed pixel makes the
+    # tile's mean non-zero.
+    padded = Image.new("L", (cols * tile, rows * tile))
+    padded.paste(diff, (0, 0))
+    px = padded.reduce(tile).load()
+    out: dict[tuple[int, int], list[int]] = {}
+    for y in range(rows):
+        for x in range(cols):
+            if px[x, y]:
+                x0, y0 = x * tile, y * tile
+                bb = padded.crop((x0, y0, x0 + tile, y0 + tile)).getbbox()
+                if bb:
+                    out[(x, y)] = [x0 + bb[0], y0 + bb[1], x0 + bb[2], y0 + bb[3]]
+    return out
+
+
+def components(tiles: set[tuple[int, int]]) -> list[set[tuple[int, int]]]:
+    """Tiles that touch one another (8 neighbours), largest first."""
+    left, out = set(tiles), []
+    while left:
+        start = left.pop()
+        group, todo = {start}, [start]
+        while todo:
+            x, y = todo.pop()
+            for dx in (-1, 0, 1):
+                for dy in (-1, 0, 1):
+                    n = (x + dx, y + dy)
+                    if n in left:
+                        left.remove(n)
+                        group.add(n)
+                        todo.append(n)
+        out.append(group)
+    return sorted(out, key=len, reverse=True)
+
+
+def polls_in_har(har: Path) -> list[Poll]:
+    """GET requests repeated to one address, media and byte ranges excluded
+    (a video fetched in ranges is not polling)."""
+    try:
+        with zipfile.ZipFile(har) as z:
+            name = next(n for n in z.namelist() if n.endswith(".har"))
+            entries = json.loads(z.read(name))["log"]["entries"]
+    except Exception:
+        return []
+    seen: dict[str, list[str]] = {}
+    for e in entries:
+        req, res = e.get("request", {}), e.get("response", {})
+        if req.get("method") != "GET":
+            continue
+        headers = {h.get("name", "").lower() for h in req.get("headers", [])}
+        if "range" in headers:
+            continue
+        mime = (res.get("content", {}).get("mimeType") or "").lower()
+        if mime.startswith(("image/", "font/", "video/", "audio/", "text/css")):
+            continue
+        seen.setdefault(req.get("url", ""), []).append(e.get("startedDateTime", ""))
+    out = []
+    for url, times in seen.items():
+        if len(times) < 2 or not url:
+            continue
+        gap = None
+        try:
+            ts = sorted(datetime.fromisoformat(t.replace("Z", "+00:00")) for t in times)
+            gaps = [(b - a).total_seconds() * 1000 for a, b in zip(ts, ts[1:])]
+            gap = round(statistics.median(gaps)) if gaps else None
+        except ValueError:
+            pass
+        out.append(Poll(url=url[:500], count=len(times), gap_ms=gap))
+    return sorted(out, key=lambda p: -p.count)[:20]
+
+
+async def _each_frame(page: Page, js: str, *args: Any) -> list[tuple[int, Frame, Any]]:
+    out = []
+    for i, frame in enumerate(page.frames):
+        try:
+            out.append((i, frame, await frame.evaluate(js, *args)))
+        except Exception:
+            continue
+    return out
+
+
+async def _map(frame: Frame, boxes: list[list[int]], depth: int = 0):
+    """Regions for one tile group: a list of (Frame, info), where info["idx"]
+    lists the group's boxes in that region. Follows iframes."""
+    try:
+        got = await frame.evaluate(
+            "(b) => window.__a11yMotion ? window.__a11yMotion.regionsAt(b) : null",
+            boxes,
+        )
+    except Exception:
+        return []
+    out = []
+    for item in got or []:
+        if "frame" not in item:
+            out.append((frame, item))
+            continue
+        if depth >= 3:
+            continue
+        try:
+            handles = await frame.query_selector_all("iframe, frame")
+            child = await handles[item["frame"]].content_frame()
+        except Exception:
+            child = None
+        if child is None:
+            continue
+        dx, dy = item["dx"], item["dy"]
+        sub = [boxes[i] for i in item["idx"]]
+        moved = [[b[0] - dx, b[1] - dy, b[2] - dx, b[3] - dy] for b in sub]
+        for f, info in await _map(child, moved, depth + 1):
+            info["idx"] = [item["idx"][i] for i in info["idx"]]
+            out.append((f, info))
+    return out
+
+
+def _kinds(r: Region) -> list[str]:
+    seen = [s for s in r.sigs]
+    updated = len({s for s in seen if s is not None}) > 1 or (
+        any(s is None for s in seen) and any(s is not None for s in seen)
+    )
+    r.updated = updated or any(c.kind in ("text", "children", "src") for c in r.changes)
+    kinds = []
+    if r.updated:
+        kinds.append("updating")
+    if (not r.updated and r.changed_at) or r.children_moved:
+        kinds.append("moving")
+    return kinds
+
+
+async def pass_t(
+    open_page: OpenPage,
+    har: Path | None = None,
+    shots: Path | None = None,
+    rel: Path | None = None,
+    watch_s: float = WATCH_S,
+) -> MotionPass:
+    """Watch one fresh load for `watch_s` with no input. Never raises: a load
+    or read that fails gives `ok=False` with the reason (2.C A1)."""
+    out = MotionPass(watch_s=watch_s)
+    if har is not None:
+        out.polls = polls_in_har(har)
+    try:
+        context, page = await open_page()
+    except Exception as exc:
+        out.ok, out.error = False, f"the page could not be loaded: {type(exc).__name__}"
+        return out
+    try:
+        await _watch(page, out, shots, rel, watch_s)
+    except Exception as exc:  # recorded, never raised (A1)
+        out.ok, out.error = False, f"the page could not be read: {type(exc).__name__}"
+    finally:
+        await context.close()
+    return out
+
+
+async def _watch(
+    page: Page, out: MotionPass, shots: Path | None, rel: Path | None, watch_s: float
+) -> None:
+    out.elements, out.elements_truncated, where = await read_elements(page)
+    starts = await _each_frame(
+        page, "() => window.__a11yMotion ? window.__a11yMotion.mark0() : null"
+    )
+    top = next((v for i, _, v in starts if i == 0 and v), None)
+    if top is None:
+        raise RuntimeError("pass T's hook did not run")
+    t0_epoch = top["t0"]
+    out.frames_read = sum(1 for _, _, v in starts if v)
+    for i, _, v in starts:
+        for lr in (v or {}).get("live", []):
+            out.live_regions.append(LiveRegion(frame=i, **lr))
+    try:
+        out.dialogs_at_start = sorted(
+            {d["css"] for d in await page.evaluate(DIALOGS_JS)}
+        )
+    except Exception:
+        pass
+    asked: dict[str, list[float]] = {}
+
+    def on_request(req) -> None:
+        try:
+            if req.method == "GET" and req.resource_type in (
+                "fetch",
+                "xhr",
+                "eventsource",
+            ):
+                asked.setdefault(req.url, []).append(time.monotonic())
+        except Exception:
+            pass
+
+    page.on("request", on_request)
+    vp = page.viewport_size or {}
+    out.viewport = [vp.get("width", 0), vp.get("height", 0)]
+    if shots is not None:
+        shots.mkdir(parents=True, exist_ok=True)
+
+    regions: dict[str, Region] = {}
+    frames_by_key: dict[str, Frame] = {}
+    pairs: list[tuple[float, dict[tuple[int, int], list[int]]]] = []
+    reads = list(READS_AT[:-1]) + [watch_s]
+    start = time.monotonic()
+    prev: Image.Image | None = None
+    n = 0
+    while True:
+        t = time.monotonic() - start
+        if reads and t >= reads[0] - 0.05:
+            reads.pop(0)
+            await _each_frame(
+                page, "() => window.__a11yMotion ? window.__a11yMotion.snap() : null"
+            )
+            out.reads.append(round(time.monotonic() - start, 2))
+            for i, _, media in await _each_frame(
+                page, "() => window.__a11yMotion ? window.__a11yMotion.media() : []"
+            ):
+                at = round(time.monotonic() - start, 2)
+                out.media += [Media(frame=i, at=at, **m) for m in media or []]
+        shot_t = round(time.monotonic() - start, 2)
+        png = await screenshot(page)
+        img = Image.open(io.BytesIO(png)).convert("RGB")
+        out.frames.append(shot_t)
+        if shots is not None:
+            path = shots / f"2t-{n:02d}.png"
+            path.write_bytes(png)
+            out.shots.append(str(path.relative_to(rel)) if rel else str(path))
+        if prev is not None and prev.size == img.size:
+            pairs.append((shot_t, changed_tiles(prev, img)))
+        prev = img
+        n += 1
+        if time.monotonic() - start >= watch_s and not reads:
+            break
+        wait = FRAME_S - (time.monotonic() - start - shot_t)
+        if wait > 0:
+            await asyncio.sleep(wait)
+
+    page.remove_listener("request", on_request)
+    for url, times in asked.items():
+        if len(times) >= 2:
+            gaps = [b - a for a, b in zip(times, times[1:])]
+            out.polls.append(
+                Poll(
+                    url=url[:500],
+                    count=len(times),
+                    gap_ms=round(statistics.median(gaps) * 1000),
+                    source="watch",
+                )
+            )
+    await _regions(page, pairs, regions, frames_by_key, out)
+    for key, r in regions.items():
+        frame = frames_by_key[key]
+        try:
+            d = await frame.evaluate(
+                "(css) => window.__a11yMotion ? window.__a11yMotion.describe(css) : null",
+                r.css,
+            )
+        except Exception:
+            d = None
+        if not d:
+            continue
+        epoch0 = t0_epoch
+        r.sigs = d["sigs"]
+        r.children_moved = bool(d["moved"])
+        r.text = d["text"]
+        r.connected = d["connected"]
+        r.attr_changes = d["attrs"]
+        r.changes = [
+            Change(**{**c, "t": round((c.pop("at") - epoch0) / 1000, 2)})
+            for c in d["changes"]
+        ]
+        r.animations = [Animation(**a) for a in d["anims"]]
+        gaps = [b - a for a, b in zip(r.changed_at, r.changed_at[1:])]
+        r.period_s = round(statistics.median(gaps), 2) if gaps else None
+        r.kinds = _kinds(r)
+        try:
+            local = await frame.evaluate(
+                "(css) => window.__a11yMotion ? window.__a11yMotion.inside(css) : []",
+                r.css,
+            )
+        except Exception:
+            local = []
+        r.elements = sorted(where[(r.frame, j)] for j in local if (r.frame, j) in where)
+    out.regions = sorted(regions.values(), key=lambda r: (r.box[1:2], r.box[0:1]))
+
+    for i, _, facts in await _each_frame(
+        page, "() => window.__a11yMotion ? window.__a11yMotion.facts() : null"
+    ):
+        if not facts:
+            continue
+        out.audio_connects += facts["audio"]
+        out.dropped_changes += facts["dropped"]
+        counts: dict[tuple[str, int], int] = {}
+        for tm in facts["timers"]:
+            counts[(tm["kind"], tm["ms"])] = counts.get((tm["kind"], tm["ms"]), 0) + 1
+        out.timers += [
+            Timer(frame=i, kind=k, ms=ms, count=c)
+            for (k, ms), c in sorted(counts.items())
+        ]
+    try:
+        now_dialogs = await page.evaluate(DIALOGS_JS)
+        out.dialogs_opened = [
+            d for d in now_dialogs if d["css"] not in out.dialogs_at_start
+        ]
+    except Exception:
+        pass
+    try:
+        fl = await page.evaluate(
+            "() => ({ f: window.__a11yLog ? window.__a11yLog.f : [], origin: performance.timeOrigin })"
+        )
+        for e in fl["f"]:
+            at = (fl["origin"] + e["t"] - t0_epoch) / 1000
+            if at >= 0 and e["type"] == "focusin":
+                out.focus_moves.append(FocusMove(t=round(at, 2), css=e.get("css")))
+    except Exception:
+        pass
+
+
+async def _regions(page, pairs, regions, frames_by_key, out: MotionPass) -> None:
+    """Regions from the whole watch (2.C Terms): every tile that changed in
+    any frame, with the union of its changed pixels, grouped and mapped once
+    at the end. Mapping each frame on its own split one region in two when
+    its changed pixels moved (a spinning square, slides taking turns), and a
+    frame where most of the page changed (a dialog's backdrop, a scroll) would
+    join every region into one, so such frames are noted, not mapped."""
+    total = 0
+    if pairs:
+        w, h = out.viewport or [0, 0]
+        total = max(1, -(-w // TILE) * -(-h // TILE))
+    union: dict[tuple[int, int], list[int]] = {}
+    kept = []
+    for t, tiles in pairs:
+        if len(tiles) > total * PAGE_CHANGE:
+            out.page_changes.append(t)
+            continue
+        kept.append((t, tiles))
+        for k, b in tiles.items():
+            u = union.get(k)
+            union[k] = (
+                list(b)
+                if u is None
+                else [
+                    min(u[0], b[0]),
+                    min(u[1], b[1]),
+                    max(u[2], b[2]),
+                    max(u[3], b[3]),
+                ]
+            )
+    owner: dict[tuple[int, int], str] = {}
+    for group in components(set(union))[:MAX_COMPONENTS]:
+        ordered = sorted(group)
+        hits = 0
+        for frame, info in await _map(page.main_frame, [union[t] for t in ordered]):
+            index = page.frames.index(frame) if frame in page.frames else -1
+            key = f"{index}|{info['css']}"
+            if key not in regions:
+                if len(regions) >= MAX_REGIONS:
+                    out.regions_capped = True
+                    continue
+                regions[key] = Region(
+                    key=key,
+                    frame=index,
+                    frame_url=frame.url[:500] if index else "",
+                    css=info["css"],
+                    tag=info["tag"],
+                    content_css=info["css"],
+                    carousel=info["carousel"],
+                    covered=info["covered"],
+                    box=info["box"],
+                )
+                frames_by_key[key] = frame
+            r = regions[key]
+            if info.get("part") and info["part"] not in r.parts:
+                r.parts.append(info["part"])
+            for i in info["idx"]:
+                owner[ordered[i]] = key
+            hits += len(info["idx"])
+        out.unmapped_tiles += len(group) - hits
+    if len(components(set(union))) > MAX_COMPONENTS:
+        out.regions_capped = True
+    for t, tiles in kept:
+        counts: dict[str, int] = {}
+        for k in tiles:
+            if k in owner:
+                counts[owner[k]] = counts.get(owner[k], 0) + 1
+        for key, n in counts.items():
+            regions[key].changed_at.append(t)
+            regions[key].tiles = max(regions[key].tiles, n)

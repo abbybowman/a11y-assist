@@ -145,7 +145,9 @@ src/a11y_assist/
   capture.py    HAR record + replay
   andi.py       local ANDI injection; andi_output() reads its per-element analysis
   traverse.py   key passes, CDP focus reading, settle rule, inventory (no outcomes)
-  observe.py    what an action changes (Effect): 4.A, 4.B, 4.F and 5.D
+  observe.py    what an action changes (Effect): 4.A, 4.B, 4.F and 5.D; open dialogs (4.E, 2.D)
+  motion.py     pass T for 2.A-2.D (draft specs): one load watched with no input; regions,
+                DOM changes and live regions, timers, media, polls, elements (no outcomes)
   forms.py      form fields shared by 5.D, 5.F, 5.G, 5.H: field stops, arrival, page reads
   labels.py     pass L for 5.A, 5.B, 5.C: form components, visible labels, ANDI output
   site.py       other pages of the same site (9.A-9.C, 19.A): units, regions, search forms per page,
@@ -198,7 +200,8 @@ docs/sources/   TT 5.1.3 PDF (the authority), SHA-256 in its README;
                 tt-5.1.3/ its Markdown + tt.json copy (made once; see README)
 third_party/    ANDI 29.2.2, jQuery 3.7.1, SCRT 5.2.0 (template read by scrt.py;
                 its pages for tests only), PROVENANCE.json
-tests/fixtures/ no_trap.html (general evidence); 4a/ … 4f/, 5a/, 5d/, 5f/, 5h/ fNN-short-name.html
+tests/fixtures/ no_trap.html (general evidence); 4a/ … 4f/, 5a/, 5d/, 5f/, 5h/ fNN-short-name.html;
+                2x/ (t-*.html: pass T pages)
                 (custom fixtures per test); 9x/, 19a/ (small multi-page sites for 9.A-9.C, 19.A); act/ (vendored W3C ACT cases,
                 manifest.json, sync_act.py); baseline/ (vendored Section 508
                 Baseline Alignment cases, manifest.json, sync_baseline.py);

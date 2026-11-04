@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="en">
+<head><title>Polling</title></head>
+<body>
+<main>
+<h1>Polling</h1>
+<p>Latest value: <span id="v">none</span></p>
+</main>
+<script>
+const poll = () => fetch('/data.json').then((r) => r.json()).then((j) => { document.getElementById('v').textContent = j.n; });
+poll(); setInterval(poll, 700);
+</script>
+</body>
+</html>

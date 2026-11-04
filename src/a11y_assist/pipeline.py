@@ -91,13 +91,22 @@ def evidence_name(test_id: TestId) -> str:
     return test_id.value.lower().replace(".", "") + ".json"  # "4.C" -> "4c.json"
 
 
-def _opener(get_browser, settings: Settings, har: Path, final_url: str, run):
+def _opener(
+    get_browser,
+    settings: Settings,
+    har: Path,
+    final_url: str,
+    run,
+    init_scripts: tuple[str, ...] = (),
+):
     """A fresh replay context and page for every load (docs/solutions/
-    fresh-load-per-probe.md)."""
+    fresh-load-per-probe.md). `init_scripts`: extra hooks (pass T)."""
 
     async def new_page():
         browser = await get_browser()
-        replay = await replay_context(browser, settings, har, run.log)
+        replay = await replay_context(
+            browser, settings, har, run.log, init_scripts=init_scripts
+        )
         page = await replay.context.new_page()
         await replay.guard.goto(page, final_url)
         return replay.context, page

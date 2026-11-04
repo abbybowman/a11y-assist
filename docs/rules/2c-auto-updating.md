@@ -1,7 +1,7 @@
 ---
 tt_test: 2.C
 tt_name: 2.2.2-auto-updating
-spec_version: 0.1.0
+spec_version: 0.2.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -14,7 +14,7 @@ NEEDS REVIEW. It never emits NOT TESTED (p. 6). **PASS is gated** (Abby,
 can apply to it is built (G4 and section 3c). This spec also defines what
 2.A, 2.B and 2.D share: pass T, regions, elements and the mechanism probe.
 
-Draft (0.1.0): no outcome until 1.0.0. Order of work and research:
+Draft (0.2.0): no outcome until 1.0.0. 0.2.0 (2026-11-04) defines regions over the whole watch and adds polling seen during the watch (Terms, section 2), from building pass T. Order of work and research:
 [plans/2026-11-03-auto-updating-2a-2d.md](../plans/2026-11-03-auto-updating-2a-2d.md)
 ("plan" below; "item N" means its numbered "Verified" items).
 
@@ -30,15 +30,30 @@ Draft (0.1.0): no outcome until 1.0.0. Order of work and research:
   Q1/Q11).
 - *Frame*: a viewport screenshot taken by pass T (about every 0.5 s,
   through `traverse.screenshot()`).
-- *Region*: a group of 20 px tiles that changed between frames and touch
-  one another, mapped to the smallest element whose box covers them
-  (tiles map to elements by overlap, in every frame of the page, iframes
-  included).
+- *Region*: a group of 20 px tiles that changed in any frame of the watch
+  and touch one another, mapped once, at the end of the watch, to the
+  smallest element whose box covers their changed pixels (by overlap, in
+  every frame of the page, iframes included). Built rules (0.2.0):
+  - The groups are taken over the whole watch, not frame by frame: per
+    frame, a spinning square's changed pixels landed sometimes on the
+    square and sometimes on its box, and slides taking turns gave one
+    region per slide.
+  - An element covers the group only if it also covered it at the first
+    read, so content that moved there (the slide in view at the end of a
+    sliding carousel) does not.
+  - When the group's changed pixels fall in two or more of that element's
+    children, one child each, each child's part is its own region (two
+    widgets side by side).
+  - An element that was not on the page at the first read (replaced every
+    second) gives way to its nearest ancestor that was.
+  - A frame where more than half the viewport's tiles changed (a dialog's
+    backdrop, a scroll) is noted as a page-wide change and not mapped.
   - When that element is inside a carousel (an ancestor with
     `aria-roledescription="carousel"`, or a known carousel container:
-    Slick, Splide, Swiper, Bootstrap, Glide, Flickity, USWDS), the
-    *content* is the whole carousel, its own controls included (Abby,
-    2026-11-03).
+    Slick, Splide, Swiper, Bootstrap, Glide, Flickity), the region and its
+    *content* are the whole carousel, its own controls included (Abby,
+    2026-11-03). USWDS has no carousel component, so none is listed for
+    it.
   - Otherwise the content is the region's element.
 - *Kind*:
   - A region is *auto-updating* when its visible text, the image sources
@@ -102,7 +117,10 @@ Not essential: 2.C never excludes content as essential (p. 15 Note).
   - its visible text and the image sources it shows;
   - its children's boxes;
   - `getAnimations()` on it.
-- **Polling.** Requests repeated after load, read from the HAR.
+- **Polling.** Requests repeated to one address: in the HAR, and fetch,
+  XHR or event-stream requests repeated during pass T. Recording stops
+  once the network is idle, so a page polling every 0.7 s left only one
+  or two polls in the HAR; the watch saw nine.
 - **For 2.D:** the live regions present at 0 s (section 2 of
   [2d-change-notify-auto.md](2d-change-notify-auto.md)), the focus log and
   open dialogs.

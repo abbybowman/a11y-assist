@@ -12,6 +12,34 @@ Plan, research and measurements:
 [plans/2026-11-03-auto-updating-2a-2d.md](../plans/2026-11-03-auto-updating-2a-2d.md).
 Order (plan Q8): 2.C and 2.D, then 2.B, then 2.A.
 
+## Status (2026-11-04)
+
+Built, with tests (`tests/test_motion.py`, fixtures `tests/fixtures/2x/t-*.html`):
+
+- `motion.py` pass T: frames, tile diff, regions over the whole watch,
+  kinds, the three reads, DOM changes with their live regions, timers, the
+  Web Audio hook, animations, media state per frame, dialogs, focus moves,
+  polls (HAR and during the watch), and elements (Q6, V13).
+- `capture.replay_context(init_scripts=...)` (Q7) and the pipeline's
+  `_opener` passing them through.
+- `t4e._DIALOGS_JS` moved to `observe.DIALOGS_JS`.
+
+**Waiting for Q11** (being built on the eval-harness branch): which browser
+runs pass T and the probes. `pass_t` takes an opener and does not choose a
+browser, so nothing here waits on it. These do:
+
+- `Capture.cross_site_frames` and the replay-browser choice (`capture.py`,
+  `browser.py`, `pipeline.py`);
+- the second, autoplay-allowed, full-Chromium browser (Q1) and starting
+  pass T beside P1 (Q2): the launch is the same code Q11 adds;
+- the report field naming the replay browser;
+- fixtures that need out-of-process iframes (audio-in-iframe, V7 as a test).
+
+Not started, and not blocked by Q11: the media store (items 13-14), the
+mechanism probe, the scrolled watch, loudness and `ImageDecoder`, the rows
+(`t2c.py`, `t2d.py`, `t2b.py`, `t2a.py`) on hand-built evidence, and the
+vendored ACT cases.
+
 ## Code changes
 
 | Where | Change | Plan |
@@ -88,8 +116,8 @@ network.
 | V1 | Tab reaches a `<video controls>` element's own buttons in Chrome, and Enter or Space on its play button pauses it | 2.A native controls | Not checked |
 | V2 | Autoplay plays on replay only with the flag (item 1); loudness from bytes separates silent from audible (item 4); muted and short audio are not instances | 2.A Terms, A3 | Checked (scratch) |
 | V3 | `ImageDecoder` gives frames, loops and duration for GIF, APNG and WebP (item 8); pixel diffs separate still-moving from stopped-before-5 s (item 6) | 2.B Terms | Checked (scratch) |
-| V4 | Timer hooks catch a period longer than the watch (item 7); the scrolled watch sees a below-the-fold animation | 2.C A2, 2.B | Hook checked; scrolled watch not |
-| V5 | Polling repeats the first response on replay, and the HAR lists every poll (item 10) | 2.C A2 | Checked (scratch) |
+| V4 | Timer hooks catch a period longer than the watch (item 7); the scrolled watch sees a below-the-fold animation | 2.C A2, 2.B | Hook: test (`test_kinds`, a 10 s interval); scrolled watch not built |
+| V5 | Polling repeats the first response on replay, and the HAR lists every poll (item 10) | 2.C A2 | Test (`test_polling_is_in_the_har`): the replay repeats the first response; the HAR held only one or two polls (recording stops at network idle), so pass T also counts requests during the watch |
 | V6 | Slick and Splide pause on focus and resume when it leaves; four of six libraries pause on hover (item 12). Vendor the libraries for the fixtures | 2.C K2 | Checked (scratch, libraries from the network) |
 | V7 | Full Chromium puts cross-site iframes out-of-process; media state, pixels and Tab work through them (items 15–16); a shell recording replays in full Chromium (Q11) | Q11; 2.A–2.D in frames | Checked (scratch) |
 | V8 | A live region added in the same task as its text is told apart from one present at 0 s | 2.D Terms | Not checked |
@@ -97,7 +125,7 @@ network.
 | V10 | Media fetched in several ranges fails on replay, and the media store fixes it (items 13–14) | 2.A, 2.B A1 | Checked (scratch) |
 | V11 | Pass T beside P1 does not slow the walk (item 18), and a second headless browser beside a headed walk takes no focus | Q2 | Linux checked; Windows headed not |
 | V12 | Windows headed Chrome: autoplay with the flag; the walk unaffected by the second browser | Q1, Q2 | Not checkable from Linux |
-| V13 | The element rules: labels on one line merge, stacked labels do not; `aria-hidden` content and alt-less images are skipped; iframe content counts inline | Q6 | Not checked |
+| V13 | The element rules: labels on one line merge, stacked labels do not; `aria-hidden` content and alt-less images are skipped; iframe content counts inline | Q6 | Test (`test_elements`) |
 
 ## At 1.0.0 (each test)
 
@@ -124,7 +152,7 @@ network.
 
 ## Left
 
-- V1, V4 (scrolled watch), V8, V9, V11 and V13 above; V12 needs Windows.
+- V1, V4 (scrolled watch), V8, V9 and V11 above; V12 needs Windows.
 - Real YouTube and Vimeo embeds on a normal network (plan item 17).
 - The ER 3 shortlist (6.A, 7.A, 7.E, 12.D, 13.A, 13.B, 13.C, 18.A) before
   any of 2.A–2.C can PASS.

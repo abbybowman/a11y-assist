@@ -44,6 +44,22 @@ async def shown(s: Session) -> set[str] | None:
     return set(got) if isinstance(got, list) else None
 
 
+# Open dialogs (4.E's walk extra; 2.D's pass T). The path is the dialog's
+# identity across steps: a path cut short let two
+# dialogs share one, so the second never counted as new (f09).
+DIALOGS_JS = (
+    "() => {"
+    + PATH_JS
+    + """
+  const vis = (el) => el.checkVisibility
+    ? el.checkVisibility({ visibilityProperty: true })
+    : el.getClientRects().length > 0;
+  const sel = 'dialog[open], [role=dialog], [role=alertdialog]';
+  return Array.from(document.querySelectorAll(sel)).filter(vis)
+    .map((el) => ({ css: path(el), name: el.getAttribute('aria-label') || '' }));
+}"""
+)
+
 # Before the action, the page is watched this long; DOM changes in it are
 # page noise (animation), so an effect of only DOM changes is unreliable.
 NOISE_MS = 300

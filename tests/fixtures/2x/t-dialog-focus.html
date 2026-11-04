@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+<head><title>Dialog and focus</title></head>
+<body>
+<main>
+<h1>Dialog and focus</h1>
+<p id="news" tabindex="-1">No news yet.</p>
+<dialog id="dlg"><p>Your session will end soon.</p><button>OK</button></dialog>
+</main>
+<script>
+setTimeout(() => { const p = document.getElementById('news'); p.textContent = 'Breaking: new update.'; p.focus(); }, 1500);
+setTimeout(() => document.getElementById('dlg').showModal(), 3000);
+</script>
+</body>
+</html>

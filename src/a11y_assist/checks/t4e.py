@@ -26,25 +26,13 @@ from a11y_assist.models import (
     Step,
     TestId,
 )
-from a11y_assist.traverse import PATH_JS, Traversal, open_session, screenshot
+from a11y_assist.observe import DIALOGS_JS
+from a11y_assist.traverse import Traversal, open_session, screenshot
 from a11y_assist.walk import KeyboardWalk
 
 MAX_REPLAYS = 10
 CONTROL_WAIT_MS = 2000
 HOOK = "context4e"
-
-# The path is the dialog's identity across steps: a path cut short let two
-# dialogs share one, so the second never counted as new (f09).
-_DIALOGS_JS = (
-    "() => {"
-    + PATH_JS
-    + """
-  const vis = (el) => el.checkVisibility ? el.checkVisibility({ visibilityProperty: true })
-                                         : el.getClientRects().length > 0;
-  return Array.from(document.querySelectorAll('dialog[open], [role=dialog], [role=alertdialog]'))
-    .filter(vis).map((el) => ({ css: path(el), name: el.getAttribute('aria-label') || '' }));
-}"""
-)
 
 J1_QUESTION = (
     "Image A shows the page just before keyboard focus moved to the element "
@@ -90,7 +78,7 @@ class ContextHook:
 
     async def _dialogs(self, t: Traversal) -> set[str]:
         try:
-            return {d["css"] for d in await t.page.evaluate(_DIALOGS_JS)}
+            return {d["css"] for d in await t.page.evaluate(DIALOGS_JS)}
         except Exception:
             return set()
 
