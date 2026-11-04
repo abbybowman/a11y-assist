@@ -21,6 +21,10 @@ next.
    run. Every test on NACA in all three runs; most on Artemis III. Key Fails
    lost this way include NACA's 4.A, 4.D and 9.A.
 2. **Fixes 4 and 9: the unanswered open questions.** 21-26 cells per run.
+   round1-answers measured it: told to answer, the agent raised the tool's
+   9-page weighted score from 44-47 to 82, with no false PASS. Fix 15 (96
+   identical questions) and fix 16 (4.F J1, one false FAIL from an answer)
+   came out of it.
    Run fix 9 first: it shows which answers would be right before fix 4
    changes how the questions are asked.
 3. **Fix 10: 5.A row M3 counts any button.** The key fails 5.A on all 9
@@ -313,6 +317,31 @@ needs the answer before any change.
   beside a menu button) and the judge eval. 5.A's row M3 (fix 10) reads
   the same buttons, so do both together.
 - **Status:** decided; not started.
+
+### 15. Many identical open questions
+
+- **Found:** round1-answers-rest, Missions. 5.D asked 96 questions, one
+  per filter checkbox, all the same ("does the text before it say that
+  checking it changes the page?"). The agent answered none of them: the
+  result was too large to read whole. The key fails 5.D there for exactly
+  that reason, so the unanswered questions lost a correct FAIL. The page's
+  152 questions also led the agent to rerun the page six times.
+- **Fix:** ask once for a set of fields whose change and text before them
+  are the same, with the set as instances, and apply the answer to each;
+  keep `a11y_run_tt_tests`' result small (fix 6b). Then the judge eval.
+- **Status:** not started.
+
+### 16. 4.F J1 and a list laid out in columns
+
+- **Found:** round1-answers-rest, Missions. Tab goes along the rows of a
+  filter list laid out in columns, so focus "jumps back up" between
+  columns. The agent answered J1 `does_not_preserve`, and the tool failed
+  4.F, where the key passes it. This is the only error in these runs that
+  came from an answer.
+- **For Abby:** does a grid or multi-column list read row by row preserve
+  meaning? If so, add it to J1's rubric as a "preserves" example, then run
+  the judge eval.
+- **Status:** waiting for Abby.
 
 ## Observations to decide after scoring
 

@@ -81,3 +81,66 @@ post-round 1 plan's fix 13 proposes for the scorer).
   running.
 - **One server ran up to 12 browser runs at once** (the first attempt).
   Cap concurrent runs and queue the rest (post-round 1 plan, fix 5).
+
+## Rerun: Missions, NACA and KSC (`../round1-answers-rest/`)
+
+Same prompt and `--no-subagents`, with the harness fix
+(`CLAUDE_CODE_MCP_AUTO_BACKGROUND_MS` at one hour: calls stay in the
+foreground). Only the three pages were listed, so the agent's other pages
+for 9.A-9.C differ from the first run. 2026-11-04 22:03-23:15 UTC.
+
+- **The fix worked:** no call moved to the background. The run ended with
+  a RESULT line.
+- **Time and cost:** 4331 s (72 min) wall time, 18 model calls, $0.91 at
+  list price. 7-day window 84% to 85%.
+- **Calls with `no_time_limit`:** Missions took 896 s, NACA 1190 s.
+- **Missions: 152 open questions.** The agent did not answer them all at
+  once. It reran Missions six times in smaller sets of tests. In the end
+  it answered 57 and left 96 unanswered: one 5.D question per filter
+  checkbox, each about 1.3k characters, all asking the same thing ("does
+  the text before it say that checking it changes the page?"). Its reason:
+  it "could not read the rubric for those 96 questions" (the result was
+  saved to a file it read only in part). The key fails 5.D on Missions for
+  exactly this reason, so `not_told` would have been a correct FAIL.
+  Identical questions should be asked once for the set (post-round 1
+  plan, fix 15).
+
+### The tool against the keys, the 3 pages
+
+Weighted 26; 29/32 agree (of decided); no false PASS; 2 false FAILs; 1
+other.
+
+- **Missions 4.F: a false FAIL from an answer.** The agent answered 4.F
+  J1 `does_not_preserve` ("filter list order jumps up and down; card
+  image/title order jumps back"), and row M6 failed it. The key passes
+  4.F. The filter list is laid out in columns, and Tab goes along the
+  rows. This is the first error in these runs that comes from an answer,
+  and 4.F J1 is one of the questions a careful tester "settles by
+  looking" (principle 8). For Abby: should J1's rubric say that a grid or
+  multi-column list read row by row preserves meaning?
+- **Missions 4.D:** a false FAIL from row M8 at 0 px (fix 11), as in round 1.
+- **KSC 5.B:** Pass where the key says Does Not Apply (fix 14).
+- **Now right:** NACA 4.D (Fail) and Missions 9.A (Fail), and 5.A fails on
+  all 3 pages.
+- **Still undecided:**
+  - NACA 4.A and 9.A (key Fail) and 4.F, from embedded frames and
+    answers of "unsure";
+  - KSC 4.D (key Fail; 40 image links could not be compared);
+  - Missions 5.C and 5.D (key Fail), from the unanswered questions;
+  - 19.A on every page.
+
+**What the agent reported**, per criterion on the 3 pages: 27 agree, 21
+needs review, no false PASS, 2 false FAILs (Missions 2.4.3 and 2.4.7, from
+the tool), 1 other (KSC 2.4.6).
+
+## All 9 pages: round 1 against answers-v1
+
+The tool's own results, each test from the latest run that included it.
+Round 1's A-2 includes its search page copy, which round 1 does not score.
+
+| Run | Pages | Weighted | Agree (of decided) | False PASS | False FAIL | Other | Undecided |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Round 1 A-1 | 8 | 44 | 48/52 | 0 | 4 | 0 | 84 |
+| Round 1 A-2 | 9 | 46 | 50/54 | 0 | 4 | 0 | 99 |
+| Round 1 A-3 | 8 | 47 | 49/51 | 0 | 2 | 0 | 85 |
+| **answers-v1 (both runs)** | 9 | **82** | **90/98** | **0** | 5 | 3 | 55 |

@@ -1,0 +1,21 @@
+{"ts":"2026-11-04T22:44:54.242235Z","step":"run_start","status":"ok","detail":{"target":"https://www.nasa.gov/missions/","tests":["4.A","4.B","4.C","4.E","9.A","9.B","19.A"]}}
+{"ts":"2026-11-04T22:44:54.622656Z","step":"browser_launched","status":"ok","detail":{"version":"153.0.8010.12"}}
+{"ts":"2026-11-04T22:44:54.634282Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/missions/","har":"pages/005.har.zip"}}
+{"ts":"2026-11-04T22:44:54.646894Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/feature/naca-at-110-special-feature/","har":"pages/007.har.zip"}}
+{"ts":"2026-11-04T22:44:54.647070Z","step":"captured_other","status":"ok","detail":{"n":1,"final_url":"https://www.nasa.gov/feature/naca-at-110-special-feature/","seconds":0.01}}
+{"ts":"2026-11-04T22:44:54.658381Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/gallery/ksc-history/","har":"pages/009.har.zip"}}
+{"ts":"2026-11-04T22:44:54.658548Z","step":"captured_other","status":"ok","detail":{"n":2,"final_url":"https://www.nasa.gov/gallery/ksc-history/","seconds":0.01}}
+{"ts":"2026-11-04T22:44:54.658597Z","step":"captured","status":"ok","detail":{"final_url":"https://www.nasa.gov/missions/","redirects":[],"seconds":0.04}}
+{"ts":"2026-11-04T22:46:12.535192Z","step":"walk","status":"ok","detail":{"P1":{"end":"wrap","presses":163,"cap":533},"P2":{"end":"wrap","presses":163,"cap":533},"cost":{"loads":2,"presses":326,"quick":0,"slow_redos":0,"seconds":77.87}}}
+{"ts":"2026-11-04T22:46:12.817370Z","step":"browser_launched","status":"ok","detail":{"kind":"full Chromium"}}
+{"ts":"2026-11-04T22:46:30.165728Z","step":"collected","status":"ok","detail":{"test":"9.A","cost":{"loads":3,"presses":16,"quick":7,"slow_redos":0,"seconds":17.63}}}
+{"ts":"2026-11-04T22:46:30.169170Z","step":"collected","status":"ok","detail":{"test":"9.B","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":0.0}}}
+{"ts":"2026-11-04T22:46:30.171112Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/","live":true}}
+{"ts":"2026-11-04T22:46:38.274151Z","step":"capture_scroll","status":"ok","detail":{"pass_":1,"page_grew":false}}
+{"ts":"2026-11-04T22:46:39.371445Z","step":"captured_live","status":"ok","detail":{"n":1,"seconds":9.2}}
+{"ts":"2026-11-04T22:46:42.285685Z","step":"collected","status":"ok","detail":{"test":"19.A","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":12.12}}}
+{"ts":"2026-11-04T22:46:50.098717Z","step":"collected","status":"ok","detail":{"test":"4.A","cost":{"loads":1,"presses":0,"quick":0,"slow_redos":0,"seconds":7.81}}}
+{"ts":"2026-11-04T22:46:52.425297Z","step":"collected","status":"ok","detail":{"test":"4.B","cost":{"loads":1,"presses":0,"quick":0,"slow_redos":0,"seconds":2.33}}}
+{"ts":"2026-11-04T22:46:54.808521Z","step":"collected","status":"ok","detail":{"test":"4.C","cost":{"loads":1,"presses":0,"quick":0,"slow_redos":0,"seconds":2.38}}}
+{"ts":"2026-11-04T22:46:54.811104Z","step":"collected","status":"ok","detail":{"test":"4.E","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":0.0}}}
+{"ts":"2026-11-04T22:46:54.952496Z","step":"run_end","status":"ok","detail":{}}
