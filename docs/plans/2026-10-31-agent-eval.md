@@ -1,7 +1,8 @@
 # Plan: agent-level evaluation (not built)
 
-Status: **draft, being built.** Round 1 (section 4) is the first to run.
-Nothing here is built yet.
+Status: **round 1's harness is built and tested on fixtures with a scripted
+model; it has not run on a real model or real pages yet.** Runbook:
+`evals/agent/README.md`. Section 12 lists what is built and what is not.
 
 ## 1. What it measures
 
@@ -40,16 +41,29 @@ Words used in this plan:
 ## 2. The two arms
 
 - **The same for both arms:** model, task prompt (word for word), frozen
-  pages, route (section 7), and the optional helper tool (section 7).
+  pages, route (section 7), the optional helper tool, and a tool that reads
+  MCP resources (section 7.3).
 - **Agent A** has only this MCP server, which it may run with
   `no_time_limit`: the eval wants every test's full result.
 - **Agent B** has Playwright MCP (`@playwright/mcp`, version pinned and
-  recorded) and Tavily MCP. A capable agent would look up guidance, and the
-  test sites publish no accessibility reports a search could find. Agent B
+  recorded) and web search. A capable agent would look up guidance, and the
+  test sites publish no accessibility reports a search could find. On a
+  route whose models have no web search of their own (Ask Sage), search is
+  Tavily MCP (not installed yet); on the claude.ai route, the CLI's own. Agent B
   can open a page, press keys and read the page, so it has a fair chance to
   run each test without this server's procedure. Its tools are given up
   front rather than "ask for what you need," so every run has the same
   tools.
+- **Agent B's browser** is Playwright's full Chromium, the same build as
+  Agent A's server (`--executable-path`), headless. It runs with no sandbox
+  (our server's Playwright default) and with `--no-webmcp`, so a tested page
+  cannot register tools for it. Playwright MCP writes automatic page
+  snapshots to a file that Agent B cannot open (it has no file tools), so
+  Agent B reads pages with `browser_snapshot`, which returns the snapshot
+  inline.
+- **Agent A's browser** is the server's own: the headless shell, or full
+  Chromium for pages with cross-site iframes
+  (`docs/solutions/full-chromium-iframes.md`).
 - **"Needs review to everything"** is computed, not run: every result is
   scored as NEEDS_REVIEW. Both arms should beat it clearly.
 
@@ -193,18 +207,25 @@ exact wording before round 1 runs.
   are the round's pages. Both arms work from these copies, and neither arm
   touches the live site. A request that isn't in the recordings is refused
   and logged, never fetched live.
-- **Agent A:** the server gets a setting that points at the round's
-  recordings. When the setting is on, the server replays a URL's recording
-  instead of recording it live, and refuses (ToolError) a URL with no
-  recording. It is a server setting, not a tool input, so neither the
-  agent nor page content can choose a recording. Every report records that
-  it was replayed. How this fits the hosted deployment is decided when it is
-  built.
-- **Agent B:** Playwright MCP's `--init-page` file calls
-  `page.context().routeFromHAR(…, notFound: "abort")` on every recording of
-  the round. It must also fail requests that failed while recording (saved
-  with status -1), as `capture.replay_context` does; otherwise Playwright's
-  replay waits on them forever.
+- **How a round is frozen** (`evals/agent/freeze.py`): each page is run
+  once with 19.A only, with the round's other pages on its host. The
+  server's frozen pages folder is set to `<round>/frozen/` in
+  "record_missing" mode. That records the page, its other pages and 19.A's
+  site search exactly as a live run would, under the same allowlist and
+  redirect checks. The runs' results are deleted unread.
+- **Agent A:** the server setting `FROZEN_PAGES_DIR` (`frozen.py`), in
+  "replay" mode. The server replays each URL's recording and refuses
+  (ToolError) a URL with no recording. It is a server setting, not a tool
+  input, so neither the agent nor page content can choose a recording.
+  Every report records `frozen_pages`. If Agent A picks other pages that
+  make 19.A search where the freeze did not, that search is refused and
+  19.A says it could not run it.
+- **Agent B:** Playwright MCP's `--init-page` file
+  (`evals/agent/node/frozen-init.cjs`) routes every recording of the round
+  through `routeFromHAR`. Only the first registered recording aborts what
+  none of them holds. It also fails the requests that failed while
+  recording (saved with status -1), as `capture.replay_context` does;
+  otherwise Playwright's replay waits on them forever.
 - **Not frozen:** Tavily's web search. It is research about guidance, not
   the page under test.
 - HAR replay freezes network responses only. Client-side randomness and the
@@ -262,13 +283,18 @@ route and model IDs (requested and reported) are recorded with the results.
   start of every run, on either route. It stops if the answer contains a
   known value: the user's email, "a11y", or the repo name.
 
-### 7.3 Helpers
+### 7.3 Tools every arm gets
 
-Both arms get the same optional tool for handing a task to a helper agent,
-since there's no telling in advance how Agent B will go about the work. A
-helper gets its parent's tools and cannot start helpers of its own. Its
-tokens and time count toward its arm. On the CLI route, this is the CLI's
-own helper tool, enabled for both arms.
+- **`ask_helper`:** hands a task to a helper agent, since there's no
+  telling in advance how Agent B will go about the work. A helper gets its
+  parent's tools, cannot start helpers of its own, and sees none of the
+  parent's conversation. Its tokens and time count toward its arm. On the
+  CLI route, this is the CLI's own helper tool, enabled for both arms.
+- **`read_mcp_resource`:** reads a resource that a tool result links to.
+  MCP clients such as Claude Code offer this, and Agent A needs it: the
+  tool links the screenshots behind its open questions as `run://`
+  resources. Playwright MCP has no resources, so the tool does nothing for
+  Agent B.
 
 ### 7.4 What is logged
 
@@ -315,7 +341,11 @@ For 1.3.1, 2.4.6 and 4.1.2, only 5.B and 5.C roll up (the forms scope in
 | Correct PASS, FAIL or DNA | +1 |
 | NEEDS_REVIEW | 0 |
 | False FAIL | −1 |
-| FAIL naming the wrong element (none of the key's failing elements are among those reported) | −1, counted as a false FAIL |
+| FAIL naming the wrong element (none of the key's failing elements are among those reported) | −1, counted as a false FAIL (not scored yet: open question 2) |
+| FAIL where the key says Does Not Apply | −1 |
+| Any other mismatch (for example PASS where the key says Does Not Apply) | −1 |
+| No answer: the `RESULT` line is missing, malformed or lacks the entry | −1 |
+| DOES NOT APPLY where the key fails (it reports no problem, like a false PASS) | −3 |
 | False PASS | −3 |
 
 NEEDS_REVIEW at 0 never punishes saying "unsure," and it makes "above 0"
@@ -386,33 +416,49 @@ The server itself needs no key: open questions go back to the calling agent
 
 ## 12. Build order
 
-1. **Freeze and replay** (section 6): the server's replay setting, the
-   freeze step, and Playwright MCP's init-page file. Checked on a fixture
-   site served locally (`tests/fixtures/9x/` or `19a/`) before any real
-   page.
+Built and tested on the 19.A fixture site with a scripted model, with the
+fixture server stopped after freezing (`tests/test_frozen.py`,
+`test_agent_freeze.py`, `test_agent_run.py`, `test_agent_score.py`,
+`test_full_chromium.py`):
+
+1. **Freeze and replay** (section 6): the server's frozen pages setting,
+   the freeze step, and Playwright MCP's init-page file; full Chromium for
+   pages with cross-site iframes.
 2. **The task prompt** (4.3), generated from `checks.REGISTRY`.
 3. **The agent loop and step log** (section 7), with the Anthropic-style
-   adapter first; it serves both Ask Sage and the claude.ai API. The CLI
-   adapter follows if the fallback is needed.
-4. **The helper tool**, the same for both arms.
-5. **Scoring:** the criterion roll-up and the `RESULT` reader in
-   `evals/scoring.py`, and a `lock` that covers both arms.
-6. **A dry run on a fixture site**, with expected outcomes from `tests/`,
-   before round 1.
+   adapter, which serves Ask Sage and the claude.ai API alike, checked
+   against a local stand-in for the API.
+4. **The helper and resource tools**, the same for both arms.
+5. **Scoring:** the roll-up, the weights and the "no answer" verdict in
+   `evals/scoring.py`; the `RESULT` reader and the arm scores in
+   `evals/agent/score.py`; a `lock` that covers both arms and `frozen/`.
 
-Installs (ask first): Node packages for Playwright MCP and Tavily MCP.
+Not built or not checked:
 
-## 13. Layout (when built)
+6. **A first real-model run**, on a fixture site, before round 1. It needs
+   Ask Sage (NASA's network) or the CLI route.
+7. **The CLI adapter** (7.1), only if the fallback is needed.
+8. **Tavily MCP**, needed only when the agent's route has no web search of
+   its own.
+
+## 13. Layout
 
 ```
+src/a11y_assist/frozen.py   the frozen pages setting (replay, or record into the folder)
 evals/agent/
+  freeze.py      record a round's pages once (python -m evals.agent.freeze <round>)
   prompt.py      the task prompt, from checks.REGISTRY
-  freeze.py      record a round's pages; the Playwright init-page file
-  run.py         run --arm a|b --round <dir> (agent loop, helper, step log)
+  arms.py        each arm's MCP servers and their environment
+  run.py         run one arm (python -m evals.agent.run --arm a|b <round>)
   providers.py   one adapter per route
-  README.md      how to run an arm, and the results of each run
+  score.py       score both arms (python -m evals.agent.score <round>)
+  node/          Playwright MCP, pinned (package.json, package-lock.json); frozen-init.cjs
+  README.md      how to run a round, and the results of each run
 evals/judging/<round>/
-  pages.txt, keys/, results/ (both arms' reports, transcripts, step logs, lock.json)
+  pages.txt, frozen/, keys/,
+  results/arm-a/, results/arm-b/ (steps.jsonl, transcript.json, final.md,
+  summary.json; Agent A's tool runs in runs/), results/lock.json,
+  agent-score.md and agent-score.json
 ```
 
 ## 14. Open questions
@@ -423,6 +469,11 @@ evals/judging/<round>/
    the key's element.
 3. Whether the CLI route works with the arms' MCP servers and the helper
    tool attached (checked only with none attached).
-4. Whether the DHS training pages may be used (3.3).
-5. Whether a second certified tester can label a subset (3.1).
-6. The Ask Sage routes for GPT 5.6 Sol and Gemini 4 Argon (section 10).
+4. Abby's approval of the weights for the four verdicts added in section
+   8: FAIL where the key says Does Not Apply, other mismatches, and no
+   answer at −1; DOES NOT APPLY where the key fails at −3.
+5. The header Ask Sage takes the token in (`AGENT_API_AUTH_HEADER`), as the
+   2026-11-01 check used it.
+6. Whether the DHS training pages may be used (3.3).
+7. Whether a second certified tester can label a subset (3.1).
+8. The Ask Sage routes for GPT 5.6 Sol and Gemini 4 Argon (section 10).

@@ -63,7 +63,7 @@ Targets were set before the first scored run.
 ### 2.1 Framework and reproducibility
 
 - **The TT PDF is the authority.** Each TT test has a rules spec in `docs/rules/`, citing the PDF's page and step for every rule. Code may decide an outcome only through a spec row, and each report records the spec version.
-- **Frozen pages.** ACT test pages are stored byte for byte with SHA-256 hashes and served locally; tests never fetch from the network. Live pages are recorded once (HAR) and every pass replays the recording.
+- **Frozen pages.** ACT test pages are stored byte for byte with SHA-256 hashes and served locally; tests never fetch from the network. Live pages are recorded once (HAR) and every pass replays the recording. A page with cross-site iframes replays in full Chromium, never Playwright's headless shell, which runs those frames in-process unlike users' Chrome. For the agent eval, a round's pages are frozen once and both arms replay the same copies; the server then refuses any page it has no recording of.
 - **Pinned versions.** Dependencies are locked; ANDI 29.2.2 and jQuery are bundled with hashes. Every report records ANDI, Playwright, browser, OS, Python, spec and judging-model versions.
 - **One command** runs the scored set and prints the agreement table: `uv run pytest tests/test_act_cases.py`.
 

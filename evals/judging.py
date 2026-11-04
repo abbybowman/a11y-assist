@@ -57,6 +57,9 @@ CODE = [
     "src/a11y_assist/catalog.py",
     "docs/sources/tt-5.1.3/tt.json",
     "third_party/scrt/Resources/SuccessCriteriaTT5.1.3.json",
+    # The agent eval's scoring (agent rounds; plan section 8).
+    "evals/agent/score.py",
+    "evals/agent/prompt.py",
 ]
 _HASH = re.compile(r"^[0-9a-fA-F]{64}$")
 _URL = re.compile(r"^https?://\S+$")
@@ -265,10 +268,11 @@ def _git_commit() -> str:
 
 
 def _result_files(rd: Path) -> dict[str, str]:
-    res = rd / "results"
+    """results/ and, for an agent round, the frozen pages both arms used."""
+    files = [*sorted((rd / "results").rglob("*")), *sorted((rd / "frozen").rglob("*"))]
     return {
         p.relative_to(rd).as_posix(): sha256(p)
-        for p in sorted(res.rglob("*"))
+        for p in files
         if p.is_file() and p.name != "lock.json"
     }
 
@@ -276,9 +280,14 @@ def _result_files(rd: Path) -> dict[str, str]:
 def lock(rd: Path) -> Path:
     state = _state(rd)
     pages = _pages(rd)
-    open_ = [pid for pid, p in state.items() if p.get("status") == "open"]
-    if len(state) != len(pages) or open_:
-        raise JudgingError(f"Not every page is finished (open: {open_})")
+    arms = sorted(p for p in (rd / "results").glob("arm-*") if p.is_dir())
+    if state or not arms:  # a scanned round: every page finished
+        open_ = [pid for pid, p in state.items() if p.get("status") == "open"]
+        if len(state) != len(pages) or open_:
+            raise JudgingError(f"Not every page is finished (open: {open_})")
+    unfinished = [a.name for a in arms if not (a / "summary.json").is_file()]
+    if unfinished:
+        raise JudgingError(f"Arms that have not finished: {unfinished}")
     keys = rd / "keys"
     if keys.exists() and any(keys.iterdir()):
         raise JudgingError("Answer keys are already here: lock before the reveal")
@@ -315,19 +324,42 @@ def _verify(rd: Path) -> dict:
     return lk
 
 
+def read_keys(rd: Path, pages: list[tuple[str, str]]) -> dict[str, tuple[Path, object]]:
+    """The tester's SCRT files by page URL, matched by hash. Stops on a key
+    that matches no page, or one whose page (P_Location) is another page."""
+    keys = {sha256(p): p for p in sorted((rd / "keys").glob("*")) if p.is_file()}
+    by_hash = {h: url for url, h in pages}
+    stray = [p.name for h, p in keys.items() if h not in by_hash]
+    if stray:
+        raise JudgingError(f"Answer keys that match no page's hash: {stray}")
+    out = {}
+    for n, (url, h) in enumerate(pages, 1):
+        key = keys.get(h)
+        if key is None:
+            continue
+        ref = scrt.parse(key.read_text("utf-8"))
+        # Keys pair with pages by hash only, so a hash pasted on the wrong
+        # line would score one page against another page's answers.
+        named = page_key(ref.Product.P_Location)
+        if named is not None and named != page_key(url):
+            raise JudgingError(
+                f"p{n:02d}: the answer key {key.name} names "
+                f"{ref.Product.P_Location}, not {url}: check the hash on that "
+                "line of pages.txt"
+            )
+        out[url] = (key, ref)
+    return out
+
+
 def score(rd: Path) -> dict:
     lk = _verify(rd)
     pages = _pages(rd)
     state = _state(rd)
-    keys = {sha256(p): p for p in sorted((rd / "keys").glob("*")) if p.is_file()}
-    by_hash = {h: (n, url) for n, (url, h) in enumerate(pages, 1)}
-    stray = [p.name for h, p in keys.items() if h not in by_hash]
-    if stray:
-        raise JudgingError(f"Answer keys that match no page's hash: {stray}")
+    keys = read_keys(rd, pages)
     comparisons: list[tuple[str, str, Score | None, str]] = []
     for n, (url, h) in enumerate(pages, 1):
         pid = f"p{n:02d}"
-        key = keys.get(h)
+        key, ref = keys.get(url, (None, None))
         cand = rd / "results" / pid / "pre-scrt.json"
         if key is None or not cand.is_file():
             why = (
@@ -337,15 +369,6 @@ def score(rd: Path) -> dict:
             )
             comparisons.append((pid, url, None, why))
             continue
-        ref = scrt.parse(key.read_text("utf-8"))
-        # Keys pair with pages by hash only, so a hash pasted on the wrong
-        # line would score one page against another page's answers.
-        named = page_key(ref.Product.P_Location)
-        if named is not None and named != page_key(url):
-            raise JudgingError(
-                f"{pid}: the answer key {key.name} names {ref.Product.P_Location}, "
-                f"not {url}: check the hash on that line of pages.txt"
-            )
         c = score_page(compare(ref, scrt.parse(cand.read_text("utf-8"))))
         comparisons.append((pid, url, c, ""))
     done = [c for _, _, c, _ in comparisons if c]
