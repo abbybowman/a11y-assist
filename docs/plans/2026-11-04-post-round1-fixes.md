@@ -1,11 +1,45 @@
 # Plan: fixes after agent eval round 1
 
-Status: **open; collecting during round 1.** Fixes 1-8 are not started;
-the harness fixes made during the round are listed at the end. Each fix below is made after
+Status: **open; round 1 scored 2026-11-04** (results in
+[evals/agent/README.md](../../evals/agent/README.md#results)). Fixes 1-13
+are not started; the harness fixes made during the round are listed at
+the end. Each fix below is made after
 round 1 is locked and before the next round. They are not made during
 round 1: the round measures the code as it was at its start. Results and
 scores: `evals/judging/round1/`. Eval plan:
 [2026-10-31-agent-eval.md](2026-10-31-agent-eval.md).
+
+## Order, from round 1's scores
+
+Ranked by how many scored cells each would have changed in round 1. Agent
+A made no false PASS. Its only errors were false FAILs, and about two
+thirds of its cells were needs review. The fixes that turn needs review
+into correct answers come first; the one that removes false FAILs comes
+next.
+
+1. **Fix 5: pages that need more than the time limit.** 35-48 cells per
+   run. Every test on NACA in all three runs; most on Artemis III. Key Fails
+   lost this way include NACA's 4.A, 4.D and 9.A.
+2. **Fixes 4 and 9: the unanswered open questions.** 21-26 cells per run.
+   Run fix 9 first: it shows which answers would be right before fix 4
+   changes how the questions are asked.
+3. **Fix 10: 5.A row M3 counts any button.** The key fails 5.A on all 9
+   pages, and the tool decided none. With M3 fixed, every page whose search
+   field is read fails mechanically, with no question.
+4. **Fix 11: 4.D row M8's 0 px false FAILs.** 7 of Agent A's 9 errors.
+   Results differ run to run on the same frozen page.
+5. **Fix 12: refused pages are never tested fully.** Missions in 0 of 3
+   runs; its key Fails (5.C, 5.D) were never tested.
+6. **Fix 6b: result size; fix 1: a detached frame.** Each cost a page or a
+   call once, and a retry recovered it.
+7. **Fix 13: the scorer (harness).** No outcome changes, but it must be
+   right before round 2's lock, which also locks the scorer.
+8. **Fixes 2, 3, 7 and 8: harness and setup.** No effect on accuracy.
+
+**For Abby (4.F, Careers):** `arm-a-1`'s tool failed 4.F (row M2: Tab left
+the "Internships" dialog onto the page behind it), and the key passes it.
+Is that dialog modal? If not, M2 should not apply to it. The spec row
+needs the answer before any change.
 
 ## Fixes
 
@@ -71,19 +105,35 @@ scores: `evals/judging/round1/`. Eval plan:
 - **Status:** not started. `arm-a-2` and `arm-a-3`, unchanged repeats,
   made no `a11y_answer_questions` call either: 3 of 3 runs.
 
-### 5. Parallel calls to one server
+### 5. Pages that need more than the time limit
 
-- **Found:** round 1. Both Agent A runs issued several calls at once. The
-  stdio server ran them one at a time: in `arm-a-2` the calls' durations
-  climb by about 120 s each (120, 239, 359, 478, 601, 720, 840, 959 s), so
-  each waited for the ones before it, and each then had about 120 s, the
-  run limit, so several were cut short ("the tool hit its time limit on
-  several pages"). Even a refusal that needs no browser work (Missions, 98
-  form fields) took 482 s in the queue, against 5 s alone.
-- **Fix:** decide what one server does with concurrent calls: run them
-  side by side (each in its own browser) or say in the tool's description
-  that calls run one at a time and a batch is slower than calls in turn;
-  in either case a call's time limit must not include its wait.
+- **Found:** round 1. Of the tool's NEEDS_REVIEW findings, 40, 35 and 48
+  per run were "the run reached its time limit". NACA (all 15 tests) and
+  Artemis III (6 to 11 tests) were cut short in every run; Careers, the
+  search page and Missions in some (5.A-5.C and others).
+- **Corrected after scoring:** this was first read as calls queued in the
+  server (the CLI's call durations climb by about 120 s each). The server's
+  step logs say otherwise. The CLI kept each call in the foreground for
+  120 s and then moved it to the background, so the next call arrived 2
+  minutes later. The server started each run as it arrived (browser
+  launched within 1 s of `run_start`). At most two runs overlapped, and each
+  run's limit (120 s plus 20 s per other page, so 180 s with 3) counted
+  from its own start. The cut-short runs used the whole limit, so these
+  pages need more time than the budget allows. The overlap may have slowed
+  the runs, but how much is unknown.
+- **Fix:**
+  - Measure one cut-short page alone first: NACA, with the archive
+    restored, as a development run. If it finishes alone, the overlap
+    matters.
+  - Then find where the time goes (`evals/time_budget.py` on its
+    `steps.jsonl`) and decide:
+    - make the slow phases faster, or
+    - spend the budget on the tests most likely to decide (round 1: 5.A
+      and 9.A, which the key fails on every page), or
+    - raise the limit for big pages, or split the run into calls the
+      client can chain.
+  - Also say in the tool's description that calls run side by side and
+    each has its own limit.
 - **Status:** not started.
 
 ### 6. Agent A asked for a shell
@@ -146,6 +196,96 @@ scores: `evals/judging/round1/`. Eval plan:
   The run folders' frozen recordings are pointer files; copy each named
   recording back (its SHA-256 is in the pointer) before a step replays the
   page. nasa.gov is a development site from now on (eval plan section 3.1).
+  The recordings are not in git (history rewritten 2026-11-04): restore
+  Abby's archive first (`results/ARCHIVE.md`: three zips and a SHA-256
+  manifest, unzipped into the repo root, git-ignored), then copy each
+  pointer's recording into the copied run folder and check its hash.
+- **Watch:** 4.D's J1 rubric counts "an added icon or marker, on the
+  element or touching it" as yes. The key fails KSC and NACA for a focus
+  square of about 4x4 px in the image's corner that does not cover the
+  link. In round 1 that question was never asked (the time limit on NACA;
+  on KSC the images could not be compared). If an agent answers yes, that
+  is a false PASS, so check the rubric against the key's case before
+  round 2.
+- **Status:** not started.
+
+### 10. 5.A row M3 counts any button beside the field
+
+- **Found:** round 1 scores. The key fails 5.A on all 9 pages: the site
+  search field's only text is its placeholder ("Search"). The tool reads
+  it as placeholder-only, but row M3 ("no button's text is beside it")
+  does not fire, because the header's "Explore" button is in the field's
+  picture (`buttons_next_to_it: ["Explore"]`). It goes to J1, whose rubric
+  says a button counts only when its words say what to type. So J1 would
+  answer `not_labeled` (FAIL), but nobody answered.
+- **Fix (spec, MINOR):** M3 ignores buttons whose text could not label the
+  field, by the same test the J1 rubric uses: the search words of G167,
+  not "Explore", "Go" or "Submit". Research it first (CLAUDE.md), then
+  `docs/rules/5a-label-provided.md`, a fixture with an unrelated button
+  near a placeholder-only field, and the judge eval.
+- **Status:** not started.
+
+### 11. 4.D row M8: false FAILs at 0 px
+
+- **Found:** round 1 scores. All of the tool's 4.D false FAILs are M8 with
+  0 px changed between the on and off pictures:
+  - Artemis III: "NASA", "Hide player controls", "About Orion", "Go To
+    Gallery";
+  - Careers: "Read More";
+  - Missions: 7 links in the A-Z list.
+
+  The key passes 4.D on all three pages. On the same frozen page the
+  failing elements change from run to run, so the measurement is unstable,
+  and the page's styles are not the cause. Causes to check:
+  - the element is off screen or covered when captured;
+  - a carousel or video moves between the shots;
+  - focus moved before the "on" shot.
+- **Fix:** restore the archive and look at the on, off and diff images of
+  those instances in `arm-a-3`. A 0 px change on an element the key says
+  shows focus means the capture went wrong, so M8 should then lead to
+  NEEDS REVIEW, not FAIL. The spec already does this for M4, where there is
+  no clear view. Add a check that the element is in view and unobscured
+  in the "on" shot.
+- **Status:** not started.
+
+### 12. A refused page is never tested fully
+
+- **Found:** round 1 transcripts. Missions (98 form fields) was refused in
+  every run with advice to set `no_time_limit`. No run did:
+  - `arm-a-1` called again without 5.D;
+  - `arm-a-2` called again with six tests, then 9.A alone;
+  - `arm-a-3` never called again.
+
+  The key fails Missions on 5.C and 5.D. 5.D was never run, and 5.C was cut
+  short.
+- **Fix:** the refusal should test what fits instead of nothing. Run every
+  test but 5.D at once, and say in the result that 5.D needs one more call
+  with `no_time_limit`. Then the agent's choice costs one test, not the
+  page.
+- **Also:** `arm-a-3` reported 3.2.2 Fail on Spot the Station where its
+  tool said NEEDS_REVIEW (the key passes it). Fix 4's wording should also
+  say that a NEEDS_REVIEW is reported as needs review, not decided by the
+  agent.
+- **Status:** not started.
+
+### 13. The scorer (harness), before round 2's lock
+
+- The lock covers the scoring code, and `score` refuses to run on changed
+  code. Round 1 was therefore scored as locked, and these are for round 2:
+  - **Split calls:** take each TT test from the latest run whose `tests`
+    included it, not only the page's latest run. Round 1's `arm-a-2`
+    Missions lost 3 agreements and 1 false FAIL this way (tool weighted 41
+    as scored, 43 merged). A one-function change in `tool_files`, checked
+    by hand on round 1.
+  - **Needs review versus not performed:** every NEEDS_REVIEW carries the
+    note "This test could not be performed", so `agent-score.md` lists
+    open questions and time limits as "not performed". Show each reason
+    (open question, time limit, could not be performed) from the finding's
+    summary, or have the checks keep the note for tests that truly could
+    not be performed (principle 2).
+  - **Page keys drop the query:** `?search=artemis` scores as the home
+    page (`nasa.gov`). A round that has both would collide.
+  - Fix 8's efficiency columns.
 - **Status:** not started.
 
 ## Observations to decide after scoring
@@ -166,18 +306,17 @@ on them depends on what round 1's scores show.
   same live copy). It fits the ROADMAP's "multi-page testing, one page per
   call" proposal. Agent A's transcript should show first whether it cut
   other pages to save time.
-- **Refusals with advice.** The Missions page (98 form fields) was refused
-  with advice to call again with `no_time_limit`. `arm-a-1` called again
-  (359 s); `arm-a-2` called again without `no_time_limit` and finished in
-  120 s, probably leaving 5.D out. Confirm both from the transcripts.
+- **Refusals with advice.** Confirmed from the transcripts; now fix 12.
 - **Agent B and 2.4.1.** Both Agent B runs passed bypass blocks on
   landmarks alone, which the federal baseline does not accept as a
-  keyboard method. The keys will say whether the tester agrees.
+  keyboard method. The key fails 2.4.1 on all 9 pages ("No way to skip
+  the top nav"). B-1 passed 8 of them, and B-2 left them for review.
 - **Degraded live searches in `arm-a-1` and `arm-a-2`.** Their 19.A live
   searches ran in the container before `UPSTREAM_PROXY`, so the results
   pages loaded without scripts. NASA renders its results on the server, so
   the links are probably there; read 19.A's scores for those runs with
-  that in mind (`arm-a-3` has the fix).
+  that in mind (`arm-a-3` has the fix). Scored: no run decided 19.A on
+  any page (all NEEDS_REVIEW), so the degraded searches changed no score.
 
 ## Done during round 1 (the harness, not the tool)
 

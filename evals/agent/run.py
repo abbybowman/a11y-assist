@@ -357,6 +357,7 @@ async def run_arm(
     check_leaks: bool = True,
     egress_settings=None,
     label: str | None = None,
+    prompt_version: str | None = None,
 ) -> dict:
     """Run arm "a" or "b" on round folder `rd`; returns the summary.
 
@@ -365,7 +366,9 @@ async def run_arm(
     are logged to results/arm-b/live.jsonl."""
     name = f"arm-{arm}" + (f"-{label}" if label else "")
     if servers is not None or arm == "a":
-        return await _run_arm(rd, arm, provider, servers, check_leaks, name)
+        return await _run_arm(
+            rd, arm, provider, servers, check_leaks, name, prompt_version
+        )
     from a11y_assist.config import Settings
     from a11y_assist.egress import EgressProxy
 
@@ -378,14 +381,23 @@ async def run_arm(
             proxy=proxy.url,
             live_log=out / "live.jsonl",
         )
-        s = await _run_arm(rd, arm, provider, servers, check_leaks, name)
+        s = await _run_arm(
+            rd, arm, provider, servers, check_leaks, name, prompt_version
+        )
     s["egress_refused"] = proxy.refused[:100]
     (out / "summary.json").write_text(json.dumps(s, indent=1, default=str) + "\n")
     return s
 
 
-async def _run_arm(rd, arm, provider, servers, check_leaks, name) -> dict:
+async def _run_arm(
+    rd, arm, provider, servers, check_leaks, name, prompt_version=None
+) -> dict:
+    from evals.agent import prompt_dev
     from evals.judging import _pages
+
+    version = prompt_version or task_prompt.PROMPT_VERSION
+    if version != task_prompt.PROMPT_VERSION and arm != "a":
+        raise RuntimeError(f"Prompt {version} is for Agent A only")
 
     if (rd / "results" / "lock.json").exists():
         raise RuntimeError("This round is locked")
@@ -396,7 +408,7 @@ async def _run_arm(rd, arm, provider, servers, check_leaks, name) -> dict:
     if out.exists() and any(out.iterdir()):
         raise RuntimeError(f"{out} is not empty: this arm already ran")
     urls = [u for u, _ in _pages(rd)]
-    task = task_prompt.task(urls)
+    task = prompt_dev.task(urls, version)
     if servers is None:
         servers = tool_arm(frozen, provider.model, out / "runs")
     log = StepLog(out / "steps.jsonl")
@@ -405,7 +417,7 @@ async def _run_arm(rd, arm, provider, servers, check_leaks, name) -> dict:
         "arm": arm,
         "route": provider.route,
         "model_requested": provider.model,
-        "prompt_version": task_prompt.PROMPT_VERSION,
+        "prompt_version": version,
         "task_sha256": hashlib.sha256(task.encode()).hexdigest(),
         "code_commit": _commit(),
         "pages": urls,
@@ -488,12 +500,19 @@ def main(argv: list[str]) -> None:
     ap.add_argument(
         "--label", help="a repeat of an arm: results/arm-<arm>-<label>/ (e.g. 2)"
     )
+    ap.add_argument(
+        "--prompt",
+        help="a development prompt version from prompt_dev.py (Agent A, never "
+        "scored as a round); default: the round prompt",
+    )
     ap.add_argument("round", type=Path)
     a = ap.parse_args(argv)
     provider = (
         ClaudeCodeCLI(a.model) if a.route == "cli" else AnthropicMessages.from_env()
     )
-    s = asyncio.run(run_arm(a.round, a.arm, provider, label=a.label))
+    s = asyncio.run(
+        run_arm(a.round, a.arm, provider, label=a.label, prompt_version=a.prompt)
+    )
     print(json.dumps({k: s[k] for k in ("ended", "wall_s", "tokens", "tool_calls")}))
     if s.get("error"):
         sys.exit(s["error"])
