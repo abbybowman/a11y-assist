@@ -28,3 +28,12 @@
 {"ts":"2026-11-04T20:23:19.342850Z","step":"collected","status":"ok","detail":{"test":"4.C","cost":{"loads":1,"presses":0,"quick":0,"slow_redos":0,"seconds":4.12}}}
 {"ts":"2026-11-04T20:23:19.345168Z","step":"collected","status":"ok","detail":{"test":"4.E","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":0.0}}}
 {"ts":"2026-11-04T20:23:27.866016Z","step":"collected","status":"ok","detail":{"test":"5.D","cost":{"loads":1,"presses":2,"quick":1,"slow_redos":0,"seconds":8.52}}}
+{"ts":"2026-11-04T20:23:56.703065Z","step":"collected","status":"ok","detail":{"test":"5.F","cost":{"loads":3,"presses":6,"quick":1,"slow_redos":0,"seconds":28.84}}}
+{"ts":"2026-11-04T20:23:56.710534Z","step":"collected","status":"ok","detail":{"test":"5.G","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":0.0}}}
+{"ts":"2026-11-04T20:23:56.734856Z","step":"collected","status":"ok","detail":{"test":"5.H","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":0.0}}}
+{"ts":"2026-11-04T20:23:58.851774Z","step":"egress_refused","status":"blocked","detail":{"host":"mtalk.google.com","port":5228,"reason":"port 5228 is not allowed"}}
+{"ts":"2026-11-04T20:24:06.454695Z","step":"collected","status":"ok","detail":{"test":"5.A","cost":{"loads":1,"presses":0,"quick":0,"slow_redos":0,"seconds":9.7}}}
+{"ts":"2026-11-04T20:24:06.455540Z","step":"collected","status":"ok","detail":{"test":"5.B","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":0.0}}}
+{"ts":"2026-11-04T20:24:06.468361Z","step":"collected","status":"ok","detail":{"test":"5.C","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":0.0}}}
+{"ts":"2026-11-04T20:24:06.952814Z","step":"run_end","status":"ok","detail":{}}
+{"ts":"2026-11-04T20:24:11.254956Z","step":"answers_recorded","status":"ok","detail":{"accepted":["4.F-o1-J1","5.A-c2-J1","5.B-f1-J1","5.H-J1","9.C-p1-40-J1"],"rejected":[],"errors":[]}}
