@@ -120,3 +120,20 @@ async def test_cli_route_isolation_and_log(tmp_path, monkeypatch):
         "WebFetch(domain:example.gov)",
         "WebFetch(domain:www.example.gov)",
     ]
+
+
+def test_no_subagents_denies_the_cli_subagent_tool(tmp_path):
+    srv = [Server("a11y", "python", [])]
+
+    from evals.agent.cli import ARM_TOOLS
+
+    def denied(cli):
+        args = cli._args("task", tmp_path / "mcp.json", ARM_TOOLS["a"], srv)
+        assert ("Agent" in args[args.index("--tools") + 1]) != cli.no_subagents
+        if "--disallowedTools" not in args:
+            return []
+        return args[args.index("--disallowedTools") + 1].split(",")
+
+    assert "Agent" not in denied(ClaudeCodeCLI())
+    got = denied(ClaudeCodeCLI(no_subagents=True))
+    assert "Agent" in got and "Task" in got

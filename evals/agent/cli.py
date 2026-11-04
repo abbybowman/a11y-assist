@@ -70,12 +70,26 @@ def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+# The CLI's subagent tool, under its old and new names.
+SUBAGENT_TOOLS = ["Task", "Agent"]
+
+
 class ClaudeCodeCLI:
     route = "claude-code-cli"
 
-    def __init__(self, model: str = "claude-sonnet-5-5", binary: str = "claude"):
+    def __init__(
+        self,
+        model: str = "claude-sonnet-5-5",
+        binary: str = "claude",
+        no_subagents: bool = False,
+    ):
         self.model = model
         self.binary = shutil.which(binary) or binary
+        # COMMON_TOOLS gives each arm the CLI's subagent tool (the helper).
+        # round1-answers' first attempt
+        # (2026-11-04) launched 9 at once, each running the a11y tool, and
+        # overloaded the container; round 1's arms never used it.
+        self.no_subagents = no_subagents
 
     # ── process ───────────────────────────────────────────────────────────
     def _env(self, home: Path) -> dict[str, str]:
@@ -91,6 +105,8 @@ class ClaudeCodeCLI:
     def _args(
         self, prompt: str, mcp: Path, tools: list[str], servers, hosts=(), home=None
     ) -> list[str]:
+        if self.no_subagents:
+            tools = [t for t in tools if t not in SUBAGENT_TOOLS]
         allowed = [f"mcp__{s.name}" for s in servers] + tools
         if tools and home is not None:
             # The CLI saves a large tool result to a file under its home and
@@ -101,6 +117,8 @@ class ClaudeCodeCLI:
             tools = [*tools, "Read"]
             allowed += [f"Read(/{home}/.claude/projects/**)"]
         denied = [f"mcp__{s.name}__{t}" for s in servers for t in s.deny]
+        if self.no_subagents:
+            denied += SUBAGENT_TOOLS
         if "WebFetch" in tools:
             denied += fetch_denials(list(hosts))
         return [
