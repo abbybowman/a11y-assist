@@ -1,6 +1,7 @@
 # Plan: fixes after agent eval round 1
 
-Status: **open; collecting during round 1.** Each fix below is made after
+Status: **open; collecting during round 1.** Fixes 1-8 are not started;
+the harness fixes made during the round are listed at the end. Each fix below is made after
 round 1 is locked and before the next round. They are not made during
 round 1: the round measures the code as it was at its start. Results and
 scores: `evals/judging/round1/`. Eval plan:
@@ -87,6 +88,32 @@ scores: `evals/judging/round1/`. Eval plan:
   "No such tool available"). Probably to wait for a slow call. Harmless;
   noted for the agent's behaviour, nothing to fix.
 
+### 7. The freeze should check its own recordings (the harness)
+
+- **Found:** round 1 twice. A typo in `pages.txt` froze NASA's "Page Not
+  Found" page (status 404), and a page frozen in the cloud container had
+  its HTML but none of its CSS or scripts (status -1). Both reached the
+  agents before anyone noticed.
+- **Fix:** `freeze.py` reports, for each page, the main document's status
+  and how many of its CSS, font and script requests failed, and refuses to
+  call a page frozen when the document is not a 2xx or when most of them
+  failed (with a flag to accept it anyway). Show the page's title and
+  heading in `freeze.json`, so a typo shows at a glance.
+- **Status:** not started.
+
+### 8. Efficiency in the score (the harness)
+
+- Total tokens mislead: Agent B used about 930k tokens and cost less at
+  list price ($0.41) than Agent A's 510k ($0.66), because most of B's were
+  cache reads (re-reading its history after each small browser call) and
+  most of A's costly ones were cache writes (each large tool result). On a
+  subscription the limit is the usage meter, not dollars.
+- **Fix:** `agent-score.md` shows each token type, the cost at list price
+  and the usage-window change for each run, beside wall time. A tool call's
+  duration includes its wait in the server's queue (fix 5), so the per-run
+  wall time is the efficiency figure, not the sum of call durations.
+- **Status:** not started.
+
 ## Observations to decide after scoring
 
 These describe how Agent A used the tool. They are not bugs. Whether to act
@@ -106,8 +133,17 @@ on them depends on what round 1's scores show.
   call" proposal. Agent A's transcript should show first whether it cut
   other pages to save time.
 - **Refusals with advice.** The Missions page (98 form fields) was refused
-  with advice to call again with `no_time_limit`. Record whether Agent A
-  followed it.
+  with advice to call again with `no_time_limit`. `arm-a-1` called again
+  (359 s); `arm-a-2` called again without `no_time_limit` and finished in
+  120 s, probably leaving 5.D out. Confirm both from the transcripts.
+- **Agent B and 2.4.1.** Both Agent B runs passed bypass blocks on
+  landmarks alone, which the federal baseline does not accept as a
+  keyboard method. The keys will say whether the tester agrees.
+- **Degraded live searches in `arm-a-1` and `arm-a-2`.** Their 19.A live
+  searches ran in the container before `UPSTREAM_PROXY`, so the results
+  pages loaded without scripts. NASA renders its results on the server, so
+  the links are probably there; read 19.A's scores for those runs with
+  that in mind (`arm-a-3` has the fix).
 
 ## Done during round 1 (the harness, not the tool)
 
@@ -117,12 +153,11 @@ on them depends on what round 1's scores show.
 - In the cloud container, live pages loaded without CSS or scripts (an
   untrusted gateway certificate on direct connections): `UPSTREAM_PROXY`
   in `egress.py`, off by default, with tests; checked on a live NASA page.
-
 - A new frozen recording could reuse the file name of one still in use
   (`frozen.py` named it by counting the index): fixed, with a test.
 - Runs of one arm are labeled (`--label`, `results/arm-a-1/`, `arm-a-2/`),
-  and each run is scored on the pages it was given.
-
+  and each run is scored on the pages it was given, less any recorded in
+  its `not_scored.json` with the reason.
 - One-hour MCP tool timeout on the CLI route (`evals/agent/cli.py`).
 - The CLI route's step log keeps the first 500 characters of each tool
   result, so errors show their text.
