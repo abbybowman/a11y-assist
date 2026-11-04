@@ -63,8 +63,12 @@ Round folder `evals/judging/<round>/`, for example `evals/judging/round1/`.
    BROWSER_CHANNEL=chromium HEADLESS=true uv run python -m evals.agent.freeze evals/judging/<round>
    ```
 
-   It writes `frozen/` (an index, the recordings and `freeze.json`). Check
-   that every page says `frozen`.
+   It records the tested pages only, into `frozen/` (an index, the
+   recordings and `freeze.json`). Check that every page says `frozen`, and
+   compare each frozen page's footer timestamp with your own testing.
+   During the arms, the tested pages come only from these copies; other
+   pages of the same site (site maps, search results) load live for both
+   arms, so run the two arms close together.
 3. **Agent A, then Agent B:**
 
    ```bash
@@ -78,8 +82,9 @@ Round folder `evals/judging/<round>/`, for example `evals/judging/round1/`.
    (`--route api` for Ask Sage.)
 
    Each run writes `results/arm-<a|b>/`: `steps.jsonl`, `transcript.json`,
-   `final.md`, `summary.json`, and for Agent A the tool's own runs in
-   `runs/`. A run first checks that the model's context holds nothing of
+   `final.md`, `summary.json`; for Agent A the tool's own runs in `runs/`
+   (with each live page it loaded); for Agent B `live.jsonl` (each live page
+   and each refusal). A run first checks that the model's context holds nothing of
    the user or this repo, and stops if it does.
 4. **Lock**, then commit:
 

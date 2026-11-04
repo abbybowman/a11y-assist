@@ -74,3 +74,70 @@ async def test_an_other_page_with_no_recording_is_refused(settings, server, tmp_
 async def test_without_the_setting_runs_are_live(settings, server):
     res = await run_tt_tests(settings, f"{server.base}/dyn", [TestId.T4C])
     assert res.report.frozen_pages is None
+
+
+async def test_tested_frozen_mode(settings, server, drafts, tmp_path):  # noqa: F811
+    """The agent eval's mode: the tested page only from the frozen copies;
+    other pages of its host, and 19.A's search, recorded live as usual."""
+    base = f"{server.base}/19a"
+    rec = settings.model_copy(
+        update={
+            "frozen_pages_dir": tmp_path / "f",
+            "frozen_pages_mode": "record_missing",
+        }
+    )
+    for page in ("t-benefits", "home"):  # what freeze.py records: the round's pages
+        await run_tt_tests(rec, f"{base}/{page}.html", [TestId.T4C])
+    index = json.loads((tmp_path / "f" / "index.json").read_text())
+    mode = rec.model_copy(update={"frozen_pages_mode": "tested_frozen"})
+
+    res = await run_tt_tests(
+        mode,
+        f"{base}/t-benefits.html",
+        [TestId.T19A],
+        other_pages=[f"{base}/home.html", f"{base}/sitemap.html"],
+    )
+    rep = res.report
+    assert rep.frozen_pages == "tested_frozen"
+    assert [(p.url.rsplit("/", 1)[1], p.frozen) for p in rep.other_pages] == [
+        ("home.html", True),
+        ("sitemap.html", False),  # live: the agent's own route
+    ]
+    assert json.loads((tmp_path / "f" / "index.json").read_text()) == index
+    assert server.hits[("127.0.0.1", "/19a/sitemap.html")] >= 1
+
+    # A tested page that is not frozen is refused, never loaded live.
+    before = server.hits[("127.0.0.1", "/19a/sitemap.html")]
+    with pytest.raises(RunRefused, match="no recording"):
+        await run_tt_tests(mode, f"{base}/sitemap.html", [TestId.T4C])
+    assert server.hits[("127.0.0.1", "/19a/sitemap.html")] == before
+
+
+async def test_tested_frozen_refuses_other_hosts(settings, tmp_path):
+    from a11y_assist.frozen import NotFrozen, obtain
+
+    folder = tmp_path / "f"
+    folder.mkdir()
+    (folder / "index.json").write_text(
+        json.dumps(
+            {
+                "https://www.example.gov/a": {
+                    "url": "https://www.example.gov/a",
+                    "final_url": "https://www.example.gov/a",
+                    "har": "pages/001.har.zip",
+                    "recorded_at": "2026-11-04T00:00:00Z",
+                }
+            }
+        )
+    )
+    s = settings.model_copy(
+        update={"frozen_pages_dir": folder, "frozen_pages_mode": "tested_frozen"}
+    )
+    with pytest.raises(NotFrozen, match="only from the tested site"):
+        await obtain(
+            None, s, "https://other.gov/x", tmp_path / "x.har.zip", noop, tested=False
+        )
+
+
+def noop(*a, **k):
+    pass

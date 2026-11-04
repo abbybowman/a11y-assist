@@ -14,7 +14,7 @@ import shutil
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
-from urllib.parse import urldefrag
+from urllib.parse import urldefrag, urlsplit
 
 from pydantic import BaseModel, Field
 
@@ -59,6 +59,10 @@ def _save(folder: Path, index: dict[str, FrozenPage]) -> None:
     tmp.replace(folder / INDEX)
 
 
+def _host(url: str) -> str:
+    return (urlsplit(url).hostname or "").lower()
+
+
 async def obtain(
     browser,
     settings: Settings,
@@ -66,9 +70,12 @@ async def obtain(
     har_path: Path,
     log: LogFn,
     egress: EgressProxy | None = None,
+    tested: bool = True,
 ) -> Capture:
     """`capture.record`, or the frozen recording of `url` when the server
-    has frozen pages. The HAR lands at `har_path` either way."""
+    has frozen pages. The HAR lands at `har_path` either way. `tested` is
+    False for other pages and 19.A's search: in "tested_frozen" mode those
+    are recorded live when they are on a frozen page's host."""
     folder = settings.frozen_pages_dir
     if folder is None:
         return await record(browser, settings, url, har_path, log, egress)
@@ -78,9 +85,27 @@ async def obtain(
         shutil.copyfile(folder / hit.har, har_path)
         log("frozen_page", url=safe_url(url), har=hit.har)
         return Capture(
-            url, hit.final_url, har_path, hit.redirects, hit.cross_site_frames
+            url,
+            hit.final_url,
+            har_path,
+            hit.redirects,
+            hit.cross_site_frames,
+            frozen=True,
         )
-    if settings.frozen_pages_mode == "replay":
+    mode = settings.frozen_pages_mode
+    if mode == "tested_frozen" and not tested:
+        hosts = {_host(p.url) for p in index.values()} | {
+            _host(p.final_url) for p in index.values()
+        }
+        if _host(url) in hosts:
+            log("frozen_page", url=safe_url(url), live=True)
+            return await record(browser, settings, url, har_path, log, egress)
+        log("frozen_page", "error", url=safe_url(url), error="not the tested site")
+        raise NotFrozen(
+            "This server tests frozen copies of pages; other pages may be "
+            f"loaded live only from the tested site, not {safe_url(url)}."
+        )
+    if mode in ("replay", "tested_frozen"):
         log("frozen_page", "error", url=safe_url(url), error="no recording")
         raise NotFrozen(
             "This server tests frozen copies of pages only, and has no "

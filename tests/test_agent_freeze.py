@@ -1,5 +1,7 @@
-"""Freezing a round (evals/agent/freeze.py) and Agent B's replay of it in
-Playwright MCP (evals/agent/node/frozen-init.cjs), with the site down."""
+"""Freezing a round (evals/agent/freeze.py) and Agent B's browser on it in
+Playwright MCP (evals/agent/node/frozen-init.cjs): the tested pages only
+from the frozen copies; other pages of the tested site live, logged and
+through the egress proxy; other sites refused."""
 
 from __future__ import annotations
 
@@ -8,6 +10,7 @@ from pathlib import Path
 
 import pytest
 
+from a11y_assist.egress import EgressProxy
 from evals.agent.arms import PLAYWRIGHT_MCP as MCP_BIN
 from evals.agent.arms import browser_arm
 from evals.agent.freeze import freeze
@@ -15,7 +18,7 @@ from evals.agent.freeze import freeze
 from .conftest import LocalServer
 
 
-async def _frozen_round(settings, tmp_path) -> tuple[Path, list[str]]:
+async def _frozen_round(settings, tmp_path, stop=True) -> tuple[Path, list[str]]:
     srv = LocalServer()
     urls = [
         f"{srv.base}/19a/t-benefits.html",
@@ -27,58 +30,70 @@ async def _frozen_round(settings, tmp_path) -> tuple[Path, list[str]]:
     try:
         log = await freeze(rd, settings)
     finally:
-        srv.stop()  # from here on, the site is down
+        if stop:
+            srv.stop()  # from here on, the site is down
     assert {e["status"] for e in log["pages"].values()} == {"frozen"}
-    return rd, urls
+    return rd, (urls if stop else (urls, srv))
 
 
-async def test_freeze_records_every_page_and_the_search(settings, tmp_path):
+async def test_freeze_records_the_tested_pages_only(settings, tmp_path):
     rd, urls = await _frozen_round(settings, tmp_path)
     index = json.loads((rd / "frozen" / "index.json").read_text())
-    assert set(urls) <= set(index)
-    assert any("search" in u for u in index)
-    # 19.A suggested the site map for the home page: frozen too, once; its
-    # own links were not followed.
+    assert sorted(index) == sorted(urls)  # no search, no site map: those are live
     log = json.loads((rd / "frozen" / "freeze.json").read_text())
-    assert any(u.endswith("/19a/sitemap.html") for u in index)
-    assert any(e.get("suggested") for e in log["pages"].values())
-    assert not any(
-        u.endswith(("/19a/contact.html", "/19a/t2-status.html")) for u in index
-    )
-    assert not any(settings.runs_dir.glob("*/report.json"))  # results discarded
+    assert log["recordings"] == 2
+
+
+def _text(res) -> str:
+    return "".join(c.text for c in res.content if hasattr(c, "text"))
 
 
 @pytest.mark.skipif(not MCP_BIN.exists(), reason="npm install in evals/agent/node")
-async def test_playwright_mcp_replays_the_frozen_round(settings, tmp_path):
+async def test_agent_b_browser_rules(settings, tmp_path):
     from mcp import ClientSession, StdioServerParameters
     from mcp.client.stdio import stdio_client
     from playwright.async_api import async_playwright
 
-    rd, urls = await _frozen_round(settings, tmp_path)
-    async with async_playwright() as pw:
-        chrome = pw.chromium.executable_path  # full Chromium, as Agent A's
-    (srv,) = browser_arm(rd / "frozen", tmp_path / "out", chrome)
-    params = StdioServerParameters(command=srv.command, args=srv.args, env=srv.env)
-    async with stdio_client(params) as (r, w), ClientSession(r, w) as mcp:
-        await mcp.initialize()
-        got = await mcp.call_tool("browser_navigate", {"url": urls[0]})
-        text = "".join(c.text for c in got.content if hasattr(c, "text"))
-        assert "Page Title: Apply for benefits" in text, text[:2000]
-        # Automatic snapshots go to a file Agent B cannot open (it has no file
-        # tools); browser_snapshot returns the page inline.
-        snap = await mcp.call_tool("browser_snapshot", {})
-        stext = "".join(c.text for c in snap.content if hasattr(c, "text"))
-        assert "heading" in stext and "Apply for benefits" in stext, stext[:2000]
-        port = urls[0].split(":")[2].split("/")[0]
-        # The page 19.A suggested (frozen by freeze.py) opens for Agent B as
-        # it does for Agent A: the same frozen copy, never the live site.
-        smap = await mcp.call_tool(
-            "browser_navigate", {"url": f"http://127.0.0.1:{port}/19a/sitemap.html"}
-        )
-        sm = "".join(c.text for c in smap.content if hasattr(c, "text"))
-        assert not smap.is_error and "Page Title: Site map" in sm, sm[:2000]
-        miss = await mcp.call_tool(
-            "browser_navigate", {"url": f"http://127.0.0.1:{port}/19a/not-frozen.html"}
-        )
-        mtext = "".join(c.text for c in miss.content if hasattr(c, "text"))
-        assert miss.is_error or "ERR_FAILED" in mtext or "net::" in mtext, mtext[:2000]
+    rd, (urls, srv) = await _frozen_round(settings, tmp_path, stop=False)
+    try:
+        hits_before = srv.hits[("127.0.0.1", "/19a/t-benefits.html")]
+        async with async_playwright() as pw:
+            chrome = pw.chromium.executable_path  # full Chromium, as Agent A's
+        live_log = tmp_path / "live.jsonl"
+        async with EgressProxy(settings) as proxy:
+            (srv_def,) = browser_arm(
+                rd / "frozen", tmp_path / "out", chrome, proxy.url, live_log
+            )
+            params = StdioServerParameters(
+                command=srv_def.command, args=srv_def.args, env=srv_def.env
+            )
+            async with stdio_client(params) as (r, w), ClientSession(r, w) as mcp:
+                await mcp.initialize()
+                # A tested page: its frozen copy, never the live site.
+                got = await mcp.call_tool("browser_navigate", {"url": urls[0]})
+                assert "Page Title: Apply for benefits" in _text(got), _text(got)[:2000]
+                # Automatic snapshots go to a file Agent B cannot open (it has no
+                # file tools); browser_snapshot returns the page inline.
+                snap = _text(await mcp.call_tool("browser_snapshot", {}))
+                assert "heading" in snap and "Apply for benefits" in snap
+                # Another page of the tested site: live, as for Agent A.
+                smap = await mcp.call_tool(
+                    "browser_navigate", {"url": f"{srv.base}/19a/sitemap.html"}
+                )
+                assert "Page Title: Site map" in _text(smap), _text(smap)[:2000]
+                # Another site: refused.
+                other = await mcp.call_tool(
+                    "browser_navigate",
+                    {"url": f"http://localhost:{srv.port}/19a/sitemap.html"},
+                )
+                assert other.is_error or "ERR_BLOCKED" in _text(other)
+            connected = list(proxy.connected)
+        assert srv.hits[("127.0.0.1", "/19a/t-benefits.html")] == hits_before
+        assert srv.hits[("127.0.0.1", "/19a/sitemap.html")] >= 1
+        assert srv.hits[("localhost", "/19a/sitemap.html")] == 0
+        rows = [json.loads(x) for x in live_log.read_text().splitlines()]
+        assert any(r.get("live") and r["url"].endswith("/sitemap.html") for r in rows)
+        assert any(r.get("refused") and "localhost" in r["url"] for r in rows)
+        assert connected, "live loads go through the egress proxy"
+    finally:
+        srv.stop()

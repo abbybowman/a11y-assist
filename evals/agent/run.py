@@ -355,8 +355,34 @@ async def run_arm(
     provider: Provider,
     servers: list[Server] | None = None,
     check_leaks: bool = True,
+    egress_settings=None,
 ) -> dict:
-    """Run arm "a" or "b" on round folder `rd`; returns the summary."""
+    """Run arm "a" or "b" on round folder `rd`; returns the summary.
+
+    Agent B's browser connects through an egress proxy (egress.py) with the
+    server's own address checks, as Agent A's server does; its live pages
+    are logged to results/arm-b/live.jsonl."""
+    if servers is not None or arm == "a":
+        return await _run_arm(rd, arm, provider, servers, check_leaks)
+    from a11y_assist.config import Settings
+    from a11y_assist.egress import EgressProxy
+
+    out = (rd / "results" / f"arm-{arm}").resolve()
+    async with EgressProxy(egress_settings or Settings()) as proxy:
+        servers = browser_arm(
+            (rd / "frozen").resolve(),
+            out / "browser-files",
+            await _executable(),
+            proxy=proxy.url,
+            live_log=out / "live.jsonl",
+        )
+        s = await _run_arm(rd, arm, provider, servers, check_leaks)
+    s["egress_refused"] = proxy.refused[:100]
+    (out / "summary.json").write_text(json.dumps(s, indent=1, default=str) + "\n")
+    return s
+
+
+async def _run_arm(rd, arm, provider, servers, check_leaks) -> dict:
     from evals.judging import _pages
 
     if (rd / "results" / "lock.json").exists():
@@ -370,11 +396,7 @@ async def run_arm(
     urls = [u for u, _ in _pages(rd)]
     task = task_prompt.task(urls)
     if servers is None:
-        servers = (
-            tool_arm(frozen, provider.model, out / "runs")
-            if arm == "a"
-            else browser_arm(frozen, out / "browser-files", await _executable())
-        )
+        servers = tool_arm(frozen, provider.model, out / "runs")
     log = StepLog(out / "steps.jsonl")
     agent = Agent(provider, log)
     summary: dict[str, Any] = {
