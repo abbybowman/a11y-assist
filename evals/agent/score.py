@@ -117,7 +117,18 @@ def score(rd: Path) -> dict:
         final = (arm_dir / "final.md").read_text("utf-8")
         result = parse_result(final)
         rows, verdicts = [], []
+        # Each run is scored on the pages it was given (summary.json): a
+        # page corrected after a run (round 1's typo) is not that run's.
+        given = {page_key(u) for u in s.get("pages") or []}
+        # A page whose frozen copy was broken for this run, recorded before
+        # the lock with the reason (results/<arm>/not_scored.json).
+        ns = arm_dir / "not_scored.json"
+        excluded = json.loads(ns.read_text()) if ns.is_file() else {}
+        given -= {page_key(u) for u in excluded.get("pages", [])}
+        not_given = [u for u in keys if page_key(u) not in given]
         for url in keys:
+            if url in not_given:
+                continue
             for c in cs:
                 kv = rollup([key_tt[url].get(t) for t in c["tests"]])
                 got, els = relayed(result, url, c["id"])
@@ -141,6 +152,8 @@ def score(rd: Path) -> dict:
         counts = _counts(verdicts)
         arm = {
             "result_line": "found" if result is not None else "missing or malformed",
+            "pages_not_given": not_given,
+            "not_scored_reason": excluded.get("reason"),
             "per_criterion": {
                 "counts": counts,
                 "weighted": weighted(counts),
@@ -165,8 +178,14 @@ def score(rd: Path) -> dict:
                 )
             },
         }
-        if arm_dir.name == "arm-a":
-            arm["server"] = _server(rd, arm_dir, keys, key_tt, cs)
+        if arm_dir.name.startswith("arm-a"):
+            arm["server"] = _server(
+                rd,
+                arm_dir,
+                {u: k for u, k in keys.items() if u not in not_given},
+                key_tt,
+                cs,
+            )
         out["arms"][arm_dir.name] = arm
     (rd / "agent-score.json").write_text(json.dumps(out, indent=1) + "\n")
     (rd / "agent-score.md").write_text(_markdown(out))

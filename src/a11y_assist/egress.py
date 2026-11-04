@@ -31,13 +31,14 @@ egress rules for the host running the server.
 from __future__ import annotations
 
 import asyncio
+import base64
 import contextlib
 import ipaddress
 import socket
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from typing import Any
-from urllib.parse import urlsplit
+from urllib.parse import unquote, urlsplit
 
 from a11y_assist.config import Settings
 
@@ -195,6 +196,8 @@ class EgressProxy:
                 "egress_refused", "blocked", host=host, port=port, reason=str(exc)
             )
             raise
+        if self.settings.upstream_proxy:
+            return await self._tunnel(host, port)
         last: Exception | None = None
         for a in addresses:
             try:
@@ -213,6 +216,50 @@ class EgressProxy:
             {"host": host, "port": port, "reason": reason, "policy": False}
         )
         raise Refused(reason)
+
+    async def _tunnel(self, host: str, port: int):
+        """Through `upstream_proxy` (a host whose direct connections are
+        re-signed by a gateway browsers do not trust, such as a cloud
+        container's): CONNECT by name, after the address check. The upstream
+        resolves the name again, so it is weaker against DNS rebinding than a
+        direct connection to the checked address; off by default."""
+        up = urlsplit(self.settings.upstream_proxy)
+        if up.scheme != "http" or not up.hostname:
+            raise Refused("UPSTREAM_PROXY must be an http:// proxy URL")
+        try:
+            reader, writer = await asyncio.wait_for(
+                asyncio.open_connection(up.hostname, up.port or 80), CONNECT_TIMEOUT_S
+            )
+            auth = ""
+            if up.username:
+                token = base64.b64encode(
+                    f"{unquote(up.username)}:{unquote(up.password or '')}".encode()
+                ).decode()
+                auth = f"Proxy-Authorization: Basic {token}\r\n"
+            target = f"[{host}]:{port}" if ":" in host else f"{host}:{port}"
+            writer.write(
+                f"CONNECT {target} HTTP/1.1\r\nHost: {target}\r\n{auth}\r\n".encode()
+            )
+            await writer.drain()
+            head = await asyncio.wait_for(reader.readuntil(b"\r\n\r\n"), HEAD_TIMEOUT_S)
+        except Exception as exc:
+            reason = f"could not reach the upstream proxy ({type(exc).__name__})"
+            self.refused.append(
+                {"host": host, "port": port, "reason": reason, "policy": False}
+            )
+            raise Refused(reason) from None
+        status = head.split(b"\r\n", 1)[0].split(b" ")
+        if len(status) < 2 or status[1] != b"200":
+            writer.close()
+            reason = (
+                f"upstream proxy refused ({b' '.join(status[1:3]).decode('latin-1')})"
+            )
+            self.refused.append(
+                {"host": host, "port": port, "reason": reason, "policy": False}
+            )
+            raise Refused(reason)
+        self.connected.append({"host": host, "port": port, "address": "upstream"})
+        return reader, writer
 
     # ── HTTP proxy plumbing ──────────────────────────────────────────────────
 

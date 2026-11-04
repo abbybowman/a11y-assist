@@ -1,0 +1,33 @@
+[     208ms] ReferenceError: wp is not defined
+    at wp-i18n-js-after:2:1
+[     794ms] ReferenceError: jQuery is not defined
+    at https://www.nasa.gov/wp-content/plugins/gravity-forms-config/assets/js/gravity-config-display.min.js?m=1790347576g:1:415
+[     795ms] ReferenceError: jQuery is not defined
+    at 3370 (https://www.nasa.gov/wp-content/plugins/popup-maker/dist/assets/site.js?m=1791609798g:1:11318)
+    at t (https://www.nasa.gov/wp-content/plugins/popup-maker/dist/assets/site.js?m=1791609798g:1:55870)
+    at https://www.nasa.gov/wp-content/plugins/popup-maker/dist/assets/site.js?m=1791609798g:1:56346
+    at https://www.nasa.gov/wp-content/plugins/popup-maker/dist/assets/site.js?m=1791609798g:1:70566
+    at https://www.nasa.gov/wp-content/plugins/popup-maker/dist/assets/site.js?m=1791609798g:1:70570
+[     800ms] [LOG] JQMIGRATE: Migrate is installed, version 3.4.1 @ https://www.nasa.gov/_static/??-eJzTLy/QzcxLzilNSS3WzwKiwtLUokoopZebmaeXVayjj0+Rbm5melFiSSpUsX2uraG5pbGRgamBiXkWAK90Ih4=:4
+[     821ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://p1.parsely.com/px/?rand=1793804553521&plid=b80c60f3-2476-4b8c-89d1-2474bb3712d5&idsite=nasa.gov&url=https%3A%2F%2Fwww.nasa.gov%2Fmissions%2F&urlref=&screen=1280x720%7C1280x720%7C24&data=%7B%7D&sid=1&surl=https%3A%2F%2Fwww.nasa.gov%2Fspot-the-station%2F&sref=&sts=1793804443329&slts=0&title=Missions+-+NASA&date=Wed+Nov+04+2026+15%3A02%3A33+GMT%2B0000+(Coordinated+Universal+Time)&action=pageview&pvid=4cef92c1-84dc-452b-a732-99b693d398f4&u=pid%3D47023d6d-010e-4b2b-815c-bdd1af111cc6:0
+[     830ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://api.parsely.com/v2/profile?apikey=nasa.gov&uuid=pid%3D47023d6d-010e-4b2b-815c-bdd1af111cc6&url=https%3A%2F%2Fwww.nasa.gov%2Fmissions%2F:0
+[     841ms] TypeError: Failed to fetch
+    at https://www.nasa.gov/wp-content/plugins/wp-parsely/build/loader.js?ver=ecf94842061bea03d54b:1:2795
+    at https://www.nasa.gov/wp-content/plugins/wp-parsely/build/loader.js?ver=ecf94842061bea03d54b:1:2310
+    at Object.next (https://www.nasa.gov/wp-content/plugins/wp-parsely/build/loader.js?ver=ecf94842061bea03d54b:1:2415)
+    at https://www.nasa.gov/wp-content/plugins/wp-parsely/build/loader.js?ver=ecf94842061bea03d54b:1:3078
+    at new Promise (<anonymous>)
+    at https://www.nasa.gov/wp-content/plugins/wp-parsely/build/loader.js?ver=ecf94842061bea03d54b:1:2814
+    at h (https://www.nasa.gov/_static/??-eJzTLy/QzcxLzilNSS3WzwKiwtLUokr90kz95PyiVL3czDy9rGIdfZyqclPzSnGpSsksLtFPyc/VLUpNTKnEqyojPz+7GKrCPtfW0NzS2MjA1MDEPAsAxiA5qA==:131:3133)
+    at B.doAction (https://www.nasa.gov/_static/??-eJzTLy/QzcxLzilNSS3WzwKiwtLUokr90kz95PyiVL3czDy9rGIdfZyqclPzSnGpSsksLtFPyc/VLUpNTKnEqyojPz+7GKrCPtfW0NzS2MjA1MDEPAsAxiA5qA==:131:3238)
+    at o (https://www.nasa.gov/wp-content/plugins/wp-parsely/build/loader.js?ver=ecf94842061bea03d54b:1:187)
+    at https://cdn.parsely.com/keys/nasa.gov/p.js?ver=3.24.3:7:68691
+[    1034ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://www.nasa.gov/wp-content/plugins/nasa-hds-core-setup/assets/favicons/favicon-32x32.png:0
+[    1128ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://www.nasa.gov/wp-content/plugins/nasa-hds-core-setup/assets/favicons/favicon-16x16.png:0
+[    1161ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://www.nasa.gov/wp-content/plugins/nasa-hds-core-setup/assets/favicons/favicon-57x57.png:0
+[    1167ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://www.nasa.gov/wp-content/plugins/nasa-hds-core-setup/assets/favicons/favicon-76x76.png:0
+[    1174ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://www.nasa.gov/wp-content/plugins/nasa-hds-core-setup/assets/favicons/favicon-96x96.png:0
+[    1180ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://www.nasa.gov/wp-content/plugins/nasa-hds-core-setup/assets/favicons/favicon-128x128.png:0
+[    1187ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://www.nasa.gov/wp-content/plugins/nasa-hds-core-setup/assets/favicons/favicon-192x192.png:0
+[    1191ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://www.nasa.gov/wp-content/plugins/nasa-hds-core-setup/assets/favicons/favicon-196x196.png:0
+[    1196ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://www.nasa.gov/wp-content/plugins/nasa-hds-core-setup/assets/favicons/favicon-228x228.png:0

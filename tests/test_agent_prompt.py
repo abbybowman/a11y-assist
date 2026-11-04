@@ -23,3 +23,17 @@ def test_task_names_wcag_20_and_every_page():
         assert c["label"] in t
     assert "Understanding" not in t and "w3.org" not in t  # no 2.2 links
     assert "Trusted Tester" not in t and "4.C" not in t  # no TT procedure
+
+
+def test_tool_arm_passes_the_upstream_proxy(monkeypatch, tmp_path):
+    from evals.agent.arms import tool_arm
+
+    monkeypatch.delenv("UPSTREAM_PROXY", raising=False)
+    (srv,) = tool_arm(tmp_path, "m", tmp_path / "runs")
+    assert (
+        "UPSTREAM_PROXY" not in srv.env
+        and srv.env["FROZEN_PAGES_MODE"] == "tested_frozen"
+    )
+    monkeypatch.setenv("UPSTREAM_PROXY", "http://127.0.0.1:9")
+    (srv,) = tool_arm(tmp_path, "m", tmp_path / "runs")
+    assert srv.env["UPSTREAM_PROXY"] == "http://127.0.0.1:9"

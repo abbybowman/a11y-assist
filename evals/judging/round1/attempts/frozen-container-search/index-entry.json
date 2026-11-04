@@ -1,0 +1,10 @@
+{
+ "https://www.nasa.gov/?search=artemis": {
+  "url": "https://www.nasa.gov/?search=artemis",
+  "final_url": "https://www.nasa.gov/?search=artemis",
+  "har": "pages/010.har.zip",
+  "redirects": [],
+  "cross_site_frames": [],
+  "recorded_at": "2026-11-04T13:25:27.435290+00:00"
+ }
+}

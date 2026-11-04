@@ -45,6 +45,16 @@ run).
 
 ## Soon
 
+- **Fixes found in agent eval round 1:** [plans/2026-11-04-post-round1-fixes.md](plans/2026-11-04-post-round1-fixes.md) (a detached-frame crash, client tool timeouts, CI for Agent B's tests). Before the next round.
+- **MCP client tool timeouts (found 2026-11-04).** The Claude Code CLI in a
+  cloud session cut every MCP tool call off at 60 s by default
+  (`MCP_TOOL_TIMEOUT`); one `a11y_run_tt_tests` call may take up to
+  `RUN_LIMIT_S` (120 s) plus 20 s per other page, or longer with
+  `no_time_limit`. Check the default on a laptop's Claude Code; then either
+  say in the README's setup how to raise it, or keep each call under the
+  common client limits (for example by returning a run id at once and
+  letting the client poll). Not checked on a laptop.
+
 - **`tt.json` steps for 7.C and 16.B.** Each repeats the previous
   test's "How to Test" (the same PDF heading trap that scrambled 9.B, fixed
   2026-11-02; `tests/test_tt_source.py`). Fix each from its printed pages

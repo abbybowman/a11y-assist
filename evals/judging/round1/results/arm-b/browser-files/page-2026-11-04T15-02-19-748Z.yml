@@ -1,0 +1,540 @@
+- generic [active] [ref=f24e1]:
+  - navigation "Navigation controls for this story":
+    - generic:
+      - generic:
+        - link "NASA — return to the homepage":
+          - /url: https://www.nasa.gov/
+        - generic: "The NACA: Launching the Future of Flight"
+      - generic:
+        - list "Navigate to different parts of the story":
+          - listitem:
+            - link "1. PRELUDE":
+              - /url: "#prelude"
+          - listitem:
+            - link "2. ORIGINS":
+              - /url: "#origins"
+          - listitem:
+            - link "3. GROWTH":
+              - /url: "#growth"
+          - listitem:
+            - link "4. ENGINES":
+              - /url: "#engines"
+          - listitem:
+            - link "5. AERONAUTICS":
+              - /url: "#aeronautics"
+      - generic:
+        - button "Share this story"
+  - banner [ref=f24e2]:
+    - generic [ref=f24e3]:
+      - generic [ref=f24e4]:
+        - list [ref=f24e5]:
+          - listitem [ref=f24e6]:
+            - button "Explore" [ref=f24e7] [cursor=pointer]
+        - search [ref=f24e15]:
+          - generic [ref=f24e16]: Search
+          - searchbox "Search" [ref=f24e17]
+      - link [ref=f24e19] [cursor=pointer]:
+        - /url: https://www.nasa.gov/
+        - img "NASA Logo" [ref=f24e20]
+      - navigation "Primary navigation" [ref=f24e21]:
+        - list [ref=f24e23]:
+          - listitem [ref=f24e24]:
+            - button "News & Events" [ref=f24e25]
+          - listitem [ref=f24e30]:
+            - button "Multimedia" [ref=f24e31]
+          - listitem [ref=f24e36]:
+            - link "NASA+ Live" [ref=f24e37] [cursor=pointer]:
+              - /url: https://plus.nasa.gov/
+  - text: Live
+  - main [ref=f24e38]:
+    - article [ref=f24e39]:
+      - generic [ref=f24e40]:
+        - generic [ref=f24e41]:
+          - generic [ref=f24e43]:
+            - generic [ref=f24e45]:
+              - heading "The NACA" [level=1] [ref=f24e46]
+              - paragraph [ref=f24e47]: As we celebrate the 110th anniversary of the March 3, 1915 formation of NASA’s predecessor, the National Advisory Committee for Aeronautics, we take a deeper look at the contributions of the four research centers where it all began.
+            - generic [ref=f24e48]: Scroll to Continue
+          - figure [ref=f24e57]
+        - generic [ref=f24e68]:
+          - heading "It shall be the duty of the advisory committee for aeronautics to supervise and direct the scientific study of the problems of flight with a view to their practical solution." [level=2] [ref=f24e69]
+          - generic [ref=f24e70]:
+            - figure [ref=f24e72]
+            - paragraph [ref=f24e74]: congressional direction in establishing the NACA in 1915
+        - generic [ref=f24e76]:
+          - generic [ref=f24e77]:
+            - generic [ref=f24e79]:
+              - paragraph [ref=f24e80]: Chapter 1
+              - heading "PRELUDE" [level=2] [ref=f24e81]
+              - paragraph [ref=f24e82]: The Wright Brothers made history with their 1903 flight, but U.S. leadership in aviation during the next decade fell behind as Europe invested in aeronautical research before the first world war.
+            - generic [ref=f24e84]:
+              - figure [ref=f24e85]:
+                - img "Wright Brothers First Flight" [ref=f24e86]
+              - generic [ref=f24e87]: On December 17, 1903, two brothers from Dayton, Ohio, named Wilbur and Orville Wright, were successful in flying an airplane they built. Their powered aircraft flew for 12 seconds above the sand dunes of Kitty Hawk, North Carolina.
+          - generic [ref=f24e90]: Scroll to Continue
+        - generic [ref=f24e100]:
+          - generic [ref=f24e102]:
+            - heading "The U.S. Answers with the NACA" [level=2] [ref=f24e103]
+            - paragraph [ref=f24e104]: The U.S. responded to Europe’s aeronautical trailblazing in 1915 by forming a committee of government, military, and industry leaders. It was called the National Advisory Committee for Aeronautics, or the NACA — with each letter pronounced.The NACA contributed to some of the most important advancements in the history of flight. And its people, its laboratories, and legacy, became the basis for NASA at the dawn of the Space Age.
+          - generic [ref=f24e107]:
+            - figure [ref=f24e108]:
+              - img "A World War II-era fighter aircraft sits outside an NACA hangar." [ref=f24e109]
+            - generic [ref=f24e110]: "GRUMMAN F6F-3 #874 AIRPLANE on the NACA Ames flight line"
+        - figure [ref=f24e112]:
+          - iframe [ref=f24e114]:
+            - generic [ref=f25e1]:
+              - generic "YouTube Video Player" [ref=f25e3]
+              - generic [ref=f25e5]:
+                - generic:
+                  - generic:
+                    - generic [ref=f25e6] [cursor=pointer]
+                    - button "Play video" [ref=f25e10] [cursor=pointer]
+                    - button "Hide player controls" [ref=f25e12] [cursor=pointer]
+                    - generic [ref=f25e14]:
+                      - generic [ref=f25e21]:
+                        - generic [ref=f25e22]:
+                          - 'link "Launching the Future of Flight: Prelude" [ref=f25e23] [cursor=pointer]':
+                            - /url: https://www.youtube.com/watch?v=nhI4NdPAUtQ
+                          - link "NASA's Ames Research Center" [ref=f25e24] [cursor=pointer]:
+                            - /url: /channel/UCggQcRNVNRaH3uEb4nqf0zg
+                        - generic [ref=f25e26]:
+                          - button [ref=f25e27] [cursor=pointer]
+                          - generic [ref=f25e29]:
+                            - generic: NASA's Ames Research Center
+                            - generic: 152K subscribers
+                      - generic [ref=f25e30]:
+                        - button "Share" [ref=f25e33] [cursor=pointer]
+                        - link "Watch on YouTube" [ref=f25e44] [cursor=pointer]:
+                          - /url: https://www.youtube.com/watch?v=nhI4NdPAUtQ
+                          - generic [ref=f25e45]: Watch on
+          - strong [ref=f24e116]: Watch this 83-second video for a look back at the beginnings of the NACA.
+        - generic [ref=f24e118]:
+          - generic [ref=f24e119]:
+            - generic [ref=f24e121]:
+              - paragraph [ref=f24e122]: Chapter 2
+              - heading "ORIGINS" [level=2] [ref=f24e123]
+              - paragraph [ref=f24e124]: NACA research at what is now Langley Research Center had a modest start with two hangars, an initial staff of eleven people, and a single wind tunnel whose design was obsolete by the time it began operations.
+            - generic [ref=f24e126]:
+              - figure [ref=f24e127]:
+                - img "A large airplane model sits on top of a support strut inside a wind tunnel." [ref=f24e128]
+              - generic [ref=f24e129]:
+                - generic [ref=f24e130]: A modified Bell X-1 model is tested in a Langley wind tunnel in 1947. A version of this rocket plane is the one that first flew faster than sound that same year.
+                - generic [ref=f24e131]: NACA
+          - generic [ref=f24e133]: Scroll to Continue
+        - generic [ref=f24e143]:
+          - generic [ref=f24e145]:
+            - heading "An Immediate Difference" [level=2] [ref=f24e146]
+            - paragraph [ref=f24e147]: Despite unassuming beginnings, NACA researchers wasted no time setting the gold standard for aeronautical innovations, many of which became the basis for aviation technologies still in use today.One of the earliest advances was the NACA cowling, an aerodynamically efficient engine cover that improved aircraft performance, fuel efficiency, and safety. It made such a difference that in 1929 the technology and its inventors were awarded the Collier Trophy, aviation’s highest honor.
+          - generic [ref=f24e150]:
+            - figure [ref=f24e151]:
+              - img "A biplane with a single propeller from 1928 sits on the ground." [ref=f24e152]
+            - generic [ref=f24e153]:
+              - generic [ref=f24e154]: A Curtis Hawk AT-5A equipped with an NACA cowling is seen in October 1928 at the Langley Memorial Aeronautical Laboratory in Virginia. The cowling was an early, award-winning innovation developed by the National Advisory Committee for Aeronautics, the predecessor of NASA.
+              - generic [ref=f24e155]: NASA
+        - figure [ref=f24e156]:
+          - iframe [ref=f24e158]:
+            - generic [ref=f26e1]:
+              - generic "YouTube Video Player" [ref=f26e3]
+              - generic [ref=f26e5]:
+                - generic:
+                  - generic:
+                    - generic [ref=f26e6] [cursor=pointer]
+                    - button "Play video" [ref=f26e10] [cursor=pointer]
+                    - button "Hide player controls" [ref=f26e12] [cursor=pointer]
+                    - generic [ref=f26e14]:
+                      - generic [ref=f26e21]:
+                        - generic [ref=f26e22]:
+                          - 'link "Launching the Future of Flight: Origins" [ref=f26e23] [cursor=pointer]':
+                            - /url: https://www.youtube.com/watch?v=9zSu856uQAU
+                          - link "NASA's Ames Research Center" [ref=f26e24] [cursor=pointer]:
+                            - /url: /channel/UCggQcRNVNRaH3uEb4nqf0zg
+                        - generic [ref=f26e26]:
+                          - button [ref=f26e27] [cursor=pointer]
+                          - generic [ref=f26e29]:
+                            - generic: NASA's Ames Research Center
+                            - generic: 152K subscribers
+                      - generic [ref=f26e30]:
+                        - button "Share" [ref=f26e33] [cursor=pointer]
+                        - link "Watch on YouTube" [ref=f26e44] [cursor=pointer]:
+                          - /url: https://www.youtube.com/watch?v=9zSu856uQAU
+                          - generic [ref=f26e45]: Watch on
+          - strong [ref=f24e160]: Watch this 2-minute and 14-second video describing Langley Research Center’s early contributions to aviation research and its spaceflight legacy.
+        - generic [ref=f24e163]:
+          - generic [ref=f24e164]:
+            - generic [ref=f24e165]: langley research center, virginia
+            - heading "The Mother Center" [level=2] [ref=f24e166]
+            - paragraph [ref=f24e167]: Founded in 1917, Langley Memorial Aeronautical Laboratory was the first established NACA facility. All other NACA research centers grew from Langley, giving it the nickname of the Mother Center.
+            - link "Explore Today's Langley Research Center" [ref=f24e168] [cursor=pointer]:
+              - /url: https://www.nasa.gov/langley/
+              - generic [ref=f24e169]: Explore Today’s Langley Research Center
+          - generic [ref=f24e175]:
+            - figure [ref=f24e176]:
+              - img "This is an aerial photo of NASA Langley Research Center. Wind tunnels and the hangar can be seen in the photo." [ref=f24e177]
+            - generic [ref=f24e178]:
+              - generic [ref=f24e179]: This is an aerial photo of NASA’s Langley Research Center in Hampton, Virginia.
+              - generic [ref=f24e180]: NASA / Sean Smith
+        - generic [ref=f24e182]:
+          - generic [ref=f24e183]:
+            - generic [ref=f24e185]:
+              - paragraph [ref=f24e186]: Chapter 3
+              - heading "GROWTH" [level=2] [ref=f24e187]
+              - paragraph [ref=f24e188]: With an ever growing demand for advances in aviation to serve both military and civilian needs, the NACA had to grow as well and found just what it needed by locating its second aeronautics laboratory in what would become Silicon Valley near San Francisco.
+            - generic [ref=f24e190]:
+              - figure [ref=f24e191]:
+                - img "A-7309. Ryan FR-1 in NACA Ames 40x80 foot Wind Tunnel." [ref=f24e192]
+              - generic [ref=f24e193]:
+                - generic [ref=f24e194]: A full-size Ryan FR-1 airplane is tested in the 40×80 wind tunnel at the NACA’s Ames Aeronautical Laboratory during 1944.
+                - generic [ref=f24e195]: NACA
+          - generic [ref=f24e197]: Scroll to Continue
+        - generic [ref=f24e207]:
+          - generic [ref=f24e209]:
+            - heading "Doing Things Big" [level=2] [ref=f24e210]
+            - paragraph [ref=f24e211]: The laid back West Coast culture didn’t keep researchers at Ames from making urgent, big strides in aviation during and after World War II with the help of what was then the world’s largest wind tunnel, which opened in 1944.Achievements at Ames were many, with notable ones including design improvements to the P-51 Mustang fighter that helped win the war, and a Collier Award-winning method for preventing fatal ice build up on wings.
+          - generic [ref=f24e214]:
+            - figure [ref=f24e215]:
+              - img "An airplane sits on a supporting strut in a wind tunnel as a technician looks on." [ref=f24e216]
+            - generic [ref=f24e217]: P-51 airplane model in the NACA Ames Research Center Transonic 16ft w.t.
+        - figure [ref=f24e219]:
+          - iframe [ref=f24e221]:
+            - generic [ref=f27e1]:
+              - generic "YouTube Video Player" [ref=f27e3]
+              - generic [ref=f27e5]:
+                - generic:
+                  - generic:
+                    - generic [ref=f27e6] [cursor=pointer]
+                    - button "Play video" [ref=f27e10] [cursor=pointer]
+                    - button "Hide player controls" [ref=f27e12] [cursor=pointer]
+                    - generic [ref=f27e14]:
+                      - generic [ref=f27e21]:
+                        - generic [ref=f27e22]:
+                          - 'link "Launching the Future of Flight: Growth" [ref=f27e23] [cursor=pointer]':
+                            - /url: https://www.youtube.com/watch?v=jWhIonkL54Q
+                          - link "NASA's Ames Research Center" [ref=f27e24] [cursor=pointer]:
+                            - /url: /channel/UCggQcRNVNRaH3uEb4nqf0zg
+                        - generic [ref=f27e26]:
+                          - button [ref=f27e27] [cursor=pointer]
+                          - generic [ref=f27e29]:
+                            - generic: NASA's Ames Research Center
+                            - generic: 152K subscribers
+                      - generic [ref=f27e30]:
+                        - button "Share" [ref=f27e33] [cursor=pointer]
+                        - link "Watch on YouTube" [ref=f27e44] [cursor=pointer]:
+                          - /url: https://www.youtube.com/watch?v=jWhIonkL54Q
+                          - generic [ref=f27e45]: Watch on
+          - strong [ref=f24e223]: Watch this 2-minute and 38-second video about the early days of research at Ames and how that work paved the way for the center’s current contributions to NASA.
+        - generic [ref=f24e226]:
+          - generic [ref=f24e227]:
+            - generic [ref=f24e228]: ames research center, california
+            - heading "West Coast Expansion" [level=2] [ref=f24e229]
+            - paragraph [ref=f24e230]: Founded in 1939, Ames Aeronautical Laboratory gave the NACA room to establish new facilities and expanded research capabilities at a time when California’s aviation industry was rapidly growing just before World War II.
+            - link "Explore Today's Ames Research Center" [ref=f24e231] [cursor=pointer]:
+              - /url: https://www.nasa.gov/ames/
+              - generic [ref=f24e232]: Explore Today’s Ames Research Center
+          - generic [ref=f24e238]:
+            - figure [ref=f24e239]:
+              - img "Aerial view of the buildings that make up the Ames Research Center (ARC) campus from 2012." [ref=f24e240]
+            - generic [ref=f24e241]:
+              - generic [ref=f24e242]: This is an aerial photo from 2012 of NASA’s Ames Research Center on Moffett Field in Silicon Valley, California.
+              - generic [ref=f24e243]: NASA
+        - generic [ref=f24e245]:
+          - generic [ref=f24e246]:
+            - generic [ref=f24e248]:
+              - paragraph [ref=f24e249]: Chapter 4
+              - heading "ENGINES" [level=2] [ref=f24e250]
+              - paragraph [ref=f24e251]: The desire for airplanes — and eventually rockets — to fly faster, higher, and farther meant the NACA needed new ideas and research capabilities for improving propulsion. The solutions would be found in a new engine laboratory set up in Ohio.
+            - generic [ref=f24e253]:
+              - figure [ref=f24e254]:
+                - img "Technician cleans a pitot tube on a ramjet in a wind tunnel" [ref=f24e255]
+              - generic [ref=f24e256]:
+                - generic [ref=f24e257]: An NACA technician cleans a component of an experimental ramjet in the 8-foot by 6-foot supersonic wind tunnel in 1950 at what was then known as the Lewis Flight Propulsion Laboratory in Cleveland.
+                - generic [ref=f24e258]: NACA
+          - generic [ref=f24e260]: Scroll to Continue
+        - generic [ref=f24e270]:
+          - generic [ref=f24e272]:
+            - heading "Moving Right Along" [level=2] [ref=f24e273]
+            - paragraph [ref=f24e274]: From the NACA’s engine laboratory’s start in 1941, each decade saw propulsion advancements that began with piston-driven propellers; continued on with turbojets, pure jets, and ramjets; and then moved on to rocket engines to power the Space Age.
+          - generic [ref=f24e277]:
+            - figure [ref=f24e278]:
+              - img "Close up view of the front of a jet engine." [ref=f24e279]
+            - generic [ref=f24e280]: National Aeronautics and Space Administration (NASA) Convair F-106B Delta Dart with a 32-spoke nozzle installed on its General Electric J85 test engine. Lewis acquired a Delta Dart fighter in 1966 to study the components for propulsion systems that could be applied to supersonic transport aircraft at transonic speeds. The F-106B was modified with two General Electric J85-13 engines under its wings to study these components. The original test plan was expanded to include the study of boattail drag, noise reduction, and inlets. From February to July 1971 the modified F-106B was used to study different ejector nozzles. Researchers conducted both acoustic and aerodynamic tests on the ground and in flight. Several models were created to test different suppression methods. NASA Lewis’ conical nozzle was used as the baseline configuration. Flightline and sideline microphones were set up on the ground. The F-106B would idle its own engine and buzz the recording station from an altitude of 300 feet at Mach 0.4 with the test engines firing. Researchers found that the suppression of the perceived noise level was usually lower during flight than the researchers had statistically predicted. The 64 and 32-spoke nozzles performed well in actual flight, but the others nozzles tended to negatively affect the engine’s performance. Different speeds or angles- -of-attack sometimes changed the noise levels. In the end, no general conclusions could be applied to all the nozzles.
+        - figure [ref=f24e282]:
+          - iframe [ref=f24e284]
+          - strong [ref=f24e286]: Watch this 2-minute and 4-second video showcasing Glenn’s work on propulsion for both aircraft and spacecraft.
+        - generic [ref=f24e289]:
+          - generic [ref=f24e290]:
+            - generic [ref=f24e291]: glenn research center, ohio
+            - heading "The Power and the Glory" [level=2] [ref=f24e292]
+            - paragraph [ref=f24e293]: Founded in 1941, the NACA’s Aircraft Engine Research Laboratory took the lead in studying all aspects of aircraft propulsion, increasing available power and enabling faster aircraft for both military and civilian uses.
+            - link "Explore Today's Glenn Research Center" [ref=f24e294] [cursor=pointer]:
+              - /url: https://www.nasa.gov/glenn/
+              - generic [ref=f24e295]: Explore Today’s Glenn Research Center
+          - generic [ref=f24e301]:
+            - figure [ref=f24e302]:
+              - img "Aerial View of Lewis Field, NASA's Glenn Research Center" [ref=f24e303]
+            - generic [ref=f24e304]:
+              - generic [ref=f24e305]: This is an aerial view of NASA’s Glenn Research Center on Lewis Field in Cleveland.
+              - generic [ref=f24e306]: NASA
+        - generic [ref=f24e308]:
+          - generic [ref=f24e309]:
+            - generic [ref=f24e311]:
+              - paragraph [ref=f24e312]: Chapter 5
+              - heading "AERONAUTICS" [level=2] [ref=f24e313]
+              - paragraph [ref=f24e314]: Above the deserts of Southern California, in 1947, the American rocket-powered X-1 experimental aircraft broke the sound barrier as a small team of NACA specialists monitored the flight below. A golden age of flight research had begun.
+            - generic [ref=f24e316]:
+              - figure [ref=f24e317]:
+                - img "Group posing in front of bomber." [ref=f24e318]
+              - generic [ref=f24e319]:
+                - generic [ref=f24e320]: The NACA Muroc Contingent in October 1947 in front of the Bell Aircraft Corporation X-1-2 and Boeing B-29 launch aircraft.
+                - generic [ref=f24e321]: NASA
+          - generic [ref=f24e323]: Scroll to Continue
+        - generic [ref=f24e333]:
+          - generic [ref=f24e335]:
+            - heading "X Marks the Spot" [level=2] [ref=f24e336]
+            - paragraph [ref=f24e337]: From the X-1 in 1947 to the upcoming flights of the X-59 and X-66, experimental aircraft — X-planes — have been a staple of flight test operations at what is now Armstrong Flight Research Center. Work done by the NACA through 1958 and NASA ever since, not only with X-planes but research aircraft of all sorts, has advanced our understanding of all things aeronautics, making air travel one of the safest modes of transportation.
+          - figure [ref=f24e341]:
+            - img "Aircraft Fleet 1980s" [ref=f24e342]
+        - figure [ref=f24e343]:
+          - iframe [ref=f24e345]
+          - strong [ref=f24e347]: Watch this 2-minute video about the NACA’s flight testing that sent aircraft of all sorts ever higher and faster, right to the edge of space and back.
+        - generic [ref=f24e350]:
+          - generic [ref=f24e351]:
+            - generic [ref=f24e352]: armstrong flight research center, california
+            - heading "Pushing the Limits" [level=2] [ref=f24e353]
+            - paragraph [ref=f24e354]: Thirteen people from the NACA’s Langley Laboratory arrived at Muroc Army Air Field in 1946 to support testing of a rocket plane that first flew faster than sound a year later. From that seed grew the flight research center NASA operates today.
+            - link "Explore Today's Armstrong Flight Research Center" [ref=f24e355] [cursor=pointer]:
+              - /url: https://www.nasa.gov/armstrong/
+              - generic [ref=f24e356]: Explore Today’s Armstrong Flight Research Center
+          - generic [ref=f24e362]:
+            - figure [ref=f24e363]:
+              - img "A large white airplane on a stand sits in desert plant and stone landscaping in front of an of a two-story office building." [ref=f24e364]
+            - generic [ref=f24e365]:
+              - generic [ref=f24e366]: The historic X-1E rocket plane is seen on display in front of the original National Advisory Committee on Aeronautics operations facility at Edwards Air Force Base, Calif. In this 2010 image, this is the “front door” to NASA’s Dryden Flight Research Center, now known as NASA’s Armstrong Flight Research Center.
+              - generic [ref=f24e367]: NASA / Jim Banke
+        - generic [ref=f24e368]:
+          - generic [ref=f24e372]:
+            - heading "End of an Era and a New Beginning" [level=3] [ref=f24e374]
+            - paragraph [ref=f24e375]: From 1915 to 1958, the NACA led the world in aviation research. During this golden age of aeronautical innovation, air travel evolved from small wood and fabric airplanes flying a few hundred feet high to rocket-propelled aircraft built from exotic metals cruising to the edge of space. The commercial jet age was taking off and the promise of supersonic airliners was just beyond the horizon. When the Soviet Union shocked the world with Sputnik in 1957, the U.S. reacted by creating a new agency in 1958 to research and develop the technology required to win the “Space Race.” The nation looked to the experienced experts at the NACA to form the foundation of the new National Aeronautics and Space Administration. The NACA was no more, but its rich heritage of research excellence lives on today within NASA’s Aeronautics Research Mission Directorate.
+          - figure [ref=f24e377]:
+            - img "Man suspended by crane removing sign." [ref=f24e378]
+        - generic [ref=f24e381]:
+          - generic [ref=f24e382]:
+            - generic [ref=f24e383]: NASA Encyclopedia
+            - heading "The National Advisory Committee for Aeronautics" [level=2] [ref=f24e384]
+            - paragraph [ref=f24e385]: With its elite research engineers and world-class test facilities, NASA’s predecessor, the NACA, was the nation’s premier aeronautical research institution for over 40 years.
+            - link "Read this History Piece on the NACA" [ref=f24e386] [cursor=pointer]:
+              - /url: https://www.nasa.gov/reference/the-national-advisory-committee-for-aeronautics/
+          - generic [ref=f24e393]:
+            - figure [ref=f24e394]:
+              - img "A B-24 bomber from World War II is seen parked on an airport ramp." [ref=f24e395]
+            - generic [ref=f24e396]:
+              - generic [ref=f24e397]: In 1946 the Lewis Flight Propulsion Laboratory became the NACA’s official icing research center. Lewis pilots flew the B-24M and XB-25E into perilous weather conditions all across the country to study both deicing technologies and the physics of ice-producing clouds. These dangerous flights led to advances in weather sensing instruments and flight planning.
+              - generic [ref=f24e398]: NACA
+        - generic [ref=f24e399]:
+          - generic [ref=f24e401]:
+            - generic [ref=f24e402]:
+              - heading "The NACA" [level=2] [ref=f24e404]
+              - generic [ref=f24e405]: 65 Images
+            - link "Go To Gallery" [ref=f24e414] [cursor=pointer]:
+              - /url: https://www.nasa.gov/gallery/the-naca/
+          - generic [ref=f24e419]:
+            - generic [ref=f24e420]:
+              - generic [ref=f24e421]:
+                - generic [ref=f24e422]:
+                  - figure [ref=f24e425]
+                  - figure [ref=f24e428]
+                - generic [ref=f24e429]:
+                  - figure [ref=f24e432]
+                  - figure [ref=f24e435]
+              - figure [ref=f24e439]
+            - generic [ref=f24e440]:
+              - figure [ref=f24e443]
+              - figure [ref=f24e446]
+              - figure [ref=f24e449]
+              - figure [ref=f24e452]
+              - figure [ref=f24e455]
+        - generic [ref=f24e456]:
+          - heading "About the Author" [level=3] [ref=f24e459]
+          - generic [ref=f24e460]:
+            - generic [ref=f24e462]:
+              - img "Jim Banke" [ref=f24e464]
+              - generic [ref=f24e465]:
+                - heading "Jim Banke" [level=2] [ref=f24e467]
+                - generic [ref=f24e468]: Aeronautics Senior Writer
+            - paragraph [ref=f24e471]: Jim Banke is a veteran aviation and aerospace communicator with more than 40 years of experience as a writer, producer, consultant, and project manager based at Cape Canaveral, Florida. He is part of NASA Aeronautics' Strategic Communications Team and is Senior Writer for the Aeronautics Division within the Research Technology Mission Directorate. In 2007 he was recognized with a Distinguished Public Service Medal, NASA's highest honor for a non-government employee.
+        - generic [ref=f24e474]:
+          - generic [ref=f24e476]:
+            - heading "Share" [level=2] [ref=f24e478]
+            - list [ref=f24e480]:
+              - listitem [ref=f24e481]:
+                - link "Share on X." [ref=f24e482] [cursor=pointer]:
+                  - /url: https://x.com/intent/tweet?via=NASA&text=The%20NACA%3A%20Launching%20the%20Future%20of%20Flight&url=https%3A%2F%2Fwww.nasa.gov%2Ffeature%2Fnaca-at-110-special-feature%2F
+              - listitem [ref=f24e485]:
+                - link "Share on Facebook." [ref=f24e486] [cursor=pointer]:
+                  - /url: https://www.facebook.com/sharer.php?u=https%3A%2F%2Fwww.nasa.gov%2Ffeature%2Fnaca-at-110-special-feature%2F
+              - listitem [ref=f24e489]:
+                - link "Share on LinkedIn." [ref=f24e490] [cursor=pointer]:
+                  - /url: https://www.linkedin.com/shareArticle?mini=true&url=https%3A%2F%2Fwww.nasa.gov%2Ffeature%2Fnaca-at-110-special-feature%2F
+              - listitem [ref=f24e493]:
+                - link "Subscribe to RSS feed." [ref=f24e494] [cursor=pointer]:
+                  - /url: /feed/
+          - generic [ref=f24e499]:
+            - heading "Details" [level=2] [ref=f24e501]
+            - generic [ref=f24e502]:
+              - generic [ref=f24e503]: Last Updated
+              - generic [ref=f24e505]: Mar 03, 2025
+          - generic [ref=f24e507]:
+            - heading "Related Terms" [level=2] [ref=f24e509]
+            - list [ref=f24e510]:
+              - listitem [ref=f24e511]:
+                - link "National Advisory Committee for Aeronautics (NACA)" [ref=f24e512] [cursor=pointer]:
+                  - /url: https://www.nasa.gov/history/the-national-advisory-committee-for-aeronautics-naca/
+              - listitem [ref=f24e513]:
+                - link "Aeronautics" [ref=f24e514] [cursor=pointer]:
+                  - /url: https://www.nasa.gov/aeronautics/
+              - listitem [ref=f24e515]:
+                - link "Aeronautics Research Mission Directorate" [ref=f24e516] [cursor=pointer]:
+                  - /url: https://www.nasa.gov/directorates/armd
+              - listitem [ref=f24e517]:
+                - link "Ames Research Center" [ref=f24e518] [cursor=pointer]:
+                  - /url: https://www.nasa.gov/ames/
+              - listitem [ref=f24e519]:
+                - link "Armstrong Flight Research Center" [ref=f24e520] [cursor=pointer]:
+                  - /url: https://www.nasa.gov/armstrong/
+              - listitem [ref=f24e521]:
+                - link "Glenn Research Center" [ref=f24e522] [cursor=pointer]:
+                  - /url: https://www.nasa.gov/glenn/
+              - listitem [ref=f24e523]:
+                - link "Langley Research Center" [ref=f24e524] [cursor=pointer]:
+                  - /url: https://www.nasa.gov/langley-research-center/
+              - listitem [ref=f24e525]:
+                - link "NASA Aircraft" [ref=f24e526] [cursor=pointer]:
+                  - /url: https://www.nasa.gov/aeronautics/nasa-aircraft/
+              - listitem [ref=f24e527]:
+                - link "NASA History" [ref=f24e528] [cursor=pointer]:
+                  - /url: https://www.nasa.gov/history/
+      - generic [ref=f24e531]:
+        - img "NASA Logo" [ref=f24e533]
+        - generic [ref=f24e535]:
+          - generic [ref=f24e537]:
+            - heading "National Aeronautics and Space Administration" [level=3] [ref=f24e538]
+            - paragraph [ref=f24e539]: NASA explores the unknown in air and space, innovates for the benefit of humanity, and inspires the world through discovery.
+            - list [ref=f24e540]:
+              - listitem [ref=f24e541]:
+                - link "About NASA's Mission" [ref=f24e542] [cursor=pointer]:
+                  - /url: https://www.nasa.gov/about/
+            - link "Join Us" [ref=f24e543] [cursor=pointer]:
+              - /url: https://www.nasa.gov/get-involved/
+          - list [ref=f24e551]:
+            - listitem [ref=f24e552]:
+              - link "Home" [ref=f24e553] [cursor=pointer]:
+                - /url: https://www.nasa.gov/
+            - listitem [ref=f24e554]:
+              - link "News & Events" [ref=f24e555] [cursor=pointer]:
+                - /url: https://www.nasa.gov/news/
+            - listitem [ref=f24e556]:
+              - link "Multimedia" [ref=f24e557] [cursor=pointer]:
+                - /url: https://www.nasa.gov/multimedia/
+            - listitem [ref=f24e558]:
+              - link "NASA+ Live" [ref=f24e559] [cursor=pointer]:
+                - /url: https://plus.nasa.gov/
+            - listitem [ref=f24e560]:
+              - link "Missions" [ref=f24e561] [cursor=pointer]:
+                - /url: https://www.nasa.gov/nasa-missions/
+            - listitem [ref=f24e562]:
+              - link "Humans in Space" [ref=f24e563] [cursor=pointer]:
+                - /url: https://www.nasa.gov/humans-in-space/
+            - listitem [ref=f24e564]:
+              - link "Earth" [ref=f24e565] [cursor=pointer]:
+                - /url: https://science.nasa.gov/earth/
+            - listitem [ref=f24e566]:
+              - link "The Solar System" [ref=f24e567] [cursor=pointer]:
+                - /url: https://science.nasa.gov/solar-system/
+            - listitem [ref=f24e568]:
+              - link "The Universe" [ref=f24e569] [cursor=pointer]:
+                - /url: https://science.nasa.gov/universe/
+            - listitem [ref=f24e570]:
+              - link "Science" [ref=f24e571] [cursor=pointer]:
+                - /url: https://science.nasa.gov/
+            - listitem [ref=f24e572]:
+              - link "Aeronautics" [ref=f24e573] [cursor=pointer]:
+                - /url: https://www.nasa.gov/aeronautics/
+            - listitem [ref=f24e574]:
+              - link "Technology" [ref=f24e575] [cursor=pointer]:
+                - /url: https://www.nasa.gov/technology/
+            - listitem [ref=f24e576]:
+              - link "Learning Resources" [ref=f24e577] [cursor=pointer]:
+                - /url: https://www.nasa.gov/learning-resources/
+            - listitem [ref=f24e578]:
+              - link "About NASA" [ref=f24e579] [cursor=pointer]:
+                - /url: https://www.nasa.gov/about/
+            - listitem [ref=f24e580]:
+              - link "NASA en Español (opens in new tab)" [ref=f24e581] [cursor=pointer]:
+                - /url: https://www.nasa.gov/es/
+                - text: NASA en Español
+                - generic [ref=f24e582]: (opens in new tab)
+          - generic [ref=f24e584]:
+            - generic [ref=f24e585]:
+              - heading "Follow NASA" [level=3] [ref=f24e586]
+              - list [ref=f24e587]:
+                - listitem [ref=f24e588]:
+                  - link "NASA on Facebook (opens in new tab)" [ref=f24e589] [cursor=pointer]:
+                    - /url: https://www.facebook.com/NASA
+                - listitem [ref=f24e592]:
+                  - link "NASA on Instagram (opens in new tab)" [ref=f24e593] [cursor=pointer]:
+                    - /url: https://www.instagram.com/nasa/
+                - listitem [ref=f24e598]:
+                  - link "NASA on X (opens in new tab)" [ref=f24e599] [cursor=pointer]:
+                    - /url: https://x.com/NASA
+                - listitem [ref=f24e602]:
+                  - link "NASA on YouTube (opens in new tab)" [ref=f24e603] [cursor=pointer]:
+                    - /url: https://www.youtube.com/@NASA
+            - list [ref=f24e606]:
+              - listitem [ref=f24e607]:
+                - link "More NASA Social Accounts" [ref=f24e608] [cursor=pointer]:
+                  - /url: https://www.nasa.gov/social-media/
+              - listitem [ref=f24e609]:
+                - link "NASA Newsletters" [ref=f24e610] [cursor=pointer]:
+                  - /url: https://www.nasa.gov/nasa-newsletters/
+          - list [ref=f24e612]:
+            - listitem [ref=f24e613]:
+              - link "Sitemap" [ref=f24e614] [cursor=pointer]:
+                - /url: https://www.nasa.gov/sitemap/
+            - listitem [ref=f24e615]:
+              - link "For Media" [ref=f24e616] [cursor=pointer]:
+                - /url: https://www.nasa.gov/news/nasa-media-contacts/
+            - listitem [ref=f24e617]:
+              - link "Privacy Policy" [ref=f24e618] [cursor=pointer]:
+                - /url: https://www.nasa.gov/nasa-web-privacy-policy-and-important-notices/
+            - listitem [ref=f24e619]:
+              - link "FOIA" [ref=f24e620] [cursor=pointer]:
+                - /url: https://www.nasa.gov/foia/
+            - listitem [ref=f24e621]:
+              - link "No FEAR Act" [ref=f24e622] [cursor=pointer]:
+                - /url: https://www.nasa.gov/no-fear-act/
+            - listitem [ref=f24e623]:
+              - link "Office of the IG (opens in new tab)" [ref=f24e624] [cursor=pointer]:
+                - /url: http://oig.nasa.gov/
+                - text: Office of the IG
+                - generic [ref=f24e625]: (opens in new tab)
+            - listitem [ref=f24e626]:
+              - link "Budget & Annual Reports" [ref=f24e627] [cursor=pointer]:
+                - /url: https://www.nasa.gov/budgets-plans-and-reports/
+            - listitem [ref=f24e628]:
+              - link "Agency Financial Reports" [ref=f24e629] [cursor=pointer]:
+                - /url: https://www.nasa.gov/organizations/budget-annual-reports/agency-financial-reports/
+            - listitem [ref=f24e630]:
+              - link "Contact NASA" [ref=f24e631] [cursor=pointer]:
+                - /url: https://www.nasa.gov/contact-nasa/
+            - listitem [ref=f24e632]:
+              - link "Accessibility" [ref=f24e633] [cursor=pointer]:
+                - /url: https://www.nasa.gov/accessibility/
+          - list [ref=f24e635]:
+            - listitem [ref=f24e636]:
+              - generic [ref=f24e637]: "Page Last Updated:"
+              - generic [ref=f24e638]: Mar 03, 2025
+            - listitem [ref=f24e639]:
+              - generic [ref=f24e640]: "Page Editor:"
+              - generic [ref=f24e641]: Jim Banke
+            - listitem [ref=f24e642]:
+              - generic [ref=f24e643]: "Responsible NASA Official:"
+              - generic [ref=f24e644]: Abigail Bowman

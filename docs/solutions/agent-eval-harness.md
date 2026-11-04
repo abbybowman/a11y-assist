@@ -55,6 +55,39 @@ frozen round. Plan: `docs/plans/2026-10-31-agent-eval.md`. Runbook:
   times and tokens. `rate_limit_event` rows give the account's 5-hour and
   7-day use and reset times. `stdin` must be closed, or the CLI waits 3 s
   for input.
+- **Recordings stay out of git; reports go in.** `.gitignore`'s `runs/`
+  matched every Agent A run folder, so round 1's tool reports were never
+  committed (the first lock covered files only one cloud session had), and
+  the frozen recordings made the repository too large to clone (about
+  200 MB of 56 MB packed). Now `.gitignore` keeps a round's
+  `runs/*/report.json`, `pre-scrt.json` and `steps.jsonl` and drops every
+  `*.har.zip`, `*.png` and `runs/*/evidence/` under `evals/judging/`; the
+  rest goes in an archive outside git, with a SHA-256 manifest
+  (`evals/judging/round1/results/ARCHIVE.md`). Before a lock, check that
+  `git status --ignored` shows nothing the score reads.
+- **A cloud container re-signs direct connections.** `egress.py` connects to
+  the address it checked; in a cloud session that connection gets a
+  certificate from an egress gateway Chromium does not trust
+  (`ERR_CERT_AUTHORITY_INVALID`), while the container's `HTTPS_PROXY`
+  gives the site's real certificate. The top-level page still loads (the
+  navigation guard fetches it another way), so the failure is silent: live
+  pages, and anything frozen there, have HTML but no CSS, fonts or scripts
+  (status -1). Round 1's search page frozen in the container and its live
+  19.A searches had this. Fix: `UPSTREAM_PROXY="$HTTPS_PROXY"`. Check a
+  recording made in a new environment: its CSS and scripts must be status
+  200.
+- **One recording's failed copy of a shared file.** Pages of a site share
+  CSS and scripts. Playwright consults the newest-registered HAR route
+  first, so a recording holding a failed entry (status -1) for a shared
+  file served it on every page (round 1's first Agent B run: 58-107
+  console errors per page). The init-page now routes cleaned copies of the
+  recordings without their failed entries.
+- **The CLI cuts an MCP tool call off at 60 s by default.** Round 1's first
+  Agent A attempt (2026-11-04) timed out on every `a11y_run_tt_tests` call
+  with other pages, which takes minutes. `cli.py` sets `MCP_TOOL_TIMEOUT` to
+  one hour (checked with a 70 s tool). The CLI's MCP log (in its `HOME`,
+  under `.cache/claude-cli-nodejs/*/mcp-logs-<server>/`) shows timeouts the
+  step log cannot: the step log records a result's size, not its text.
 - **Agent B never gets `browser_run_code_unsafe`** (it runs any code in
   Playwright's process: the live site, this machine's files), and its
   WebFetch is refused on the tested site's hosts with the CLI rule

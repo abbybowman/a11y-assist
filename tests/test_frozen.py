@@ -141,3 +141,24 @@ async def test_tested_frozen_refuses_other_hosts(settings, tmp_path):
 
 def noop(*a, **k):
     pass
+
+
+async def test_a_new_recording_never_reuses_a_file_name(settings, server, tmp_path):
+    """Round 1: after removing one entry, counting the index named the next
+    recording after a page that was still there, and overwrote it."""
+    folder = tmp_path / "f"
+    rec = settings.model_copy(
+        update={"frozen_pages_dir": folder, "frozen_pages_mode": "record_missing"}
+    )
+    for path in ("/dyn", "/landed"):
+        await run_tt_tests(rec, f"{server.base}{path}", [TestId.T4C])
+    index = json.loads((folder / "index.json").read_text())
+    first = index.pop(f"{server.base}/dyn")
+    (folder / first["har"]).unlink()
+    (folder / "index.json").write_text(json.dumps(index))
+    kept = {u: (folder / e["har"]).read_bytes() for u, e in index.items()}
+    await run_tt_tests(rec, f"{server.base}/19a/home.html", [TestId.T4C])
+    after = json.loads((folder / "index.json").read_text())
+    hars = [e["har"] for e in after.values()]
+    assert len(hars) == len(set(hars)) == 2
+    assert all((folder / after[u]["har"]).read_bytes() == b for u, b in kept.items())
