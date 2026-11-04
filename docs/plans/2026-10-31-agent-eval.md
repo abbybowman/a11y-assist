@@ -219,7 +219,8 @@ approved by Abby, 2026-11-04).
   redirect checks. Where 19.A then suggests pages for the user to add (a
   site map, the home page, breadcrumbs: same host, at most 5), the page is
   run once more with them, so they are frozen too (Abby, 2026-11-04). Their
-  own links are not followed. The runs' results are deleted unread.
+  own links are not followed. Both arms get these pages the same way: from
+  the frozen copies, never live. The runs' results are deleted unread.
 - **Agent A:** the server setting `FROZEN_PAGES_DIR` (`frozen.py`), in
   "replay" mode. The server replays each URL's recording and refuses
   (ToolError) a URL with no recording. It is a server setting, not a tool
