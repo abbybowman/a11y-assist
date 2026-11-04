@@ -99,6 +99,14 @@ class ClaudeCodeCLI:
         # The CLI cuts an MCP tool call off at 60 s by default; a run of the
         # tool with other pages takes minutes (round 1's first attempt, 2026-11-04).
         env["MCP_TOOL_TIMEOUT"] = str(MCP_TOOL_TIMEOUT_MS)
+        # After 120 s the CLI moves an MCP call to the background; on the -p
+        # route, an agent that then ends its turn to wait ends the session and
+        # the call with it (round1-answers, 2026-11-04: Missions, NACA and KSC
+        # lost). Keep calls in the foreground up to the same hour. Checked
+        # with a 12 s tool and a 3 s threshold: backgrounded and lost; at 60 s
+        # or more, answered. (CLAUDE_CODE_DISABLE_MCP_TASK_BACKGROUND=1 did
+        # not stop it.)
+        env["CLAUDE_CODE_MCP_AUTO_BACKGROUND_MS"] = str(MCP_TOOL_TIMEOUT_MS)
 
         return env
 

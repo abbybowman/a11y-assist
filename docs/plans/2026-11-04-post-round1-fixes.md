@@ -28,13 +28,15 @@ next.
    field is read fails mechanically, with no question.
 4. **Fix 11: 4.D row M8's 0 px false FAILs.** 7 of Agent A's 9 errors.
    Results differ run to run on the same frozen page.
-5. **Fix 12: refused pages are never tested fully.** Missions in 0 of 3
+5. **Fix 14: 5.B and header buttons** (with fix 10, which reads the same
+   buttons). 2 cells in round1-answers.
+6. **Fix 12: refused pages are never tested fully.** Missions in 0 of 3
    runs; its key Fails (5.C, 5.D) were never tested.
-6. **Fix 6b: result size; fix 1: a detached frame.** Each cost a page or a
+7. **Fix 6b: result size; fix 1: a detached frame.** Each cost a page or a
    call once, and a retry recovered it.
-7. **Fix 13: the scorer (harness).** No outcome changes, but it must be
+8. **Fix 13: the scorer (harness).** No outcome changes, but it must be
    right before round 2's lock, which also locks the scorer.
-8. **Fixes 2, 3, 7 and 8: harness and setup.** No effect on accuracy.
+9. **Fixes 2, 3, 7 and 8: harness and setup.** No effect on accuracy.
 
 **For Abby (4.F, Careers):** `arm-a-1`'s tool failed 4.F (row M2: Tab left
 the "Internships" dialog onto the page behind it), and the key passes it.
@@ -288,6 +290,30 @@ needs the answer before any change.
   - Fix 8's efficiency columns.
 - **Status:** not started.
 
+### 14. 5.B: Does Not Apply without a visible label; header menu buttons are not form controls
+
+- **Found:** round1-answers (`evals/judging/round1-answers/README.md`). On
+  Careers and the news release, the only field is the header search,
+  whose only label is its placeholder. The key says 5.B Does Not Apply,
+  but the tool passed it: the agent answered J1 `all_descriptive` for a
+  form that included the header's menu buttons ("Explore", "News &
+  Events").
+- **Decided (Abby, 2026-11-04):**
+  - 5.B is Does Not Apply when no field has a visible label, since there
+    is no visible label to check.
+  - Header menu buttons are not form elements. Count only buttons that
+    act on the form's data (submit, clear).
+- **Fix (spec, MINOR):** `docs/rules/5b-label-descriptive.md` and pass L
+  (`labels.py`):
+  - a field with no visible label (5.A M3, placeholder only) gives 5.B
+    nothing to judge, so a form whose fields all lack one is Does Not Apply;
+  - buttons count only when they submit or clear that form.
+
+  Research first (CLAUDE.md), then a fixture (a placeholder-only search
+  beside a menu button) and the judge eval. 5.A's row M3 (fix 10) reads
+  the same buttons, so do both together.
+- **Status:** decided; not started.
+
 ## Observations to decide after scoring
 
 These describe how Agent A used the tool. They are not bugs. Whether to act
@@ -319,6 +345,16 @@ on them depends on what round 1's scores show.
   any page (all NEEDS_REVIEW), so the degraded searches changed no score.
 
 ## Done during round 1 (the harness, not the tool)
+
+- After scoring, for round1-answers (`evals/agent/`):
+  - `--prompt` (development prompt versions, `prompt_dev.py`);
+  - `--no-subagents` (attempt 1 launched 9 subagents and overloaded the
+    container);
+  - `CLAUDE_CODE_MCP_AUTO_BACKGROUND_MS` set to an hour, because on the
+    `-p` route a call moved to the background was lost when the agent
+    ended its turn to wait for it. Checked with a 12 s test tool.
+
+  Round 1's arms ran with the CLI's 120 s background move.
 
 - Recordings and screenshots out of git: `.gitignore` had excluded every
   `runs/` folder, so Agent A's tool reports were not committed, and the
