@@ -1,0 +1,14 @@
+{"ts":"2026-11-04T19:46:04.131149Z","step":"run_start","status":"ok","detail":{"target":"https://www.nasa.gov/forms/nssc-accounts-receivable","tests":["4.A","4.B","4.C","4.D","4.E","4.F","5.A","5.B","5.C","5.D","5.F","5.G","5.H","9.A","9.B","9.C","19.A"]}}
+{"ts":"2026-11-04T19:46:04.787296Z","step":"browser_launched","status":"ok","detail":{"version":"153.0.8010.12"}}
+{"ts":"2026-11-04T19:46:04.803164Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/forms/nssc-accounts-receivable","har":"pages/003.har.zip"}}
+{"ts":"2026-11-04T19:46:04.825798Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/careers/","har":"pages/004.har.zip"}}
+{"ts":"2026-11-04T19:46:04.828995Z","step":"captured_other","status":"ok","detail":{"n":1,"final_url":"https://www.nasa.gov/careers/","seconds":0.01}}
+{"ts":"2026-11-04T19:46:04.845338Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/missions/","har":"pages/005.har.zip"}}
+{"ts":"2026-11-04T19:46:04.847765Z","step":"captured_other","status":"ok","detail":{"n":2,"final_url":"https://www.nasa.gov/missions/","seconds":0.01}}
+{"ts":"2026-11-04T19:46:04.868088Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/mission/artemis-iii/","har":"pages/006.har.zip"}}
+{"ts":"2026-11-04T19:46:04.870693Z","step":"captured_other","status":"ok","detail":{"n":3,"final_url":"https://www.nasa.gov/mission/artemis-iii/","seconds":0.01}}
+{"ts":"2026-11-04T19:46:04.888787Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/gallery/ksc-history/","har":"pages/009.har.zip"}}
+{"ts":"2026-11-04T19:46:04.891396Z","step":"captured_other","status":"ok","detail":{"n":4,"final_url":"https://www.nasa.gov/gallery/ksc-history/","seconds":0.01}}
+{"ts":"2026-11-04T19:46:04.891774Z","step":"captured","status":"ok","detail":{"final_url":"https://www.nasa.gov/forms/nssc-accounts-receivable/","redirects":[{"from":"https://www.nasa.gov/forms/nssc-accounts-receivable","status":301,"to":"https://www.nasa.gov/forms/nssc-accounts-receivable/"}],"seconds":0.1}}
+{"ts":"2026-11-04T19:46:05.132164Z","step":"browser_launched","status":"ok","detail":{"kind":"full Chromium"}}
+{"ts":"2026-11-04T19:46:11.353466Z","step":"egress_refused","status":"blocked","detail":{"host":"mtalk.google.com","port":5228,"reason":"port 5228 is not allowed"}}
