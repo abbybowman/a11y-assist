@@ -1,0 +1,12 @@
+{"ts":"2026-11-04T13:45:50.397229Z","step":"run_start","status":"ok","detail":{"target":"https://www.nasa.gov/missions/","tests":["9.A"]}}
+{"ts":"2026-11-04T13:45:50.974269Z","step":"browser_launched","status":"ok","detail":{"version":"153.0.8010.12"}}
+{"ts":"2026-11-04T13:45:50.982510Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/missions/","har":"pages/005.har.zip"}}
+{"ts":"2026-11-04T13:45:50.994036Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/careers/","har":"pages/004.har.zip"}}
+{"ts":"2026-11-04T13:45:50.995107Z","step":"captured_other","status":"ok","detail":{"n":1,"final_url":"https://www.nasa.gov/careers/","seconds":0.01}}
+{"ts":"2026-11-04T13:45:51.005155Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/spot-the-station/","har":"pages/001.har.zip"}}
+{"ts":"2026-11-04T13:45:51.005631Z","step":"captured_other","status":"ok","detail":{"n":2,"final_url":"https://www.nasa.gov/spot-the-station/","seconds":0.01}}
+{"ts":"2026-11-04T13:45:51.005855Z","step":"captured","status":"ok","detail":{"final_url":"https://www.nasa.gov/missions/","redirects":[],"seconds":0.03}}
+{"ts":"2026-11-04T13:47:10.503815Z","step":"walk","status":"ok","detail":{"P1":{"end":"wrap","presses":163,"cap":533},"P2":{"end":"wrap","presses":163,"cap":533},"cost":{"loads":2,"presses":326,"quick":0,"slow_redos":0,"seconds":79.49}}}
+{"ts":"2026-11-04T13:47:10.747935Z","step":"browser_launched","status":"ok","detail":{"kind":"full Chromium"}}
+{"ts":"2026-11-04T13:47:28.832992Z","step":"collected","status":"ok","detail":{"test":"9.A","cost":{"loads":3,"presses":16,"quick":7,"slow_redos":0,"seconds":18.33}}}
+{"ts":"2026-11-04T13:47:28.983801Z","step":"run_end","status":"ok","detail":{}}

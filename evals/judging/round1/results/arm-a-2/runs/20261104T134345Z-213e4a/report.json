@@ -1,0 +1,2021 @@
+{
+  "disclaimer": "Agent-assisted findings only. This is NOT a certified DHS Trusted Tester result and must not be reported as one.",
+  "certified": false,
+  "run_id": "20261104T134345Z-213e4a",
+  "target": "https://www.nasa.gov/missions/",
+  "tests": [
+    "4.C",
+    "4.D",
+    "4.E",
+    "9.A",
+    "9.B",
+    "19.A"
+  ],
+  "final_url": "https://www.nasa.gov/missions/",
+  "other_pages": [
+    {
+      "n": 1,
+      "url": "https://www.nasa.gov/careers/",
+      "final_url": "https://www.nasa.gov/careers/",
+      "har": "evidence/pages/p1.har.zip",
+      "cross_site_frames": [],
+      "replay_browser": "headless shell",
+      "frozen": true
+    },
+    {
+      "n": 2,
+      "url": "https://www.nasa.gov/spot-the-station/",
+      "final_url": "https://www.nasa.gov/spot-the-station/",
+      "har": "evidence/pages/p2.har.zip",
+      "cross_site_frames": [
+        "https://iss-sts.hqmce.nasa.gov/index.html",
+        "https://iss-sts.hqmce.nasa.gov/placeholder-image.html",
+        "https://isstracker.spaceflight.esa.int/index.php",
+        "https://www.youtube.com/embed/k-6uxrX9Tro"
+      ],
+      "replay_browser": "full Chromium",
+      "frozen": true
+    },
+    {
+      "n": 3,
+      "url": "https://www.nasa.gov/gallery/ksc-history/",
+      "final_url": "https://www.nasa.gov/gallery/ksc-history/",
+      "har": "evidence/pages/p3.har.zip",
+      "cross_site_frames": [],
+      "replay_browser": "headless shell",
+      "frozen": true
+    }
+  ],
+  "live_pages": [
+    {
+      "n": 1,
+      "url": "https://www.nasa.gov/?search=Missions",
+      "final_url": "https://www.nasa.gov/?search=Missions",
+      "har": "evidence/pages/live1.har.zip",
+      "cross_site_frames": [],
+      "replay_browser": "headless shell",
+      "frozen": false
+    }
+  ],
+  "cross_site_frames": [],
+  "replay_browser": "headless shell",
+  "frozen_pages": "tested_frozen",
+  "started_at": "2026-11-04T13:43:45.901367Z",
+  "finished_at": "2026-11-04T13:45:55.311001Z",
+  "versions": {
+    "a11y_assist": "0.1.0",
+    "andi": "29.2.2 (e491d9553bf0)",
+    "jquery": "3.7.1",
+    "scrt": "5.2.0 (63fe6878d72d)",
+    "playwright": "1.63.0",
+    "browser_channel": "chromium",
+    "browser": "153.0.8010.12",
+    "os": "Linux-6.18.44-fc-v233-x86_64-with-glibc2.39",
+    "python": "3.11.18",
+    "rules_spec": {
+      "19.A": "1.1.0 (sha256:9d55accda048)",
+      "4.A": "1.2.1 (sha256:512ed40e4c81)",
+      "4.B": "1.2.0 (sha256:6efdf3962743)",
+      "4.C": "1.8.0 (sha256:0cf4b9be03e6)",
+      "4.D": "1.1.1 (sha256:47fe35c2581e)",
+      "4.E": "1.1.0 (sha256:4bf7c6aaa09f)",
+      "4.F": "1.1.3 (sha256:aa81559e9ec0)",
+      "5.A": "1.1.0 (sha256:e57f35d633ac)",
+      "5.B": "1.1.0 (sha256:f694c964d7fa)",
+      "5.C": "1.1.0 (sha256:cf94729022cc)",
+      "5.D": "1.0.0 (sha256:23c65344ced7)",
+      "5.F": "1.1.0 (sha256:a1702a98e37a)",
+      "5.G": "1.1.0 (sha256:e8124a8bb884)",
+      "5.H": "1.1.0 (sha256:3e11ad6ea5a5)",
+      "9.A": "1.0.0 (sha256:ee0e3b6d0306)",
+      "9.B": "1.0.0 (sha256:cefd5147c188)",
+      "9.C": "1.1.0 (sha256:0fadea563b80)"
+    },
+    "judging_model": "claude-sonnet-5-5",
+    "run_settings": {
+      "settle_quiet_ms": 150,
+      "record_scroll_passes": 1,
+      "run_limit_s": 120,
+      "other_page_s": 20,
+      "no_time_limit": false
+    }
+  },
+  "findings": [
+    {
+      "test_id": "4.C",
+      "test_name": "2.1.2-no-keyboard-trap",
+      "outcome": "PASS",
+      "summary": "We moved through the whole page with Tab and with Shift+Tab, and keyboard focus never got trapped. 3 collapsed control(s) (menus, accordions) were not opened; content behind them was not checked for traps.",
+      "instances": [],
+      "evidence_refs": [
+        "evidence/4c.json"
+      ],
+      "rationale": "Spec G4. Every trap found can be left by keyboard, and both passes reached the whole page. Notes: 3 collapsed control(s) (menus, accordions) were not opened; content behind them was not checked for traps.",
+      "note": null,
+      "decided_by": "rule",
+      "rows": [
+        "A3",
+        "G4"
+      ],
+      "confidence": null
+    },
+    {
+      "test_id": "4.D",
+      "test_name": "2.4.7-focus-visible",
+      "outcome": "FAIL",
+      "summary": "Some elements don't show when they have keyboard focus, so keyboard users can lose track of where they are. We could not get a clear before-and-after view of \"Universe\" (checkbox) (scrolled out of view before the next step), so a person needs to check whether it shows focus: load the page and press Tab 104 times. We could not get a clear before-and-after view of \":envihab Image\" (link) (never in view), so a person needs to check whether it shows focus: load the page and press Tab 105 times. When \"3D Tissue Chips\" (link) gets focus, nothing on or around it changes that we could see, so keyboard users can't tell focus is there. To see it, load the page and press Tab 108 times. If you can see a focus indicator we missed, tell your assistant. When \"A-Train: The Afternoon Constellation\" (link) gets focus, nothing on or around it changes that we could see, so keyboard users can't tell focus is there. To see it, load the page and press Tab 110 times. If you can see a focus indicator we missed, tell your assistant. When \"Able 1 (Pioneer 0)\" (link) gets focus, nothing on or around it changes that we could see, so keyboard users can't tell focus is there. To see it, load the page and press Tab 112 times. If you can see a focus indicator we missed, tell your assistant. When \"Able 2 (Pioneer 1)\" (link) gets focus, nothing on or around it changes that we could see, so keyboard users can't tell focus is there. To see it, load the page and press Tab 114 times. If you can see a focus indicator we missed, tell your assistant. When \"Able 5A (Pioneer P-30)\" (link) gets focus, nothing on or around it changes that we could see, so keyboard users can't tell focus is there. To see it, load the page and press Tab 118 times. If you can see a focus indicator we missed, tell your assistant. When \"Able 5B (Pioneer P-31)\" (link) gets focus, nothing on or around it changes that we could see, so keyboard users can't tell focus is there. To see it, load the page and press Tab 120 times. If you can see a focus indicator we missed, tell your assistant. When \"ACE\" (link) gets focus, nothing on or around it changes that we could see, so keyboard users can't tell focus is there. To see it, load the page and press Tab 122 times. If you can see a focus indicator we missed, tell your assistant. We could not get a clear before-and-after view of \">>\" (link) (scrolled out of view before the next step), so a person needs to check whether it shows focus: load the page and press Tab 128 times. We could not get a clear before-and-after view of \"About NASA's Mission\" (link) (never in view), so a person needs to check whether it shows focus: load the page and press Tab 129 times. 150 other element(s) showed focus clearly.",
+      "instances": [
+        {
+          "selector": "#global-navigation-trigger",
+          "frame_path": [],
+          "description": "d1 [M6 PASS] \"Explore\" (button) changed 1488 px, strongly 1488 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0001-on.png",
+            "evidence/shots/4d/P1-0001-off.png",
+            "evidence/shots/4d/P1-0001-diff.png"
+          ]
+        },
+        {
+          "selector": "#search-field-en-small--desktop",
+          "frame_path": [],
+          "description": "d2 [M5 PASS] \"Search\" (searchbox) changed 1920 px, strongly 1920 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0002-on.png",
+            "evidence/shots/4d/P1-0002-off.png",
+            "evidence/shots/4d/P1-0002-diff.png"
+          ]
+        },
+        {
+          "selector": "#header-logo",
+          "frame_path": [],
+          "description": "d3 [M6 PASS] \"NASA Logo\" (link) changed 976 px, strongly 976 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0003-on.png",
+            "evidence/shots/4d/P1-0003-off.png",
+            "evidence/shots/4d/P1-0003-diff.png"
+          ]
+        },
+        {
+          "selector": "html > body > header:nth-of-type(2) > div > nav > div > ul > li:nth-of-type(1) > button",
+          "frame_path": [],
+          "description": "d4 [M6 PASS] \"News & Events\" (button) changed 1856 px, strongly 1856 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0004-on.png",
+            "evidence/shots/4d/P1-0004-off.png",
+            "evidence/shots/4d/P1-0004-diff.png"
+          ]
+        },
+        {
+          "selector": "html > body > header:nth-of-type(2) > div > nav > div > ul > li:nth-of-type(2) > button",
+          "frame_path": [],
+          "description": "d5 [M6 PASS] \"Multimedia\" (button) changed 1616 px, strongly 1616 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0005-on.png",
+            "evidence/shots/4d/P1-0005-off.png",
+            "evidence/shots/4d/P1-0005-diff.png"
+          ]
+        },
+        {
+          "selector": "html > body > header:nth-of-type(2) > div > nav > div > ul > li:nth-of-type(3) > a",
+          "frame_path": [],
+          "description": "d6 [M6 PASS] \"NASA+ LIVE\" (link) changed 1432 px, strongly 1432 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0006-on.png",
+            "evidence/shots/4d/P1-0006-off.png",
+            "evidence/shots/4d/P1-0006-diff.png"
+          ]
+        },
+        {
+          "selector": "#mission-search",
+          "frame_path": [],
+          "description": "d7 [M5 PASS] \"SEARCH CONTENT\" (textbox) changed 2232 px, strongly 2232 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0007-on.png",
+            "evidence/shots/4d/P1-0007-off.png",
+            "evidence/shots/4d/P1-0007-diff.png"
+          ]
+        },
+        {
+          "selector": "html > body > div:nth-of-type(3) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > a",
+          "frame_path": [],
+          "description": "d8 [M6 PASS] \"Reset Filters\" (link) changed 1048 px, strongly 1048 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0008-on.png",
+            "evidence/shots/4d/P1-0008-off.png",
+            "evidence/shots/4d/P1-0008-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-10828",
+          "frame_path": [],
+          "description": "d9 [M6 PASS] \"Active\" (checkbox) changed 430 px, strongly 430 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0009-on.png",
+            "evidence/shots/4d/P1-0009-off.png",
+            "evidence/shots/4d/P1-0009-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-10873",
+          "frame_path": [],
+          "description": "d10 [M6 PASS] \"Future\" (checkbox) changed 448 px, strongly 448 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0010-on.png",
+            "evidence/shots/4d/P1-0010-off.png",
+            "evidence/shots/4d/P1-0010-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-16800",
+          "frame_path": [],
+          "description": "d11 [M6 PASS] \"Inactive\" (checkbox) changed 430 px, strongly 430 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0011-on.png",
+            "evidence/shots/4d/P1-0011-off.png",
+            "evidence/shots/4d/P1-0011-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-10842",
+          "frame_path": [],
+          "description": "d12 [M6 PASS] \"Past\" (checkbox) changed 344 px, strongly 344 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0012-on.png",
+            "evidence/shots/4d/P1-0012-off.png",
+            "evidence/shots/4d/P1-0012-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-16810",
+          "frame_path": [],
+          "description": "d13 [M6 PASS] \"Aerial\" (checkbox) changed 448 px, strongly 448 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0013-on.png",
+            "evidence/shots/4d/P1-0013-off.png",
+            "evidence/shots/4d/P1-0013-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-10998",
+          "frame_path": [],
+          "description": "d14 [M6 PASS] \"Airborne Science\" (checkbox) changed 430 px, strongly 430 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0014-on.png",
+            "evidence/shots/4d/P1-0014-off.png",
+            "evidence/shots/4d/P1-0014-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-11477",
+          "frame_path": [],
+          "description": "d15 [M6 PASS] \"Analog Field Testing\" (checkbox) changed 430 px, strongly 430 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0015-on.png",
+            "evidence/shots/4d/P1-0015-off.png",
+            "evidence/shots/4d/P1-0015-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-12261",
+          "frame_path": [],
+          "description": "d16 [M6 PASS] \"Asteroid Deflection\" (checkbox) changed 448 px, strongly 448 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0016-on.png",
+            "evidence/shots/4d/P1-0016-off.png",
+            "evidence/shots/4d/P1-0016-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-10875",
+          "frame_path": [],
+          "description": "d17 [M6 PASS] \"Atmospheric Probe\" (checkbox) changed 430 px, strongly 430 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0017-on.png",
+            "evidence/shots/4d/P1-0017-off.png",
+            "evidence/shots/4d/P1-0017-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-11947",
+          "frame_path": [],
+          "description": "d18 [M6 PASS] \"Balloon\" (checkbox) changed 448 px, strongly 448 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0018-on.png",
+            "evidence/shots/4d/P1-0018-off.png",
+            "evidence/shots/4d/P1-0018-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-10994",
+          "frame_path": [],
+          "description": "d19 [M6 PASS] \"Commercial Crew\" (checkbox) changed 430 px, strongly 430 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0019-on.png",
+            "evidence/shots/4d/P1-0019-off.png",
+            "evidence/shots/4d/P1-0019-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-55",
+          "frame_path": [],
+          "description": "d20 [M6 PASS] \"Commercial Resupply\" (checkbox) changed 430 px, strongly 430 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0020-on.png",
+            "evidence/shots/4d/P1-0020-off.png",
+            "evidence/shots/4d/P1-0020-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-10922",
+          "frame_path": [],
+          "description": "d21 [M6 PASS] \"Communications & Navigation\" (checkbox) changed 448 px, strongly 448 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0021-on.png",
+            "evidence/shots/4d/P1-0021-off.png",
+            "evidence/shots/4d/P1-0021-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-12938",
+          "frame_path": [],
+          "description": "d22 [M6 PASS] \"Demonstration Mission\" (checkbox) changed 430 px, strongly 430 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0022-on.png",
+            "evidence/shots/4d/P1-0022-off.png",
+            "evidence/shots/4d/P1-0022-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-12262",
+          "frame_path": [],
+          "description": "d23 [M6 PASS] \"Earth Observation\" (checkbox) changed 448 px, strongly 448 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0023-on.png",
+            "evidence/shots/4d/P1-0023-off.png",
+            "evidence/shots/4d/P1-0023-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-12944",
+          "frame_path": [],
+          "description": "d24 [M6 PASS] \"Experiment\" (checkbox) changed 430 px, strongly 430 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0024-on.png",
+            "evidence/shots/4d/P1-0024-off.png",
+            "evidence/shots/4d/P1-0024-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-12878",
+          "frame_path": [],
+          "description": "d25 [M6 PASS] \"Experiment & Instrument\" (checkbox) changed 1365 px, strongly 1232 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0025-on.png",
+            "evidence/shots/4d/P1-0025-off.png",
+            "evidence/shots/4d/P1-0025-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-10876",
+          "frame_path": [],
+          "description": "d26 [M6 PASS] \"Flyby\" (checkbox) changed 535 px, strongly 458 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0026-on.png",
+            "evidence/shots/4d/P1-0026-off.png",
+            "evidence/shots/4d/P1-0026-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-12263",
+          "frame_path": [],
+          "description": "d27 [M6 PASS] \"Ground-based Telescope\" (checkbox) changed 430 px, strongly 430 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0027-on.png",
+            "evidence/shots/4d/P1-0027-off.png",
+            "evidence/shots/4d/P1-0027-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-12876",
+          "frame_path": [],
+          "description": "d28 [M6 PASS] \"Helicopter & Rotorcraft\" (checkbox) changed 448 px, strongly 448 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0028-on.png",
+            "evidence/shots/4d/P1-0028-off.png",
+            "evidence/shots/4d/P1-0028-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-10917",
+          "frame_path": [],
+          "description": "d29 [M6 PASS] \"Human Spaceflight\" (checkbox) changed 430 px, strongly 430 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0029-on.png",
+            "evidence/shots/4d/P1-0029-off.png",
+            "evidence/shots/4d/P1-0029-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-10877",
+          "frame_path": [],
+          "description": "d30 [M6 PASS] \"Impact\" (checkbox) changed 448 px, strongly 448 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0030-on.png",
+            "evidence/shots/4d/P1-0030-off.png",
+            "evidence/shots/4d/P1-0030-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-12941",
+          "frame_path": [],
+          "description": "d31 [M6 PASS] \"Instrument\" (checkbox) changed 430 px, strongly 430 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0031-on.png",
+            "evidence/shots/4d/P1-0031-off.png",
+            "evidence/shots/4d/P1-0031-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-10623",
+          "frame_path": [],
+          "description": "d32 [M6 PASS] \"ISS Expedition\" (checkbox) changed 430 px, strongly 430 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0032-on.png",
+            "evidence/shots/4d/P1-0032-off.png",
+            "evidence/shots/4d/P1-0032-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-10878",
+          "frame_path": [],
+          "description": "d33 [M6 PASS] \"Lander\" (checkbox) changed 448 px, strongly 448 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0033-on.png",
+            "evidence/shots/4d/P1-0033-off.png",
+            "evidence/shots/4d/P1-0033-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-10879",
+          "frame_path": [],
+          "description": "d34 [M6 PASS] \"Orbiter\" (checkbox) changed 430 px, strongly 430 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0034-on.png",
+            "evidence/shots/4d/P1-0034-off.png",
+            "evidence/shots/4d/P1-0034-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-12264",
+          "frame_path": [],
+          "description": "d35 [M6 PASS] \"Probe\" (checkbox) changed 448 px, strongly 448 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0035-on.png",
+            "evidence/shots/4d/P1-0035-off.png",
+            "evidence/shots/4d/P1-0035-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-10880",
+          "frame_path": [],
+          "description": "d36 [M6 PASS] \"Rover\" (checkbox) changed 430 px, strongly 430 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0036-on.png",
+            "evidence/shots/4d/P1-0036-off.png",
+            "evidence/shots/4d/P1-0036-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-10881",
+          "frame_path": [],
+          "description": "d37 [M6 PASS] \"Sample Return\" (checkbox) changed 430 px, strongly 430 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0037-on.png",
+            "evidence/shots/4d/P1-0037-off.png",
+            "evidence/shots/4d/P1-0037-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-12877",
+          "frame_path": [],
+          "description": "d38 [M6 PASS] \"SmallSat & CubeSat\" (checkbox) changed 448 px, strongly 448 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0038-on.png",
+            "evidence/shots/4d/P1-0038-off.png",
+            "evidence/shots/4d/P1-0038-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-12266",
+          "frame_path": [],
+          "description": "d39 [M6 PASS] \"Sounding Rocket\" (checkbox) changed 430 px, strongly 430 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0039-on.png",
+            "evidence/shots/4d/P1-0039-off.png",
+            "evidence/shots/4d/P1-0039-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-11948",
+          "frame_path": [],
+          "description": "d40 [M6 PASS] \"Space Environment\" (checkbox) changed 448 px, strongly 448 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0040-on.png",
+            "evidence/shots/4d/P1-0040-off.png",
+            "evidence/shots/4d/P1-0040-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-11949",
+          "frame_path": [],
+          "description": "d41 [M6 PASS] \"Space Telescope & Observatory\" (checkbox) changed 430 px, strongly 430 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0041-on.png",
+            "evidence/shots/4d/P1-0041-off.png",
+            "evidence/shots/4d/P1-0041-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-12744",
+          "frame_path": [],
+          "description": "d42 [M6 PASS] \"Supersonic Research\" (checkbox) changed 430 px, strongly 430 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0042-on.png",
+            "evidence/shots/4d/P1-0042-off.png",
+            "evidence/shots/4d/P1-0042-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-54",
+          "frame_path": [],
+          "description": "d43 [M6 PASS] \"Technology Demonstration\" (checkbox) changed 1825 px, strongly 1579 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0043-on.png",
+            "evidence/shots/4d/P1-0043-off.png",
+            "evidence/shots/4d/P1-0043-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-12265",
+          "frame_path": [],
+          "description": "d44 [M6 PASS] \"Weather Satellite\" (checkbox) changed 626 px, strongly 547 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0044-on.png",
+            "evidence/shots/4d/P1-0044-off.png",
+            "evidence/shots/4d/P1-0044-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-12940",
+          "frame_path": [],
+          "description": "d45 [M6 PASS] \"Asteroid 16 Psyche\" (checkbox) changed 430 px, strongly 430 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0045-on.png",
+            "evidence/shots/4d/P1-0045-off.png",
+            "evidence/shots/4d/P1-0045-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-12884",
+          "frame_path": [],
+          "description": "d46 [M6 PASS] \"Asteroid Bennu\" (checkbox) changed 448 px, strongly 448 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0046-on.png",
+            "evidence/shots/4d/P1-0046-off.png",
+            "evidence/shots/4d/P1-0046-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-12885",
+          "frame_path": [],
+          "description": "d47 [M6 PASS] \"Asteroid Psyche\" (checkbox) changed 430 px, strongly 430 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0047-on.png",
+            "evidence/shots/4d/P1-0047-off.png",
+            "evidence/shots/4d/P1-0047-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-10908",
+          "frame_path": [],
+          "description": "d48 [M6 PASS] \"Asteroids\" (checkbox) changed 430 px, strongly 430 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0048-on.png",
+            "evidence/shots/4d/P1-0048-off.png",
+            "evidence/shots/4d/P1-0048-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-13346",
+          "frame_path": [],
+          "description": "d49 [M6 PASS] \"Auroras\" (checkbox) changed 448 px, strongly 448 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0049-on.png",
+            "evidence/shots/4d/P1-0049-off.png",
+            "evidence/shots/4d/P1-0049-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-10895",
+          "frame_path": [],
+          "description": "d50 [M6 PASS] \"Ceres\" (checkbox) changed 430 px, strongly 430 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0050-on.png",
+            "evidence/shots/4d/P1-0050-off.png",
+            "evidence/shots/4d/P1-0050-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-10910",
+          "frame_path": [],
+          "description": "d51 [M6 PASS] \"Comets\" (checkbox) changed 448 px, strongly 448 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0051-on.png",
+            "evidence/shots/4d/P1-0051-off.png",
+            "evidence/shots/4d/P1-0051-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-10888",
+          "frame_path": [],
+          "description": "d52 [M6 PASS] \"Earth\" (checkbox) changed 430 px, strongly 430 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0052-on.png",
+            "evidence/shots/4d/P1-0052-off.png",
+            "evidence/shots/4d/P1-0052-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-11998",
+          "frame_path": [],
+          "description": "d53 [M6 PASS] \"Earth Orbit\" (checkbox) changed 430 px, strongly 430 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0053-on.png",
+            "evidence/shots/4d/P1-0053-off.png",
+            "evidence/shots/4d/P1-0053-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-10900",
+          "frame_path": [],
+          "description": "d54 [M6 PASS] \"Earth's Moon\" (checkbox) changed 448 px, strongly 448 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0054-on.png",
+            "evidence/shots/4d/P1-0054-off.png",
+            "evidence/shots/4d/P1-0054-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-13147",
+          "frame_path": [],
+          "description": "d55 [M6 PASS] \"Earth’s Moon\" (checkbox) changed 430 px, strongly 430 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0055-on.png",
+            "evidence/shots/4d/P1-0055-off.png",
+            "evidence/shots/4d/P1-0055-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-10999",
+          "frame_path": [],
+          "description": "d56 [M6 PASS] \"Earth’s Polar Ice\" (checkbox) changed 448 px, strongly 448 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0056-on.png",
+            "evidence/shots/4d/P1-0056-off.png",
+            "evidence/shots/4d/P1-0056-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-10907",
+          "frame_path": [],
+          "description": "d57 [M6 PASS] \"Europa\" (checkbox) changed 430 px, strongly 430 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0057-on.png",
+            "evidence/shots/4d/P1-0057-off.png",
+            "evidence/shots/4d/P1-0057-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-12267",
+          "frame_path": [],
+          "description": "d58 [M6 PASS] \"Exoplanets\" (checkbox) changed 448 px, strongly 448 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0058-on.png",
+            "evidence/shots/4d/P1-0058-off.png",
+            "evidence/shots/4d/P1-0058-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-11040",
+          "frame_path": [],
+          "description": "d59 [M6 PASS] \"International Space Station\" (checkbox) changed 430 px, strongly 430 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0059-on.png",
+            "evidence/shots/4d/P1-0059-off.png",
+            "evidence/shots/4d/P1-0059-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-10890",
+          "frame_path": [],
+          "description": "d60 [M6 PASS] \"Jupiter and its moons\" (checkbox) changed 1462 px, strongly 1286 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0060-on.png",
+            "evidence/shots/4d/P1-0060-off.png",
+            "evidence/shots/4d/P1-0060-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-10883",
+          "frame_path": [],
+          "description": "d61 [M6 PASS] \"Kuiper Belt\" (checkbox) changed 536 px, strongly 479 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0061-on.png",
+            "evidence/shots/4d/P1-0061-off.png",
+            "evidence/shots/4d/P1-0061-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-10889",
+          "frame_path": [],
+          "description": "d62 [M6 PASS] \"Mars and its moons\" (checkbox) changed 430 px, strongly 430 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0062-on.png",
+            "evidence/shots/4d/P1-0062-off.png",
+            "evidence/shots/4d/P1-0062-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-10886",
+          "frame_path": [],
+          "description": "d63 [M6 PASS] \"Mercury\" (checkbox) changed 448 px, strongly 448 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0063-on.png",
+            "evidence/shots/4d/P1-0063-off.png",
+            "evidence/shots/4d/P1-0063-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-10909",
+          "frame_path": [],
+          "description": "d64 [M6 PASS] \"Meteors & Meteorites\" (checkbox) changed 430 px, strongly 430 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0064-on.png",
+            "evidence/shots/4d/P1-0064-off.png",
+            "evidence/shots/4d/P1-0064-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-12890",
+          "frame_path": [],
+          "description": "d65 [M6 PASS] \"Milky Way\" (checkbox) changed 430 px, strongly 430 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0065-on.png",
+            "evidence/shots/4d/P1-0065-off.png",
+            "evidence/shots/4d/P1-0065-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-10893",
+          "frame_path": [],
+          "description": "d66 [M6 PASS] \"Neptune and its moons\" (checkbox) changed 448 px, strongly 448 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0066-on.png",
+            "evidence/shots/4d/P1-0066-off.png",
+            "evidence/shots/4d/P1-0066-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-10884",
+          "frame_path": [],
+          "description": "d67 [M6 PASS] \"Oort Cloud\" (checkbox) changed 430 px, strongly 430 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0067-on.png",
+            "evidence/shots/4d/P1-0067-off.png",
+            "evidence/shots/4d/P1-0067-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-10829",
+          "frame_path": [],
+          "description": "d68 [M6 PASS] \"Our Solar System\" (checkbox) changed 448 px, strongly 448 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0068-on.png",
+            "evidence/shots/4d/P1-0068-off.png",
+            "evidence/shots/4d/P1-0068-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-10899",
+          "frame_path": [],
+          "description": "d69 [M6 PASS] \"Planet X\" (checkbox) changed 430 px, strongly 430 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0069-on.png",
+            "evidence/shots/4d/P1-0069-off.png",
+            "evidence/shots/4d/P1-0069-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-10894",
+          "frame_path": [],
+          "description": "d70 [M6 PASS] \"Pluto and its moons\" (checkbox) changed 430 px, strongly 430 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0070-on.png",
+            "evidence/shots/4d/P1-0070-off.png",
+            "evidence/shots/4d/P1-0070-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-10891",
+          "frame_path": [],
+          "description": "d71 [M6 PASS] \"Saturn and its moons\" (checkbox) changed 448 px, strongly 448 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0071-on.png",
+            "evidence/shots/4d/P1-0071-off.png",
+            "evidence/shots/4d/P1-0071-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-12945",
+          "frame_path": [],
+          "description": "d72 [M6 PASS] \"Space Environment\" (checkbox) changed 430 px, strongly 430 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0072-on.png",
+            "evidence/shots/4d/P1-0072-off.png",
+            "evidence/shots/4d/P1-0072-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-10882",
+          "frame_path": [],
+          "description": "d73 [M6 PASS] \"Sun\" (checkbox) changed 448 px, strongly 448 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0073-on.png",
+            "evidence/shots/4d/P1-0073-off.png",
+            "evidence/shots/4d/P1-0073-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-12942",
+          "frame_path": [],
+          "description": "d74 [M6 PASS] \"Sun-Earth Interaction\" (checkbox) changed 352 px, strongly 352 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0074-on.png",
+            "evidence/shots/4d/P1-0074-off.png",
+            "evidence/shots/4d/P1-0074-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-12881",
+          "frame_path": [],
+          "description": "d75 [M6 PASS] \"Sun-Earth Interaction & Space Environment\" (checkbox) changed 312 px, strongly 312 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0075-on.png",
+            "evidence/shots/4d/P1-0075-off.png",
+            "evidence/shots/4d/P1-0075-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-12883",
+          "frame_path": [],
+          "description": "d76 [M6 PASS] \"Titan\" (checkbox) changed 430 px, strongly 430 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0076-on.png",
+            "evidence/shots/4d/P1-0076-off.png",
+            "evidence/shots/4d/P1-0076-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-12887",
+          "frame_path": [],
+          "description": "d77 [M6 PASS] \"Trojan Asteroids\" (checkbox) changed 448 px, strongly 448 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0077-on.png",
+            "evidence/shots/4d/P1-0077-off.png",
+            "evidence/shots/4d/P1-0077-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-10885",
+          "frame_path": [],
+          "description": "d78 [M6 PASS] \"Universe\" (checkbox) changed 724 px, strongly 631 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0078-on.png",
+            "evidence/shots/4d/P1-0078-off.png",
+            "evidence/shots/4d/P1-0078-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-10892",
+          "frame_path": [],
+          "description": "d79 [M6 PASS] \"Uranus and its moons\" (checkbox) changed 627 px, strongly 581 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0079-on.png",
+            "evidence/shots/4d/P1-0079-off.png",
+            "evidence/shots/4d/P1-0079-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-10887",
+          "frame_path": [],
+          "description": "d80 [M6 PASS] \"Venus\" (checkbox) changed 430 px, strongly 430 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0080-on.png",
+            "evidence/shots/4d/P1-0080-off.png",
+            "evidence/shots/4d/P1-0080-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-12889",
+          "frame_path": [],
+          "description": "d81 [M6 PASS] \"Vesta\" (checkbox) changed 352 px, strongly 352 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0081-on.png",
+            "evidence/shots/4d/P1-0081-off.png",
+            "evidence/shots/4d/P1-0081-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-12272",
+          "frame_path": [],
+          "description": "d82 [M6 PASS] \"Airborne Science\" (checkbox) changed 430 px, strongly 430 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0082-on.png",
+            "evidence/shots/4d/P1-0082-off.png",
+            "evidence/shots/4d/P1-0082-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-11408",
+          "frame_path": [],
+          "description": "d83 [M6 PASS] \"Analog\" (checkbox) changed 448 px, strongly 448 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0083-on.png",
+            "evidence/shots/4d/P1-0083-off.png",
+            "evidence/shots/4d/P1-0083-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-10927",
+          "frame_path": [],
+          "description": "d84 [M6 PASS] \"Apollo\" (checkbox) changed 430 px, strongly 430 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0084-on.png",
+            "evidence/shots/4d/P1-0084-off.png",
+            "evidence/shots/4d/P1-0084-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-10830",
+          "frame_path": [],
+          "description": "d85 [M6 PASS] \"Artemis\" (checkbox) changed 448 px, strongly 448 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0085-on.png",
+            "evidence/shots/4d/P1-0085-off.png",
+            "evidence/shots/4d/P1-0085-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-12273",
+          "frame_path": [],
+          "description": "d86 [M6 PASS] \"Astrobiology\" (checkbox) changed 430 px, strongly 430 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0086-on.png",
+            "evidence/shots/4d/P1-0086-off.png",
+            "evidence/shots/4d/P1-0086-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-12269",
+          "frame_path": [],
+          "description": "d87 [M6 PASS] \"Astrophysics\" (checkbox) changed 430 px, strongly 430 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0087-on.png",
+            "evidence/shots/4d/P1-0087-off.png",
+            "evidence/shots/4d/P1-0087-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-12271",
+          "frame_path": [],
+          "description": "d88 [M6 PASS] \"Biological and Physical Sciences\" (checkbox) changed 448 px, strongly 448 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0088-on.png",
+            "evidence/shots/4d/P1-0088-off.png",
+            "evidence/shots/4d/P1-0088-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-12888",
+          "frame_path": [],
+          "description": "d89 [M6 PASS] \"Commercial Lunar\" (checkbox) changed 430 px, strongly 430 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0089-on.png",
+            "evidence/shots/4d/P1-0089-off.png",
+            "evidence/shots/4d/P1-0089-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-12880",
+          "frame_path": [],
+          "description": "d90 [M6 PASS] \"Earth Science\" (checkbox) changed 448 px, strongly 448 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0090-on.png",
+            "evidence/shots/4d/P1-0090-off.png",
+            "evidence/shots/4d/P1-0090-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-11022",
+          "frame_path": [],
+          "description": "d91 [M6 PASS] \"Gateway\" (checkbox) changed 430 px, strongly 430 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0091-on.png",
+            "evidence/shots/4d/P1-0091-off.png",
+            "evidence/shots/4d/P1-0091-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-10868",
+          "frame_path": [],
+          "description": "d92 [M6 PASS] \"Gemini\" (checkbox) changed 430 px, strongly 430 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0092-on.png",
+            "evidence/shots/4d/P1-0092-off.png",
+            "evidence/shots/4d/P1-0092-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-12879",
+          "frame_path": [],
+          "description": "d93 [M6 PASS] \"Heliophysics\" (checkbox) changed 448 px, strongly 448 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0093-on.png",
+            "evidence/shots/4d/P1-0093-off.png",
+            "evidence/shots/4d/P1-0093-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-11929",
+          "frame_path": [],
+          "description": "d94 [M6 PASS] \"International Space Station\" (checkbox) changed 430 px, strongly 430 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0094-on.png",
+            "evidence/shots/4d/P1-0094-off.png",
+            "evidence/shots/4d/P1-0094-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-10870",
+          "frame_path": [],
+          "description": "d95 [M6 PASS] \"Mercury Program\" (checkbox) changed 1178 px, strongly 1038 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0095-on.png",
+            "evidence/shots/4d/P1-0095-off.png",
+            "evidence/shots/4d/P1-0095-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-12270",
+          "frame_path": [],
+          "description": "d96 [M6 PASS] \"Planetary Defense\" (checkbox) changed 519 px, strongly 470 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0096-on.png",
+            "evidence/shots/4d/P1-0096-off.png",
+            "evidence/shots/4d/P1-0096-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-12882",
+          "frame_path": [],
+          "description": "d97 [M6 PASS] \"Planetary Science\" (checkbox) changed 430 px, strongly 430 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0097-on.png",
+            "evidence/shots/4d/P1-0097-off.png",
+            "evidence/shots/4d/P1-0097-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-12886",
+          "frame_path": [],
+          "description": "d98 [M6 PASS] \"Scientific Balloon\" (checkbox) changed 448 px, strongly 448 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0098-on.png",
+            "evidence/shots/4d/P1-0098-off.png",
+            "evidence/shots/4d/P1-0098-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-10935",
+          "frame_path": [],
+          "description": "d99 [M6 PASS] \"Skylab\" (checkbox) changed 352 px, strongly 352 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0099-on.png",
+            "evidence/shots/4d/P1-0099-off.png",
+            "evidence/shots/4d/P1-0099-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-10919",
+          "frame_path": [],
+          "description": "d100 [M6 PASS] \"Space Communications and Navigation\" (checkbox) changed 328 px, strongly 328 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0100-on.png",
+            "evidence/shots/4d/P1-0100-off.png",
+            "evidence/shots/4d/P1-0100-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-10869",
+          "frame_path": [],
+          "description": "d101 [M6 PASS] \"Space Shuttle\" (checkbox) changed 448 px, strongly 448 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0101-on.png",
+            "evidence/shots/4d/P1-0101-off.png",
+            "evidence/shots/4d/P1-0101-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-12268",
+          "frame_path": [],
+          "description": "d102 [M6 PASS] \"Surveyor\" (checkbox) changed 430 px, strongly 430 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0102-on.png",
+            "evidence/shots/4d/P1-0102-off.png",
+            "evidence/shots/4d/P1-0102-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-10948",
+          "frame_path": [],
+          "description": "d103 [M6 PASS] \"Technology Demonstration Mission\" (checkbox) changed 430 px, strongly 430 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0103-on.png",
+            "evidence/shots/4d/P1-0103-off.png",
+            "evidence/shots/4d/P1-0103-diff.png"
+          ]
+        },
+        {
+          "selector": "#in-mission-terms-12943",
+          "frame_path": [],
+          "description": "d104 [M4 NEEDS_REVIEW] \"Universe\" (checkbox)",
+          "evidence_refs": []
+        },
+        {
+          "selector": "#mission-terms-results-list > div:nth-of-type(1) > a:nth-of-type(1)",
+          "frame_path": [],
+          "description": "d105 [M4 NEEDS_REVIEW] \":envihab Image\" (link)",
+          "evidence_refs": []
+        },
+        {
+          "selector": "#mission-terms-results-list > div:nth-of-type(1) > a:nth-of-type(2)",
+          "frame_path": [],
+          "description": "d106 [M6 PASS] \":envihab\" (link) changed 8520 px, strongly 6575 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0106-on.png",
+            "evidence/shots/4d/P1-0106-off.png",
+            "evidence/shots/4d/P1-0106-diff.png"
+          ]
+        },
+        {
+          "selector": "#mission-terms-results-list > div:nth-of-type(2) > a:nth-of-type(1)",
+          "frame_path": [],
+          "description": "d107 [M6 PASS] \"3D Tissue Chips Image\" (link) changed 13424 px, strongly 6728 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0107-on.png",
+            "evidence/shots/4d/P1-0107-off.png",
+            "evidence/shots/4d/P1-0107-diff.png"
+          ]
+        },
+        {
+          "selector": "#mission-terms-results-list > div:nth-of-type(2) > a:nth-of-type(2)",
+          "frame_path": [],
+          "description": "d108 [M8 FAIL] \"3D Tissue Chips\" (link) changed 0 px, strongly 0 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0108-on.png",
+            "evidence/shots/4d/P1-0108-off.png",
+            "evidence/shots/4d/P1-0108-diff.png"
+          ]
+        },
+        {
+          "selector": "#mission-terms-results-list > div:nth-of-type(3) > a:nth-of-type(1)",
+          "frame_path": [],
+          "description": "d109 [M6 PASS] \"A-Train: The Afternoon Constellation Image\" (link) changed 3600 px, strongly 3600 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0109-on.png",
+            "evidence/shots/4d/P1-0109-off.png",
+            "evidence/shots/4d/P1-0109-diff.png"
+          ]
+        },
+        {
+          "selector": "#mission-terms-results-list > div:nth-of-type(3) > a:nth-of-type(2)",
+          "frame_path": [],
+          "description": "d110 [M8 FAIL] \"A-Train: The Afternoon Constellation\" (link) changed 0 px, strongly 0 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0110-on.png",
+            "evidence/shots/4d/P1-0110-off.png",
+            "evidence/shots/4d/P1-0110-diff.png"
+          ]
+        },
+        {
+          "selector": "#mission-terms-results-list > div:nth-of-type(4) > a:nth-of-type(1)",
+          "frame_path": [],
+          "description": "d111 [M6 PASS] \"Able 1 (Pioneer 0) Image\" (link) changed 3600 px, strongly 3600 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0111-on.png",
+            "evidence/shots/4d/P1-0111-off.png",
+            "evidence/shots/4d/P1-0111-diff.png"
+          ]
+        },
+        {
+          "selector": "#mission-terms-results-list > div:nth-of-type(4) > a:nth-of-type(2)",
+          "frame_path": [],
+          "description": "d112 [M8 FAIL] \"Able 1 (Pioneer 0)\" (link) changed 0 px, strongly 0 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0112-on.png",
+            "evidence/shots/4d/P1-0112-off.png",
+            "evidence/shots/4d/P1-0112-diff.png"
+          ]
+        },
+        {
+          "selector": "#mission-terms-results-list > div:nth-of-type(5) > a:nth-of-type(1)",
+          "frame_path": [],
+          "description": "d113 [M6 PASS] \"Able 2 (Pioneer 1) Image\" (link) changed 3600 px, strongly 3600 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0113-on.png",
+            "evidence/shots/4d/P1-0113-off.png",
+            "evidence/shots/4d/P1-0113-diff.png"
+          ]
+        },
+        {
+          "selector": "#mission-terms-results-list > div:nth-of-type(5) > a:nth-of-type(2)",
+          "frame_path": [],
+          "description": "d114 [M8 FAIL] \"Able 2 (Pioneer 1)\" (link) changed 0 px, strongly 0 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0114-on.png",
+            "evidence/shots/4d/P1-0114-off.png",
+            "evidence/shots/4d/P1-0114-diff.png"
+          ]
+        },
+        {
+          "selector": "#mission-terms-results-list > div:nth-of-type(6) > a:nth-of-type(1)",
+          "frame_path": [],
+          "description": "d115 [M6 PASS] \"Able 4B (Pioneer P-3) Image\" (link) changed 3600 px, strongly 3600 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0115-on.png",
+            "evidence/shots/4d/P1-0115-off.png",
+            "evidence/shots/4d/P1-0115-diff.png"
+          ]
+        },
+        {
+          "selector": "#mission-terms-results-list > div:nth-of-type(6) > a:nth-of-type(2)",
+          "frame_path": [],
+          "description": "d116 [M6 PASS] \"Able 4B (Pioneer P-3)\" (link) changed 2690 px, strongly 2344 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0116-on.png",
+            "evidence/shots/4d/P1-0116-off.png",
+            "evidence/shots/4d/P1-0116-diff.png"
+          ]
+        },
+        {
+          "selector": "#mission-terms-results-list > div:nth-of-type(7) > a:nth-of-type(1)",
+          "frame_path": [],
+          "description": "d117 [M6 PASS] \"Able 5A (Pioneer P-30) Image\" (link) changed 36370 px, strongly 23016 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0117-on.png",
+            "evidence/shots/4d/P1-0117-off.png",
+            "evidence/shots/4d/P1-0117-diff.png"
+          ]
+        },
+        {
+          "selector": "#mission-terms-results-list > div:nth-of-type(7) > a:nth-of-type(2)",
+          "frame_path": [],
+          "description": "d118 [M8 FAIL] \"Able 5A (Pioneer P-30)\" (link) changed 0 px, strongly 0 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0118-on.png",
+            "evidence/shots/4d/P1-0118-off.png",
+            "evidence/shots/4d/P1-0118-diff.png"
+          ]
+        },
+        {
+          "selector": "#mission-terms-results-list > div:nth-of-type(8) > a:nth-of-type(1)",
+          "frame_path": [],
+          "description": "d119 [M6 PASS] \"Able 5B (Pioneer P-31) Image\" (link) changed 3608 px, strongly 3608 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0119-on.png",
+            "evidence/shots/4d/P1-0119-off.png",
+            "evidence/shots/4d/P1-0119-diff.png"
+          ]
+        },
+        {
+          "selector": "#mission-terms-results-list > div:nth-of-type(8) > a:nth-of-type(2)",
+          "frame_path": [],
+          "description": "d120 [M8 FAIL] \"Able 5B (Pioneer P-31)\" (link) changed 0 px, strongly 0 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0120-on.png",
+            "evidence/shots/4d/P1-0120-off.png",
+            "evidence/shots/4d/P1-0120-diff.png"
+          ]
+        },
+        {
+          "selector": "#mission-terms-results-list > div:nth-of-type(9) > a:nth-of-type(1)",
+          "frame_path": [],
+          "description": "d121 [M6 PASS] \"ACE Image\" (link) changed 3600 px, strongly 3600 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0121-on.png",
+            "evidence/shots/4d/P1-0121-off.png",
+            "evidence/shots/4d/P1-0121-diff.png"
+          ]
+        },
+        {
+          "selector": "#mission-terms-results-list > div:nth-of-type(9) > a:nth-of-type(2)",
+          "frame_path": [],
+          "description": "d122 [M8 FAIL] \"ACE\" (link) changed 0 px, strongly 0 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0122-on.png",
+            "evidence/shots/4d/P1-0122-off.png",
+            "evidence/shots/4d/P1-0122-diff.png"
+          ]
+        },
+        {
+          "selector": "#mission-terms-results-list > div:nth-of-type(10) > a:nth-of-type(1)",
+          "frame_path": [],
+          "description": "d123 [M6 PASS] \"ACME Image\" (link) changed 34563 px, strongly 29145 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0123-on.png",
+            "evidence/shots/4d/P1-0123-off.png",
+            "evidence/shots/4d/P1-0123-diff.png"
+          ]
+        },
+        {
+          "selector": "#mission-terms-results-list > div:nth-of-type(10) > a:nth-of-type(2)",
+          "frame_path": [],
+          "description": "d124 [M6 PASS] \"ACME\" (link) changed 3348 px, strongly 2846 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0124-on.png",
+            "evidence/shots/4d/P1-0124-off.png",
+            "evidence/shots/4d/P1-0124-diff.png"
+          ]
+        },
+        {
+          "selector": "#mission-terms-results-pagination > ul > li:nth-of-type(1) > a",
+          "frame_path": [],
+          "description": "d125 [M6 PASS] \"1\" (link) changed 656 px, strongly 656 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0125-on.png",
+            "evidence/shots/4d/P1-0125-off.png",
+            "evidence/shots/4d/P1-0125-diff.png"
+          ]
+        },
+        {
+          "selector": "#mission-terms-results-pagination > ul > li:nth-of-type(2) > a",
+          "frame_path": [],
+          "description": "d126 [M6 PASS] \"2\" (link) changed 656 px, strongly 656 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0126-on.png",
+            "evidence/shots/4d/P1-0126-off.png",
+            "evidence/shots/4d/P1-0126-diff.png"
+          ]
+        },
+        {
+          "selector": "#mission-terms-results-pagination > ul > li:nth-of-type(3) > a",
+          "frame_path": [],
+          "description": "d127 [M6 PASS] \">\" (link) changed 656 px, strongly 656 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0127-on.png",
+            "evidence/shots/4d/P1-0127-off.png",
+            "evidence/shots/4d/P1-0127-diff.png"
+          ]
+        },
+        {
+          "selector": "#mission-terms-results-pagination > ul > li:nth-of-type(4) > a",
+          "frame_path": [],
+          "description": "d128 [M4 NEEDS_REVIEW] \">>\" (link)",
+          "evidence_refs": []
+        },
+        {
+          "selector": "html > body > footer > div > div:nth-of-type(2) > div > div:nth-of-type(1) > div > ul > li > a",
+          "frame_path": [],
+          "description": "d129 [M4 NEEDS_REVIEW] \"About NASA's Mission\" (link)",
+          "evidence_refs": []
+        },
+        {
+          "selector": "html > body > footer > div > div:nth-of-type(2) > div > div:nth-of-type(1) > div > a",
+          "frame_path": [],
+          "description": "d130 [M6 PASS] \"Join Us\" (link) changed 375 px, strongly 356 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0130-on.png",
+            "evidence/shots/4d/P1-0130-off.png",
+            "evidence/shots/4d/P1-0130-diff.png"
+          ]
+        },
+        {
+          "selector": "html > body > footer > div > div:nth-of-type(2) > div > div:nth-of-type(2) > div > div > ul > li:nth-of-type(1) > a",
+          "frame_path": [],
+          "description": "d131 [M6 PASS] \"Home\" (link) changed 1584 px, strongly 1584 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0131-on.png",
+            "evidence/shots/4d/P1-0131-off.png",
+            "evidence/shots/4d/P1-0131-diff.png"
+          ]
+        },
+        {
+          "selector": "html > body > footer > div > div:nth-of-type(2) > div > div:nth-of-type(2) > div > div > ul > li:nth-of-type(2) > a",
+          "frame_path": [],
+          "description": "d132 [M6 PASS] \"News & Events\" (link) changed 1584 px, strongly 1584 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0132-on.png",
+            "evidence/shots/4d/P1-0132-off.png",
+            "evidence/shots/4d/P1-0132-diff.png"
+          ]
+        },
+        {
+          "selector": "html > body > footer > div > div:nth-of-type(2) > div > div:nth-of-type(2) > div > div > ul > li:nth-of-type(3) > a",
+          "frame_path": [],
+          "description": "d133 [M6 PASS] \"Multimedia\" (link) changed 1584 px, strongly 1584 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0133-on.png",
+            "evidence/shots/4d/P1-0133-off.png",
+            "evidence/shots/4d/P1-0133-diff.png"
+          ]
+        },
+        {
+          "selector": "html > body > footer > div > div:nth-of-type(2) > div > div:nth-of-type(2) > div > div > ul > li:nth-of-type(4) > a",
+          "frame_path": [],
+          "description": "d134 [M6 PASS] \"NASA+ LIVE\" (link) changed 1423 px, strongly 1423 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0134-on.png",
+            "evidence/shots/4d/P1-0134-off.png",
+            "evidence/shots/4d/P1-0134-diff.png"
+          ]
+        },
+        {
+          "selector": "html > body > footer > div > div:nth-of-type(2) > div > div:nth-of-type(2) > div > div > ul > li:nth-of-type(5) > a",
+          "frame_path": [],
+          "description": "d135 [M6 PASS] \"Missions\" (link) changed 1616 px, strongly 1616 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0135-on.png",
+            "evidence/shots/4d/P1-0135-off.png",
+            "evidence/shots/4d/P1-0135-diff.png"
+          ]
+        },
+        {
+          "selector": "html > body > footer > div > div:nth-of-type(2) > div > div:nth-of-type(2) > div > div > ul > li:nth-of-type(6) > a",
+          "frame_path": [],
+          "description": "d136 [M6 PASS] \"Humans in Space\" (link) changed 1596 px, strongly 1596 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0136-on.png",
+            "evidence/shots/4d/P1-0136-off.png",
+            "evidence/shots/4d/P1-0136-diff.png"
+          ]
+        },
+        {
+          "selector": "html > body > footer > div > div:nth-of-type(2) > div > div:nth-of-type(2) > div > div > ul > li:nth-of-type(7) > a",
+          "frame_path": [],
+          "description": "d137 [M6 PASS] \"Earth\" (link) changed 1596 px, strongly 1596 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0137-on.png",
+            "evidence/shots/4d/P1-0137-off.png",
+            "evidence/shots/4d/P1-0137-diff.png"
+          ]
+        },
+        {
+          "selector": "html > body > footer > div > div:nth-of-type(2) > div > div:nth-of-type(2) > div > div > ul > li:nth-of-type(8) > a",
+          "frame_path": [],
+          "description": "d138 [M6 PASS] \"The Solar System\" (link) changed 1596 px, strongly 1596 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0138-on.png",
+            "evidence/shots/4d/P1-0138-off.png",
+            "evidence/shots/4d/P1-0138-diff.png"
+          ]
+        },
+        {
+          "selector": "html > body > footer > div > div:nth-of-type(2) > div > div:nth-of-type(2) > div > div > ul > li:nth-of-type(9) > a",
+          "frame_path": [],
+          "description": "d139 [M6 PASS] \"The Universe\" (link) changed 1435 px, strongly 1435 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0139-on.png",
+            "evidence/shots/4d/P1-0139-off.png",
+            "evidence/shots/4d/P1-0139-diff.png"
+          ]
+        },
+        {
+          "selector": "html > body > footer > div > div:nth-of-type(2) > div > div:nth-of-type(2) > div > div > ul > li:nth-of-type(10) > a",
+          "frame_path": [],
+          "description": "d140 [M6 PASS] \"Science\" (link) changed 1624 px, strongly 1624 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0140-on.png",
+            "evidence/shots/4d/P1-0140-off.png",
+            "evidence/shots/4d/P1-0140-diff.png"
+          ]
+        },
+        {
+          "selector": "html > body > footer > div > div:nth-of-type(2) > div > div:nth-of-type(2) > div > div > ul > li:nth-of-type(11) > a",
+          "frame_path": [],
+          "description": "d141 [M6 PASS] \"Aeronautics\" (link) changed 1584 px, strongly 1584 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0141-on.png",
+            "evidence/shots/4d/P1-0141-off.png",
+            "evidence/shots/4d/P1-0141-diff.png"
+          ]
+        },
+        {
+          "selector": "html > body > footer > div > div:nth-of-type(2) > div > div:nth-of-type(2) > div > div > ul > li:nth-of-type(12) > a",
+          "frame_path": [],
+          "description": "d142 [M6 PASS] \"Technology\" (link) changed 1584 px, strongly 1584 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0142-on.png",
+            "evidence/shots/4d/P1-0142-off.png",
+            "evidence/shots/4d/P1-0142-diff.png"
+          ]
+        },
+        {
+          "selector": "html > body > footer > div > div:nth-of-type(2) > div > div:nth-of-type(2) > div > div > ul > li:nth-of-type(13) > a",
+          "frame_path": [],
+          "description": "d143 [M6 PASS] \"Learning Resources\" (link) changed 1584 px, strongly 1584 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0143-on.png",
+            "evidence/shots/4d/P1-0143-off.png",
+            "evidence/shots/4d/P1-0143-diff.png"
+          ]
+        },
+        {
+          "selector": "html > body > footer > div > div:nth-of-type(2) > div > div:nth-of-type(2) > div > div > ul > li:nth-of-type(14) > a",
+          "frame_path": [],
+          "description": "d144 [M6 PASS] \"About NASA\" (link) changed 1423 px, strongly 1423 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0144-on.png",
+            "evidence/shots/4d/P1-0144-off.png",
+            "evidence/shots/4d/P1-0144-diff.png"
+          ]
+        },
+        {
+          "selector": "html > body > footer > div > div:nth-of-type(2) > div > div:nth-of-type(2) > div > div > ul > li:nth-of-type(15) > a",
+          "frame_path": [],
+          "description": "d145 [M6 PASS] \"NASA en Español (opens in new tab)\" (link) changed 1616 px, strongly 1616 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0145-on.png",
+            "evidence/shots/4d/P1-0145-off.png",
+            "evidence/shots/4d/P1-0145-diff.png"
+          ]
+        },
+        {
+          "selector": "html > body > footer > div > div:nth-of-type(2) > div > div:nth-of-type(3) > div > div > ul > li:nth-of-type(1) > a",
+          "frame_path": [],
+          "description": "d146 [M6 PASS] \"NASA on Facebook (opens in new tab)\" (link) changed 1270 px, strongly 1216 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0146-on.png",
+            "evidence/shots/4d/P1-0146-off.png",
+            "evidence/shots/4d/P1-0146-diff.png"
+          ]
+        },
+        {
+          "selector": "html > body > footer > div > div:nth-of-type(2) > div > div:nth-of-type(3) > div > div > ul > li:nth-of-type(2) > a",
+          "frame_path": [],
+          "description": "d147 [M6 PASS] \"NASA on Instagram (opens in new tab)\" (link) changed 1258 px, strongly 1149 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0147-on.png",
+            "evidence/shots/4d/P1-0147-off.png",
+            "evidence/shots/4d/P1-0147-diff.png"
+          ]
+        },
+        {
+          "selector": "html > body > footer > div > div:nth-of-type(2) > div > div:nth-of-type(3) > div > div > ul > li:nth-of-type(3) > a",
+          "frame_path": [],
+          "description": "d148 [M6 PASS] \"NASA on X (opens in new tab)\" (link) changed 1277 px, strongly 1186 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0148-on.png",
+            "evidence/shots/4d/P1-0148-off.png",
+            "evidence/shots/4d/P1-0148-diff.png"
+          ]
+        },
+        {
+          "selector": "html > body > footer > div > div:nth-of-type(2) > div > div:nth-of-type(3) > div > div > ul > li:nth-of-type(4) > a",
+          "frame_path": [],
+          "description": "d149 [M6 PASS] \"NASA on YouTube (opens in new tab)\" (link) changed 1192 px, strongly 1125 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0149-on.png",
+            "evidence/shots/4d/P1-0149-off.png",
+            "evidence/shots/4d/P1-0149-diff.png"
+          ]
+        },
+        {
+          "selector": "html > body > footer > div > div:nth-of-type(2) > div > div:nth-of-type(3) > div > ul > li:nth-of-type(1) > a",
+          "frame_path": [],
+          "description": "d150 [M6 PASS] \"More NASA Social Accounts\" (link) changed 1633 px, strongly 1633 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0150-on.png",
+            "evidence/shots/4d/P1-0150-off.png",
+            "evidence/shots/4d/P1-0150-diff.png"
+          ]
+        },
+        {
+          "selector": "html > body > footer > div > div:nth-of-type(2) > div > div:nth-of-type(3) > div > ul > li:nth-of-type(2) > a",
+          "frame_path": [],
+          "description": "d151 [M6 PASS] \"NASA Newsletters\" (link) changed 1856 px, strongly 1856 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0151-on.png",
+            "evidence/shots/4d/P1-0151-off.png",
+            "evidence/shots/4d/P1-0151-diff.png"
+          ]
+        },
+        {
+          "selector": "html > body > footer > div > div:nth-of-type(2) > div > div:nth-of-type(4) > ul > li:nth-of-type(1) > a",
+          "frame_path": [],
+          "description": "d152 [M6 PASS] \"Sitemap\" (link) changed 773 px, strongly 773 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0152-on.png",
+            "evidence/shots/4d/P1-0152-off.png",
+            "evidence/shots/4d/P1-0152-diff.png"
+          ]
+        },
+        {
+          "selector": "html > body > footer > div > div:nth-of-type(2) > div > div:nth-of-type(4) > ul > li:nth-of-type(2) > a",
+          "frame_path": [],
+          "description": "d153 [M6 PASS] \"For Media\" (link) changed 1039 px, strongly 1039 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0153-on.png",
+            "evidence/shots/4d/P1-0153-off.png",
+            "evidence/shots/4d/P1-0153-diff.png"
+          ]
+        },
+        {
+          "selector": "html > body > footer > div > div:nth-of-type(2) > div > div:nth-of-type(4) > ul > li:nth-of-type(3) > a",
+          "frame_path": [],
+          "description": "d154 [M6 PASS] \"Privacy Policy\" (link) changed 1255 px, strongly 1255 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0154-on.png",
+            "evidence/shots/4d/P1-0154-off.png",
+            "evidence/shots/4d/P1-0154-diff.png"
+          ]
+        },
+        {
+          "selector": "html > body > footer > div > div:nth-of-type(2) > div > div:nth-of-type(4) > ul > li:nth-of-type(4) > a",
+          "frame_path": [],
+          "description": "d155 [M6 PASS] \"FOIA\" (link) changed 718 px, strongly 718 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0155-on.png",
+            "evidence/shots/4d/P1-0155-off.png",
+            "evidence/shots/4d/P1-0155-diff.png"
+          ]
+        },
+        {
+          "selector": "html > body > footer > div > div:nth-of-type(2) > div > div:nth-of-type(4) > ul > li:nth-of-type(5) > a",
+          "frame_path": [],
+          "description": "d156 [M6 PASS] \"No FEAR Act\" (link) changed 1191 px, strongly 1191 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0156-on.png",
+            "evidence/shots/4d/P1-0156-off.png",
+            "evidence/shots/4d/P1-0156-diff.png"
+          ]
+        },
+        {
+          "selector": "html > body > footer > div > div:nth-of-type(2) > div > div:nth-of-type(4) > ul > li:nth-of-type(6) > a",
+          "frame_path": [],
+          "description": "d157 [M6 PASS] \"Office of the IG (opens in new tab)\" (link) changed 1286 px, strongly 1286 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0157-on.png",
+            "evidence/shots/4d/P1-0157-off.png",
+            "evidence/shots/4d/P1-0157-diff.png"
+          ]
+        },
+        {
+          "selector": "html > body > footer > div > div:nth-of-type(2) > div > div:nth-of-type(4) > ul > li:nth-of-type(7) > a",
+          "frame_path": [],
+          "description": "d158 [M6 PASS] \"Budget & Annual Reports\" (link) changed 1863 px, strongly 1863 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0158-on.png",
+            "evidence/shots/4d/P1-0158-off.png",
+            "evidence/shots/4d/P1-0158-diff.png"
+          ]
+        },
+        {
+          "selector": "html > body > footer > div > div:nth-of-type(2) > div > div:nth-of-type(4) > ul > li:nth-of-type(8) > a",
+          "frame_path": [],
+          "description": "d159 [M6 PASS] \"Agency Financial Reports\" (link) changed 1838 px, strongly 1838 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0159-on.png",
+            "evidence/shots/4d/P1-0159-off.png",
+            "evidence/shots/4d/P1-0159-diff.png"
+          ]
+        },
+        {
+          "selector": "html > body > footer > div > div:nth-of-type(2) > div > div:nth-of-type(4) > ul > li:nth-of-type(9) > a",
+          "frame_path": [],
+          "description": "d160 [M6 PASS] \"Contact NASA\" (link) changed 1304 px, strongly 1304 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0160-on.png",
+            "evidence/shots/4d/P1-0160-off.png",
+            "evidence/shots/4d/P1-0160-diff.png"
+          ]
+        },
+        {
+          "selector": "html > body > footer > div > div:nth-of-type(2) > div > div:nth-of-type(4) > ul > li:nth-of-type(10) > a",
+          "frame_path": [],
+          "description": "d161 [M6 PASS] \"Accessibility\" (link) changed 1200 px, strongly 1200 px",
+          "evidence_refs": [
+            "evidence/shots/4d/P1-0161-on.png",
+            "evidence/shots/4d/P1-0161-off.png",
+            "evidence/shots/4d/P1-0161-diff.png"
+          ]
+        }
+      ],
+      "evidence_refs": [
+        "evidence/4d.json"
+      ],
+      "rationale": "Spec G2. d1:M6; d2:M5; d3:M6; d4:M6; d5:M6; d6:M6; d7:M5; d8:M6; d9:M6; d10:M6; d11:M6; d12:M6; d13:M6; d14:M6; d15:M6; d16:M6; d17:M6; d18:M6; d19:M6; d20:M6; d21:M6; d22:M6; d23:M6; d24:M6; d25:M6; d26:M6; d27:M6; d28:M6; d29:M6; d30:M6; d31:M6; d32:M6; d33:M6; d34:M6; d35:M6; d36:M6; d37:M6; d38:M6; d39:M6; d40:M6; d41:M6; d42:M6; d43:M6; d44:M6; d45:M6; d46:M6; d47:M6; d48:M6; d49:M6; d50:M6; d51:M6; d52:M6; d53:M6; d54:M6; d55:M6; d56:M6; d57:M6; d58:M6; d59:M6; d60:M6; d61:M6; d62:M6; d63:M6; d64:M6; d65:M6; d66:M6; d67:M6; d68:M6; d69:M6; d70:M6; d71:M6; d72:M6; d73:M6; d74:M6; d75:M6; d76:M6; d77:M6; d78:M6; d79:M6; d80:M6; d81:M6; d82:M6; d83:M6; d84:M6; d85:M6; d86:M6; d87:M6; d88:M6; d89:M6; d90:M6; d91:M6; d92:M6; d93:M6; d94:M6; d95:M6; d96:M6; d97:M6; d98:M6; d99:M6; d100:M6; d101:M6; d102:M6; d103:M6; d104:M4; d105:M4; d106:M6; d107:M6; d108:M8; d109:M6; d110:M8; d111:M6; d112:M8; d113:M6; d114:M8; d115:M6; d116:M6; d117:M6; d118:M8; d119:M6; d120:M8; d121:M6; d122:M8; d123:M6; d124:M6; d125:M6; d126:M6; d127:M6; d128:M4; d129:M4; d130:M6; d131:M6; d132:M6; d133:M6; d134:M6; d135:M6; d136:M6; d137:M6; d138:M6; d139:M6; d140:M6; d141:M6; d142:M6; d143:M6; d144:M6; d145:M6; d146:M6; d147:M6; d148:M6; d149:M6; d150:M6; d151:M6; d152:M6; d153:M6; d154:M6; d155:M6; d156:M6; d157:M6; d158:M6; d159:M6; d160:M6; d161:M6",
+      "note": null,
+      "decided_by": "rule",
+      "rows": [
+        "A3",
+        "d1:M6",
+        "d2:M5",
+        "d3:M6",
+        "d4:M6",
+        "d5:M6",
+        "d6:M6",
+        "d7:M5",
+        "d8:M6",
+        "d9:M6",
+        "d10:M6",
+        "d11:M6",
+        "d12:M6",
+        "d13:M6",
+        "d14:M6",
+        "d15:M6",
+        "d16:M6",
+        "d17:M6",
+        "d18:M6",
+        "d19:M6",
+        "d20:M6",
+        "d21:M6",
+        "d22:M6",
+        "d23:M6",
+        "d24:M6",
+        "d25:M6",
+        "d26:M6",
+        "d27:M6",
+        "d28:M6",
+        "d29:M6",
+        "d30:M6",
+        "d31:M6",
+        "d32:M6",
+        "d33:M6",
+        "d34:M6",
+        "d35:M6",
+        "d36:M6",
+        "d37:M6",
+        "d38:M6",
+        "d39:M6",
+        "d40:M6",
+        "d41:M6",
+        "d42:M6",
+        "d43:M6",
+        "d44:M6",
+        "d45:M6",
+        "d46:M6",
+        "d47:M6",
+        "d48:M6",
+        "d49:M6",
+        "d50:M6",
+        "d51:M6",
+        "d52:M6",
+        "d53:M6",
+        "d54:M6",
+        "d55:M6",
+        "d56:M6",
+        "d57:M6",
+        "d58:M6",
+        "d59:M6",
+        "d60:M6",
+        "d61:M6",
+        "d62:M6",
+        "d63:M6",
+        "d64:M6",
+        "d65:M6",
+        "d66:M6",
+        "d67:M6",
+        "d68:M6",
+        "d69:M6",
+        "d70:M6",
+        "d71:M6",
+        "d72:M6",
+        "d73:M6",
+        "d74:M6",
+        "d75:M6",
+        "d76:M6",
+        "d77:M6",
+        "d78:M6",
+        "d79:M6",
+        "d80:M6",
+        "d81:M6",
+        "d82:M6",
+        "d83:M6",
+        "d84:M6",
+        "d85:M6",
+        "d86:M6",
+        "d87:M6",
+        "d88:M6",
+        "d89:M6",
+        "d90:M6",
+        "d91:M6",
+        "d92:M6",
+        "d93:M6",
+        "d94:M6",
+        "d95:M6",
+        "d96:M6",
+        "d97:M6",
+        "d98:M6",
+        "d99:M6",
+        "d100:M6",
+        "d101:M6",
+        "d102:M6",
+        "d103:M6",
+        "d104:M4",
+        "d105:M4",
+        "d106:M6",
+        "d107:M6",
+        "d108:M8",
+        "d109:M6",
+        "d110:M8",
+        "d111:M6",
+        "d112:M8",
+        "d113:M6",
+        "d114:M8",
+        "d115:M6",
+        "d116:M6",
+        "d117:M6",
+        "d118:M8",
+        "d119:M6",
+        "d120:M8",
+        "d121:M6",
+        "d122:M8",
+        "d123:M6",
+        "d124:M6",
+        "d125:M6",
+        "d126:M6",
+        "d127:M6",
+        "d128:M4",
+        "d129:M4",
+        "d130:M6",
+        "d131:M6",
+        "d132:M6",
+        "d133:M6",
+        "d134:M6",
+        "d135:M6",
+        "d136:M6",
+        "d137:M6",
+        "d138:M6",
+        "d139:M6",
+        "d140:M6",
+        "d141:M6",
+        "d142:M6",
+        "d143:M6",
+        "d144:M6",
+        "d145:M6",
+        "d146:M6",
+        "d147:M6",
+        "d148:M6",
+        "d149:M6",
+        "d150:M6",
+        "d151:M6",
+        "d152:M6",
+        "d153:M6",
+        "d154:M6",
+        "d155:M6",
+        "d156:M6",
+        "d157:M6",
+        "d158:M6",
+        "d159:M6",
+        "d160:M6",
+        "d161:M6",
+        "G2"
+      ],
+      "confidence": null
+    },
+    {
+      "test_id": "4.E",
+      "test_name": "3.2.1-on-focus",
+      "outcome": "PASS",
+      "summary": "We moved keyboard focus to each element we could reach, and none of them opened a new page or window or moved focus somewhere else on its own.",
+      "instances": [],
+      "evidence_refs": [
+        "evidence/4e.json"
+      ],
+      "rationale": "Spec G4. no instances",
+      "note": null,
+      "decided_by": "rule",
+      "rows": [
+        "A3",
+        "G4"
+      ],
+      "confidence": null
+    },
+    {
+      "test_id": "9.A",
+      "test_name": "2.4.1-bypass-function",
+      "outcome": "FAIL",
+      "summary": "This page starts with content repeated on the other pages you gave (for example \"Explore\"), and we found no keyboard way to skip past it. the \"Explore\" button did not move the keyboard past the repeated content. the \"News & Events\" button did not move the keyboard past the repeated content. the \"Multimedia\" button did not move the keyboard past the repeated content. Add a \"Skip to main content\" link as the first thing on the page.",
+      "instances": [
+        {
+          "selector": "#global-navigation-trigger",
+          "frame_path": [],
+          "description": "c1 [M5 FAIL] the \"Explore\" button: press Tab 1 time, then Enter",
+          "evidence_refs": []
+        },
+        {
+          "selector": "html > body > header:nth-of-type(2) > div > nav > div > ul > li:nth-of-type(1) > button",
+          "frame_path": [],
+          "description": "c2 [M5 FAIL] the \"News & Events\" button: press Tab 4 times, then Enter",
+          "evidence_refs": []
+        },
+        {
+          "selector": "html > body > header:nth-of-type(2) > div > nav > div > ul > li:nth-of-type(2) > button",
+          "frame_path": [],
+          "description": "c3 [M5 FAIL] the \"Multimedia\" button: press Tab 5 times, then Enter",
+          "evidence_refs": []
+        }
+      ],
+      "evidence_refs": [
+        "evidence/9a.json"
+      ],
+      "rationale": "Spec G5. Compared with other page 1, other page 2, other page 3; M is first_unique; J1 auto_no.",
+      "note": null,
+      "decided_by": "rule",
+      "rows": [
+        "A5",
+        "c1:M5",
+        "c2:M5",
+        "c3:M5",
+        "G5"
+      ],
+      "confidence": null
+    },
+    {
+      "test_id": "9.B",
+      "test_name": "3.2.3-consistent-navigation",
+      "outcome": "PASS",
+      "summary": "The navigation this page shares with the other pages you gave appears in the same order on each of them.",
+      "instances": [
+        {
+          "selector": null,
+          "frame_path": [],
+          "description": "p1 [N6 PASS] https://www.nasa.gov/careers/: 43 shared",
+          "evidence_refs": []
+        },
+        {
+          "selector": null,
+          "frame_path": [],
+          "description": "p2 [N6 PASS] https://www.nasa.gov/spot-the-station/: 43 shared",
+          "evidence_refs": []
+        },
+        {
+          "selector": null,
+          "frame_path": [],
+          "description": "p3 [N6 PASS] https://www.nasa.gov/gallery/ksc-history/: 43 shared",
+          "evidence_refs": []
+        }
+      ],
+      "evidence_refs": [
+        "evidence/9b.json"
+      ],
+      "rationale": "Spec G4. p1:N6; p2:N6; p3:N6",
+      "note": null,
+      "decided_by": "rule",
+      "rows": [
+        "A4",
+        "p1:N6",
+        "p2:N6",
+        "p3:N6",
+        "G4"
+      ],
+      "confidence": null
+    },
+    {
+      "test_id": "19.A",
+      "test_name": "2.4.5-multiple-ways",
+      "outcome": "NEEDS_REVIEW",
+      "summary": "We found no way to reach this page in the pages you gave. The site search did not find this page when searching for its heading. To check further, ask the user whether to run again with these pages too: https://www.nasa.gov/, https://www.nasa.gov/sitemap/. Run only this test (tests: 19.A) with the pages added, and replace this result in the saved report; the other tests need not run again.",
+      "instances": [],
+      "evidence_refs": [
+        "evidence/19a.json"
+      ],
+      "rationale": "Kinds: []; links: 0; search not_found; pages: other page 1, other page 2, other page 3.",
+      "note": "This test could not be performed",
+      "decided_by": "rule",
+      "rows": [
+        "A5",
+        "W1",
+        "W3",
+        "G3"
+      ],
+      "confidence": null
+    }
+  ],
+  "questions": [],
+  "open_questions": [],
+  "answers": [],
+  "judge_backend": "client",
+  "errors": [],
+  "evidence_dir": "evidence"
+}

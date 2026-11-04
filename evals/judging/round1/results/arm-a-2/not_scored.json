@@ -1,0 +1,6 @@
+{
+ "pages": [
+  "https://www.nasa.gov/?search=artemis"
+ ],
+ "reason": "This run tested a copy of the search page frozen in the cloud container without its CSS and scripts (attempts/README.md). Recorded before the lock, before any key was revealed."
+}

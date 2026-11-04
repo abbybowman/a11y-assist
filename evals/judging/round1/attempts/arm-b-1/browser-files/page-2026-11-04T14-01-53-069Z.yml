@@ -1,0 +1,476 @@
+- generic [active] [ref=f30e1]:
+  - banner [ref=f30e2]:
+    - generic [ref=f30e3]:
+      - button [ref=f30e5]
+      - link [ref=f30e7] [cursor=pointer]:
+        - /url: https://www.nasa.gov/
+        - img "NASA Logo" [ref=f30e8]
+      - button [ref=f30e10]
+  - banner [ref=f30e13]:
+    - generic [ref=f30e14]:
+      - generic [ref=f30e15]:
+        - list [ref=f30e16]:
+          - listitem [ref=f30e17]:
+            - button "Explore" [ref=f30e18]
+        - search [ref=f30e25]:
+          - text: Search
+          - searchbox "Search" [ref=f30e26]
+          - button "Search" [ref=f30e27]
+      - link [ref=f30e29] [cursor=pointer]:
+        - /url: https://www.nasa.gov/
+        - img "NASA Logo" [ref=f30e30]
+      - navigation "Primary navigation" [ref=f30e31]:
+        - list [ref=f30e33]:
+          - listitem [ref=f30e34]:
+            - button "News & Events" [ref=f30e35]
+          - listitem [ref=f30e39]:
+            - button "Multimedia" [ref=f30e40]
+          - listitem [ref=f30e44]:
+            - link "NASA+" [ref=f30e45] [cursor=pointer]:
+              - /url: https://plus.nasa.gov/
+  - generic [ref=f30e46]:
+    - generic [ref=f30e47]:
+      - search [ref=f30e50]:
+        - text: Search
+        - searchbox "Search" [ref=f30e51]
+        - button "Search" [ref=f30e52]
+      - button [ref=f30e53]
+    - generic [ref=f30e56]:
+      - heading "Suggested Searches" [level=2] [ref=f30e57]
+      - list [ref=f30e58]:
+        - listitem [ref=f30e59]:
+          - link "Artemis" [ref=f30e60] [cursor=pointer]:
+            - /url: https://www.nasa.gov/?search=Artemis
+        - listitem [ref=f30e66]:
+          - link "ISS" [ref=f30e67] [cursor=pointer]:
+            - /url: https://www.nasa.gov/?search=ISS
+        - listitem [ref=f30e73]:
+          - link "Roman" [ref=f30e74] [cursor=pointer]:
+            - /url: https://www.nasa.gov/?search=Roman
+        - listitem [ref=f30e80]:
+          - link "Webb" [ref=f30e81] [cursor=pointer]:
+            - /url: https://www.nasa.gov/?search=Webb
+        - listitem [ref=f30e87]:
+          - link "Quesst" [ref=f30e88] [cursor=pointer]:
+            - /url: https://www.nasa.gov/?search=Quesst
+        - listitem [ref=f30e94]:
+          - link "Moon Base" [ref=f30e95] [cursor=pointer]:
+            - /url: https://www.nasa.gov/?search=Moon%20Base
+        - listitem [ref=f30e101]:
+          - link "View All Topics A-Z" [ref=f30e102] [cursor=pointer]:
+            - /url: https://www.nasa.gov/a-to-z-topics-listing/
+  - main [ref=f30e106]:
+    - article [ref=f30e107]:
+      - generic [ref=f30e108]:
+        - generic [ref=f30e113]:
+          - paragraph [ref=f30e114]: 4 min read
+          - heading "NASA Releases MAX POWER Key Events for Media, Participants" [level=1] [ref=f30e115]
+        - generic [ref=f30e116]:
+          - generic [ref=f30e117]:
+            - generic [ref=f30e118]:
+              - img "Profile image for Jessica Taveau" [ref=f30e120]
+              - paragraph [ref=f30e122]: Jessica Taveau
+            - generic [ref=f30e123]: Oct 30, 2026
+            - generic [ref=f30e124]: MEDIA ADVISORYM26-084
+            - generic [ref=f30e129]:
+              - link [ref=f30e132] [cursor=pointer]:
+                - /url: https://www.nasa.gov/nasa-headquarters/
+                - heading "NASA Headquarters" [level=3] [ref=f30e133]
+              - generic [ref=f30e134]:
+                - link [ref=f30e135] [cursor=pointer]:
+                  - /url: https://www.nasa.gov/location/kennedy-space-center/
+                - link [ref=f30e137] [cursor=pointer]:
+                  - /url: https://www.nasa.gov/kennedy
+                  - heading "Kennedy Space Center" [level=3] [ref=f30e138]
+            - list [ref=f30e140]:
+              - listitem [ref=f30e141]:
+                - link "Share on X." [ref=f30e142] [cursor=pointer]:
+                  - /url: https://x.com/intent/tweet?via=NASA&text=NASA%20Releases%20MAX%20POWER%20Key%20Events%20for%20Media%2C%20Participants&url=https%3A%2F%2Fwww.nasa.gov%2Fnews-release%2Fnasa-releases-max-power-key-events-for-media-participants%2F
+              - listitem [ref=f30e145]:
+                - link "Share on Facebook." [ref=f30e146] [cursor=pointer]:
+                  - /url: https://www.facebook.com/sharer.php?u=https%3A%2F%2Fwww.nasa.gov%2Fnews-release%2Fnasa-releases-max-power-key-events-for-media-participants%2F
+              - listitem [ref=f30e149]:
+                - link "Share on LinkedIn." [ref=f30e150] [cursor=pointer]:
+                  - /url: https://www.linkedin.com/shareArticle?mini=true&url=https%3A%2F%2Fwww.nasa.gov%2Fnews-release%2Fnasa-releases-max-power-key-events-for-media-participants%2F
+              - listitem [ref=f30e153]:
+                - link "Link to RSS Feed." [ref=f30e154] [cursor=pointer]:
+                  - /url: /feed/
+          - generic [ref=f30e159]:
+            - generic [ref=f30e162]:
+              - figure [ref=f30e163]:
+                - link [ref=f30e164] [cursor=pointer]:
+                  - /url: https://www.nasa.gov/wp-content/uploads/2026/10/grc-2026-c-06389large.jpg
+                  - img "Looking up, three white and black fighter jets fly in formation across a bright, blue sky." [ref=f30e165]
+              - generic [ref=f30e166]:
+                - generic [ref=f30e167]: NASA’s Freedom 250 F-5 team, including NASA Administrator Jared Isaacman, performs a flyover during the national anthem at an NFL game between the Cleveland Browns and the Carolina Panthers at Huntington Bank Field, Sept. 27, 2026, in Cleveland.
+                - generic [ref=f30e168]: "Credit: NASA/Jordan Cochran"
+            - paragraph [ref=f30e169]: America’s newest aerospace expo and air show – MAX POWER – is fast approaching, and NASA has announced key events beginning Friday, Nov. 6, and running through Sunday, Nov. 8, hosted on and near the agency’s Kennedy Space Center in Florida.
+            - paragraph [ref=f30e170]:
+              - text: Through multiple park experiences at
+              - link "MAX POWER" [ref=f30e171] [cursor=pointer]:
+                - /url: https://www.nasa.gov/maxpower
+              - text: ", NASA and a variety of external collaborators will showcase the newest aircraft, autonomous vehicles, technologies, and more defining the future of air and space. NASA will display its quiet supersonic X-59 plane, and agency partners will showcase Moon rovers, spacecraft, and more. The expo also is a culmination of the agency’s recent"
+              - link "Inspiration Tour" [ref=f30e172] [cursor=pointer]:
+                - /url: https://www.nasa.gov/news-release/nasa-nfl-team-up-to-showcase-space-aeronautics-innovation/
+              - text: ", which included numerous flyovers to highlight NASA’s fleet of aircraft."
+            - paragraph [ref=f30e173]:
+              - text: A current schedule of events is available on the agency’s
+              - link "website" [ref=f30e174] [cursor=pointer]:
+                - /url: https://www.nasa.gov/maxpower
+              - text: .
+            - paragraph [ref=f30e175]: MAX POWER includes opportunities to meet leadership, astronauts, engineers, scientists, and other subject matter experts during the family-friendly public events with gates opening at 9 a.m. EST on Nov. 7 and Nov. 8.
+            - paragraph [ref=f30e176]:
+              - text: NASA also will share multiple news updates during the weekend, including hosting a news conference at 5 p.m. on Nov. 7, to provide its latest Moon Base update. Located near the lunar South Pole, the
+              - link "Moon Base" [ref=f30e177] [cursor=pointer]:
+                - /url: https://www.nasa.gov/moonbase
+              - text: is humanity’s first outpost for long-term lunar exploration.
+            - paragraph [ref=f30e178]: "Live coverage of the news conference will stream on a variety of platforms online. Learn where to watch:"
+            - paragraph [ref=f30e179]:
+              - link "https://www.nasa.gov/live" [ref=f30e180] [cursor=pointer]:
+                - /url: https://www.nasa.gov/live
+            - paragraph [ref=f30e181]:
+              - strong [ref=f30e182]: Join NASA for Key Events
+            - paragraph [ref=f30e183]:
+              - text: "Media credentialing for this event is closed. Media approved for this event must request interviews in advance. Space in the news conference is limited, and first come, first served. Media also may participate in the news conference virtually. To request call details or an interview, please contact Lauren Low in the NASA Headquarters newsroom at:"
+              - link "lauren.e.low@nasa.gov" [ref=f30e184] [cursor=pointer]:
+                - /url: mailto:lauren.e.low@nasa.gov
+              - text: .
+            - paragraph [ref=f30e185]: A short list of key NASA activities during MAX POWER are listed below. All times are listed in Eastern Standard Time, and are subject to change.
+            - paragraph [ref=f30e186]:
+              - strong [ref=f30e187]: "Friday, Nov. 6:"
+            - list [ref=f30e188]:
+              - listitem [ref=f30e189]:
+                - text: "2 p.m., to 4 p.m.: Media one-on-one opportunities to preview weekend MAX POWER activities"
+                - list [ref=f30e190]:
+                  - listitem [ref=f30e191]: "Location: NASA Press Site"
+            - paragraph [ref=f30e192]:
+              - strong [ref=f30e193]: "Saturday, Nov. 7:"
+            - list [ref=f30e194]:
+              - listitem [ref=f30e195]:
+                - text: "10 a.m.: Nuclear NASA media gaggle"
+                - list [ref=f30e196]:
+                  - listitem [ref=f30e197]: "Location: UP.Summit Main Stage"
+                - list [ref=f30e198]:
+                  - listitem [ref=f30e199]: Cynthia Simmons, director, Space Reactors Division
+            - list [ref=f30e200]:
+              - listitem [ref=f30e201]:
+                - text: "11:30 a.m.: Opening air show remarks featuring NASA Deputy Administrator Matt Anderson"
+                - list [ref=f30e202]:
+                  - listitem [ref=f30e203]: "Location: Air Dot Show Main Stage"
+            - list [ref=f30e204]:
+              - listitem [ref=f30e205]: "11:58 a.m.: F-5 flyover in the Air Dot Show featuring NASA Administrator Jared Isaacman"
+            - list [ref=f30e206]:
+              - listitem [ref=f30e207]:
+                - text: "12:45 p.m.: Meet the Astronauts: NASA’s Artemis III Crew"
+                - list [ref=f30e208]:
+                  - listitem [ref=f30e209]: "Location: Air Dot Show Main Stage"
+                - list [ref=f30e210]:
+                  - listitem [ref=f30e211]:
+                    - text: "Participants include:"
+                    - list [ref=f30e212]:
+                      - listitem [ref=f30e213]: NASA astronaut Randy Bresnik (mission commander)
+                    - list [ref=f30e214]:
+                      - listitem [ref=f30e215]: ESA (European Space Agency) astronaut Luca Parmitano (pilot)
+                    - list [ref=f30e216]:
+                      - listitem [ref=f30e217]: NASA astronaut Frank Rubio (mission specialist)
+                    - list [ref=f30e218]:
+                      - listitem [ref=f30e219]: NASA astronaut Bob Hines, backup crew member
+                - list [ref=f30e220]:
+                  - listitem [ref=f30e221]: NASA will host a media gaggle with crew immediately following this event.
+            - list [ref=f30e222]:
+              - listitem [ref=f30e223]: "1:31 p.m.: MiG-29 flyover featuring Isaacman"
+            - list [ref=f30e224]:
+              - listitem [ref=f30e225]:
+                - text: "2 p.m.: Learn about NASA’s Roman Space Telescope"
+                - list [ref=f30e226]:
+                  - listitem [ref=f30e227]: "Location: Kennedy Space Center Visitor Complex (Journey to Mars Theater)"
+                - list [ref=f30e228]:
+                  - listitem [ref=f30e229]:
+                    - text: "Participant:"
+                    - list [ref=f30e230]:
+                      - listitem [ref=f30e231]: Remarks by Julie McEnery, senior project scientist, Nancy Grace Roman Space Telescope, NASA Goddard
+              - listitem [ref=f30e232]:
+                - text: 5 p.m. Moon Base News Conference
+                - list [ref=f30e233]:
+                  - listitem [ref=f30e234]: "Location: Press Site Auditorium"
+                - list [ref=f30e235]:
+                  - listitem [ref=f30e236]:
+                    - text: "Participants:"
+                    - list [ref=f30e237]:
+                      - listitem [ref=f30e238]: NASA Administrator Jared Isaacman
+                      - listitem [ref=f30e239]: Carlos García-Galán, manager, Moon Base Program
+                      - listitem [ref=f30e240]: Nicky Fox, associate administrator for Science, NASA Headquarters
+                      - listitem [ref=f30e241]: Dayna Ise, acting director, Utility and Infrastructure Office, Moon Base Program
+                  - listitem [ref=f30e242]: NASA subject matter experts will be available for one-on-one interviews following this announcement.
+            - paragraph [ref=f30e243]:
+              - strong [ref=f30e244]: Sunday, Nov. 8
+            - list [ref=f30e245]:
+              - listitem [ref=f30e246]:
+                - text: 9 a.m. NASA’s X-59 media gaggle
+                - list [ref=f30e247]:
+                  - listitem [ref=f30e248]: "Location: UP.Summit Exhibit Area"
+                - list [ref=f30e249]:
+                  - listitem [ref=f30e250]:
+                    - text: "Participants:"
+                    - list [ref=f30e251]:
+                      - listitem [ref=f30e252]: Laurie Grindle, director, NASA Aeronautics Division
+                    - list [ref=f30e253]:
+                      - listitem [ref=f30e254]: Peter Coen, NASA Quesst mission manager, NASA Langley
+                    - list [ref=f30e255]:
+                      - listitem [ref=f30e256]: Jim “Clue” Less, test pilot, X-59, NASA Armstrong
+            - list [ref=f30e257]:
+              - listitem [ref=f30e258]:
+                - text: "10 a.m.: Student challenge announcement"
+                - list [ref=f30e259]:
+                  - listitem [ref=f30e260]: "Location: Kennedy Space Center Visitor Complex, Rocket Garden"
+                - list [ref=f30e261]:
+                  - listitem [ref=f30e262]:
+                    - text: "Participants:"
+                    - list [ref=f30e263]:
+                      - listitem [ref=f30e264]: NASA Administrator Jared Isaacman
+                    - list [ref=f30e265]:
+                      - listitem [ref=f30e266]: Carlos García-Galán, manager, Moon Base Program
+                - list [ref=f30e267]:
+                  - listitem [ref=f30e268]:
+                    - text: "NASA experts may be available for interviews at this location. Media interested in attending must contact Lauren Low by 5 p.m. on Thursday, Nov. 5, at:"
+                    - link "lauren.e.low@nasa.gov" [ref=f30e269] [cursor=pointer]:
+                      - /url: mailto:lauren.e.low@nasa.gov
+                    - text: .
+            - list [ref=f30e270]:
+              - listitem [ref=f30e271]: "11:58 a.m.: F-5 flyover in the Air Dot Show featuring Isaacman"
+            - list [ref=f30e272]:
+              - listitem [ref=f30e273]:
+                - text: "12:45 p.m.: United States Space Academy"
+                - list [ref=f30e274]:
+                  - listitem [ref=f30e275]: "Location: UP.Summit Main Stage"
+                - list [ref=f30e276]:
+                  - listitem [ref=f30e277]: NASA Deputy Administrator Matt Anderson
+            - list [ref=f30e278]:
+              - listitem [ref=f30e279]:
+                - text: "12:45 p.m.: Meet the Astronauts: NASA’s SpaceX Crew-12"
+                - list [ref=f30e280]:
+                  - listitem [ref=f30e281]: "Location: Air Dot Show Main Stage"
+                - list [ref=f30e282]:
+                  - listitem [ref=f30e283]:
+                    - text: "Participants:"
+                    - list [ref=f30e284]:
+                      - listitem [ref=f30e285]: NASA astronaut Jessica Meir
+                    - list [ref=f30e286]:
+                      - listitem [ref=f30e287]: NASA astronaut Jack Hathaway
+            - list [ref=f30e288]:
+              - listitem [ref=f30e289]: "1:31 p.m.: MiG-29 flyover featuring Isaacman"
+            - paragraph [ref=f30e290]: "For more information about MAX POWER, including the latest schedule of events and how to attend, visit the agency’s website:"
+            - paragraph [ref=f30e291]:
+              - link [ref=f30e292] [cursor=pointer]:
+                - /url: https://www.nasa.gov/maxpower
+                - strong [ref=f30e293]: https://www.nasa.gov/maxpower
+            - paragraph [ref=f30e294]: "-end-"
+            - paragraph [ref=f30e295]:
+              - text: George Alderman / Cheryl WarnerHeadquarters, Washington202-358-1600
+              - link "george.a.alderman@nasa.gov" [ref=f30e296] [cursor=pointer]:
+                - /url: mailto:george.a.alderman@nasa.gov
+              - text: /
+              - link "cheryl.m.warner@nasa.gov" [ref=f30e297] [cursor=pointer]:
+                - /url: mailto:cheryl.m.warner@nasa.gov
+        - generic [ref=f30e300]:
+          - generic [ref=f30e302]:
+            - heading "Share" [level=2] [ref=f30e304]
+            - list [ref=f30e306]:
+              - listitem [ref=f30e307]:
+                - link "Share on X." [ref=f30e308] [cursor=pointer]:
+                  - /url: https://x.com/intent/tweet?via=NASA&text=NASA%20Releases%20MAX%20POWER%20Key%20Events%20for%20Media%2C%20Participants&url=https%3A%2F%2Fwww.nasa.gov%2Fnews-release%2Fnasa-releases-max-power-key-events-for-media-participants%2F
+              - listitem [ref=f30e311]:
+                - link "Share on Facebook." [ref=f30e312] [cursor=pointer]:
+                  - /url: https://www.facebook.com/sharer.php?u=https%3A%2F%2Fwww.nasa.gov%2Fnews-release%2Fnasa-releases-max-power-key-events-for-media-participants%2F
+              - listitem [ref=f30e315]:
+                - link "Share on LinkedIn." [ref=f30e316] [cursor=pointer]:
+                  - /url: https://www.linkedin.com/shareArticle?mini=true&url=https%3A%2F%2Fwww.nasa.gov%2Fnews-release%2Fnasa-releases-max-power-key-events-for-media-participants%2F
+              - listitem [ref=f30e319]:
+                - link "Subscribe to RSS feed." [ref=f30e320] [cursor=pointer]:
+                  - /url: /feed/
+          - generic [ref=f30e325]:
+            - heading "Details" [level=2] [ref=f30e327]
+            - generic [ref=f30e328]:
+              - generic [ref=f30e329]: Last Updated
+              - generic [ref=f30e331]: Nov 02, 2026
+            - generic [ref=f30e332]:
+              - generic [ref=f30e333]: Editor
+              - generic [ref=f30e335]: Jessica Taveau
+            - generic [ref=f30e336]:
+              - generic [ref=f30e337]: Location
+              - link "NASA Headquarters" [ref=f30e340] [cursor=pointer]:
+                - /url: https://www.nasa.gov/nasa-headquarters/
+          - generic [ref=f30e342]:
+            - heading "Related Terms" [level=2] [ref=f30e344]
+            - list [ref=f30e345]:
+              - listitem [ref=f30e346]:
+                - link "General" [ref=f30e347] [cursor=pointer]:
+                  - /url: https://www.nasa.gov/general/
+              - listitem [ref=f30e348]:
+                - link "Aeronautics" [ref=f30e349] [cursor=pointer]:
+                  - /url: https://www.nasa.gov/aeronautics/
+              - listitem [ref=f30e350]:
+                - link "Astronauts" [ref=f30e351] [cursor=pointer]:
+                  - /url: https://www.nasa.gov/humans-in-space/astronauts/
+              - listitem [ref=f30e352]:
+                - link "Human Spaceflight Mission Directorate" [ref=f30e353] [cursor=pointer]:
+                  - /url: https://www.nasa.gov/directorates/hsmd/
+              - listitem [ref=f30e354]:
+                - link "Kennedy Space Center" [ref=f30e355] [cursor=pointer]:
+                  - /url: https://www.nasa.gov/kennedy-space-center/
+              - listitem [ref=f30e356]:
+                - link "Moon Base" [ref=f30e357] [cursor=pointer]:
+                  - /url: https://www.nasa.gov/missions/moon-base/
+              - listitem [ref=f30e358]:
+                - link "Nancy Grace Roman Space Telescope" [ref=f30e359] [cursor=pointer]:
+                  - /url: https://science.nasa.gov/mission/roman-space-telescope
+              - listitem [ref=f30e360]:
+                - link "Quesst (X-59)" [ref=f30e361] [cursor=pointer]:
+                  - /url: https://www.nasa.gov/mission/quesst/
+              - listitem [ref=f30e362]:
+                - link "Research and Technology Mission Directorate" [ref=f30e363] [cursor=pointer]:
+                  - /url: https://www.nasa.gov/directorates/rtmd/
+              - listitem [ref=f30e364]:
+                - link "Science Mission Directorate" [ref=f30e365] [cursor=pointer]:
+                  - /url: https://science.nasa.gov/about-us/
+              - listitem [ref=f30e366]:
+                - link "Space Nuclear Propulsion (SNP)" [ref=f30e367] [cursor=pointer]:
+                  - /url: https://www.nasa.gov/technology-demonstration-missions-tdm/space-nuclear-propulsion/
+  - contentinfo [ref=f30e368]:
+    - generic [ref=f30e369]:
+      - img "NASA Logo" [ref=f30e371]
+      - generic [ref=f30e373]:
+        - generic [ref=f30e375]:
+          - heading "National Aeronautics and Space Administration" [level=3] [ref=f30e376]
+          - paragraph [ref=f30e377]: NASA explores the unknown in air and space, innovates for the benefit of humanity, and inspires the world through discovery.
+          - list [ref=f30e378]:
+            - listitem [ref=f30e379]:
+              - link "About NASA's Mission" [ref=f30e380] [cursor=pointer]:
+                - /url: https://www.nasa.gov/about/
+          - link "Join Us" [ref=f30e381] [cursor=pointer]:
+            - /url: https://www.nasa.gov/get-involved/
+        - list [ref=f30e388]:
+          - listitem [ref=f30e389]:
+            - link "Home" [ref=f30e390] [cursor=pointer]:
+              - /url: https://www.nasa.gov/
+          - listitem [ref=f30e391]:
+            - link "News & Events" [ref=f30e392] [cursor=pointer]:
+              - /url: https://www.nasa.gov/news/
+          - listitem [ref=f30e393]:
+            - link "Multimedia" [ref=f30e394] [cursor=pointer]:
+              - /url: https://www.nasa.gov/multimedia/
+          - listitem [ref=f30e395]:
+            - link "NASA+" [ref=f30e396] [cursor=pointer]:
+              - /url: https://plus.nasa.gov/
+          - listitem [ref=f30e397]:
+            - link "Missions" [ref=f30e398] [cursor=pointer]:
+              - /url: https://www.nasa.gov/nasa-missions/
+          - listitem [ref=f30e399]:
+            - link "Humans in Space" [ref=f30e400] [cursor=pointer]:
+              - /url: https://www.nasa.gov/humans-in-space/
+          - listitem [ref=f30e401]:
+            - link "Earth" [ref=f30e402] [cursor=pointer]:
+              - /url: https://science.nasa.gov/earth/
+          - listitem [ref=f30e403]:
+            - link "The Solar System" [ref=f30e404] [cursor=pointer]:
+              - /url: https://science.nasa.gov/solar-system/
+          - listitem [ref=f30e405]:
+            - link "The Universe" [ref=f30e406] [cursor=pointer]:
+              - /url: https://science.nasa.gov/universe/
+          - listitem [ref=f30e407]:
+            - link "Science" [ref=f30e408] [cursor=pointer]:
+              - /url: https://science.nasa.gov/
+          - listitem [ref=f30e409]:
+            - link "Aeronautics" [ref=f30e410] [cursor=pointer]:
+              - /url: https://www.nasa.gov/aeronautics/
+          - listitem [ref=f30e411]:
+            - link "Technology" [ref=f30e412] [cursor=pointer]:
+              - /url: https://www.nasa.gov/technology/
+          - listitem [ref=f30e413]:
+            - link "Learning Resources" [ref=f30e414] [cursor=pointer]:
+              - /url: https://www.nasa.gov/learning-resources/
+          - listitem [ref=f30e415]:
+            - link "About NASA" [ref=f30e416] [cursor=pointer]:
+              - /url: https://www.nasa.gov/about/
+          - listitem [ref=f30e417]:
+            - link "NASA en Español (opens in new tab)" [ref=f30e418] [cursor=pointer]:
+              - /url: https://www.nasa.gov/es/
+        - generic [ref=f30e420]:
+          - generic [ref=f30e421]:
+            - heading "Follow NASA" [level=3] [ref=f30e422]
+            - list [ref=f30e423]:
+              - listitem [ref=f30e424]:
+                - link "NASA on Facebook (opens in new tab)" [ref=f30e425] [cursor=pointer]:
+                  - /url: https://www.facebook.com/NASA
+              - listitem [ref=f30e428]:
+                - link "NASA on Instagram (opens in new tab)" [ref=f30e429] [cursor=pointer]:
+                  - /url: https://www.instagram.com/nasa/
+              - listitem [ref=f30e434]:
+                - link "NASA on X (opens in new tab)" [ref=f30e435] [cursor=pointer]:
+                  - /url: https://x.com/NASA
+              - listitem [ref=f30e438]:
+                - link "NASA on YouTube (opens in new tab)" [ref=f30e439] [cursor=pointer]:
+                  - /url: https://www.youtube.com/@NASA
+          - list [ref=f30e442]:
+            - listitem [ref=f30e443]:
+              - link "More NASA Social Accounts" [ref=f30e444] [cursor=pointer]:
+                - /url: https://www.nasa.gov/social-media/
+            - listitem [ref=f30e445]:
+              - link "NASA Newsletters" [ref=f30e446] [cursor=pointer]:
+                - /url: https://www.nasa.gov/nasa-newsletters/
+        - list [ref=f30e448]:
+          - listitem [ref=f30e449]:
+            - link "Sitemap" [ref=f30e450] [cursor=pointer]:
+              - /url: https://www.nasa.gov/sitemap/
+          - listitem [ref=f30e451]:
+            - link "For Media" [ref=f30e452] [cursor=pointer]:
+              - /url: https://www.nasa.gov/news/nasa-media-contacts/
+          - listitem [ref=f30e453]:
+            - link "Privacy Policy" [ref=f30e454] [cursor=pointer]:
+              - /url: https://www.nasa.gov/nasa-web-privacy-policy-and-important-notices/
+          - listitem [ref=f30e455]:
+            - link "FOIA" [ref=f30e456] [cursor=pointer]:
+              - /url: https://www.nasa.gov/foia/
+          - listitem [ref=f30e457]:
+            - link "No FEAR Act" [ref=f30e458] [cursor=pointer]:
+              - /url: https://www.nasa.gov/no-fear-act/
+          - listitem [ref=f30e459]:
+            - link "Office of the IG (opens in new tab)" [ref=f30e460] [cursor=pointer]:
+              - /url: http://oig.nasa.gov/
+          - listitem [ref=f30e461]:
+            - link "Budget & Annual Reports" [ref=f30e462] [cursor=pointer]:
+              - /url: https://www.nasa.gov/budgets-plans-and-reports/
+          - listitem [ref=f30e463]:
+            - link "Agency Financial Reports" [ref=f30e464] [cursor=pointer]:
+              - /url: https://www.nasa.gov/organizations/budget-annual-reports/agency-financial-reports/
+          - listitem [ref=f30e465]:
+            - link "Contact NASA" [ref=f30e466] [cursor=pointer]:
+              - /url: https://www.nasa.gov/contact-nasa/
+          - listitem [ref=f30e467]:
+            - link "Accessibility" [ref=f30e468] [cursor=pointer]:
+              - /url: https://www.nasa.gov/accessibility/
+        - list [ref=f30e470]:
+          - listitem [ref=f30e471]:
+            - generic [ref=f30e472]: "Page Last Updated:"
+            - generic [ref=f30e473]: Nov 02, 2026
+          - listitem [ref=f30e474]:
+            - generic [ref=f30e475]: "Page Editor:"
+            - generic [ref=f30e476]: Lauren E. Low
+          - listitem [ref=f30e477]:
+            - generic [ref=f30e478]: "Responsible NASA Official:"
+            - generic [ref=f30e479]: Abigail Bowman
+  - dialog [ref=f30e480]:
+    - generic [ref=f30e481]:
+      - generic [ref=f30e483]:
+        - heading "Was this page helpful?" [level=2] [ref=f30e487]
+        - generic [ref=f30e492]:
+          - group "Was this page helpful?" [ref=f30e495]:
+            - generic [ref=f30e498]:
+              - generic [ref=f30e499]:
+                - radio "Yes" [checked] [ref=f30e500]
+                - text: "Yes"
+              - generic [ref=f30e501]:
+                - radio "No" [ref=f30e502]
+                - text: "No"
+          - button "Submit" [ref=f30e504]
+      - button "Close" [ref=f30e505]: ×

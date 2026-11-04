@@ -51,6 +51,12 @@ class Settings(BaseSettings):
     # through, at any port, for the local fixture server. Exact match: an
     # IPv4-mapped form of a listed address is still refused.
     dev_allowed_addresses: list[str] = Field(default_factory=list)
+    # Where a host's direct connections are re-signed by a gateway that
+    # browsers do not trust (a cloud container: its HTTPS_PROXY), the proxy
+    # checks each address as usual, then tunnels by name through this
+    # http:// proxy, which resolves the name again (weaker against DNS
+    # rebinding than connecting to the checked address). Off by default.
+    upstream_proxy: str | None = None
 
     # ── Browser ───────────────────────────────────────────────────────────────
     # "chrome" = installed Google Chrome. "chromium" = Playwright's bundled build

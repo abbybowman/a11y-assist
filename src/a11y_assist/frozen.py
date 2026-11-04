@@ -114,7 +114,15 @@ async def obtain(
     cap = await record(browser, settings, url, har_path, log, egress)
     folder.mkdir(parents=True, exist_ok=True)
     (folder / "pages").mkdir(exist_ok=True)
-    rel = f"pages/{len(index) + 1:03d}.har.zip"
+    # A name no recording uses yet: counting the index would reuse the name
+    # of a removed entry's neighbour (round 1, 2026-11-04).
+    used = {p.har for p in index.values()} | {
+        f"pages/{f.name}" for f in (folder / "pages").glob("*.har.zip")
+    }
+    n = len(used) + 1
+    while f"pages/{n:03d}.har.zip" in used:
+        n += 1
+    rel = f"pages/{n:03d}.har.zip"
     shutil.copyfile(har_path, folder / rel)
     index = load(folder)  # unchanged unless another writer ran; keep theirs
     index[_key(url)] = FrozenPage(

@@ -1,0 +1,282 @@
+{
+ "arm": "b",
+ "route": "claude-code-cli",
+ "model_requested": "claude-sonnet-5-5",
+ "prompt_version": "round1-v1",
+ "task_sha256": "d7f2fd7d0320706da90505d036a513424d3fc0a583b4ded2a2d6c456d79b3d35",
+ "code_commit": "c139f846c238c8220507c52b661b71d62db9db72",
+ "pages": [
+  "https://www.nasa.gov/spot-the-station/",
+  "https://www.nasa.gov/?search=artemis",
+  "https://www.nasa.gov/forms/nssc-accounts-receivable",
+  "https://www.nasa.gov/careers/",
+  "https://www.nasa.gov/missions/",
+  "https://www.nasa.gov/mission/artemis-iii/",
+  "https://www.nasa.gov/feature/naca-at-110-special-feature/",
+  "https://www.nasa.gov/news-release/nasa-releases-max-power-key-events-for-media-participants/",
+  "https://www.nasa.gov/gallery/ksc-history/"
+ ],
+ "servers": [
+  {
+   "name": "browser",
+   "command": "/home/user/a11y-assist/evals/agent/node/node_modules/.bin/playwright-mcp",
+   "args": [
+    "--headless",
+    "--isolated",
+    "--no-sandbox",
+    "--no-webmcp",
+    "--executable-path",
+    "/opt/pw-browsers/chromium-1243/chrome-linux64/chrome",
+    "--init-page",
+    "/home/user/a11y-assist/evals/agent/node/frozen-init.cjs",
+    "--output-dir",
+    "/home/user/a11y-assist/evals/judging/round1/results/arm-b/browser-files",
+    "--proxy-server",
+    "http://127.0.0.1:39181"
+   ]
+  }
+ ],
+ "started_at": "2026-11-04T15:00:28.531301+00:00",
+ "leak_check": {
+  "answer": {
+   "user": null,
+   "project": null,
+   "instructions": []
+  },
+  "leaked": [],
+  "usage": {
+   "claude-sonnet-5-5": {
+    "inputTokens": 2,
+    "outputTokens": 20,
+    "cacheReadInputTokens": 0,
+    "cacheCreationInputTokens": 7509,
+    "webSearchRequests": 0,
+    "costUSD": 0.03024,
+    "contextWindow": 1000000,
+    "maxOutputTokens": 128000,
+    "thinkingTokens": 0,
+    "cacheCreationEphemeral5mInputTokens": 0,
+    "cacheCreationEphemeral1hInputTokens": 7509,
+    "canonicalModel": "claude-sonnet-5-5",
+    "provider": "firstParty",
+    "costBasis": "list"
+   }
+  },
+  "model": "claude-sonnet-5-5",
+  "init": {
+   "tools": [
+    "mcp__browser__browser_click",
+    "mcp__browser__browser_close",
+    "mcp__browser__browser_console_messages",
+    "mcp__browser__browser_drag",
+    "mcp__browser__browser_drop",
+    "mcp__browser__browser_emulate_media",
+    "mcp__browser__browser_evaluate",
+    "mcp__browser__browser_file_upload",
+    "mcp__browser__browser_fill_form",
+    "mcp__browser__browser_find",
+    "mcp__browser__browser_handle_dialog",
+    "mcp__browser__browser_hover",
+    "mcp__browser__browser_navigate",
+    "mcp__browser__browser_navigate_back",
+    "mcp__browser__browser_network_request",
+    "mcp__browser__browser_network_requests",
+    "mcp__browser__browser_press_key",
+    "mcp__browser__browser_resize",
+    "mcp__browser__browser_select_option",
+    "mcp__browser__browser_snapshot",
+    "mcp__browser__browser_tabs",
+    "mcp__browser__browser_take_screenshot",
+    "mcp__browser__browser_type",
+    "mcp__browser__browser_wait_for"
+   ],
+   "mcp_servers": [
+    {
+     "name": "browser",
+     "status": "connected",
+     "source": "dynamic"
+    }
+   ],
+   "skills": []
+  }
+ },
+ "init": {
+  "tools": [
+   "Task",
+   "WebFetch",
+   "WebSearch",
+   "mcp__browser__browser_click",
+   "mcp__browser__browser_close",
+   "mcp__browser__browser_console_messages",
+   "mcp__browser__browser_drag",
+   "mcp__browser__browser_drop",
+   "mcp__browser__browser_emulate_media",
+   "mcp__browser__browser_evaluate",
+   "mcp__browser__browser_file_upload",
+   "mcp__browser__browser_fill_form",
+   "mcp__browser__browser_find",
+   "mcp__browser__browser_handle_dialog",
+   "mcp__browser__browser_hover",
+   "mcp__browser__browser_navigate",
+   "mcp__browser__browser_navigate_back",
+   "mcp__browser__browser_network_request",
+   "mcp__browser__browser_network_requests",
+   "mcp__browser__browser_press_key",
+   "mcp__browser__browser_resize",
+   "mcp__browser__browser_select_option",
+   "mcp__browser__browser_snapshot",
+   "mcp__browser__browser_tabs",
+   "mcp__browser__browser_take_screenshot",
+   "mcp__browser__browser_type",
+   "mcp__browser__browser_wait_for"
+  ],
+  "mcp_servers": [
+   {
+    "name": "browser",
+    "status": "connected",
+    "source": "dynamic"
+   }
+  ],
+  "model": "claude-sonnet-5-5",
+  "agents": [
+   "claude",
+   "claude-code-guide",
+   "Explore",
+   "general-purpose",
+   "Plan",
+   "statusline-setup"
+  ],
+  "skills": []
+ },
+ "model_usage": {
+  "claude-sonnet-5-5": {
+   "inputTokens": 60,
+   "outputTokens": 16378,
+   "cacheReadInputTokens": 872476,
+   "cacheCreationInputTokens": 40438,
+   "webSearchRequests": 0,
+   "costUSD": 0.4128996,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 3594,
+   "cacheCreationEphemeral5mInputTokens": 0,
+   "cacheCreationEphemeral1hInputTokens": 40438,
+   "canonicalModel": "claude-sonnet-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "cli_usage": {
+  "input_tokens": 60,
+  "cache_creation_input_tokens": 40438,
+  "cache_read_input_tokens": 872476,
+  "output_tokens": 16378,
+  "output_tokens_details": {
+   "thinking_tokens": 3594
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 40438,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 6665,
+    "cache_read_input_tokens": 49782,
+    "cache_creation_input_tokens": 1065,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 1065
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "cli_duration_ms": 171847,
+ "num_turns": 36,
+ "cost_usd_list_price": 0.4128996,
+ "exit_code": 0,
+ "is_error": false,
+ "usage_windows": {
+  "first": [
+   {
+    "status": "allowed",
+    "resetsAt": 1793814000,
+    "rateLimitType": "five_hour",
+    "overageStatus": "rejected",
+    "overageDisabledReason": "org_level_disabled",
+    "isUsingOverage": false,
+    "unifiedWindows": {
+     "five_hour": {
+      "utilization": 0.5,
+      "resetsAt": 1793814000,
+      "status": "allowed"
+     },
+     "seven_day": {
+      "utilization": 0.71,
+      "resetsAt": 1793944800,
+      "status": "allowed"
+     }
+    }
+   }
+  ],
+  "last": [
+   {
+    "status": "allowed",
+    "resetsAt": 1793814000,
+    "rateLimitType": "five_hour",
+    "overageStatus": "rejected",
+    "overageDisabledReason": "org_level_disabled",
+    "isUsingOverage": false,
+    "unifiedWindows": {
+     "five_hour": {
+      "utilization": 0.51,
+      "resetsAt": 1793814000,
+      "status": "allowed"
+     },
+     "seven_day": {
+      "utilization": 0.71,
+      "resetsAt": 1793944800,
+      "status": "allowed"
+     }
+    }
+   }
+  ]
+ },
+ "ended": "completed",
+ "finished_at": "2026-11-04T15:03:25.847665+00:00",
+ "wall_s": 177.3,
+ "tokens": {
+  "input_tokens": 60,
+  "cache_creation_input_tokens": 40438,
+  "cache_read_input_tokens": 872476,
+  "output_tokens": 16378
+ },
+ "models_reported": [
+  "claude-sonnet-5-5"
+ ],
+ "tool_calls": {
+  "mcp__browser__browser_navigate": 11,
+  "mcp__browser__browser_evaluate": 20,
+  "mcp__browser__browser_press_key": 1,
+  "mcp__browser__browser_snapshot": 1,
+  "mcp__browser__browser_wait_for": 2
+ },
+ "model_calls": 30,
+ "egress_refused": [
+  {
+   "host": "mtalk.google.com",
+   "port": 5228,
+   "reason": "port 5228 is not allowed",
+   "policy": true
+  }
+ ]
+}

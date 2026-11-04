@@ -1,0 +1,1419 @@
+{
+ "round": "round1",
+ "scored_at": "2026-11-04T18:07:08.549399+00:00",
+ "lock_commit": "7d26a02b317b45a5580b37658105e5004bdbf7f1",
+ "pages": 9,
+ "pages_with_keys": 9,
+ "criteria": [
+  "1.3.1",
+  "2.1.1",
+  "2.1.2",
+  "2.4.1",
+  "2.4.3",
+  "2.4.5",
+  "2.4.6",
+  "2.4.7",
+  "3.2.1",
+  "3.2.2",
+  "3.2.3",
+  "3.2.4",
+  "3.3.1",
+  "3.3.2",
+  "3.3.3",
+  "3.3.4",
+  "4.1.2"
+ ],
+ "arms": {
+  "arm-a-1": {
+   "result_line": "found",
+   "pages_not_given": [
+    "https://www.nasa.gov/?search=artemis"
+   ],
+   "not_scored_reason": null,
+   "per_criterion": {
+    "counts": {
+     "agree": 44,
+     "false_pass": 0,
+     "missed_fail": 0,
+     "false_fail": 4,
+     "fail_vs_dna": 0,
+     "other_mismatch": 0,
+     "needs_review": 88,
+     "not_performed": 0,
+     "not_scored": 0,
+     "no_answer": 0
+    },
+    "weighted": 40,
+    "rates": {
+     "scored": "136",
+     "agreement (of decided)": "44/48",
+     "needs review (of scored)": "88/136",
+     "false PASS": "0",
+     "missed fail (Does Not Apply)": "0",
+     "false FAIL": "4",
+     "Fail vs Does Not Apply": "0",
+     "other mismatch": "0",
+     "no answer given": "0",
+     "not performed by the tool": "0",
+     "no reference answer": "0"
+    }
+   },
+   "disagreements": [
+    {
+     "page": "https://www.nasa.gov/careers/",
+     "criterion": "2.4.3",
+     "key": "Pass",
+     "arm": "Fail",
+     "verdict": "false_fail",
+     "elements": [
+      "Internships (button) dialog: Tab leaves the open dialog onto the page behind it"
+     ]
+    },
+    {
+     "page": "https://www.nasa.gov/careers/",
+     "criterion": "2.4.7",
+     "key": "Pass",
+     "arm": "Fail",
+     "verdict": "false_fail",
+     "elements": [
+      "Read More (link)"
+     ]
+    },
+    {
+     "page": "https://www.nasa.gov/missions/",
+     "criterion": "2.4.7",
+     "key": "Pass",
+     "arm": "Fail",
+     "verdict": "false_fail",
+     "elements": [
+      "3D Tissue Chips (link)",
+      "A-Train: The Afternoon Constellation (link)",
+      "Able 1 (Pioneer 0) (link)",
+      "Able 2 (Pioneer 1) (link)",
+      "Able 5A (Pioneer P-30) (link)",
+      "Able 5B (Pioneer P-31) (link)",
+      "ACE (link)"
+     ]
+    },
+    {
+     "page": "https://www.nasa.gov/mission/artemis-iii/",
+     "criterion": "2.4.7",
+     "key": "Pass",
+     "arm": "Fail",
+     "verdict": "false_fail",
+     "elements": [
+      "NASA (link)",
+      "Hide player controls (button)",
+      "More NASA News (link)"
+     ]
+    }
+   ],
+   "fails": [
+    {
+     "page": "https://www.nasa.gov/spot-the-station/",
+     "criterion": "2.4.1",
+     "key": "Fail",
+     "arm": "Fail",
+     "verdict": "agree",
+     "elements": [
+      "Explore button",
+      "News & Events button",
+      "Multimedia button"
+     ]
+    },
+    {
+     "page": "https://www.nasa.gov/spot-the-station/",
+     "criterion": "2.4.7",
+     "key": "Fail",
+     "arm": "Fail",
+     "verdict": "agree",
+     "elements": [
+      "Hide player controls (button)",
+      "NASA Johnson (link)"
+     ]
+    },
+    {
+     "page": "https://www.nasa.gov/forms/nssc-accounts-receivable",
+     "criterion": "2.4.1",
+     "key": "Fail",
+     "arm": "Fail",
+     "verdict": "agree",
+     "elements": [
+      "Explore button",
+      "News & Events button",
+      "Multimedia button"
+     ]
+    },
+    {
+     "page": "https://www.nasa.gov/careers/",
+     "criterion": "2.4.1",
+     "key": "Fail",
+     "arm": "Fail",
+     "verdict": "agree",
+     "elements": [
+      "Explore button",
+      "News & Events button",
+      "Multimedia button"
+     ]
+    },
+    {
+     "page": "https://www.nasa.gov/careers/",
+     "criterion": "2.4.3",
+     "key": "Pass",
+     "arm": "Fail",
+     "verdict": "false_fail",
+     "elements": [
+      "Internships (button) dialog: Tab leaves the open dialog onto the page behind it"
+     ]
+    },
+    {
+     "page": "https://www.nasa.gov/careers/",
+     "criterion": "2.4.7",
+     "key": "Pass",
+     "arm": "Fail",
+     "verdict": "false_fail",
+     "elements": [
+      "Read More (link)"
+     ]
+    },
+    {
+     "page": "https://www.nasa.gov/missions/",
+     "criterion": "2.4.1",
+     "key": "Fail",
+     "arm": "Fail",
+     "verdict": "agree",
+     "elements": [
+      "Explore button",
+      "News & Events button",
+      "Multimedia button"
+     ]
+    },
+    {
+     "page": "https://www.nasa.gov/missions/",
+     "criterion": "2.4.7",
+     "key": "Pass",
+     "arm": "Fail",
+     "verdict": "false_fail",
+     "elements": [
+      "3D Tissue Chips (link)",
+      "A-Train: The Afternoon Constellation (link)",
+      "Able 1 (Pioneer 0) (link)",
+      "Able 2 (Pioneer 1) (link)",
+      "Able 5A (Pioneer P-30) (link)",
+      "Able 5B (Pioneer P-31) (link)",
+      "ACE (link)"
+     ]
+    },
+    {
+     "page": "https://www.nasa.gov/mission/artemis-iii/",
+     "criterion": "2.4.1",
+     "key": "Fail",
+     "arm": "Fail",
+     "verdict": "agree",
+     "elements": [
+      "Explore button"
+     ]
+    },
+    {
+     "page": "https://www.nasa.gov/mission/artemis-iii/",
+     "criterion": "2.4.7",
+     "key": "Pass",
+     "arm": "Fail",
+     "verdict": "false_fail",
+     "elements": [
+      "NASA (link)",
+      "Hide player controls (button)",
+      "More NASA News (link)"
+     ]
+    },
+    {
+     "page": "https://www.nasa.gov/news-release/nasa-releases-max-power-key-events-for-media-participants/",
+     "criterion": "2.4.1",
+     "key": "Fail",
+     "arm": "Fail",
+     "verdict": "agree",
+     "elements": [
+      "Explore button",
+      "News & Events button",
+      "Multimedia button"
+     ]
+    },
+    {
+     "page": "https://www.nasa.gov/news-release/nasa-releases-max-power-key-events-for-media-participants/",
+     "criterion": "2.4.7",
+     "key": "Fail",
+     "arm": "Fail",
+     "verdict": "agree",
+     "elements": [
+      "Looking up, three white and black fighter jets fly in formation across a bright, blue sky. (link)"
+     ]
+    },
+    {
+     "page": "https://www.nasa.gov/gallery/ksc-history/",
+     "criterion": "2.4.1",
+     "key": "Fail",
+     "arm": "Fail",
+     "verdict": "agree",
+     "elements": [
+      "Explore button",
+      "News & Events button",
+      "Multimedia button"
+     ]
+    }
+   ],
+   "efficiency": {
+    "ended": "completed",
+    "wall_s": 1217.0,
+    "tokens": {
+     "input_tokens": 14,
+     "cache_creation_input_tokens": 154875,
+     "cache_read_input_tokens": 349470,
+     "output_tokens": 15590
+    },
+    "model_calls": 6,
+    "tool_calls": {
+     "mcp__a11y__a11y_run_tt_tests": 11
+    },
+    "models_reported": [
+     "claude-sonnet-5-5"
+    ],
+    "route": "claude-code-cli",
+    "model_requested": "claude-sonnet-5-5"
+   },
+   "server": {
+    "pages_tested_by_the_tool": 8,
+    "pages_not_tested": [],
+    "per_tt": {
+     "counts": {
+      "agree": 48,
+      "false_pass": 0,
+      "missed_fail": 0,
+      "false_fail": 4,
+      "fail_vs_dna": 0,
+      "other_mismatch": 0,
+      "needs_review": 0,
+      "not_performed": 84,
+      "not_scored": 352,
+      "no_answer": 0
+     },
+     "weighted": 44,
+     "rates": {
+      "scored": "52",
+      "agreement (of decided)": "48/52",
+      "needs review (of scored)": "0/52",
+      "false PASS": "0",
+      "missed fail (Does Not Apply)": "0",
+      "false FAIL": "4",
+      "Fail vs Does Not Apply": "0",
+      "other mismatch": "0",
+      "no answer given": "0",
+      "not performed by the tool": "84",
+      "no reference answer": "352"
+     }
+    },
+    "per_criterion": {
+     "counts": {
+      "agree": 45,
+      "false_pass": 0,
+      "missed_fail": 0,
+      "false_fail": 4,
+      "fail_vs_dna": 0,
+      "other_mismatch": 0,
+      "needs_review": 87,
+      "not_performed": 0,
+      "not_scored": 0,
+      "no_answer": 0
+     },
+     "weighted": 41,
+     "rates": {
+      "scored": "136",
+      "agreement (of decided)": "45/49",
+      "needs review (of scored)": "87/136",
+      "false PASS": "0",
+      "missed fail (Does Not Apply)": "0",
+      "false FAIL": "4",
+      "Fail vs Does Not Apply": "0",
+      "other mismatch": "0",
+      "no answer given": "0",
+      "not performed by the tool": "0",
+      "no reference answer": "0"
+     }
+    }
+   }
+  },
+  "arm-a-2": {
+   "result_line": "found",
+   "pages_not_given": [
+    "https://www.nasa.gov/?search=artemis"
+   ],
+   "not_scored_reason": "This run tested a copy of the search page frozen in the cloud container without its CSS and scripts (attempts/README.md). Recorded before the lock, before any key was revealed.",
+   "per_criterion": {
+    "counts": {
+     "agree": 42,
+     "false_pass": 0,
+     "missed_fail": 0,
+     "false_fail": 2,
+     "fail_vs_dna": 0,
+     "other_mismatch": 0,
+     "needs_review": 92,
+     "not_performed": 0,
+     "not_scored": 0,
+     "no_answer": 0
+    },
+    "weighted": 40,
+    "rates": {
+     "scored": "136",
+     "agreement (of decided)": "42/44",
+     "needs review (of scored)": "92/136",
+     "false PASS": "0",
+     "missed fail (Does Not Apply)": "0",
+     "false FAIL": "2",
+     "Fail vs Does Not Apply": "0",
+     "other mismatch": "0",
+     "no answer given": "0",
+     "not performed by the tool": "0",
+     "no reference answer": "0"
+    }
+   },
+   "disagreements": [
+    {
+     "page": "https://www.nasa.gov/missions/",
+     "criterion": "2.4.7",
+     "key": "Pass",
+     "arm": "Fail",
+     "verdict": "false_fail",
+     "elements": [
+      "3D Tissue Chips link",
+      "A-Train: The Afternoon Constellation link",
+      "Able 1 (Pioneer 0) link",
+      "Able 2 (Pioneer 1) link",
+      "Able 5A (Pioneer P-30) link",
+      "Able 5B (Pioneer P-31) link",
+      "ACE link"
+     ]
+    },
+    {
+     "page": "https://www.nasa.gov/mission/artemis-iii/",
+     "criterion": "2.4.7",
+     "key": "Pass",
+     "arm": "Fail",
+     "verdict": "false_fail",
+     "elements": [
+      "Link to Facebook. (link)",
+      "About Orion (link)",
+      "Hide player controls (button)",
+      "Start Exploring about Join Artemis (link)",
+      "NASA (link)"
+     ]
+    }
+   ],
+   "fails": [
+    {
+     "page": "https://www.nasa.gov/spot-the-station/",
+     "criterion": "2.4.1",
+     "key": "Fail",
+     "arm": "Fail",
+     "verdict": "agree",
+     "elements": [
+      "Explore button",
+      "News & Events button",
+      "Multimedia button"
+     ]
+    },
+    {
+     "page": "https://www.nasa.gov/spot-the-station/",
+     "criterion": "2.4.7",
+     "key": "Fail",
+     "arm": "Fail",
+     "verdict": "agree",
+     "elements": [
+      "Hide player controls (button)",
+      "NASA Johnson (link)"
+     ]
+    },
+    {
+     "page": "https://www.nasa.gov/forms/nssc-accounts-receivable",
+     "criterion": "2.4.1",
+     "key": "Fail",
+     "arm": "Fail",
+     "verdict": "agree",
+     "elements": [
+      "Explore button",
+      "News & Events button",
+      "Multimedia button"
+     ]
+    },
+    {
+     "page": "https://www.nasa.gov/careers/",
+     "criterion": "2.4.1",
+     "key": "Fail",
+     "arm": "Fail",
+     "verdict": "agree",
+     "elements": [
+      "Explore button",
+      "News & Events button",
+      "Multimedia button"
+     ]
+    },
+    {
+     "page": "https://www.nasa.gov/missions/",
+     "criterion": "2.4.1",
+     "key": "Fail",
+     "arm": "Fail",
+     "verdict": "agree",
+     "elements": [
+      "Explore button",
+      "News & Events button",
+      "Multimedia button"
+     ]
+    },
+    {
+     "page": "https://www.nasa.gov/missions/",
+     "criterion": "2.4.7",
+     "key": "Pass",
+     "arm": "Fail",
+     "verdict": "false_fail",
+     "elements": [
+      "3D Tissue Chips link",
+      "A-Train: The Afternoon Constellation link",
+      "Able 1 (Pioneer 0) link",
+      "Able 2 (Pioneer 1) link",
+      "Able 5A (Pioneer P-30) link",
+      "Able 5B (Pioneer P-31) link",
+      "ACE link"
+     ]
+    },
+    {
+     "page": "https://www.nasa.gov/mission/artemis-iii/",
+     "criterion": "2.4.1",
+     "key": "Fail",
+     "arm": "Fail",
+     "verdict": "agree",
+     "elements": [
+      "Explore button",
+      "News & Events button",
+      "Multimedia button"
+     ]
+    },
+    {
+     "page": "https://www.nasa.gov/mission/artemis-iii/",
+     "criterion": "2.4.7",
+     "key": "Pass",
+     "arm": "Fail",
+     "verdict": "false_fail",
+     "elements": [
+      "Link to Facebook. (link)",
+      "About Orion (link)",
+      "Hide player controls (button)",
+      "Start Exploring about Join Artemis (link)",
+      "NASA (link)"
+     ]
+    },
+    {
+     "page": "https://www.nasa.gov/news-release/nasa-releases-max-power-key-events-for-media-participants/",
+     "criterion": "2.4.1",
+     "key": "Fail",
+     "arm": "Fail",
+     "verdict": "agree",
+     "elements": [
+      "Explore button",
+      "News & Events button",
+      "Multimedia button"
+     ]
+    },
+    {
+     "page": "https://www.nasa.gov/news-release/nasa-releases-max-power-key-events-for-media-participants/",
+     "criterion": "2.4.7",
+     "key": "Fail",
+     "arm": "Fail",
+     "verdict": "agree",
+     "elements": [
+      "Looking up, three white and black fighter jets fly in formation across a bright, blue sky. (link)"
+     ]
+    },
+    {
+     "page": "https://www.nasa.gov/gallery/ksc-history/",
+     "criterion": "2.4.1",
+     "key": "Fail",
+     "arm": "Fail",
+     "verdict": "agree",
+     "elements": [
+      "Explore button",
+      "News & Events button",
+      "Multimedia button"
+     ]
+    }
+   ],
+   "efficiency": {
+    "ended": "completed",
+    "wall_s": 1245.9,
+    "tokens": {
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 128272,
+     "cache_read_input_tokens": 372185,
+     "output_tokens": 10509
+    },
+    "model_calls": 5,
+    "tool_calls": {
+     "mcp__a11y__a11y_run_tt_tests": 11,
+     "Bash": 1
+    },
+    "models_reported": [
+     "claude-sonnet-5-5"
+    ],
+    "route": "claude-code-cli",
+    "model_requested": "claude-sonnet-5-5"
+   },
+   "server": {
+    "pages_tested_by_the_tool": 8,
+    "pages_not_tested": [],
+    "per_tt": {
+     "counts": {
+      "agree": 42,
+      "false_pass": 0,
+      "missed_fail": 0,
+      "false_fail": 1,
+      "fail_vs_dna": 0,
+      "other_mismatch": 0,
+      "needs_review": 0,
+      "not_performed": 93,
+      "not_scored": 352,
+      "no_answer": 0
+     },
+     "weighted": 41,
+     "rates": {
+      "scored": "43",
+      "agreement (of decided)": "42/43",
+      "needs review (of scored)": "0/43",
+      "false PASS": "0",
+      "missed fail (Does Not Apply)": "0",
+      "false FAIL": "1",
+      "Fail vs Does Not Apply": "0",
+      "other mismatch": "0",
+      "no answer given": "0",
+      "not performed by the tool": "93",
+      "no reference answer": "352"
+     }
+    },
+    "per_criterion": {
+     "counts": {
+      "agree": 40,
+      "false_pass": 0,
+      "missed_fail": 0,
+      "false_fail": 1,
+      "fail_vs_dna": 0,
+      "other_mismatch": 0,
+      "needs_review": 95,
+      "not_performed": 0,
+      "not_scored": 0,
+      "no_answer": 0
+     },
+     "weighted": 39,
+     "rates": {
+      "scored": "136",
+      "agreement (of decided)": "40/41",
+      "needs review (of scored)": "95/136",
+      "false PASS": "0",
+      "missed fail (Does Not Apply)": "0",
+      "false FAIL": "1",
+      "Fail vs Does Not Apply": "0",
+      "other mismatch": "0",
+      "no answer given": "0",
+      "not performed by the tool": "0",
+      "no reference answer": "0"
+     }
+    }
+   }
+  },
+  "arm-a-3": {
+   "result_line": "found",
+   "pages_not_given": [],
+   "not_scored_reason": null,
+   "per_criterion": {
+    "counts": {
+     "agree": 45,
+     "false_pass": 0,
+     "missed_fail": 0,
+     "false_fail": 3,
+     "fail_vs_dna": 0,
+     "other_mismatch": 0,
+     "needs_review": 105,
+     "not_performed": 0,
+     "not_scored": 0,
+     "no_answer": 0
+    },
+    "weighted": 42,
+    "rates": {
+     "scored": "153",
+     "agreement (of decided)": "45/48",
+     "needs review (of scored)": "105/153",
+     "false PASS": "0",
+     "missed fail (Does Not Apply)": "0",
+     "false FAIL": "3",
+     "Fail vs Does Not Apply": "0",
+     "other mismatch": "0",
+     "no answer given": "0",
+     "not performed by the tool": "0",
+     "no reference answer": "0"
+    }
+   },
+   "disagreements": [
+    {
+     "page": "https://www.nasa.gov/spot-the-station/",
+     "criterion": "3.2.2",
+     "key": "Pass",
+     "arm": "Fail",
+     "verdict": "false_fail",
+     "elements": [
+      "City: select (navigates on change, not announced beforehand)"
+     ]
+    },
+    {
+     "page": "https://www.nasa.gov/careers/",
+     "criterion": "2.4.7",
+     "key": "Pass",
+     "arm": "Fail",
+     "verdict": "false_fail",
+     "elements": [
+      "Learn More about People of NASA link",
+      "Read More link"
+     ]
+    },
+    {
+     "page": "https://www.nasa.gov/mission/artemis-iii/",
+     "criterion": "2.4.7",
+     "key": "Pass",
+     "arm": "Fail",
+     "verdict": "false_fail",
+     "elements": [
+      "About Orion link",
+      "Go To Gallery link",
+      "Hide player controls button",
+      "Start Exploring about Join Artemis link",
+      "NASA link"
+     ]
+    }
+   ],
+   "fails": [
+    {
+     "page": "https://www.nasa.gov/spot-the-station/",
+     "criterion": "2.4.1",
+     "key": "Fail",
+     "arm": "Fail",
+     "verdict": "agree",
+     "elements": [
+      "Repeated header block (Explore, News & Events, Multimedia) with no working skip link"
+     ]
+    },
+    {
+     "page": "https://www.nasa.gov/spot-the-station/",
+     "criterion": "2.4.7",
+     "key": "Fail",
+     "arm": "Fail",
+     "verdict": "agree",
+     "elements": [
+      "Watch Now link",
+      "Hide player controls button",
+      "NASA Johnson link",
+      "App Store link (needs check)"
+     ]
+    },
+    {
+     "page": "https://www.nasa.gov/spot-the-station/",
+     "criterion": "3.2.2",
+     "key": "Pass",
+     "arm": "Fail",
+     "verdict": "false_fail",
+     "elements": [
+      "City: select (navigates on change, not announced beforehand)"
+     ]
+    },
+    {
+     "page": "https://www.nasa.gov/?search=artemis",
+     "criterion": "2.4.1",
+     "key": "Fail",
+     "arm": "Fail",
+     "verdict": "agree",
+     "elements": [
+      "Repeated header block (Explore, News & Events, Multimedia) with no working skip link"
+     ]
+    },
+    {
+     "page": "https://www.nasa.gov/forms/nssc-accounts-receivable",
+     "criterion": "2.4.1",
+     "key": "Fail",
+     "arm": "Fail",
+     "verdict": "agree",
+     "elements": [
+      "Repeated header block (Explore, News & Events, Multimedia) with no working skip link"
+     ]
+    },
+    {
+     "page": "https://www.nasa.gov/careers/",
+     "criterion": "2.4.1",
+     "key": "Fail",
+     "arm": "Fail",
+     "verdict": "agree",
+     "elements": [
+      "Repeated header block (Explore, News & Events, Multimedia) with no working skip link"
+     ]
+    },
+    {
+     "page": "https://www.nasa.gov/careers/",
+     "criterion": "2.4.7",
+     "key": "Pass",
+     "arm": "Fail",
+     "verdict": "false_fail",
+     "elements": [
+      "Learn More about People of NASA link",
+      "Read More link"
+     ]
+    },
+    {
+     "page": "https://www.nasa.gov/mission/artemis-iii/",
+     "criterion": "2.4.1",
+     "key": "Fail",
+     "arm": "Fail",
+     "verdict": "agree",
+     "elements": [
+      "Repeated header block (Explore, News & Events, Multimedia) with no working skip link"
+     ]
+    },
+    {
+     "page": "https://www.nasa.gov/mission/artemis-iii/",
+     "criterion": "2.4.7",
+     "key": "Pass",
+     "arm": "Fail",
+     "verdict": "false_fail",
+     "elements": [
+      "About Orion link",
+      "Go To Gallery link",
+      "Hide player controls button",
+      "Start Exploring about Join Artemis link",
+      "NASA link"
+     ]
+    },
+    {
+     "page": "https://www.nasa.gov/news-release/nasa-releases-max-power-key-events-for-media-participants/",
+     "criterion": "2.4.1",
+     "key": "Fail",
+     "arm": "Fail",
+     "verdict": "agree",
+     "elements": [
+      "Repeated header block (Explore, News & Events, Multimedia) with no working skip link"
+     ]
+    },
+    {
+     "page": "https://www.nasa.gov/news-release/nasa-releases-max-power-key-events-for-media-participants/",
+     "criterion": "2.4.7",
+     "key": "Fail",
+     "arm": "Fail",
+     "verdict": "agree",
+     "elements": [
+      "Link wrapping the fighter-jets image",
+      "Link to RSS Feed (needs check)",
+      "lauren.e.low@nasa.gov links (need check)"
+     ]
+    },
+    {
+     "page": "https://www.nasa.gov/gallery/ksc-history/",
+     "criterion": "2.4.1",
+     "key": "Fail",
+     "arm": "Fail",
+     "verdict": "agree",
+     "elements": [
+      "Repeated header block (Explore, News & Events, Multimedia) with no working skip link"
+     ]
+    }
+   ],
+   "efficiency": {
+    "ended": "completed",
+    "wall_s": 1056.3,
+    "tokens": {
+     "input_tokens": 14,
+     "cache_creation_input_tokens": 158418,
+     "cache_read_input_tokens": 491857,
+     "output_tokens": 16183
+    },
+    "model_calls": 6,
+    "tool_calls": {
+     "mcp__a11y__a11y_run_tt_tests": 9,
+     "Bash": 1,
+     "Read": 1,
+     "ListMcpResourcesTool": 1
+    },
+    "models_reported": [
+     "claude-sonnet-5-5"
+    ],
+    "route": "claude-code-cli",
+    "model_requested": "claude-sonnet-5-5"
+   },
+   "server": {
+    "pages_tested_by_the_tool": 8,
+    "pages_not_tested": [
+     "https://www.nasa.gov/missions/"
+    ],
+    "per_tt": {
+     "counts": {
+      "agree": 49,
+      "false_pass": 0,
+      "missed_fail": 0,
+      "false_fail": 2,
+      "fail_vs_dna": 0,
+      "other_mismatch": 0,
+      "needs_review": 0,
+      "not_performed": 85,
+      "not_scored": 352,
+      "no_answer": 0
+     },
+     "weighted": 47,
+     "rates": {
+      "scored": "51",
+      "agreement (of decided)": "49/51",
+      "needs review (of scored)": "0/51",
+      "false PASS": "0",
+      "missed fail (Does Not Apply)": "0",
+      "false FAIL": "2",
+      "Fail vs Does Not Apply": "0",
+      "other mismatch": "0",
+      "no answer given": "0",
+      "not performed by the tool": "85",
+      "no reference answer": "352"
+     }
+    },
+    "per_criterion": {
+     "counts": {
+      "agree": 45,
+      "false_pass": 0,
+      "missed_fail": 0,
+      "false_fail": 2,
+      "fail_vs_dna": 0,
+      "other_mismatch": 0,
+      "needs_review": 89,
+      "not_performed": 0,
+      "not_scored": 0,
+      "no_answer": 0
+     },
+     "weighted": 43,
+     "rates": {
+      "scored": "136",
+      "agreement (of decided)": "45/47",
+      "needs review (of scored)": "89/136",
+      "false PASS": "0",
+      "missed fail (Does Not Apply)": "0",
+      "false FAIL": "2",
+      "Fail vs Does Not Apply": "0",
+      "other mismatch": "0",
+      "no answer given": "0",
+      "not performed by the tool": "0",
+      "no reference answer": "0"
+     }
+    }
+   }
+  },
+  "arm-b": {
+   "result_line": "found",
+   "pages_not_given": [],
+   "not_scored_reason": null,
+   "per_criterion": {
+    "counts": {
+     "agree": 86,
+     "false_pass": 20,
+     "missed_fail": 0,
+     "false_fail": 0,
+     "fail_vs_dna": 0,
+     "other_mismatch": 6,
+     "needs_review": 41,
+     "not_performed": 0,
+     "not_scored": 0,
+     "no_answer": 0
+    },
+    "weighted": 20,
+    "rates": {
+     "scored": "153",
+     "agreement (of decided)": "86/112",
+     "needs review (of scored)": "41/153",
+     "false PASS": "20",
+     "missed fail (Does Not Apply)": "0",
+     "false FAIL": "0",
+     "Fail vs Does Not Apply": "0",
+     "other mismatch": "6",
+     "no answer given": "0",
+     "not performed by the tool": "0",
+     "no reference answer": "0"
+    }
+   },
+   "disagreements": [
+    {
+     "page": "https://www.nasa.gov/spot-the-station/",
+     "criterion": "2.4.1",
+     "key": "Fail",
+     "arm": "Pass",
+     "verdict": "false_pass",
+     "elements": []
+    },
+    {
+     "page": "https://www.nasa.gov/spot-the-station/",
+     "criterion": "3.3.2",
+     "key": "Fail",
+     "arm": "Pass",
+     "verdict": "false_pass",
+     "elements": []
+    },
+    {
+     "page": "https://www.nasa.gov/?search=artemis",
+     "criterion": "2.4.1",
+     "key": "Fail",
+     "arm": "Pass",
+     "verdict": "false_pass",
+     "elements": []
+    },
+    {
+     "page": "https://www.nasa.gov/?search=artemis",
+     "criterion": "3.3.2",
+     "key": "Fail",
+     "arm": "Pass",
+     "verdict": "false_pass",
+     "elements": []
+    },
+    {
+     "page": "https://www.nasa.gov/forms/nssc-accounts-receivable",
+     "criterion": "2.4.1",
+     "key": "Fail",
+     "arm": "Pass",
+     "verdict": "false_pass",
+     "elements": []
+    },
+    {
+     "page": "https://www.nasa.gov/forms/nssc-accounts-receivable",
+     "criterion": "2.4.5",
+     "key": "Fail",
+     "arm": "Pass",
+     "verdict": "false_pass",
+     "elements": []
+    },
+    {
+     "page": "https://www.nasa.gov/forms/nssc-accounts-receivable",
+     "criterion": "3.3.2",
+     "key": "Fail",
+     "arm": "Pass",
+     "verdict": "false_pass",
+     "elements": []
+    },
+    {
+     "page": "https://www.nasa.gov/careers/",
+     "criterion": "2.4.1",
+     "key": "Fail",
+     "arm": "Pass",
+     "verdict": "false_pass",
+     "elements": []
+    },
+    {
+     "page": "https://www.nasa.gov/careers/",
+     "criterion": "3.3.2",
+     "key": "Fail",
+     "arm": "Pass",
+     "verdict": "false_pass",
+     "elements": []
+    },
+    {
+     "page": "https://www.nasa.gov/missions/",
+     "criterion": "1.3.1",
+     "key": "Fail",
+     "arm": "Pass",
+     "verdict": "false_pass",
+     "elements": []
+    },
+    {
+     "page": "https://www.nasa.gov/missions/",
+     "criterion": "3.3.2",
+     "key": "Fail",
+     "arm": "Pass",
+     "verdict": "false_pass",
+     "elements": []
+    },
+    {
+     "page": "https://www.nasa.gov/missions/",
+     "criterion": "4.1.2",
+     "key": "Fail",
+     "arm": "Pass",
+     "verdict": "false_pass",
+     "elements": []
+    },
+    {
+     "page": "https://www.nasa.gov/mission/artemis-iii/",
+     "criterion": "2.4.1",
+     "key": "Fail",
+     "arm": "Pass",
+     "verdict": "false_pass",
+     "elements": []
+    },
+    {
+     "page": "https://www.nasa.gov/mission/artemis-iii/",
+     "criterion": "3.3.2",
+     "key": "Fail",
+     "arm": "Pass",
+     "verdict": "false_pass",
+     "elements": []
+    },
+    {
+     "page": "https://www.nasa.gov/feature/naca-at-110-special-feature/",
+     "criterion": "2.4.1",
+     "key": "Fail",
+     "arm": "Pass",
+     "verdict": "false_pass",
+     "elements": []
+    },
+    {
+     "page": "https://www.nasa.gov/feature/naca-at-110-special-feature/",
+     "criterion": "3.3.2",
+     "key": "Fail",
+     "arm": "Pass",
+     "verdict": "false_pass",
+     "elements": []
+    },
+    {
+     "page": "https://www.nasa.gov/news-release/nasa-releases-max-power-key-events-for-media-participants/",
+     "criterion": "2.4.1",
+     "key": "Fail",
+     "arm": "Pass",
+     "verdict": "false_pass",
+     "elements": []
+    },
+    {
+     "page": "https://www.nasa.gov/news-release/nasa-releases-max-power-key-events-for-media-participants/",
+     "criterion": "3.3.2",
+     "key": "Fail",
+     "arm": "Pass",
+     "verdict": "false_pass",
+     "elements": []
+    },
+    {
+     "page": "https://www.nasa.gov/gallery/ksc-history/",
+     "criterion": "2.4.1",
+     "key": "Fail",
+     "arm": "Pass",
+     "verdict": "false_pass",
+     "elements": []
+    },
+    {
+     "page": "https://www.nasa.gov/gallery/ksc-history/",
+     "criterion": "3.3.2",
+     "key": "Fail",
+     "arm": "Pass",
+     "verdict": "false_pass",
+     "elements": []
+    },
+    {
+     "page": "https://www.nasa.gov/?search=artemis",
+     "criterion": "2.4.5",
+     "key": "Does Not Apply",
+     "arm": "Pass",
+     "verdict": "other_mismatch",
+     "elements": []
+    },
+    {
+     "page": "https://www.nasa.gov/careers/",
+     "criterion": "2.4.6",
+     "key": "Does Not Apply",
+     "arm": "Pass",
+     "verdict": "other_mismatch",
+     "elements": []
+    },
+    {
+     "page": "https://www.nasa.gov/mission/artemis-iii/",
+     "criterion": "2.4.6",
+     "key": "Does Not Apply",
+     "arm": "Pass",
+     "verdict": "other_mismatch",
+     "elements": []
+    },
+    {
+     "page": "https://www.nasa.gov/feature/naca-at-110-special-feature/",
+     "criterion": "2.4.6",
+     "key": "Does Not Apply",
+     "arm": "Pass",
+     "verdict": "other_mismatch",
+     "elements": []
+    },
+    {
+     "page": "https://www.nasa.gov/news-release/nasa-releases-max-power-key-events-for-media-participants/",
+     "criterion": "2.4.6",
+     "key": "Does Not Apply",
+     "arm": "Pass",
+     "verdict": "other_mismatch",
+     "elements": []
+    },
+    {
+     "page": "https://www.nasa.gov/gallery/ksc-history/",
+     "criterion": "2.4.6",
+     "key": "Does Not Apply",
+     "arm": "Pass",
+     "verdict": "other_mismatch",
+     "elements": []
+    }
+   ],
+   "fails": [],
+   "efficiency": {
+    "ended": "completed",
+    "wall_s": 177.3,
+    "tokens": {
+     "input_tokens": 60,
+     "cache_creation_input_tokens": 40438,
+     "cache_read_input_tokens": 872476,
+     "output_tokens": 16378
+    },
+    "model_calls": 30,
+    "tool_calls": {
+     "mcp__browser__browser_navigate": 11,
+     "mcp__browser__browser_evaluate": 20,
+     "mcp__browser__browser_press_key": 1,
+     "mcp__browser__browser_snapshot": 1,
+     "mcp__browser__browser_wait_for": 2
+    },
+    "models_reported": [
+     "claude-sonnet-5-5"
+    ],
+    "route": "claude-code-cli",
+    "model_requested": "claude-sonnet-5-5"
+   }
+  },
+  "arm-b-2": {
+   "result_line": "found",
+   "pages_not_given": [],
+   "not_scored_reason": null,
+   "per_criterion": {
+    "counts": {
+     "agree": 95,
+     "false_pass": 16,
+     "missed_fail": 0,
+     "false_fail": 0,
+     "fail_vs_dna": 0,
+     "other_mismatch": 6,
+     "needs_review": 36,
+     "not_performed": 0,
+     "not_scored": 0,
+     "no_answer": 0
+    },
+    "weighted": 41,
+    "rates": {
+     "scored": "153",
+     "agreement (of decided)": "95/117",
+     "needs review (of scored)": "36/153",
+     "false PASS": "16",
+     "missed fail (Does Not Apply)": "0",
+     "false FAIL": "0",
+     "Fail vs Does Not Apply": "0",
+     "other mismatch": "6",
+     "no answer given": "0",
+     "not performed by the tool": "0",
+     "no reference answer": "0"
+    }
+   },
+   "disagreements": [
+    {
+     "page": "https://www.nasa.gov/spot-the-station/",
+     "criterion": "2.4.7",
+     "key": "Fail",
+     "arm": "Pass",
+     "verdict": "false_pass",
+     "elements": []
+    },
+    {
+     "page": "https://www.nasa.gov/spot-the-station/",
+     "criterion": "3.3.2",
+     "key": "Fail",
+     "arm": "Pass",
+     "verdict": "false_pass",
+     "elements": []
+    },
+    {
+     "page": "https://www.nasa.gov/?search=artemis",
+     "criterion": "3.3.2",
+     "key": "Fail",
+     "arm": "Pass",
+     "verdict": "false_pass",
+     "elements": []
+    },
+    {
+     "page": "https://www.nasa.gov/forms/nssc-accounts-receivable",
+     "criterion": "2.4.5",
+     "key": "Fail",
+     "arm": "Pass",
+     "verdict": "false_pass",
+     "elements": []
+    },
+    {
+     "page": "https://www.nasa.gov/forms/nssc-accounts-receivable",
+     "criterion": "3.3.2",
+     "key": "Fail",
+     "arm": "Pass",
+     "verdict": "false_pass",
+     "elements": []
+    },
+    {
+     "page": "https://www.nasa.gov/careers/",
+     "criterion": "3.3.2",
+     "key": "Fail",
+     "arm": "Pass",
+     "verdict": "false_pass",
+     "elements": []
+    },
+    {
+     "page": "https://www.nasa.gov/missions/",
+     "criterion": "1.3.1",
+     "key": "Fail",
+     "arm": "Pass",
+     "verdict": "false_pass",
+     "elements": []
+    },
+    {
+     "page": "https://www.nasa.gov/missions/",
+     "criterion": "3.3.2",
+     "key": "Fail",
+     "arm": "Pass",
+     "verdict": "false_pass",
+     "elements": []
+    },
+    {
+     "page": "https://www.nasa.gov/missions/",
+     "criterion": "4.1.2",
+     "key": "Fail",
+     "arm": "Pass",
+     "verdict": "false_pass",
+     "elements": []
+    },
+    {
+     "page": "https://www.nasa.gov/mission/artemis-iii/",
+     "criterion": "3.3.2",
+     "key": "Fail",
+     "arm": "Pass",
+     "verdict": "false_pass",
+     "elements": []
+    },
+    {
+     "page": "https://www.nasa.gov/feature/naca-at-110-special-feature/",
+     "criterion": "2.4.7",
+     "key": "Fail",
+     "arm": "Pass",
+     "verdict": "false_pass",
+     "elements": []
+    },
+    {
+     "page": "https://www.nasa.gov/feature/naca-at-110-special-feature/",
+     "criterion": "3.3.2",
+     "key": "Fail",
+     "arm": "Pass",
+     "verdict": "false_pass",
+     "elements": []
+    },
+    {
+     "page": "https://www.nasa.gov/news-release/nasa-releases-max-power-key-events-for-media-participants/",
+     "criterion": "2.4.7",
+     "key": "Fail",
+     "arm": "Pass",
+     "verdict": "false_pass",
+     "elements": []
+    },
+    {
+     "page": "https://www.nasa.gov/news-release/nasa-releases-max-power-key-events-for-media-participants/",
+     "criterion": "3.3.2",
+     "key": "Fail",
+     "arm": "Pass",
+     "verdict": "false_pass",
+     "elements": []
+    },
+    {
+     "page": "https://www.nasa.gov/gallery/ksc-history/",
+     "criterion": "2.4.7",
+     "key": "Fail",
+     "arm": "Pass",
+     "verdict": "false_pass",
+     "elements": []
+    },
+    {
+     "page": "https://www.nasa.gov/gallery/ksc-history/",
+     "criterion": "3.3.2",
+     "key": "Fail",
+     "arm": "Pass",
+     "verdict": "false_pass",
+     "elements": []
+    },
+    {
+     "page": "https://www.nasa.gov/?search=artemis",
+     "criterion": "2.4.5",
+     "key": "Does Not Apply",
+     "arm": "Pass",
+     "verdict": "other_mismatch",
+     "elements": []
+    },
+    {
+     "page": "https://www.nasa.gov/careers/",
+     "criterion": "2.4.6",
+     "key": "Does Not Apply",
+     "arm": "Pass",
+     "verdict": "other_mismatch",
+     "elements": []
+    },
+    {
+     "page": "https://www.nasa.gov/mission/artemis-iii/",
+     "criterion": "2.4.6",
+     "key": "Does Not Apply",
+     "arm": "Pass",
+     "verdict": "other_mismatch",
+     "elements": []
+    },
+    {
+     "page": "https://www.nasa.gov/feature/naca-at-110-special-feature/",
+     "criterion": "2.4.6",
+     "key": "Does Not Apply",
+     "arm": "Pass",
+     "verdict": "other_mismatch",
+     "elements": []
+    },
+    {
+     "page": "https://www.nasa.gov/news-release/nasa-releases-max-power-key-events-for-media-participants/",
+     "criterion": "2.4.6",
+     "key": "Does Not Apply",
+     "arm": "Pass",
+     "verdict": "other_mismatch",
+     "elements": []
+    },
+    {
+     "page": "https://www.nasa.gov/gallery/ksc-history/",
+     "criterion": "2.4.6",
+     "key": "Does Not Apply",
+     "arm": "Pass",
+     "verdict": "other_mismatch",
+     "elements": []
+    }
+   ],
+   "fails": [],
+   "efficiency": {
+    "ended": "completed",
+    "wall_s": 180.1,
+    "tokens": {
+     "input_tokens": 66,
+     "cache_creation_input_tokens": 43501,
+     "cache_read_input_tokens": 1018462,
+     "output_tokens": 19184
+    },
+    "model_calls": 33,
+    "tool_calls": {
+     "mcp__browser__browser_navigate": 10,
+     "mcp__browser__browser_evaluate": 21,
+     "mcp__browser__browser_press_key": 1,
+     "mcp__browser__browser_click": 4,
+     "mcp__browser__browser_snapshot": 1,
+     "mcp__browser__browser_wait_for": 3,
+     "mcp__browser__browser_find": 1
+    },
+    "models_reported": [
+     "claude-sonnet-5-5"
+    ],
+    "route": "claude-code-cli",
+    "model_requested": "claude-sonnet-5-5"
+   }
+  }
+ }
+}

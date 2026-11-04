@@ -1,0 +1,15 @@
+{"ts":"2026-11-04T15:24:36.754230Z","step":"run_start","status":"ok","detail":{"target":"https://www.nasa.gov/missions/","tests":["4.A","4.C","4.D","4.E","5.A","5.C","9.A"]}}
+{"ts":"2026-11-04T15:24:37.260998Z","step":"browser_launched","status":"ok","detail":{"version":"153.0.8010.12"}}
+{"ts":"2026-11-04T15:24:37.283514Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/missions/","har":"pages/005.har.zip"}}
+{"ts":"2026-11-04T15:24:37.295681Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/careers/","har":"pages/004.har.zip"}}
+{"ts":"2026-11-04T15:24:37.296054Z","step":"captured_other","status":"ok","detail":{"n":1,"final_url":"https://www.nasa.gov/careers/","seconds":0.01}}
+{"ts":"2026-11-04T15:24:37.307006Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/spot-the-station/","har":"pages/001.har.zip"}}
+{"ts":"2026-11-04T15:24:37.307391Z","step":"captured_other","status":"ok","detail":{"n":2,"final_url":"https://www.nasa.gov/spot-the-station/","seconds":0.01}}
+{"ts":"2026-11-04T15:24:37.307586Z","step":"captured","status":"ok","detail":{"final_url":"https://www.nasa.gov/missions/","redirects":[],"seconds":0.04}}
+{"ts":"2026-11-04T15:26:19.042642Z","step":"walk","status":"ok","detail":{"P1":{"end":"wrap","presses":163,"cap":533},"P2":{"end":"wrap","presses":163,"cap":533},"cost":{"loads":2,"presses":326,"quick":0,"slow_redos":0,"seconds":101.72}}}
+{"ts":"2026-11-04T15:26:19.400248Z","step":"browser_launched","status":"ok","detail":{"kind":"full Chromium"}}
+{"ts":"2026-11-04T15:26:37.708366Z","step":"collected","status":"ok","detail":{"test":"9.A","cost":{"loads":3,"presses":16,"quick":7,"slow_redos":0,"seconds":18.66}}}
+{"ts":"2026-11-04T15:26:37.932148Z","step":"collected","status":"ok","detail":{"test":"4.D","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":0.22}}}
+{"ts":"2026-11-04T15:26:46.226606Z","step":"collected","status":"ok","detail":{"test":"4.A","cost":{"loads":1,"presses":0,"quick":0,"slow_redos":0,"seconds":8.29}}}
+{"ts":"2026-11-04T15:26:48.910122Z","step":"collected","status":"ok","detail":{"test":"4.C","cost":{"loads":1,"presses":0,"quick":0,"slow_redos":0,"seconds":2.68}}}
+{"ts":"2026-11-04T15:26:48.922366Z","step":"collected","status":"ok","detail":{"test":"4.E","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":0.01}}}

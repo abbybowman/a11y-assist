@@ -1,0 +1,83 @@
+[      51ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://www.nasa.gov/_static/??-eJyFjssKwkAMRX/IMbYVxIW4c+s3ZNJoh86LyUxL/95iFcQuuroknHO5MEZFwWf2GciaOZQrKtryNF6gyNiKeiR0PIbULzfoYmwLkifLsieRHfyUfFUkYhGjjTV5UtQx9Zw+6uyApLu30y0kh3lVkjt2LOBR8A0/bdBolcdhE+Vh/q5n/WOYqDMDK43ec9rEY4glKof9wl7dpTqdm/pQNfXxBfQ9eI0=:0
+[      51ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://www.nasa.gov/wp-content/plugins/popup-maker/dist/assets/site.css?m=1790347582g:0
+[      59ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://www.nasa.gov/wp-content/client-mu-plugins/uswds-framework/uswds/fonts/public-sans/PublicSans-Regular.woff2:0
+[      59ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://www.nasa.gov/wp-content/client-mu-plugins/uswds-framework/uswds/fonts-split/inter/UcC73FwrK3iLTeHuS_fvQtMwCp50KnMa1ZL7.woff2:0
+[      59ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://www.nasa.gov/wp-content/client-mu-plugins/uswds-framework/uswds/fonts-split/db-mono/aFTU7PB1QTsUX8KYthqQBA.woff2:0
+[      59ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://www.nasa.gov/wp-content/themes/nasa/assets/images/nasa-logo.svg:0
+[      59ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://assets.science.nasa.gov/dynamicimage/assets/science/missions/hubble/releases/2026/11/STScI-01M4RST3TGWT2T53FVXQBSP75D.jpg?w=1024:0
+[      59ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://dap.digitalgov.gov/Universal-Federated-Analytics-Min.js?agency=NASA&pga4=G-82GWVTTXCZ:0
+[      66ms] [WARNING] Unrecognized feature: 'web-share'. @ https://www.nasa.gov/mission/artemis-iii/:1868
+[      70ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://www.nasa.gov/wp-content/uploads/2026/10/1-closeup-of-teghaza-001-mars-meteorite.jpg?resize=1024,577:0
+[      70ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://science.nasa.gov/wp-content/uploads/2023/07/moonrise-at-vasquez-rocks-credit-nasa-preston-dyches-cc-by-nc-2.0.jpg:0
+[      83ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://assets.science.nasa.gov/dynamicimage/assets/science/missions/escapade/ESCAPADE_TMI.jpg?w=1024:0
+[     128ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://assets.science.nasa.gov/dynamicimage/assets/science/missions/swift-observatory/misc--spacecraft-art/Swift_in_space_05.jpg?w=1024:0
+[     128ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://assets.science.nasa.gov/dynamicimage/assets/science/cds/general/images/2023/04/2/27946391011_d40ff10573_h.jpg?w=1024:0
+[     128ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://www.nasa.gov/wp-content/uploads/2026/11/anil-menon-downlink-nov-3.jpg?resize=683,1024:0
+[     128ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://www.nasa.gov/wp-content/uploads/2026/03/isam-state-of-play.jpg?resize=698,1024:0
+[     128ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://www.nasa.gov/wp-content/uploads/2026/10/2-artemis-iii-con-ops-oct2026.jpg?resize=1024,576:0
+[     128ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://assets.science.nasa.gov/dynamicimage/assets/science/esd/eo/images/iotd/2026/before-the-dawn-in-america%E2%80%99s-heartland/ISS075-E-226709_th.jpg?w=1024:0
+[     128ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://assets.science.nasa.gov/dynamicimage/assets/science/esd/eo/images/iotd/2026/the-pacific's-busy-storm-season/storminfa_epic_20261029_th.jpg?w=1024:0
+[     129ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://assets.science.nasa.gov/dynamicimage/assets/science/esd/eo/images/iotd/2026/pennsylvania%E2%80%99s-grand-canyon/pinecreekgorge_oli_20261025_th.jpg?w=1024:0
+[     129ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://assets.science.nasa.gov/dynamicimage/assets/science/psd/photojournal/pia/pia26/pia26353/PIA26353.tif?w=1024:0
+[     129ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://assets.science.nasa.gov/dynamicimage/assets/science/psd/photojournal/pia/pia26/pia26801/PIA26801.jpg?w=1024:0
+[     129ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://assets.science.nasa.gov/dynamicimage/assets/science/missions/hubble/releases/2026/10/STScI-01M5Z56J5ARB90DGEM70PCQ961.jpg?w=1024:0
+[     129ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://www.nasa.gov/wp-includes/js/dist/hooks.min.js?m=1793205047g:0
+[     129ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://www.nasa.gov/_static/??-eJzTLy/QzcxLzilNSS3WzwKiwtLUokoopZebmaeXVayjj0+Rbm5melFiSSpUsX2uraG5pbGRgamBiXkWAK90Ih4=:0
+[     129ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://www.nasa.gov/_static/??-eJyFzEsOwjAMRdEN4RpEUWGAWItprTRRbEd1Wj6rB4kxyuSNzrv4KDCaVtaKdWZhRyUnTI4h250yKG1d8h3+h8K6QrUQMjdkXp+mv+0kakPXKPw2bUV9poXBbYyUG3QhnUygWFkLTNFLptf3cpPrYbjsj/1wOvfpAzMKZQE=:0
+[     129ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://www.nasa.gov/wp-content/plugins/gravityforms/js/jquery.json.min.js?ver=3.1.2:0
+[     129ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://www.nasa.gov/wp-content/plugins/gravityforms/js/gravityforms.min.js?ver=3.1.2:0
+[     129ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://www.nasa.gov/wp-content/plugins/gravityforms/assets/js/dist/utils.min.js?ver=69a9db57304a9f86c3d1a0bea5fd2cf9:0
+[     129ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://www.nasa.gov/wp-content/plugins/nasa-blocks/assets/gf-stepper-focus/gf-stepper-focus.js?m=1790347576g:0
+[     144ms] ReferenceError: wp is not defined
+    at wp-i18n-js-after:2:1
+[     131ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://assets.science.nasa.gov/dynamicimage/assets/science/hpd/heat/helio-education-community-resources/2025-8-planetary-magnetospheres/Planetary%20Magnetospheres%20thumbnail.jpeg?w=1024:0
+[     132ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://www.nasa.gov/wp-content/uploads/2026/10/usrc-gardner-ag3-team.jpg?resize=1024,627:0
+[     132ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://www.nasa.gov/wp-content/uploads/2015/03/a38286-aerial.jpg?resize=1024,677:0
+[     132ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://www.nasa.gov/wp-content/uploads/2026/09/a200-king-air-da.jpg:0
+[     133ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://assets.science.nasa.gov/dynamicimage/assets/science/esd/eo/images/iotd/2026/new-guinea-on-fire/papuanewguinea_vir_20261011_th.jpg?w=1024:0
+[     133ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://assets.science.nasa.gov/dynamicimage/assets/science/cds/science-enabling-technology/technology-highlights/2026/cyprus_swamp_regA_color_by_alt_pcd5_trajectory_G_60fps.jpg?w=1024:0
+[     136ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://assets.science.nasa.gov/dynamicimage/assets/science/cds/learn/science-activation-stories/2026/10.09.26_SEES_Highlight.jpg?w=1024:0
+[     136ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://www.nasa.gov/wp-content/uploads/2024/01/taking-in-the-view-surface-from-hls.webp?resize=1024,576:0
+[     136ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://www.nasa.gov/wp-content/uploads/2026/10/grc-2026-c-06389large.jpg?resize=1024,683:0
+[     136ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://assets.science.nasa.gov/dynamicimage/assets/science/missions/rst/spacecraft-illustrations/Roman_BeautyPass2026-large.jpg?w=1024:0
+[     136ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://www.nasa.gov/wp-content/uploads/2026/03/a2crew-7ff19d.jpg?resize=1024,691:0
+[     136ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://www.nasa.gov/wp-content/uploads/2026/03/suit-patch.jpg?resize=1024,657:0
+[     136ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://images-assets.nasa.gov/image/iss074e0325229/iss074e0325229~large.jpg?w=1536&h=1024&fit=crop&crop=faces%2Cfocalpoint:0
+[     136ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://www.nasa.gov/wp-includes/js/dist/i18n.min.js?ver=781d11515ad3d91786ec:0
+[     136ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://www.nasa.gov/wp-content/plugins/wp-parsely/build/loader.js?ver=ecf94842061bea03d54b:0
+[     136ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://cdn.parsely.com/keys/nasa.gov/p.js?ver=3.24.3:0
+[     136ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://www.nasa.gov/wp-content/plugins/accessibility-checker/build/frontendFixes.bundle.js?ver=1.49.0:0
+[     136ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://www.nasa.gov/wp-includes/js/dist/a11y.min.js?ver=af934e5259bc51b8718e:0
+[     136ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://www.nasa.gov/wp-content/plugins/gravityforms/assets/js/dist/vendor-theme.min.js?ver=0c901cb641ce64b99c20ea1a4d208cc9:0
+[     141ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://www.nasa.gov/wp-content/themes/nasa/assets/images/nasa-logo.svg:0
+[     141ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://assets.science.nasa.gov/dynamicimage/assets/science/missions/hubble/releases/2026/11/STScI-01M4RST3TGWT2T53FVXQBSP75D.jpg?w=1024:0
+[     141ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://www.nasa.gov/wp-content/plugins/gravityforms/assets/js/dist/scripts-theme.min.js?ver=e27d9712159624c99129c8c208f022ad:0
+[     141ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://www.googletagmanager.com/gtm.js?id=GTM-NLJ258M:0
+[     163ms] ReferenceError: jQuery is not defined
+    at https://www.nasa.gov/_static/??/wp-content/plugins/gravity-forms-config/assets/js/gravity-config-display.min.js,/wp-includes/js/jquery/ui/core.min.js?m=1793205047j:1:415
+[     180ms] ReferenceError: jQuery is not defined
+    at 3370 (https://www.nasa.gov/_static/??-eJyVzEsOwjAMBNALYUw3tFkgzuI0VpV+HKt2qbg9EQukSt2wnNHMw12hL+IsjjpvQxZDLbopLDTxiimbI5mxG1p2vo52wZOPkBHEufST/eZcR4nWNwi98kCei5yWf5hOMXKCqny1Y6zOc3k0bWjut9CGbvwAvbhS6A==:1:11318)
+    at t (https://www.nasa.gov/_static/??-eJyVzEsOwjAMBNALYUw3tFkgzuI0VpV+HKt2qbg9EQukSt2wnNHMw12hL+IsjjpvQxZDLbopLDTxiimbI5mxG1p2vo52wZOPkBHEufST/eZcR4nWNwi98kCei5yWf5hOMXKCqny1Y6zOc3k0bWjut9CGbvwAvbhS6A==:1:55870)
+    at https://www.nasa.gov/_static/??-eJyVzEsOwjAMBNALYUw3tFkgzuI0VpV+HKt2qbg9EQukSt2wnNHMw12hL+IsjjpvQxZDLbopLDTxiimbI5mxG1p2vo52wZOPkBHEufST/eZcR4nWNwi98kCei5yWf5hOMXKCqny1Y6zOc3k0bWjut9CGbvwAvbhS6A==:1:56346
+    at https://www.nasa.gov/_static/??-eJyVzEsOwjAMBNALYUw3tFkgzuI0VpV+HKt2qbg9EQukSt2wnNHMw12hL+IsjjpvQxZDLbopLDTxiimbI5mxG1p2vo52wZOPkBHEufST/eZcR4nWNwi98kCei5yWf5hOMXKCqny1Y6zOc3k0bWjut9CGbvwAvbhS6A==:1:70566
+    at https://www.nasa.gov/_static/??-eJyVzEsOwjAMBNALYUw3tFkgzuI0VpV+HKt2qbg9EQukSt2wnNHMw12hL+IsjjpvQxZDLbopLDTxiimbI5mxG1p2vo52wZOPkBHEufST/eZcR4nWNwi98kCei5yWf5hOMXKCqny1Y6zOc3k0bWjut9CGbvwAvbhS6A==:1:70570
+[     484ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://googleads.g.doubleclick.net/pagead/id:0
+[     484ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://static.doubleclick.net/instream/ad_status.js:0
+[     632ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://www.nasa.gov/wp-content/plugins/nasa-hds-core-setup/assets/favicons/favicon-32x32.png:0
+[     659ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://i.ytimg.com/vi_webp/QONgJurkigk/sddefault.webp:0
+[     709ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://www.nasa.gov/wp-content/plugins/nasa-hds-core-setup/assets/favicons/favicon-16x16.png:0
+[     719ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://www.nasa.gov/wp-content/plugins/nasa-hds-core-setup/assets/favicons/favicon-57x57.png:0
+[     734ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://www.nasa.gov/wp-content/plugins/nasa-hds-core-setup/assets/favicons/favicon-76x76.png:0
+[     742ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://www.nasa.gov/wp-content/plugins/nasa-hds-core-setup/assets/favicons/favicon-96x96.png:0
+[     747ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://www.nasa.gov/wp-content/plugins/nasa-hds-core-setup/assets/favicons/favicon-128x128.png:0
+[     753ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://www.nasa.gov/wp-content/plugins/nasa-hds-core-setup/assets/favicons/favicon-192x192.png:0
+[     756ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://www.youtube.com/generate_204?H9496A:0
+[     766ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://www.nasa.gov/wp-content/plugins/nasa-hds-core-setup/assets/favicons/favicon-196x196.png:0
+[     788ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://www.nasa.gov/wp-content/plugins/nasa-hds-core-setup/assets/favicons/favicon-228x228.png:0
+[     858ms] [WARNING] No available adapters. @ https://www.youtube.com/embed/QONgJurkigk?feature=oembed:0
+[     866ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://jnn-pa.googleapis.com/$rpc/google.internal.waa.v1.Waa/GenerateIT:0
+[    1082ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://jnn-pa.googleapis.com/$rpc/google.internal.waa.v1.Waa/GenerateIT:0
+[    1399ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://jnn-pa.googleapis.com/$rpc/google.internal.waa.v1.Waa/GenerateIT:0
+[    2135ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://jnn-pa.googleapis.com/$rpc/google.internal.waa.v1.Waa/GenerateIT:0
+[    2497ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://www.youtube.com/youtubei/v1/log_event?alt=json:0
+[    3662ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://jnn-pa.googleapis.com/$rpc/google.internal.waa.v1.Waa/GenerateIT:0

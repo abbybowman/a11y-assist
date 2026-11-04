@@ -1,0 +1,445 @@
+{
+  "disclaimer": "Agent-assisted findings only. This is NOT a certified DHS Trusted Tester result and must not be reported as one.",
+  "certified": false,
+  "run_id": "20261104T154348Z-d34076",
+  "target": "https://www.nasa.gov/feature/naca-at-110-special-feature/",
+  "tests": [
+    "4.A",
+    "4.B",
+    "4.C",
+    "4.D",
+    "4.E",
+    "4.F",
+    "5.A",
+    "5.B",
+    "5.C",
+    "5.D",
+    "5.F",
+    "5.G",
+    "5.H",
+    "9.A",
+    "9.B",
+    "9.C",
+    "19.A"
+  ],
+  "final_url": "https://www.nasa.gov/feature/naca-at-110-special-feature/",
+  "other_pages": [
+    {
+      "n": 1,
+      "url": "https://www.nasa.gov/spot-the-station/",
+      "final_url": "https://www.nasa.gov/spot-the-station/",
+      "har": "evidence/pages/p1.har.zip",
+      "cross_site_frames": [
+        "https://iss-sts.hqmce.nasa.gov/index.html",
+        "https://iss-sts.hqmce.nasa.gov/placeholder-image.html",
+        "https://isstracker.spaceflight.esa.int/index.php",
+        "https://www.youtube.com/embed/k-6uxrX9Tro"
+      ],
+      "replay_browser": "full Chromium",
+      "frozen": true
+    },
+    {
+      "n": 2,
+      "url": "https://www.nasa.gov/careers/",
+      "final_url": "https://www.nasa.gov/careers/",
+      "har": "evidence/pages/p2.har.zip",
+      "cross_site_frames": [],
+      "replay_browser": "headless shell",
+      "frozen": true
+    },
+    {
+      "n": 3,
+      "url": "https://www.nasa.gov/missions/",
+      "final_url": "https://www.nasa.gov/missions/",
+      "har": "evidence/pages/p3.har.zip",
+      "cross_site_frames": [],
+      "replay_browser": "headless shell",
+      "frozen": true
+    }
+  ],
+  "live_pages": [],
+  "cross_site_frames": [
+    "https://www.youtube.com/embed/7OB2JGeJ9N4",
+    "https://www.youtube.com/embed/9zSu856uQAU",
+    "https://www.youtube.com/embed/jWhIonkL54Q",
+    "https://www.youtube.com/embed/nhI4NdPAUtQ",
+    "https://www.youtube.com/embed/wMvTYXz97-k"
+  ],
+  "replay_browser": "full Chromium",
+  "frozen_pages": "tested_frozen",
+  "started_at": "2026-11-04T15:43:48.437776Z",
+  "finished_at": "2026-11-04T15:46:51.726248Z",
+  "versions": {
+    "a11y_assist": "0.1.0",
+    "andi": "29.2.2 (e491d9553bf0)",
+    "jquery": "3.7.1",
+    "scrt": "5.2.0 (63fe6878d72d)",
+    "playwright": "1.63.0",
+    "browser_channel": "chromium",
+    "browser": "153.0.8010.12",
+    "os": "Linux-6.18.44-fc-v233-x86_64-with-glibc2.39",
+    "python": "3.11.18",
+    "rules_spec": {
+      "19.A": "1.1.0 (sha256:9d55accda048)",
+      "4.A": "1.2.1 (sha256:512ed40e4c81)",
+      "4.B": "1.2.0 (sha256:6efdf3962743)",
+      "4.C": "1.8.0 (sha256:0cf4b9be03e6)",
+      "4.D": "1.1.1 (sha256:47fe35c2581e)",
+      "4.E": "1.1.0 (sha256:4bf7c6aaa09f)",
+      "4.F": "1.1.3 (sha256:aa81559e9ec0)",
+      "5.A": "1.1.0 (sha256:e57f35d633ac)",
+      "5.B": "1.1.0 (sha256:f694c964d7fa)",
+      "5.C": "1.1.0 (sha256:cf94729022cc)",
+      "5.D": "1.0.0 (sha256:23c65344ced7)",
+      "5.F": "1.1.0 (sha256:a1702a98e37a)",
+      "5.G": "1.1.0 (sha256:e8124a8bb884)",
+      "5.H": "1.1.0 (sha256:3e11ad6ea5a5)",
+      "9.A": "1.0.0 (sha256:ee0e3b6d0306)",
+      "9.B": "1.0.0 (sha256:cefd5147c188)",
+      "9.C": "1.1.0 (sha256:0fadea563b80)"
+    },
+    "judging_model": "claude-sonnet-5-5",
+    "run_settings": {
+      "settle_quiet_ms": 150,
+      "record_scroll_passes": 1,
+      "run_limit_s": 120,
+      "other_page_s": 20,
+      "no_time_limit": false
+    }
+  },
+  "findings": [
+    {
+      "test_id": "4.A",
+      "test_name": "2.1.1-keyboard-access",
+      "outcome": "NEEDS_REVIEW",
+      "summary": "This test could not be performed: The run did not complete: 9.C: the run reached its time limit before this test finished; 19.A: the run reached its time limit before this test finished; 4.D: the run reached its time limit before this test finished; 4.F: the run reached its time limit before this test finished; 4.A: the run reached its time limit before this test finished; 4.B: the run reached its time limit before this test finished; 4.C: the run reached its time limit before this test finished; 4.E: the run reached its time limit before this test finished; 5.D: the run reached its time limit before this test finished; 5.F: the run reached its time limit before this test finished; 5.G: the run reached its time limit before this test finished; 5.H: the run reached its time limit before this test finished; 5.A: the run reached its time limit before this test finished; 5.B: the run reached its time limit before this test finished; 5.C: the run reached its time limit before this test finished; The run reached its time limit (180 s) before every test finished; what was not finished is NEEDS REVIEW. To finish it, run again with no_time_limit=true (the call can then take several minutes).",
+      "instances": [],
+      "evidence_refs": [],
+      "rationale": "The run did not complete: 9.C: the run reached its time limit before this test finished; 19.A: the run reached its time limit before this test finished; 4.D: the run reached its time limit before this test finished; 4.F: the run reached its time limit before this test finished; 4.A: the run reached its time limit before this test finished; 4.B: the run reached its time limit before this test finished; 4.C: the run reached its time limit before this test finished; 4.E: the run reached its time limit before this test finished; 5.D: the run reached its time limit before this test finished; 5.F: the run reached its time limit before this test finished; 5.G: the run reached its time limit before this test finished; 5.H: the run reached its time limit before this test finished; 5.A: the run reached its time limit before this test finished; 5.B: the run reached its time limit before this test finished; 5.C: the run reached its time limit before this test finished; The run reached its time limit (180 s) before every test finished; what was not finished is NEEDS REVIEW. To finish it, run again with no_time_limit=true (the call can then take several minutes).",
+      "note": "This test could not be performed",
+      "decided_by": null,
+      "rows": [],
+      "confidence": null
+    },
+    {
+      "test_id": "4.B",
+      "test_name": "2.1.1-no-keystroke-timing",
+      "outcome": "NEEDS_REVIEW",
+      "summary": "This test could not be performed: The run did not complete: 9.C: the run reached its time limit before this test finished; 19.A: the run reached its time limit before this test finished; 4.D: the run reached its time limit before this test finished; 4.F: the run reached its time limit before this test finished; 4.A: the run reached its time limit before this test finished; 4.B: the run reached its time limit before this test finished; 4.C: the run reached its time limit before this test finished; 4.E: the run reached its time limit before this test finished; 5.D: the run reached its time limit before this test finished; 5.F: the run reached its time limit before this test finished; 5.G: the run reached its time limit before this test finished; 5.H: the run reached its time limit before this test finished; 5.A: the run reached its time limit before this test finished; 5.B: the run reached its time limit before this test finished; 5.C: the run reached its time limit before this test finished; The run reached its time limit (180 s) before every test finished; what was not finished is NEEDS REVIEW. To finish it, run again with no_time_limit=true (the call can then take several minutes).",
+      "instances": [],
+      "evidence_refs": [],
+      "rationale": "The run did not complete: 9.C: the run reached its time limit before this test finished; 19.A: the run reached its time limit before this test finished; 4.D: the run reached its time limit before this test finished; 4.F: the run reached its time limit before this test finished; 4.A: the run reached its time limit before this test finished; 4.B: the run reached its time limit before this test finished; 4.C: the run reached its time limit before this test finished; 4.E: the run reached its time limit before this test finished; 5.D: the run reached its time limit before this test finished; 5.F: the run reached its time limit before this test finished; 5.G: the run reached its time limit before this test finished; 5.H: the run reached its time limit before this test finished; 5.A: the run reached its time limit before this test finished; 5.B: the run reached its time limit before this test finished; 5.C: the run reached its time limit before this test finished; The run reached its time limit (180 s) before every test finished; what was not finished is NEEDS REVIEW. To finish it, run again with no_time_limit=true (the call can then take several minutes).",
+      "note": "This test could not be performed",
+      "decided_by": null,
+      "rows": [],
+      "confidence": null
+    },
+    {
+      "test_id": "4.C",
+      "test_name": "2.1.2-no-keyboard-trap",
+      "outcome": "NEEDS_REVIEW",
+      "summary": "This test could not be performed: The run did not complete: 9.C: the run reached its time limit before this test finished; 19.A: the run reached its time limit before this test finished; 4.D: the run reached its time limit before this test finished; 4.F: the run reached its time limit before this test finished; 4.A: the run reached its time limit before this test finished; 4.B: the run reached its time limit before this test finished; 4.C: the run reached its time limit before this test finished; 4.E: the run reached its time limit before this test finished; 5.D: the run reached its time limit before this test finished; 5.F: the run reached its time limit before this test finished; 5.G: the run reached its time limit before this test finished; 5.H: the run reached its time limit before this test finished; 5.A: the run reached its time limit before this test finished; 5.B: the run reached its time limit before this test finished; 5.C: the run reached its time limit before this test finished; The run reached its time limit (180 s) before every test finished; what was not finished is NEEDS REVIEW. To finish it, run again with no_time_limit=true (the call can then take several minutes).",
+      "instances": [],
+      "evidence_refs": [],
+      "rationale": "The run did not complete: 9.C: the run reached its time limit before this test finished; 19.A: the run reached its time limit before this test finished; 4.D: the run reached its time limit before this test finished; 4.F: the run reached its time limit before this test finished; 4.A: the run reached its time limit before this test finished; 4.B: the run reached its time limit before this test finished; 4.C: the run reached its time limit before this test finished; 4.E: the run reached its time limit before this test finished; 5.D: the run reached its time limit before this test finished; 5.F: the run reached its time limit before this test finished; 5.G: the run reached its time limit before this test finished; 5.H: the run reached its time limit before this test finished; 5.A: the run reached its time limit before this test finished; 5.B: the run reached its time limit before this test finished; 5.C: the run reached its time limit before this test finished; The run reached its time limit (180 s) before every test finished; what was not finished is NEEDS REVIEW. To finish it, run again with no_time_limit=true (the call can then take several minutes).",
+      "note": "This test could not be performed",
+      "decided_by": null,
+      "rows": [],
+      "confidence": null
+    },
+    {
+      "test_id": "4.D",
+      "test_name": "2.4.7-focus-visible",
+      "outcome": "NEEDS_REVIEW",
+      "summary": "This test could not be performed: The run did not complete: 9.C: the run reached its time limit before this test finished; 19.A: the run reached its time limit before this test finished; 4.D: the run reached its time limit before this test finished; 4.F: the run reached its time limit before this test finished; 4.A: the run reached its time limit before this test finished; 4.B: the run reached its time limit before this test finished; 4.C: the run reached its time limit before this test finished; 4.E: the run reached its time limit before this test finished; 5.D: the run reached its time limit before this test finished; 5.F: the run reached its time limit before this test finished; 5.G: the run reached its time limit before this test finished; 5.H: the run reached its time limit before this test finished; 5.A: the run reached its time limit before this test finished; 5.B: the run reached its time limit before this test finished; 5.C: the run reached its time limit before this test finished; The run reached its time limit (180 s) before every test finished; what was not finished is NEEDS REVIEW. To finish it, run again with no_time_limit=true (the call can then take several minutes).",
+      "instances": [],
+      "evidence_refs": [],
+      "rationale": "The run did not complete: 9.C: the run reached its time limit before this test finished; 19.A: the run reached its time limit before this test finished; 4.D: the run reached its time limit before this test finished; 4.F: the run reached its time limit before this test finished; 4.A: the run reached its time limit before this test finished; 4.B: the run reached its time limit before this test finished; 4.C: the run reached its time limit before this test finished; 4.E: the run reached its time limit before this test finished; 5.D: the run reached its time limit before this test finished; 5.F: the run reached its time limit before this test finished; 5.G: the run reached its time limit before this test finished; 5.H: the run reached its time limit before this test finished; 5.A: the run reached its time limit before this test finished; 5.B: the run reached its time limit before this test finished; 5.C: the run reached its time limit before this test finished; The run reached its time limit (180 s) before every test finished; what was not finished is NEEDS REVIEW. To finish it, run again with no_time_limit=true (the call can then take several minutes).",
+      "note": "This test could not be performed",
+      "decided_by": null,
+      "rows": [],
+      "confidence": null
+    },
+    {
+      "test_id": "4.E",
+      "test_name": "3.2.1-on-focus",
+      "outcome": "NEEDS_REVIEW",
+      "summary": "This test could not be performed: The run did not complete: 9.C: the run reached its time limit before this test finished; 19.A: the run reached its time limit before this test finished; 4.D: the run reached its time limit before this test finished; 4.F: the run reached its time limit before this test finished; 4.A: the run reached its time limit before this test finished; 4.B: the run reached its time limit before this test finished; 4.C: the run reached its time limit before this test finished; 4.E: the run reached its time limit before this test finished; 5.D: the run reached its time limit before this test finished; 5.F: the run reached its time limit before this test finished; 5.G: the run reached its time limit before this test finished; 5.H: the run reached its time limit before this test finished; 5.A: the run reached its time limit before this test finished; 5.B: the run reached its time limit before this test finished; 5.C: the run reached its time limit before this test finished; The run reached its time limit (180 s) before every test finished; what was not finished is NEEDS REVIEW. To finish it, run again with no_time_limit=true (the call can then take several minutes).",
+      "instances": [],
+      "evidence_refs": [],
+      "rationale": "The run did not complete: 9.C: the run reached its time limit before this test finished; 19.A: the run reached its time limit before this test finished; 4.D: the run reached its time limit before this test finished; 4.F: the run reached its time limit before this test finished; 4.A: the run reached its time limit before this test finished; 4.B: the run reached its time limit before this test finished; 4.C: the run reached its time limit before this test finished; 4.E: the run reached its time limit before this test finished; 5.D: the run reached its time limit before this test finished; 5.F: the run reached its time limit before this test finished; 5.G: the run reached its time limit before this test finished; 5.H: the run reached its time limit before this test finished; 5.A: the run reached its time limit before this test finished; 5.B: the run reached its time limit before this test finished; 5.C: the run reached its time limit before this test finished; The run reached its time limit (180 s) before every test finished; what was not finished is NEEDS REVIEW. To finish it, run again with no_time_limit=true (the call can then take several minutes).",
+      "note": "This test could not be performed",
+      "decided_by": null,
+      "rows": [],
+      "confidence": null
+    },
+    {
+      "test_id": "4.F",
+      "test_name": "2.4.3-focus-order-meaning",
+      "outcome": "NEEDS_REVIEW",
+      "summary": "This test could not be performed: The run did not complete: 9.C: the run reached its time limit before this test finished; 19.A: the run reached its time limit before this test finished; 4.D: the run reached its time limit before this test finished; 4.F: the run reached its time limit before this test finished; 4.A: the run reached its time limit before this test finished; 4.B: the run reached its time limit before this test finished; 4.C: the run reached its time limit before this test finished; 4.E: the run reached its time limit before this test finished; 5.D: the run reached its time limit before this test finished; 5.F: the run reached its time limit before this test finished; 5.G: the run reached its time limit before this test finished; 5.H: the run reached its time limit before this test finished; 5.A: the run reached its time limit before this test finished; 5.B: the run reached its time limit before this test finished; 5.C: the run reached its time limit before this test finished; The run reached its time limit (180 s) before every test finished; what was not finished is NEEDS REVIEW. To finish it, run again with no_time_limit=true (the call can then take several minutes).",
+      "instances": [],
+      "evidence_refs": [],
+      "rationale": "The run did not complete: 9.C: the run reached its time limit before this test finished; 19.A: the run reached its time limit before this test finished; 4.D: the run reached its time limit before this test finished; 4.F: the run reached its time limit before this test finished; 4.A: the run reached its time limit before this test finished; 4.B: the run reached its time limit before this test finished; 4.C: the run reached its time limit before this test finished; 4.E: the run reached its time limit before this test finished; 5.D: the run reached its time limit before this test finished; 5.F: the run reached its time limit before this test finished; 5.G: the run reached its time limit before this test finished; 5.H: the run reached its time limit before this test finished; 5.A: the run reached its time limit before this test finished; 5.B: the run reached its time limit before this test finished; 5.C: the run reached its time limit before this test finished; The run reached its time limit (180 s) before every test finished; what was not finished is NEEDS REVIEW. To finish it, run again with no_time_limit=true (the call can then take several minutes).",
+      "note": "This test could not be performed",
+      "decided_by": null,
+      "rows": [],
+      "confidence": null
+    },
+    {
+      "test_id": "5.A",
+      "test_name": "3.3.2-label-provided",
+      "outcome": "NEEDS_REVIEW",
+      "summary": "This test could not be performed: The run did not complete: 9.C: the run reached its time limit before this test finished; 19.A: the run reached its time limit before this test finished; 4.D: the run reached its time limit before this test finished; 4.F: the run reached its time limit before this test finished; 4.A: the run reached its time limit before this test finished; 4.B: the run reached its time limit before this test finished; 4.C: the run reached its time limit before this test finished; 4.E: the run reached its time limit before this test finished; 5.D: the run reached its time limit before this test finished; 5.F: the run reached its time limit before this test finished; 5.G: the run reached its time limit before this test finished; 5.H: the run reached its time limit before this test finished; 5.A: the run reached its time limit before this test finished; 5.B: the run reached its time limit before this test finished; 5.C: the run reached its time limit before this test finished; The run reached its time limit (180 s) before every test finished; what was not finished is NEEDS REVIEW. To finish it, run again with no_time_limit=true (the call can then take several minutes).",
+      "instances": [],
+      "evidence_refs": [],
+      "rationale": "The run did not complete: 9.C: the run reached its time limit before this test finished; 19.A: the run reached its time limit before this test finished; 4.D: the run reached its time limit before this test finished; 4.F: the run reached its time limit before this test finished; 4.A: the run reached its time limit before this test finished; 4.B: the run reached its time limit before this test finished; 4.C: the run reached its time limit before this test finished; 4.E: the run reached its time limit before this test finished; 5.D: the run reached its time limit before this test finished; 5.F: the run reached its time limit before this test finished; 5.G: the run reached its time limit before this test finished; 5.H: the run reached its time limit before this test finished; 5.A: the run reached its time limit before this test finished; 5.B: the run reached its time limit before this test finished; 5.C: the run reached its time limit before this test finished; The run reached its time limit (180 s) before every test finished; what was not finished is NEEDS REVIEW. To finish it, run again with no_time_limit=true (the call can then take several minutes).",
+      "note": "This test could not be performed",
+      "decided_by": null,
+      "rows": [],
+      "confidence": null
+    },
+    {
+      "test_id": "5.B",
+      "test_name": "2.4.6-label-descriptive",
+      "outcome": "NEEDS_REVIEW",
+      "summary": "This test could not be performed: The run did not complete: 9.C: the run reached its time limit before this test finished; 19.A: the run reached its time limit before this test finished; 4.D: the run reached its time limit before this test finished; 4.F: the run reached its time limit before this test finished; 4.A: the run reached its time limit before this test finished; 4.B: the run reached its time limit before this test finished; 4.C: the run reached its time limit before this test finished; 4.E: the run reached its time limit before this test finished; 5.D: the run reached its time limit before this test finished; 5.F: the run reached its time limit before this test finished; 5.G: the run reached its time limit before this test finished; 5.H: the run reached its time limit before this test finished; 5.A: the run reached its time limit before this test finished; 5.B: the run reached its time limit before this test finished; 5.C: the run reached its time limit before this test finished; The run reached its time limit (180 s) before every test finished; what was not finished is NEEDS REVIEW. To finish it, run again with no_time_limit=true (the call can then take several minutes).",
+      "instances": [],
+      "evidence_refs": [],
+      "rationale": "The run did not complete: 9.C: the run reached its time limit before this test finished; 19.A: the run reached its time limit before this test finished; 4.D: the run reached its time limit before this test finished; 4.F: the run reached its time limit before this test finished; 4.A: the run reached its time limit before this test finished; 4.B: the run reached its time limit before this test finished; 4.C: the run reached its time limit before this test finished; 4.E: the run reached its time limit before this test finished; 5.D: the run reached its time limit before this test finished; 5.F: the run reached its time limit before this test finished; 5.G: the run reached its time limit before this test finished; 5.H: the run reached its time limit before this test finished; 5.A: the run reached its time limit before this test finished; 5.B: the run reached its time limit before this test finished; 5.C: the run reached its time limit before this test finished; The run reached its time limit (180 s) before every test finished; what was not finished is NEEDS REVIEW. To finish it, run again with no_time_limit=true (the call can then take several minutes).",
+      "note": "This test could not be performed",
+      "decided_by": null,
+      "rows": [],
+      "confidence": null
+    },
+    {
+      "test_id": "5.C",
+      "test_name": "1.3.1-programmatic-label",
+      "outcome": "NEEDS_REVIEW",
+      "summary": "This test could not be performed: The run did not complete: 9.C: the run reached its time limit before this test finished; 19.A: the run reached its time limit before this test finished; 4.D: the run reached its time limit before this test finished; 4.F: the run reached its time limit before this test finished; 4.A: the run reached its time limit before this test finished; 4.B: the run reached its time limit before this test finished; 4.C: the run reached its time limit before this test finished; 4.E: the run reached its time limit before this test finished; 5.D: the run reached its time limit before this test finished; 5.F: the run reached its time limit before this test finished; 5.G: the run reached its time limit before this test finished; 5.H: the run reached its time limit before this test finished; 5.A: the run reached its time limit before this test finished; 5.B: the run reached its time limit before this test finished; 5.C: the run reached its time limit before this test finished; The run reached its time limit (180 s) before every test finished; what was not finished is NEEDS REVIEW. To finish it, run again with no_time_limit=true (the call can then take several minutes).",
+      "instances": [],
+      "evidence_refs": [],
+      "rationale": "The run did not complete: 9.C: the run reached its time limit before this test finished; 19.A: the run reached its time limit before this test finished; 4.D: the run reached its time limit before this test finished; 4.F: the run reached its time limit before this test finished; 4.A: the run reached its time limit before this test finished; 4.B: the run reached its time limit before this test finished; 4.C: the run reached its time limit before this test finished; 4.E: the run reached its time limit before this test finished; 5.D: the run reached its time limit before this test finished; 5.F: the run reached its time limit before this test finished; 5.G: the run reached its time limit before this test finished; 5.H: the run reached its time limit before this test finished; 5.A: the run reached its time limit before this test finished; 5.B: the run reached its time limit before this test finished; 5.C: the run reached its time limit before this test finished; The run reached its time limit (180 s) before every test finished; what was not finished is NEEDS REVIEW. To finish it, run again with no_time_limit=true (the call can then take several minutes).",
+      "note": "This test could not be performed",
+      "decided_by": null,
+      "rows": [],
+      "confidence": null
+    },
+    {
+      "test_id": "5.D",
+      "test_name": "3.2.2-on-input",
+      "outcome": "NEEDS_REVIEW",
+      "summary": "This test could not be performed: The run did not complete: 9.C: the run reached its time limit before this test finished; 19.A: the run reached its time limit before this test finished; 4.D: the run reached its time limit before this test finished; 4.F: the run reached its time limit before this test finished; 4.A: the run reached its time limit before this test finished; 4.B: the run reached its time limit before this test finished; 4.C: the run reached its time limit before this test finished; 4.E: the run reached its time limit before this test finished; 5.D: the run reached its time limit before this test finished; 5.F: the run reached its time limit before this test finished; 5.G: the run reached its time limit before this test finished; 5.H: the run reached its time limit before this test finished; 5.A: the run reached its time limit before this test finished; 5.B: the run reached its time limit before this test finished; 5.C: the run reached its time limit before this test finished; The run reached its time limit (180 s) before every test finished; what was not finished is NEEDS REVIEW. To finish it, run again with no_time_limit=true (the call can then take several minutes).",
+      "instances": [],
+      "evidence_refs": [],
+      "rationale": "The run did not complete: 9.C: the run reached its time limit before this test finished; 19.A: the run reached its time limit before this test finished; 4.D: the run reached its time limit before this test finished; 4.F: the run reached its time limit before this test finished; 4.A: the run reached its time limit before this test finished; 4.B: the run reached its time limit before this test finished; 4.C: the run reached its time limit before this test finished; 4.E: the run reached its time limit before this test finished; 5.D: the run reached its time limit before this test finished; 5.F: the run reached its time limit before this test finished; 5.G: the run reached its time limit before this test finished; 5.H: the run reached its time limit before this test finished; 5.A: the run reached its time limit before this test finished; 5.B: the run reached its time limit before this test finished; 5.C: the run reached its time limit before this test finished; The run reached its time limit (180 s) before every test finished; what was not finished is NEEDS REVIEW. To finish it, run again with no_time_limit=true (the call can then take several minutes).",
+      "note": "This test could not be performed",
+      "decided_by": null,
+      "rows": [],
+      "confidence": null
+    },
+    {
+      "test_id": "5.F",
+      "test_name": "3.3.1-error-identification",
+      "outcome": "NEEDS_REVIEW",
+      "summary": "This test could not be performed: The run did not complete: 9.C: the run reached its time limit before this test finished; 19.A: the run reached its time limit before this test finished; 4.D: the run reached its time limit before this test finished; 4.F: the run reached its time limit before this test finished; 4.A: the run reached its time limit before this test finished; 4.B: the run reached its time limit before this test finished; 4.C: the run reached its time limit before this test finished; 4.E: the run reached its time limit before this test finished; 5.D: the run reached its time limit before this test finished; 5.F: the run reached its time limit before this test finished; 5.G: the run reached its time limit before this test finished; 5.H: the run reached its time limit before this test finished; 5.A: the run reached its time limit before this test finished; 5.B: the run reached its time limit before this test finished; 5.C: the run reached its time limit before this test finished; The run reached its time limit (180 s) before every test finished; what was not finished is NEEDS REVIEW. To finish it, run again with no_time_limit=true (the call can then take several minutes).",
+      "instances": [],
+      "evidence_refs": [],
+      "rationale": "The run did not complete: 9.C: the run reached its time limit before this test finished; 19.A: the run reached its time limit before this test finished; 4.D: the run reached its time limit before this test finished; 4.F: the run reached its time limit before this test finished; 4.A: the run reached its time limit before this test finished; 4.B: the run reached its time limit before this test finished; 4.C: the run reached its time limit before this test finished; 4.E: the run reached its time limit before this test finished; 5.D: the run reached its time limit before this test finished; 5.F: the run reached its time limit before this test finished; 5.G: the run reached its time limit before this test finished; 5.H: the run reached its time limit before this test finished; 5.A: the run reached its time limit before this test finished; 5.B: the run reached its time limit before this test finished; 5.C: the run reached its time limit before this test finished; The run reached its time limit (180 s) before every test finished; what was not finished is NEEDS REVIEW. To finish it, run again with no_time_limit=true (the call can then take several minutes).",
+      "note": "This test could not be performed",
+      "decided_by": null,
+      "rows": [],
+      "confidence": null
+    },
+    {
+      "test_id": "5.G",
+      "test_name": "3.3.3-error-suggestion",
+      "outcome": "NEEDS_REVIEW",
+      "summary": "This test could not be performed: The run did not complete: 9.C: the run reached its time limit before this test finished; 19.A: the run reached its time limit before this test finished; 4.D: the run reached its time limit before this test finished; 4.F: the run reached its time limit before this test finished; 4.A: the run reached its time limit before this test finished; 4.B: the run reached its time limit before this test finished; 4.C: the run reached its time limit before this test finished; 4.E: the run reached its time limit before this test finished; 5.D: the run reached its time limit before this test finished; 5.F: the run reached its time limit before this test finished; 5.G: the run reached its time limit before this test finished; 5.H: the run reached its time limit before this test finished; 5.A: the run reached its time limit before this test finished; 5.B: the run reached its time limit before this test finished; 5.C: the run reached its time limit before this test finished; The run reached its time limit (180 s) before every test finished; what was not finished is NEEDS REVIEW. To finish it, run again with no_time_limit=true (the call can then take several minutes).",
+      "instances": [],
+      "evidence_refs": [],
+      "rationale": "The run did not complete: 9.C: the run reached its time limit before this test finished; 19.A: the run reached its time limit before this test finished; 4.D: the run reached its time limit before this test finished; 4.F: the run reached its time limit before this test finished; 4.A: the run reached its time limit before this test finished; 4.B: the run reached its time limit before this test finished; 4.C: the run reached its time limit before this test finished; 4.E: the run reached its time limit before this test finished; 5.D: the run reached its time limit before this test finished; 5.F: the run reached its time limit before this test finished; 5.G: the run reached its time limit before this test finished; 5.H: the run reached its time limit before this test finished; 5.A: the run reached its time limit before this test finished; 5.B: the run reached its time limit before this test finished; 5.C: the run reached its time limit before this test finished; The run reached its time limit (180 s) before every test finished; what was not finished is NEEDS REVIEW. To finish it, run again with no_time_limit=true (the call can then take several minutes).",
+      "note": "This test could not be performed",
+      "decided_by": null,
+      "rows": [],
+      "confidence": null
+    },
+    {
+      "test_id": "5.H",
+      "test_name": "3.3.4-error-prevention",
+      "outcome": "NEEDS_REVIEW",
+      "summary": "This test could not be performed: The run did not complete: 9.C: the run reached its time limit before this test finished; 19.A: the run reached its time limit before this test finished; 4.D: the run reached its time limit before this test finished; 4.F: the run reached its time limit before this test finished; 4.A: the run reached its time limit before this test finished; 4.B: the run reached its time limit before this test finished; 4.C: the run reached its time limit before this test finished; 4.E: the run reached its time limit before this test finished; 5.D: the run reached its time limit before this test finished; 5.F: the run reached its time limit before this test finished; 5.G: the run reached its time limit before this test finished; 5.H: the run reached its time limit before this test finished; 5.A: the run reached its time limit before this test finished; 5.B: the run reached its time limit before this test finished; 5.C: the run reached its time limit before this test finished; The run reached its time limit (180 s) before every test finished; what was not finished is NEEDS REVIEW. To finish it, run again with no_time_limit=true (the call can then take several minutes).",
+      "instances": [],
+      "evidence_refs": [],
+      "rationale": "The run did not complete: 9.C: the run reached its time limit before this test finished; 19.A: the run reached its time limit before this test finished; 4.D: the run reached its time limit before this test finished; 4.F: the run reached its time limit before this test finished; 4.A: the run reached its time limit before this test finished; 4.B: the run reached its time limit before this test finished; 4.C: the run reached its time limit before this test finished; 4.E: the run reached its time limit before this test finished; 5.D: the run reached its time limit before this test finished; 5.F: the run reached its time limit before this test finished; 5.G: the run reached its time limit before this test finished; 5.H: the run reached its time limit before this test finished; 5.A: the run reached its time limit before this test finished; 5.B: the run reached its time limit before this test finished; 5.C: the run reached its time limit before this test finished; The run reached its time limit (180 s) before every test finished; what was not finished is NEEDS REVIEW. To finish it, run again with no_time_limit=true (the call can then take several minutes).",
+      "note": "This test could not be performed",
+      "decided_by": null,
+      "rows": [],
+      "confidence": null
+    },
+    {
+      "test_id": "9.A",
+      "test_name": "2.4.1-bypass-function",
+      "outcome": "NEEDS_REVIEW",
+      "summary": "We could not finish this test, so a person needs to check it. The run reached its time limit before every way to skip was tried. Only the first 8 possible ways to skip were tried.",
+      "instances": [
+        {
+          "selector": "#feature-nav > div > div:nth-of-type(2) > ol > li:nth-of-type(1) > a",
+          "frame_path": [],
+          "description": "c1 [M5 FAIL] the \"1. PRELUDE\" link: press Tab 2 times, then Enter",
+          "evidence_refs": []
+        },
+        {
+          "selector": "#feature-nav > div > div:nth-of-type(2) > ol > li:nth-of-type(2) > a",
+          "frame_path": [],
+          "description": "c2 [M5 FAIL] the \"2. ORIGINS\" link: press Tab 3 times, then Enter",
+          "evidence_refs": []
+        },
+        {
+          "selector": "#feature-nav > div > div:nth-of-type(2) > ol > li:nth-of-type(3) > a",
+          "frame_path": [],
+          "description": "c3 [M5 FAIL] the \"3. GROWTH\" link: press Tab 4 times, then Enter",
+          "evidence_refs": []
+        },
+        {
+          "selector": "#feature-nav > div > div:nth-of-type(2) > ol > li:nth-of-type(4) > a",
+          "frame_path": [],
+          "description": "c4 [M1 NEEDS_REVIEW] the \"4. ENGINES\" link: press Tab 5 times, then Enter",
+          "evidence_refs": []
+        },
+        {
+          "selector": "#feature-nav > div > div:nth-of-type(2) > ol > li:nth-of-type(5) > a",
+          "frame_path": [],
+          "description": "c5 [M1 NEEDS_REVIEW] the \"5. AERONAUTICS\" link: press Tab 6 times, then Enter",
+          "evidence_refs": []
+        },
+        {
+          "selector": "#feature-nav-share-button",
+          "frame_path": [],
+          "description": "c6 [M1 NEEDS_REVIEW] the \"Share this story\" button: press Tab 7 times, then Enter",
+          "evidence_refs": []
+        },
+        {
+          "selector": "#global-navigation-trigger",
+          "frame_path": [],
+          "description": "c7 [M1 NEEDS_REVIEW] the \"Explore\" button: press Tab 8 times, then Enter",
+          "evidence_refs": []
+        },
+        {
+          "selector": "html > body > header:nth-of-type(2) > div > nav > div > ul > li:nth-of-type(1) > button",
+          "frame_path": [],
+          "description": "c8 [M1 NEEDS_REVIEW] the \"News & Events\" button: press Tab 11 times, then Enter",
+          "evidence_refs": []
+        }
+      ],
+      "evidence_refs": [
+        "evidence/9a.json"
+      ],
+      "rationale": "Spec G3.",
+      "note": "This test could not be performed",
+      "decided_by": "rule",
+      "rows": [
+        "A5",
+        "c1:M5",
+        "c2:M5",
+        "c3:M5",
+        "c4:M1",
+        "c5:M1",
+        "c6:M1",
+        "c7:M1",
+        "c8:M1",
+        "G3"
+      ],
+      "confidence": null
+    },
+    {
+      "test_id": "9.B",
+      "test_name": "3.2.3-consistent-navigation",
+      "outcome": "PASS",
+      "summary": "The navigation this page shares with the other pages you gave appears in the same order on each of them.",
+      "instances": [
+        {
+          "selector": null,
+          "frame_path": [],
+          "description": "p1 [N6 PASS] https://www.nasa.gov/spot-the-station/: 9 shared",
+          "evidence_refs": []
+        },
+        {
+          "selector": null,
+          "frame_path": [],
+          "description": "p2 [N6 PASS] https://www.nasa.gov/careers/: 9 shared",
+          "evidence_refs": []
+        },
+        {
+          "selector": null,
+          "frame_path": [],
+          "description": "p3 [N6 PASS] https://www.nasa.gov/missions/: 9 shared",
+          "evidence_refs": []
+        }
+      ],
+      "evidence_refs": [
+        "evidence/9b.json"
+      ],
+      "rationale": "Spec G4. p1:N6; p2:N6; p3:N6",
+      "note": null,
+      "decided_by": "rule",
+      "rows": [
+        "A4",
+        "p1:N6",
+        "p2:N6",
+        "p3:N6",
+        "G4"
+      ],
+      "confidence": null
+    },
+    {
+      "test_id": "9.C",
+      "test_name": "3.2.4-consistent-identification",
+      "outcome": "NEEDS_REVIEW",
+      "summary": "This test could not be performed: The run did not complete: 9.C: the run reached its time limit before this test finished; 19.A: the run reached its time limit before this test finished; 4.D: the run reached its time limit before this test finished; 4.F: the run reached its time limit before this test finished; 4.A: the run reached its time limit before this test finished; 4.B: the run reached its time limit before this test finished; 4.C: the run reached its time limit before this test finished; 4.E: the run reached its time limit before this test finished; 5.D: the run reached its time limit before this test finished; 5.F: the run reached its time limit before this test finished; 5.G: the run reached its time limit before this test finished; 5.H: the run reached its time limit before this test finished; 5.A: the run reached its time limit before this test finished; 5.B: the run reached its time limit before this test finished; 5.C: the run reached its time limit before this test finished; The run reached its time limit (180 s) before every test finished; what was not finished is NEEDS REVIEW. To finish it, run again with no_time_limit=true (the call can then take several minutes).",
+      "instances": [],
+      "evidence_refs": [],
+      "rationale": "The run did not complete: 9.C: the run reached its time limit before this test finished; 19.A: the run reached its time limit before this test finished; 4.D: the run reached its time limit before this test finished; 4.F: the run reached its time limit before this test finished; 4.A: the run reached its time limit before this test finished; 4.B: the run reached its time limit before this test finished; 4.C: the run reached its time limit before this test finished; 4.E: the run reached its time limit before this test finished; 5.D: the run reached its time limit before this test finished; 5.F: the run reached its time limit before this test finished; 5.G: the run reached its time limit before this test finished; 5.H: the run reached its time limit before this test finished; 5.A: the run reached its time limit before this test finished; 5.B: the run reached its time limit before this test finished; 5.C: the run reached its time limit before this test finished; The run reached its time limit (180 s) before every test finished; what was not finished is NEEDS REVIEW. To finish it, run again with no_time_limit=true (the call can then take several minutes).",
+      "note": "This test could not be performed",
+      "decided_by": null,
+      "rows": [],
+      "confidence": null
+    },
+    {
+      "test_id": "19.A",
+      "test_name": "2.4.5-multiple-ways",
+      "outcome": "NEEDS_REVIEW",
+      "summary": "This test could not be performed: The run did not complete: 9.C: the run reached its time limit before this test finished; 19.A: the run reached its time limit before this test finished; 4.D: the run reached its time limit before this test finished; 4.F: the run reached its time limit before this test finished; 4.A: the run reached its time limit before this test finished; 4.B: the run reached its time limit before this test finished; 4.C: the run reached its time limit before this test finished; 4.E: the run reached its time limit before this test finished; 5.D: the run reached its time limit before this test finished; 5.F: the run reached its time limit before this test finished; 5.G: the run reached its time limit before this test finished; 5.H: the run reached its time limit before this test finished; 5.A: the run reached its time limit before this test finished; 5.B: the run reached its time limit before this test finished; 5.C: the run reached its time limit before this test finished; The run reached its time limit (180 s) before every test finished; what was not finished is NEEDS REVIEW. To finish it, run again with no_time_limit=true (the call can then take several minutes).",
+      "instances": [],
+      "evidence_refs": [],
+      "rationale": "The run did not complete: 9.C: the run reached its time limit before this test finished; 19.A: the run reached its time limit before this test finished; 4.D: the run reached its time limit before this test finished; 4.F: the run reached its time limit before this test finished; 4.A: the run reached its time limit before this test finished; 4.B: the run reached its time limit before this test finished; 4.C: the run reached its time limit before this test finished; 4.E: the run reached its time limit before this test finished; 5.D: the run reached its time limit before this test finished; 5.F: the run reached its time limit before this test finished; 5.G: the run reached its time limit before this test finished; 5.H: the run reached its time limit before this test finished; 5.A: the run reached its time limit before this test finished; 5.B: the run reached its time limit before this test finished; 5.C: the run reached its time limit before this test finished; The run reached its time limit (180 s) before every test finished; what was not finished is NEEDS REVIEW. To finish it, run again with no_time_limit=true (the call can then take several minutes).",
+      "note": "This test could not be performed",
+      "decided_by": null,
+      "rows": [],
+      "confidence": null
+    }
+  ],
+  "questions": [],
+  "open_questions": [],
+  "answers": [],
+  "judge_backend": "client",
+  "errors": [
+    "9.C: the run reached its time limit before this test finished",
+    "19.A: the run reached its time limit before this test finished",
+    "4.D: the run reached its time limit before this test finished",
+    "4.F: the run reached its time limit before this test finished",
+    "4.A: the run reached its time limit before this test finished",
+    "4.B: the run reached its time limit before this test finished",
+    "4.C: the run reached its time limit before this test finished",
+    "4.E: the run reached its time limit before this test finished",
+    "5.D: the run reached its time limit before this test finished",
+    "5.F: the run reached its time limit before this test finished",
+    "5.G: the run reached its time limit before this test finished",
+    "5.H: the run reached its time limit before this test finished",
+    "5.A: the run reached its time limit before this test finished",
+    "5.B: the run reached its time limit before this test finished",
+    "5.C: the run reached its time limit before this test finished",
+    "The run reached its time limit (180 s) before every test finished; what was not finished is NEEDS REVIEW. To finish it, run again with no_time_limit=true (the call can then take several minutes)."
+  ],
+  "evidence_dir": "evidence"
+}
