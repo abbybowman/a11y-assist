@@ -34,3 +34,27 @@ What the agent did (fixes 2, 4, 5, 12, 18):
 
 Cost: $0.60 at list price; tokens: cache writes 114,431, cache reads
 441,884, output 9,936.
+
+## Second run: the 600 s run limit (`results/arm-a-2/`)
+
+Same pages, prompt and model, after the run limit went from 120 s to 600 s
+and `next_step` began naming follow-up calls (commit 582426c).
+
+| Run | Weighted | Agree | False PASS | False FAIL | Left by the time limit | Questions answered |
+| --- | --- | --- | --- | --- | --- | --- |
+| 600 s limit | 53 | 54 | 0 | 1 | 0 | 8 of 81 |
+| 120 s limit | 36 | 37 | 0 | 1 | 38 | 12 of 13 |
+
+- **The longer limit removed every time-limit loss** (38 to 0). The run
+  took 760 s, with 22 `a11y_run_status` calls; no call was lost.
+- **Answering fell off with volume:** more tests finished, so 81 questions
+  were asked (Missions 58, 56 of them 5.C's label questions; NACA 10). The
+  agent answered Careers' 8 in one call and reported the rest as "not
+  checked". Those 73 questions are the next gain.
+- **Follow-up calls were not made:** neither 19.A's (the suggested pages)
+  nor 5.D's on Missions (`no_time_limit`), though `next_step` named both.
+- The same false FAIL (Artemis III's covered player button). The agent's
+  own report also turned NACA's 4.D FAIL into needs review ("the elements
+  it listed were only ones it couldn't see"); the key fails NACA 4.D.
+
+Cost: $0.61 at list price; wall time 760 s.

@@ -745,7 +745,12 @@ Then (Abby, 2026-11-05):
   makes them. Tests in `test_fixtures_19a.py` and `test_time_budget.py`.
 - **5.D's rubric examples no longer appear on fixture pages** (F02, F06
   reworded): judge eval run 21 found the eval gave those answers away.
-- Next: the development run again, to see what the longer limit does.
+- **The development run again (600 s):** weighted 53 (was 36; round 1's
+  runs 18-20), no time-limit losses (was 38), no false PASS. But with 81
+  questions the agent answered only one page's 8, and it made neither
+  follow-up call (`evals/judging/round1-postfix/README.md`). Next: make
+  many questions cheaper to answer (5.C's 56 label questions on one page)
+  and the follow-up calls harder to skip.
 
 ## Observations to decide after scoring
 
