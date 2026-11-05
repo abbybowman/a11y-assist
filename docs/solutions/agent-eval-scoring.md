@@ -53,7 +53,8 @@ Results: `evals/agent/README.md` ("Results"). The answering runs:
   reran the page six times in smaller pieces rather than answer (fix 15).
 - **Per-test numbers come from `evals/agent/per_test.py`.** It merges a
   run's split calls, leaves out pages a run is not scored on, and prints
-  a Markdown table, which the README's test table uses. For round 1 it
+  a Markdown table (one row per TT test). The README now gives a takeaway
+  per test instead of these numbers. For round 1 it
   counts one false FAIL more than the locked score (A-2's split Missions
   call).
 - **Check a disputed finding on the frozen recording before asking the
