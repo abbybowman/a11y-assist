@@ -718,6 +718,19 @@ asked for the details; checked on the frozen recordings, 2026-11-05.
   changed copy and with a new one). As the cost note says, round 1 now
   scores only at its lock commit.
 
+## After the fixes: a development run (2026-11-05)
+
+Agent A, no special prompt, on five of round 1's frozen pages
+(`evals/judging/round1-postfix/README.md`): weighted 36 against the keys
+(round 1's runs on the same pages: 18-20), 37 agreements, no false PASS,
+one false FAIL (Artemis III 4.D, the covered player button). It answered
+12 of 13 questions and waited for long runs with `a11y_run_status`.
+Left: it never set `no_time_limit` (38 cells cut short, the largest loss),
+and it did not add 19.A's suggested pages. Next: decide how the time limit
+should work now that calls no longer wait for a whole run (for example a
+longer default run limit, since long polling removed the client timeouts
+that set it), and make 19.A's follow-up call harder to skip.
+
 ## Observations to decide after scoring
 
 These describe how Agent A used the tool. They are not bugs. Whether to act
