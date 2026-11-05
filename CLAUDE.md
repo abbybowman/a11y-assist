@@ -118,7 +118,8 @@ by TT test ID. Package: `a11y_assist` (name is provisional).
   timeouts and HTTP proxies): a run not done by then goes on as a job
   (`jobs.py`) and `a11y_run_status` waits for it again (Abby, 2026-11-05,
   post-round 1 option C). One run stays within `RUN_LIMIT_S`
-  (default 120 s), plus `OTHER_PAGE_S`
+  (default 600 s since 2026-11-05, Abby: long polling freed it from client
+  timeouts; it was 120 s), plus `OTHER_PAGE_S`
   (default 20 s) for each other page the caller names (Abby, 2026-11-02),
   plus `MOVING_ALLOWANCE_S` (default 45 s) once pass T finds content that
   keeps changing by itself (Abby, 2026-11-04, T1),

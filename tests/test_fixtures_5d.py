@@ -31,7 +31,10 @@ EXPECTED: dict[str, dict] = {
         "outcome": "PASS",
         "rows": ["M8"],
         "answers": {
-            "J1": {"choice": "told", "quote": "Choosing a state takes you to its page."}
+            "J1": {
+                "choice": "told",
+                "quote": "Pick a state from the list and its office page opens right away.",
+            }
         },
     },
     "f03-submit-when-last-field-filled": {
@@ -51,7 +54,7 @@ EXPECTED: dict[str, dict] = {
         "answers": {
             "J1": {
                 "choice": "told",
-                "quote": "moves to the next box when it is full",
+                "quote": "the cursor jumps on to the next part",
             }
         },
     },

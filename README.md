@@ -77,7 +77,7 @@ Details: [round 1](evals/agent/README.md#results);
 
 ## How long it takes
 
-- **One run:** at most 120 s, plus 20 s for each other page, plus 45 s
+- **One run:** at most 10 min (`RUN_LIMIT_S`, 600 s), plus 20 s for each other page, plus 45 s
   when something on the page keeps changing by itself (a ticker, a
   carousel: every key press waits longer there, and Test 2 tries its
   controls). On

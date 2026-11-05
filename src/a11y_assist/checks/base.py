@@ -156,3 +156,8 @@ class Check(Protocol):
         """Apply answers in force to the state (pressing keys if needed).
         Returns error messages."""
         ...
+
+    # Optional: `follow_up(state, report) -> dict | None`, the tool call that
+    # would let this test decide (19.A: the same page with the pages it
+    # suggests). The pipeline names it in the result's next_step; it never
+    # makes the call itself (post-round 1 fix 18).

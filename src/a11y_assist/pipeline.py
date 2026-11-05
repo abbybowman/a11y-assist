@@ -19,6 +19,7 @@ Nothing here decides an outcome: checks do, from their specs.
 from __future__ import annotations
 
 import asyncio
+import json
 import math
 import shutil
 import time
@@ -926,7 +927,7 @@ async def run_tt_tests(
         report_uri=run_uri(run.run_id, run.rel(run.report_path)),
         pre_scrt_uri=run_uri(run.run_id, run.rel(pre_scrt)),
         errors=report.errors,
-        next_step=next_step(report),
+        next_step=next_step(report, follow_ups(report, states, skipped)),
     )
 
 
@@ -940,7 +941,36 @@ def _has_image(value: Any) -> bool:
     return False
 
 
-def next_step(report: Report) -> str:
+def follow_ups(
+    report: Report, states: dict[TestId, Any], skipped: dict[TestId, str] | None
+) -> list[dict]:
+    """Tool calls that would let a NEEDS_REVIEW test decide: a check's own
+    `follow_up` (19.A's suggested pages) and a test left out over a cap
+    (5.D, with no_time_limit). For next_step; never made by the server."""
+    review = {f.test_id for f in report.findings if f.outcome is Outcome.NEEDS_REVIEW}
+    out: list[dict] = []
+    for t in [t for t in TestId if t in review]:
+        fn = getattr(REGISTRY.get(t), "follow_up", None)
+        call = fn(states[t], report) if fn and t in states else None
+        if call:
+            out.append(call)
+    for t in skipped or {}:
+        out.append({"url": report.target, "tests": [t.value], "no_time_limit": True})
+    return out
+
+
+def _calls_text(calls: list[dict] | None) -> str:
+    if not calls:
+        return ""
+    each = "; ".join(f"a11y_run_tt_tests {json.dumps(c)}" for c in calls)
+    return (
+        " Then make these calls yourself, without asking the user (they let "
+        f"tests left for review decide): {each}. Replace those tests' results "
+        "in the saved report with the new ones."
+    )
+
+
+def next_step(report: Report, calls: list[dict] | None = None) -> str:
     """What the calling agent does next, in one place in every result
     (post-round 1 fixes 4, 12 and 19: agents left every question unanswered,
     decided NEEDS_REVIEW findings themselves, and opened few images)."""
@@ -951,8 +981,9 @@ def next_step(report: Report) -> str:
     )
     if not qs:
         return (
-            f"No open questions. Relay each finding's summary; {review}. Then "
-            "save the report (save_hint)."
+            f"No open questions. Relay each finding's summary; {review}."
+            + _calls_text(calls)
+            + " Then save the report (save_hint)."
         )
     asked = {q.test_id for q in qs}
     tests = [t.value for t in TestId if t in asked]
@@ -968,7 +999,7 @@ def next_step(report: Report) -> str:
         f"the {len(qs)} open question(s) in open_questions. Answer them now, "
         "yourself, all in one a11y_answer_questions call, each by its rubric; "
         "answer unsure only when the evidence does not settle it (only those go "
-        f"to a person).{looks} Until then, {review}."
+        f"to a person).{looks} Until then, {review}." + _calls_text(calls)
     )
 
 
@@ -1033,5 +1064,5 @@ async def answer_questions(
         report_uri=run_uri(run.run_id, run.rel(run.report_path)),
         pre_scrt_uri=run_uri(run.run_id, run.rel(pre_scrt)),
         errors=errors,
-        next_step=next_step(report),
+        next_step=next_step(report, follow_ups(report, states, None)),
     )

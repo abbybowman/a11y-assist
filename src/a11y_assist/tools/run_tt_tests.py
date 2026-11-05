@@ -124,7 +124,7 @@ def register(mcp: FastMCP) -> None:
             bool,
             Field(
                 description=(
-                    "Run without the server's run limit (default 120 s), so a "
+                    "Run without the server's run limit (default 600 s), so a "
                     "large page is tested in full. Set it only when the user "
                     "chooses to, after a call said the page is too large: the "
                     "run can take many minutes (follow it with a11y_run_status). "

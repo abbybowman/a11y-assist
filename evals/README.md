@@ -98,8 +98,8 @@ scored match** (F10's follow-up left open), none unsure. It found the
 shared text through the pointer ("clear once I did"). It also noticed that
 5.D J1's rubric example "Choosing a state takes you to its page" is the
 very sentence on fixture F02 (and F07's page): the eval gives that answer
-away. A leak to fix in the fixture or the rubric before 5.D is judged again
-(to do).
+away. Fixed after the run: F02 and F06 are reworded, so no fixture page repeats
+a rubric example.
 
 ## Run 20, 2026-11-05: shared question texts (5.C, 5.D), their packets only
 

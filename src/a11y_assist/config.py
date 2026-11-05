@@ -83,9 +83,12 @@ class Settings(BaseSettings):
     # no_time_limit, the user's choice when a file was over it).
     media_cap_mb: float | None = Field(default=50, gt=0)
     media_cap_s: float | None = Field(default=15, gt=0)
-    # Wall clock for one a11y_run_tt_tests call: short enough for HTTP proxies when
-    # hosted. Tests not finished in time are NEEDS_REVIEW with the reason.
-    run_limit_s: int = Field(default=120, ge=10)
+    # Wall clock for one run. Tests not finished in time are NEEDS_REVIEW
+    # with the reason. 600 s since long polling (Abby, 2026-11-05): a call
+    # no longer waits for the whole run (call_wait_s), so the limit no
+    # longer has to fit client and proxy timeouts; it was 120 s, and the
+    # time limit was the largest loss left after the post-round 1 fixes.
+    run_limit_s: int = Field(default=600, ge=10)
     # Seconds the run limit grows by for each other page of the same site the
     # caller names (9.A-9.C: recording it and reading it; Abby, 2026-11-02).
     other_page_s: int = Field(default=20, ge=5)

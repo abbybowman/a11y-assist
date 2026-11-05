@@ -480,5 +480,17 @@ class Check19A:
         apply_answers(state, report)
         return []
 
+    def follow_up(self, state: State19A, report) -> dict | None:
+        """The call that adds the suggested pages (fix 18): 19.A alone, the
+        pages given before plus the suggested ones (at most 5 without
+        no_time_limit). None when there is nothing to suggest."""
+        if not state.suggestions:
+            return None
+        given = [p.url for p in report.other_pages]
+        pages = list(dict.fromkeys(given + list(state.suggestions)))[:5]
+        if pages == given:
+            return None
+        return {"url": report.target, "tests": ["19.A"], "other_pages": pages}
+
 
 __all__ = ["Check19A", "page_label"]

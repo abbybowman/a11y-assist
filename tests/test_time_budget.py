@@ -113,6 +113,7 @@ async def test_more_fields_than_5d_checks_leaves_out_only_5d(
     assert "this page has 3 form fields" in d.summary and "at most 2" in d.summary
     assert 'tests ["5.D"] and no_time_limit=true' in d.summary
     assert any(e.startswith("5.D was not run: this page") for e in out.errors)
+    assert '"tests": ["5.D"], "no_time_limit": true' in out.next_step
     # Only 5.D, over the cap: nothing to walk, no refusal, 5.D says why.
     out = await run_tt_tests(settings, url, [TestId.T5D])
     assert out.report.findings[0].note and "no_time_limit=true" in (

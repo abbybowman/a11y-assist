@@ -726,10 +726,20 @@ Agent A, no special prompt, on five of round 1's frozen pages
 one false FAIL (Artemis III 4.D, the covered player button). It answered
 12 of 13 questions and waited for long runs with `a11y_run_status`.
 Left: it never set `no_time_limit` (38 cells cut short, the largest loss),
-and it did not add 19.A's suggested pages. Next: decide how the time limit
-should work now that calls no longer wait for a whole run (for example a
-longer default run limit, since long polling removed the client timeouts
-that set it), and make 19.A's follow-up call harder to skip.
+and it did not add 19.A's suggested pages.
+
+Then (Abby, 2026-11-05):
+- **The default run limit is 600 s** (was 120 s): long polling freed it
+  from client timeouts. The test settings keep 120 s, which the rule tests
+  were built on (`tests/conftest.py`).
+- **`next_step` names the follow-up calls** (`pipeline.follow_ups`): a
+  check's optional `follow_up` (19.A: the same page, 19.A alone, the pages
+  given plus the suggested ones) and a test left out over a cap (5.D with
+  `no_time_limit`), to make "without asking the user". The server never
+  makes them. Tests in `test_fixtures_19a.py` and `test_time_budget.py`.
+- **5.D's rubric examples no longer appear on fixture pages** (F02, F06
+  reworded): judge eval run 21 found the eval gave those answers away.
+- Next: the development run again, to see what the longer limit does.
 
 ## Observations to decide after scoring
 
