@@ -37,7 +37,11 @@ class H(http.server.BaseHTTPRequestHandler):
             self.end_headers()
             return
         f = os.path.join(SITE, p.lstrip("/"))
-        if not os.path.isfile(f):
+        # Only files inside SITE: resolve the path and refuse anything
+        # outside it ("/../" in a request), before touching the file.
+        root = os.path.realpath(SITE)
+        f = os.path.realpath(f)
+        if not f.startswith(root + os.sep) or not os.path.isfile(f):
             self.send_response(404)
             self.end_headers()
             return
