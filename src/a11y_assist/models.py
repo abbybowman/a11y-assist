@@ -294,6 +294,12 @@ class OpenQuestion(BaseModel):
         default_factory=list,
         description="Keys of the result's shared_inputs this question uses.",
     )
+    texts: str | None = Field(
+        default=None,
+        description="When set, this question's `question` and `rubric` are in "
+        "the result's question_texts under this key (given once for the "
+        "questions that share them).",
+    )
 
 
 class J1Answer(BaseModel):
@@ -481,6 +487,35 @@ class Report(BaseModel):
 # ── Tool results ─────────────────────────────────────────────────────────────
 
 
+# Tool output stays small (post-round 1 fix 6b: NASA's Missions result was
+# about 51k tokens, over Claude Code's limit for one MCP result). The report
+# at report_uri keeps every sentence and row; a result shortens only these.
+SUMMARY_VIEW_MAX = 1500
+ROWS_VIEW_MAX = 40
+
+
+def _short_summary(text: str) -> str:
+    """The first sentences of a long summary, then how many more there are
+    (a page with 96 failing fields gives 96 alike sentences)."""
+    if len(text) <= SUMMARY_VIEW_MAX:
+        return text
+    cut = text.rfind(". ", 0, SUMMARY_VIEW_MAX)
+    cut = cut + 1 if cut > 0 else SUMMARY_VIEW_MAX
+    rest = text[cut:].count(". ") + 1
+    return (
+        text[:cut].rstrip()
+        + f" (And {rest} more sentence{'s' if rest != 1 else ''} like these: the "
+        "full summary is in the report at report_uri.)"
+    )
+
+
+def _short_rows(rows: list[str]) -> list[str]:
+    if len(rows) <= ROWS_VIEW_MAX:
+        return rows
+    keep = rows[: ROWS_VIEW_MAX - 1]
+    return keep + [f"... {len(rows) - len(keep)} more rows in the report"]
+
+
 class FindingView(BaseModel):
     """One TT test's result, as tool output."""
 
@@ -507,9 +542,9 @@ class FindingView(BaseModel):
             test_name=f.test_name,
             wcag_sc=f.test_id.wcag_sc,
             outcome=f.outcome,
-            summary=f.summary,
+            summary=_short_summary(f.summary),
             note=f.note,
-            rows=f.rows,
+            rows=_short_rows(f.rows),
             reference=f"tt://{_catalog.TT_VERSION}/tests/{f.test_id.value}",
             understanding=_catalog.understanding_urls(f.test_id.value),
         )
@@ -564,6 +599,12 @@ class RunResult(BaseModel):
         default_factory=list,
         description="MCP resource URIs (run://...) for evidence files of this run.",
     )
+    question_texts: dict[str, dict[str, str]] = Field(
+        default_factory=dict,
+        description="The question and rubric that several open questions "
+        "share, once per result: a question whose `texts` names a key here "
+        "uses its question and rubric.",
+    )
     shared_inputs: dict[str, Any] = Field(default_factory=dict, description=SHARED_DESC)
     expires_at: datetime
     report_uri: str = Field(description="run:// resource holding the full report.")
@@ -610,6 +651,12 @@ class AnswerResult(BaseModel):
     findings: list[FindingView]
     open_questions: list[OpenQuestion] = Field(default_factory=list)
     page_text: list[dict[str, str]] = Field(default_factory=list)
+    question_texts: dict[str, dict[str, str]] = Field(
+        default_factory=dict,
+        description="The question and rubric that several open questions "
+        "share, once per result: a question whose `texts` names a key here "
+        "uses its question and rubric.",
+    )
     shared_inputs: dict[str, Any] = Field(default_factory=dict, description=SHARED_DESC)
     report_uri: str = Field(description="run:// resource holding the full report.")
     pre_scrt_uri: str = Field(

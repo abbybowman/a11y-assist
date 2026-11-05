@@ -260,8 +260,18 @@ Evidence:
   evidence URI list from the result (it is in the report); cap a
   finding's listed instances in the result (the report keeps them all).
   Then the judge eval, since agents would read questions differently.
-- **Status:** the harness part done; the tool part measured, design
-  proposed.
+- **Approved (Abby, 2026-11-05) and built:** `question_texts` (each
+  question and rubric several questions share, once; questions name it in
+  `texts`), a summary over 1,500 characters keeps its first sentences and
+  says how many more the report has, at most 40 rows per finding, and the
+  evidence list without pictures. Missions' result, rebuilt from its saved
+  report: 209k to 94k characters (about 23.6k tokens), with 62 questions
+  over 4 distinct texts. Judge eval packets carry `question_texts` as a
+  client gets them. Tests: `test_tools.py` (shared texts), `test_models.py`
+  (summary and rows). Judge eval runs 20 and 21 (5.C, 5.D): 19/19 and
+  14/14; after run 20's agent missed `question_texts`, a shared question's
+  fields point to it.
+- **Status:** built.
 
 ### 7. The freeze should check its own recordings (the harness)
 
@@ -673,7 +683,14 @@ asked for the details; checked on the frozen recordings, 2026-11-05.
   because option 2 cannot catch a confident answer made without looking.
   Needs Abby's approval (CLAUDE.md: screenshots in a question are run://
   links).
-- **Status:** options 1 measured and built; option 3 waits for approval.
+- **Approved (Abby, 2026-11-05): option 3.** Built (`inline.py`, used by
+  `a11y_run_tt_tests`, `a11y_run_status` and `a11y_answer_questions`): the
+  result's JSON is the first content block, then each picture an open
+  question names, after a caption naming its question and input key,
+  longest side 1024 px, at most 12 pictures and 1.5 MB per result; the
+  rest stay run:// links and `next_step` says how to open them. Test:
+  `test_tools.py::test_pictures_come_with_the_questions_that_name_them`.
+- **Status:** built.
 
 ### 20. A judging round's lock covers files git ignores
 

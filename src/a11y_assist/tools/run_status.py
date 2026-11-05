@@ -9,6 +9,7 @@ from fastmcp.exceptions import ToolError
 from pydantic import Field
 
 from a11y_assist import config, jobs
+from a11y_assist.inline import with_pictures
 from a11y_assist.models import RunPending, RunResult
 from a11y_assist.pipeline import RunRefused
 from a11y_assist.redact import safe_error
@@ -56,7 +57,9 @@ def register(mcp: FastMCP) -> None:
             )
         progress = ctx.report_progress if ctx is not None else None
         try:
-            return await jobs.wait(job, config.settings.call_wait_s, progress)
+            return with_pictures(
+                await jobs.wait(job, config.settings.call_wait_s, progress), wrap=True
+            )
         except RunRefused as exc:
             raise ToolError(str(exc)) from None
         except Exception as exc:

@@ -52,6 +52,7 @@ from a11y_assist.models import (
     AnswerResult,
     Finding,
     FindingView,
+    OpenQuestion,
     OtherPage,
     Outcome,
     Report,
@@ -447,9 +448,44 @@ def _walk_summary(walk: KeyboardWalk) -> dict[str, Any]:
 
 
 def _evidence_uris(run: RunRecorder) -> list[str]:
+    """The report and the evidence files. Pictures are not listed: the
+    questions and the report name the ones that matter (post-round 1 fix 6b:
+    a large page's list of pictures was 13k characters)."""
     files = [run.report_path] + sorted(run.evidence_dir.glob("*.json"))
-    files += sorted((run.evidence_dir / "shots").glob("*.png"))
     return [run_uri(run.run_id, run.rel(f)) for f in files if f.exists()]
+
+
+def _question_view(
+    qs: list[OpenQuestion],
+) -> tuple[list[OpenQuestion], dict[str, dict[str, str]]]:
+    """Open questions for a result, with each question and rubric that
+    several share given once in question_texts (post-round 1 fix 6b: 56 of
+    a page's questions repeated one text). The report keeps them whole."""
+    counts: dict[tuple[str, str], int] = {}
+    for q in qs:
+        counts[(q.question, q.rubric)] = counts.get((q.question, q.rubric), 0) + 1
+    keys: dict[tuple[str, str], str] = {}
+    texts: dict[str, dict[str, str]] = {}
+    out = []
+    for q in qs:
+        pair = (q.question, q.rubric)
+        if counts[pair] < 2:
+            out.append(q)
+            continue
+        if pair not in keys:
+            base = f"{q.test_id.value}-{q.question_id.rsplit('-', 1)[-1]}"
+            key, n = base, 2
+            while key in texts:
+                key, n = f"{base}-{n}", n + 1
+            keys[pair] = key
+            texts[key] = {"question": pair[0], "rubric": pair[1]}
+        k = keys[pair]
+        # A pointer, not an empty field: judge eval run 20's agent missed
+        # question_texts when the fields were blank.
+        see = f'Shared with other questions: read question_texts["{k}"]'
+        view = {"question": f"{see}.question.", "rubric": f"{see}.rubric.", "texts": k}
+        out.append(q.model_copy(update=view))
+    return out, texts
 
 
 def _shared_inputs(report: Report, states: dict[TestId, Any]) -> dict[str, Any]:
@@ -872,13 +908,15 @@ async def run_tt_tests(
     run.write_json(run.report_path, report)
     pre_scrt = scrt.write_for_run(run.dir, run.report_path, report)
     run.log("run_end", status="error" if report.errors else "ok")
+    qview = _question_view(report.open_questions)
     return RunResult(
         run_id=run.run_id,
         target=url,
         final_url=report.final_url,
         tests=report.tests,
         findings=[FindingView.of(f) for f in report.findings],
-        open_questions=report.open_questions,
+        open_questions=qview[0],
+        question_texts=qview[1],
         page_text=_page_text(report, states),
         shared_inputs=_shared_inputs(report, states),
         walk=_walk_summary(walk) if walk else {},
@@ -981,12 +1019,14 @@ async def answer_questions(
         rejected=rejected,
         errors=errors,
     )
+    qview = _question_view(report.open_questions)
     return AnswerResult(
         run_id=run_id,
         accepted=accepted,
         rejected=rejected,
         findings=[FindingView.of(f) for f in report.findings],
-        open_questions=report.open_questions,
+        open_questions=qview[0],
+        question_texts=qview[1],
         page_text=_page_text(report, states),
         shared_inputs=_shared_inputs(report, states),
         report=report,

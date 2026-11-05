@@ -92,8 +92,13 @@ by TT test ID. Package: `a11y_assist` (name is provisional).
   its default come from `checks.REGISTRY`; never hardcode them.
 - Keep tool output small: the full report is a `run://` resource
   (`report_uri`), never inline; evidence several questions share goes once in
-  `shared_inputs` (questions name their keys in `shared`); screenshots and
-  files in a question are `run://` links, never run-folder paths.
+  `shared_inputs` (questions name their keys in `shared`), and a question and
+  rubric several questions share go once in `question_texts`; a long summary
+  or row list is shortened (the report keeps it whole). Screenshots and
+  files in a question are `run://` links, never run-folder paths; the
+  pictures a result's open questions name are also attached to it,
+  downscaled and capped (`inline.py`; Abby, 2026-11-05, post-round 1 fix
+  19: without them an agent answered a visual question wrongly and sure).
 - Test runs analyze a HAR replay, never the live page, so runs are repeatable.
   Replays of pages with cross-site iframes run in full Chromium, never the
   headless shell (`docs/solutions/full-chromium-iframes.md`).
@@ -204,6 +209,7 @@ src/a11y_assist/
   judgment.py   Judge interface: ClientJudge, ApiJudge (stub); answer recording
   pipeline.py   run_tt_tests / answer_questions orchestration (generic)
   jobs.py       runs that outlive one call: the call wait, the run cap, a11y_run_status
+  inline.py     the pictures attached to a result for its open questions (capped)
   runlog.py     runs/<run_id>/ folder, steps.jsonl
   versions.py   version collection
   catalog.py    the TT 5.1.3 test catalog (from docs/sources/tt-5.1.3/tt.json)

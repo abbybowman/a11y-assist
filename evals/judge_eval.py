@@ -323,6 +323,7 @@ def write_packet(
                 "questions": qs,
                 "page_text": res.page_text,
                 "shared_inputs": rewrite(res.shared_inputs),
+                "question_texts": getattr(res, "question_texts", {}),
                 "answer_format": answer_format,
                 "write_answers_to": "answers.json (a JSON list of answer objects)",
             },

@@ -90,6 +90,31 @@ reload the page, then right-click a request and "Save all as HAR with
 content". Whether a DevTools HAR replays like our own recordings is not yet
 checked.
 
+## Run 21, 2026-11-05: the pointer wording (5.D), its packets only
+
+After run 20, a shared question's `question` and `rubric` say where the
+text is. 15 cases; one fresh Sonnet agent, Read/Write/Glob only: **14/14
+scored match** (F10's follow-up left open), none unsure. It found the
+shared text through the pointer ("clear once I did"). It also noticed that
+5.D J1's rubric example "Choosing a state takes you to its page" is the
+very sentence on fixture F02 (and F07's page): the eval gives that answer
+away. A leak to fix in the fixture or the rubric before 5.D is judged again
+(to do).
+
+## Run 20, 2026-11-05: shared question texts (5.C, 5.D), their packets only
+
+Packets now carry `question_texts`, as a client gets them (post-round 1
+fix 6b): a question that shares its question and rubric with others in its
+run names a key there instead. 20 cases; one fresh Sonnet agent: **19/19
+scored match** (5.D F10's follow-up round left open), none unsure. It
+answered the shared questions correctly but said their `question` and
+`rubric` were empty and that it took the text from sibling packets: it
+had not seen `question_texts` in the same file. So a shared question's
+fields now say where its text is (`Shared with other questions: read
+question_texts["5.D-J1"].question.`). It also wrote its answers with one
+Bash call, against its instructions (it opened nothing outside the
+packets).
+
 ## Run 19, 2026-11-05: fix 19's picture arms (4.A, 4.D, 4.F, 5.A-5.D)
 
 The same 71 cases prepared three ways (`all`, `none`, `retry`), each

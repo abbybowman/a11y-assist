@@ -52,3 +52,34 @@ def test_report_cannot_claim_certification() -> None:
     assert "NOT a certified" in report.disclaimer
     with pytest.raises(ValidationError):
         Report(**kwargs, certified=True)
+
+
+def test_a_long_summary_and_many_rows_are_shortened_in_tool_output():
+    """Post-round 1 fix 6b: a page with 96 failing fields gave a 21k
+    character summary. Tool output keeps the first sentences and says how
+    many more the report has; the finding itself keeps everything."""
+    from a11y_assist.models import (
+        ROWS_VIEW_MAX,
+        SUMMARY_VIEW_MAX,
+        Finding,
+        FindingView,
+        Outcome,
+        TestId,
+    )
+
+    sentence = "When we filled in a box, the page went to another address. "
+    f = Finding(
+        test_id=TestId.T5D,
+        test_name=TestId.T5D.tt_name,
+        outcome=Outcome.FAIL,
+        summary="Some fields change the page. " + sentence * 96,
+        rows=["A3"] + [f"f{n}:M9" for n in range(96)] + ["G2"],
+    )
+    v = FindingView.of(f)
+    assert len(v.summary) < SUMMARY_VIEW_MAX + 200
+    assert v.summary.startswith("Some fields change the page.")
+    assert "more sentences like these: the full summary is in the report" in v.summary
+    assert len(v.rows) == ROWS_VIEW_MAX and v.rows[-1].endswith(
+        "more rows in the report"
+    )
+    assert len(f.summary) > 5000 and len(f.rows) == 98  # the report keeps them
