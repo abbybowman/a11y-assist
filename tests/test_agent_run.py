@@ -243,3 +243,20 @@ async def test_anthropic_messages_adapter():
     finally:
         httpd.shutdown()
         httpd.server_close()
+
+
+def test_the_leak_check_ignores_the_arms_own_server_instructions():
+    """Agent A sees its MCP server's instructions, which name Trusted Tester;
+    that is not a leak. Anything else naming it still is."""
+    from evals.agent.run import _without_server_instructions
+
+    got = {
+        "user": None,
+        "project": None,
+        "instructions": [
+            "MCP server instructions for the a11y server (Trusted Tester 5.1.3 tools)"
+        ],
+    }
+    assert "trusted tester" not in str(_without_server_instructions(got)).lower()
+    leaked = {**got, "project": "a Trusted Tester repository"}
+    assert "trusted tester" in str(_without_server_instructions(leaked)).lower()

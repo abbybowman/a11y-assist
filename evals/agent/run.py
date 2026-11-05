@@ -297,6 +297,22 @@ def leak_values() -> list[str]:
     return [v for v in vals if v]
 
 
+def _without_server_instructions(got: dict) -> dict:
+    """The answer without entries that only name an attached MCP server's own
+    instructions: Agent A is meant to see its server's (which name Trusted
+    Tester); a leak is what the user, this repo or memory told it. The
+    2026-11-05 development run stopped on "MCP server instructions for the
+    a11y server (Trusted Tester 5.1.3 tools)"."""
+    if not isinstance(got, dict) or not isinstance(got.get("instructions"), list):
+        return got
+    keep = [
+        i
+        for i in got["instructions"]
+        if not (isinstance(i, str) and "mcp server instructions" in i.lower())
+    ]
+    return {**got, "instructions": keep}
+
+
 async def leak_check(provider, log: StepLog, servers: list[Server]) -> dict:
     """The arm's context before the task holds nothing of the user, this
     repo or its memory (plan section 7.2). On the CLI route the arm's
@@ -319,7 +335,7 @@ async def leak_check(provider, log: StepLog, servers: list[Server]) -> dict:
         got = json.loads(text[text.index("{") : text.rindex("}") + 1])
     except ValueError:
         got = {"unparsed": text}
-    said = json.dumps(got).lower()
+    said = json.dumps(_without_server_instructions(got)).lower()
     hits = [v for v in leak_values() if v in said]
     out = {"answer": got, "leaked": hits, "usage": usage, "model": model, **extra}
     log.add(type="leak_check", seconds=round(time.monotonic() - t0, 3), **out)
