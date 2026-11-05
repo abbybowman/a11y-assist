@@ -1,0 +1,15 @@
+{"ts":"2026-11-04T22:42:49.660783Z","step":"run_start","status":"ok","detail":{"target":"https://www.nasa.gov/missions/","tests":["4.D","4.F","9.C"]}}
+{"ts":"2026-11-04T22:42:50.051296Z","step":"browser_launched","status":"ok","detail":{"version":"153.0.8010.12"}}
+{"ts":"2026-11-04T22:42:50.060129Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/missions/","har":"pages/005.har.zip"}}
+{"ts":"2026-11-04T22:42:50.069578Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/feature/naca-at-110-special-feature/","har":"pages/007.har.zip"}}
+{"ts":"2026-11-04T22:42:50.069794Z","step":"captured_other","status":"ok","detail":{"n":1,"final_url":"https://www.nasa.gov/feature/naca-at-110-special-feature/","seconds":0.01}}
+{"ts":"2026-11-04T22:42:50.083466Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/gallery/ksc-history/","har":"pages/009.har.zip"}}
+{"ts":"2026-11-04T22:42:50.083615Z","step":"captured_other","status":"ok","detail":{"n":2,"final_url":"https://www.nasa.gov/gallery/ksc-history/","seconds":0.01}}
+{"ts":"2026-11-04T22:42:50.083656Z","step":"captured","status":"ok","detail":{"final_url":"https://www.nasa.gov/missions/","redirects":[],"seconds":0.03}}
+{"ts":"2026-11-04T22:44:27.013873Z","step":"walk","status":"ok","detail":{"P1":{"end":"wrap","presses":163,"cap":533},"P2":{"end":"wrap","presses":163,"cap":533},"cost":{"loads":2,"presses":326,"quick":0,"slow_redos":0,"seconds":96.92}}}
+{"ts":"2026-11-04T22:44:27.332422Z","step":"browser_launched","status":"ok","detail":{"kind":"full Chromium"}}
+{"ts":"2026-11-04T22:44:36.070827Z","step":"collected","status":"ok","detail":{"test":"9.C","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":9.06}}}
+{"ts":"2026-11-04T22:44:36.301364Z","step":"collected","status":"ok","detail":{"test":"4.D","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":0.22}}}
+{"ts":"2026-11-04T22:44:48.727598Z","step":"collected","status":"ok","detail":{"test":"4.F","cost":{"loads":4,"presses":12,"quick":7,"slow_redos":0,"seconds":12.42}}}
+{"ts":"2026-11-04T22:44:49.075084Z","step":"run_end","status":"ok","detail":{}}
+{"ts":"2026-11-04T22:44:53.407815Z","step":"answers_recorded","status":"ok","detail":{"accepted":["4.F-o1-J1"],"rejected":[],"errors":[]}}

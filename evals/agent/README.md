@@ -51,6 +51,19 @@ AGENT_LEAK_VALUES=...       # optional, comma-separated: values the leak check m
 
 Both arms of a round use the same route.
 
+Development runs, never scored as a round (Agent A, CLI route):
+- `--prompt <version>` adds a paragraph from `evals/agent/prompt_dev.py`
+  to the round's task. For example, `answers-v1` tells the agent to
+  answer every open question and to rerun cut-short calls with
+  `no_time_limit`.
+- `--no-subagents` removes the CLI's subagent tool. Without it, one run
+  started 9 subagents at once and overloaded the container.
+
+Run them in their own folder, because a locked round refuses new runs
+(`docs/solutions/agent-eval-scoring.md`). On the CLI route, MCP calls stay
+in the foreground for up to an hour, so a long call is not lost when the
+agent ends its turn (`docs/solutions/agent-eval-harness.md`).
+
 In a cloud session, set `UPSTREAM_PROXY="$HTTPS_PROXY"` for the freeze and
 both arms. The container re-signs direct connections with a certificate
 Chromium does not trust, so live pages would load without their CSS and

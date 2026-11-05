@@ -1,0 +1,11 @@
+{"ts":"2026-11-04T22:46:57.172238Z","step":"run_start","status":"ok","detail":{"target":"https://www.nasa.gov/missions/","tests":["5.C","5.D","5.F","5.G","5.H"]}}
+{"ts":"2026-11-04T22:46:57.656952Z","step":"browser_launched","status":"ok","detail":{"version":"153.0.8010.12"}}
+{"ts":"2026-11-04T22:46:57.667636Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/missions/","har":"pages/005.har.zip"}}
+{"ts":"2026-11-04T22:46:57.667933Z","step":"captured","status":"ok","detail":{"final_url":"https://www.nasa.gov/missions/","redirects":[],"seconds":0.01}}
+{"ts":"2026-11-04T22:48:14.298273Z","step":"walk","status":"ok","detail":{"P1":{"end":"wrap","presses":163,"cap":533},"P2":{"end":"wrap","presses":163,"cap":533},"cost":{"loads":2,"presses":326,"quick":0,"slow_redos":0,"seconds":76.62}}}
+{"ts":"2026-11-04T22:59:24.831723Z","step":"collected","status":"ok","detail":{"test":"5.D","cost":{"loads":96,"presses":5422,"quick":4944,"slow_redos":0,"seconds":670.53}}}
+{"ts":"2026-11-04T22:59:41.770007Z","step":"collected","status":"ok","detail":{"test":"5.F","cost":{"loads":5,"presses":20,"quick":11,"slow_redos":0,"seconds":16.93}}}
+{"ts":"2026-11-04T22:59:41.781448Z","step":"collected","status":"ok","detail":{"test":"5.G","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":0.01}}}
+{"ts":"2026-11-04T22:59:41.792062Z","step":"collected","status":"ok","detail":{"test":"5.H","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":0.01}}}
+{"ts":"2026-11-04T22:59:49.793765Z","step":"collected","status":"ok","detail":{"test":"5.C","cost":{"loads":1,"presses":0,"quick":0,"slow_redos":0,"seconds":8.0}}}
+{"ts":"2026-11-04T22:59:49.885274Z","step":"run_end","status":"ok","detail":{}}

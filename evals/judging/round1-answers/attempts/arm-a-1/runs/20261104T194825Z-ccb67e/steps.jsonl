@@ -1,0 +1,26 @@
+{"ts":"2026-11-04T19:48:25.958663Z","step":"run_start","status":"ok","detail":{"target":"https://www.nasa.gov/news-release/nasa-releases-max-power-key-events-for-media-participants/","tests":["4.A","4.B","4.C","4.D","4.E","4.F","5.A","5.B","5.C","5.D","5.F","5.G","5.H","9.A","9.B","9.C","19.A"]}}
+{"ts":"2026-11-04T19:48:27.531654Z","step":"browser_launched","status":"ok","detail":{"version":"153.0.8010.12"}}
+{"ts":"2026-11-04T19:48:27.583128Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/news-release/nasa-releases-max-power-key-events-for-media-participants/","har":"pages/008.har.zip"}}
+{"ts":"2026-11-04T19:48:27.728826Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/careers/","har":"pages/004.har.zip"}}
+{"ts":"2026-11-04T19:48:27.729158Z","step":"captured_other","status":"ok","detail":{"n":1,"final_url":"https://www.nasa.gov/careers/","seconds":0.09}}
+{"ts":"2026-11-04T19:48:27.886135Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/missions/","har":"pages/005.har.zip"}}
+{"ts":"2026-11-04T19:48:27.886524Z","step":"captured_other","status":"ok","detail":{"n":2,"final_url":"https://www.nasa.gov/missions/","seconds":0.11}}
+{"ts":"2026-11-04T19:48:28.023836Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/mission/artemis-iii/","har":"pages/006.har.zip"}}
+{"ts":"2026-11-04T19:48:28.030589Z","step":"captured_other","status":"ok","detail":{"n":3,"final_url":"https://www.nasa.gov/mission/artemis-iii/","seconds":0.09}}
+{"ts":"2026-11-04T19:48:28.192880Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/gallery/ksc-history/","har":"pages/009.har.zip"}}
+{"ts":"2026-11-04T19:48:28.193375Z","step":"captured_other","status":"ok","detail":{"n":4,"final_url":"https://www.nasa.gov/gallery/ksc-history/","seconds":0.12}}
+{"ts":"2026-11-04T19:48:28.298855Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/sitemap/","live":true}}
+{"ts":"2026-11-04T19:48:37.366800Z","step":"capture_scroll","status":"ok","detail":{"pass_":1,"page_grew":false}}
+{"ts":"2026-11-04T19:48:40.666724Z","step":"captured_other","status":"ok","detail":{"n":5,"final_url":"https://www.nasa.gov/sitemap/","seconds":12.37}}
+{"ts":"2026-11-04T19:48:40.666934Z","step":"captured","status":"ok","detail":{"final_url":"https://www.nasa.gov/news-release/nasa-releases-max-power-key-events-for-media-participants/","redirects":[],"seconds":13.13}}
+{"ts":"2026-11-04T19:51:02.653807Z","step":"walk","status":"ok","detail":{"P1":{"end":"wrap","presses":75,"cap":269},"P2":{"end":"wrap","presses":75,"cap":269},"cost":{"loads":2,"presses":150,"quick":0,"slow_redos":0,"seconds":141.91}}}
+{"ts":"2026-11-04T19:51:03.304803Z","step":"browser_launched","status":"ok","detail":{"kind":"full Chromium"}}
+{"ts":"2026-11-04T19:51:12.454464Z","step":"egress_refused","status":"blocked","detail":{"host":"mtalk.google.com","port":5228,"reason":"port 5228 is not allowed"}}
+{"ts":"2026-11-04T19:52:05.466039Z","step":"collected","status":"ok","detail":{"test":"9.A","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":62.81}}}
+{"ts":"2026-11-04T19:52:05.473022Z","step":"collected","status":"ok","detail":{"test":"9.B","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":0.0}}}
+{"ts":"2026-11-04T19:53:54.115564Z","step":"collected","status":"ok","detail":{"test":"9.C","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":108.61}}}
+{"ts":"2026-11-04T19:53:54.156666Z","step":"collected","status":"ok","detail":{"test":"19.A","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":0.0}}}
+{"ts":"2026-11-04T19:53:54.393648Z","step":"collected","status":"ok","detail":{"test":"4.D","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":0.15}}}
+{"ts":"2026-11-04T19:56:41.294069Z","step":"egress_refused","status":"blocked","detail":{"host":"mtalk.google.com","port":5228,"reason":"port 5228 is not allowed"}}
+{"ts":"2026-11-04T19:56:43.836905Z","step":"check_error","status":"error","detail":{"test":"4.F","error":"TimeoutError: Page.goto: Timeout 30000ms exceeded."}}
+{"ts":"2026-11-04T19:57:20.758236Z","step":"check_error","status":"error","detail":{"test":"4.A","error":"TimeoutError: Page.goto: Timeout 30000ms exceeded."}}

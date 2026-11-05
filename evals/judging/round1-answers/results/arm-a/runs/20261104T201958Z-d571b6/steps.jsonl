@@ -1,0 +1,39 @@
+{"ts":"2026-11-04T20:19:58.430832Z","step":"run_start","status":"ok","detail":{"target":"https://www.nasa.gov/news-release/nasa-releases-max-power-key-events-for-media-participants/","tests":["4.A","4.B","4.C","4.D","4.E","4.F","5.A","5.B","5.C","5.D","5.F","5.G","5.H","9.A","9.B","9.C","19.A"]}}
+{"ts":"2026-11-04T20:19:59.121005Z","step":"browser_launched","status":"ok","detail":{"version":"153.0.8010.12"}}
+{"ts":"2026-11-04T20:19:59.140538Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/news-release/nasa-releases-max-power-key-events-for-media-participants/","har":"pages/008.har.zip"}}
+{"ts":"2026-11-04T20:19:59.163550Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/careers/","har":"pages/004.har.zip"}}
+{"ts":"2026-11-04T20:19:59.164014Z","step":"captured_other","status":"ok","detail":{"n":1,"final_url":"https://www.nasa.gov/careers/","seconds":0.01}}
+{"ts":"2026-11-04T20:19:59.174983Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/missions/","har":"pages/005.har.zip"}}
+{"ts":"2026-11-04T20:19:59.175798Z","step":"captured_other","status":"ok","detail":{"n":2,"final_url":"https://www.nasa.gov/missions/","seconds":0.01}}
+{"ts":"2026-11-04T20:19:59.188022Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/mission/artemis-iii/","har":"pages/006.har.zip"}}
+{"ts":"2026-11-04T20:19:59.188382Z","step":"captured_other","status":"ok","detail":{"n":3,"final_url":"https://www.nasa.gov/mission/artemis-iii/","seconds":0.01}}
+{"ts":"2026-11-04T20:19:59.201537Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/spot-the-station/","har":"pages/001.har.zip"}}
+{"ts":"2026-11-04T20:19:59.201825Z","step":"captured_other","status":"ok","detail":{"n":4,"final_url":"https://www.nasa.gov/spot-the-station/","seconds":0.01}}
+{"ts":"2026-11-04T20:19:59.201960Z","step":"captured","status":"ok","detail":{"final_url":"https://www.nasa.gov/news-release/nasa-releases-max-power-key-events-for-media-participants/","redirects":[],"seconds":0.08}}
+{"ts":"2026-11-04T20:20:58.039613Z","step":"walk","status":"ok","detail":{"P1":{"end":"wrap","presses":75,"cap":269},"P2":{"end":"wrap","presses":75,"cap":269},"cost":{"loads":2,"presses":150,"quick":0,"slow_redos":0,"seconds":58.83}}}
+{"ts":"2026-11-04T20:20:58.385093Z","step":"browser_launched","status":"ok","detail":{"kind":"full Chromium"}}
+{"ts":"2026-11-04T20:20:58.707397Z","step":"browser_launched","status":"ok","detail":{"kind":"full Chromium"}}
+{"ts":"2026-11-04T20:21:39.137303Z","step":"collected","status":"ok","detail":{"test":"9.A","cost":{"loads":3,"presses":16,"quick":7,"slow_redos":0,"seconds":41.1}}}
+{"ts":"2026-11-04T20:21:39.154092Z","step":"collected","status":"ok","detail":{"test":"9.B","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":0.01}}}
+{"ts":"2026-11-04T20:21:45.246378Z","step":"egress_refused","status":"blocked","detail":{"host":"mtalk.google.com","port":5228,"reason":"port 5228 is not allowed"}}
+{"ts":"2026-11-04T20:22:09.886336Z","step":"collected","status":"ok","detail":{"test":"9.C","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":30.69}}}
+{"ts":"2026-11-04T20:22:09.890014Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/","live":true}}
+{"ts":"2026-11-04T20:22:20.137447Z","step":"capture_scroll","status":"ok","detail":{"pass_":1,"page_grew":false}}
+{"ts":"2026-11-04T20:22:21.612550Z","step":"captured_live","status":"ok","detail":{"n":1,"seconds":11.72}}
+{"ts":"2026-11-04T20:22:26.505153Z","step":"collected","status":"ok","detail":{"test":"19.A","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":16.62}}}
+{"ts":"2026-11-04T20:22:26.611589Z","step":"collected","status":"ok","detail":{"test":"4.D","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":0.1}}}
+{"ts":"2026-11-04T20:22:53.986157Z","step":"collected","status":"ok","detail":{"test":"4.F","cost":{"loads":4,"presses":12,"quick":7,"slow_redos":0,"seconds":27.35}}}
+{"ts":"2026-11-04T20:23:09.395003Z","step":"collected","status":"ok","detail":{"test":"4.A","cost":{"loads":1,"presses":0,"quick":0,"slow_redos":0,"seconds":15.4}}}
+{"ts":"2026-11-04T20:23:15.223687Z","step":"collected","status":"ok","detail":{"test":"4.B","cost":{"loads":1,"presses":0,"quick":0,"slow_redos":0,"seconds":5.82}}}
+{"ts":"2026-11-04T20:23:19.342850Z","step":"collected","status":"ok","detail":{"test":"4.C","cost":{"loads":1,"presses":0,"quick":0,"slow_redos":0,"seconds":4.12}}}
+{"ts":"2026-11-04T20:23:19.345168Z","step":"collected","status":"ok","detail":{"test":"4.E","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":0.0}}}
+{"ts":"2026-11-04T20:23:27.866016Z","step":"collected","status":"ok","detail":{"test":"5.D","cost":{"loads":1,"presses":2,"quick":1,"slow_redos":0,"seconds":8.52}}}
+{"ts":"2026-11-04T20:23:56.703065Z","step":"collected","status":"ok","detail":{"test":"5.F","cost":{"loads":3,"presses":6,"quick":1,"slow_redos":0,"seconds":28.84}}}
+{"ts":"2026-11-04T20:23:56.710534Z","step":"collected","status":"ok","detail":{"test":"5.G","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":0.0}}}
+{"ts":"2026-11-04T20:23:56.734856Z","step":"collected","status":"ok","detail":{"test":"5.H","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":0.0}}}
+{"ts":"2026-11-04T20:23:58.851774Z","step":"egress_refused","status":"blocked","detail":{"host":"mtalk.google.com","port":5228,"reason":"port 5228 is not allowed"}}
+{"ts":"2026-11-04T20:24:06.454695Z","step":"collected","status":"ok","detail":{"test":"5.A","cost":{"loads":1,"presses":0,"quick":0,"slow_redos":0,"seconds":9.7}}}
+{"ts":"2026-11-04T20:24:06.455540Z","step":"collected","status":"ok","detail":{"test":"5.B","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":0.0}}}
+{"ts":"2026-11-04T20:24:06.468361Z","step":"collected","status":"ok","detail":{"test":"5.C","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":0.0}}}
+{"ts":"2026-11-04T20:24:06.952814Z","step":"run_end","status":"ok","detail":{}}
+{"ts":"2026-11-04T20:24:11.254956Z","step":"answers_recorded","status":"ok","detail":{"accepted":["4.F-o1-J1","5.A-c2-J1","5.B-f1-J1","5.H-J1","9.C-p1-40-J1"],"rejected":[],"errors":[]}}

@@ -53,6 +53,7 @@ DROP = (
 # tested site's hosts (Abby, 2026-11-04): the tested pages come only from
 # the frozen copies.
 MCP_TOOL_TIMEOUT_MS = 3_600_000  # one hour per tool call
+MAX_CONCURRENT_HELPERS = 1
 COMMON_TOOLS = ["Agent", "ListMcpResourcesTool", "ReadMcpResourceTool"]
 ARM_TOOLS = {"a": COMMON_TOOLS, "b": [*COMMON_TOOLS, "WebSearch", "WebFetch"]}
 
@@ -70,27 +71,58 @@ def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+# The CLI's subagent tool, under its old and new names.
+SUBAGENT_TOOLS = ["Task", "Agent"]
+
+
 class ClaudeCodeCLI:
     route = "claude-code-cli"
 
-    def __init__(self, model: str = "claude-sonnet-5-5", binary: str = "claude"):
+    def __init__(
+        self,
+        model: str = "claude-sonnet-5-5",
+        binary: str = "claude",
+        no_subagents: bool = False,
+    ):
         self.model = model
         self.binary = shutil.which(binary) or binary
+        # COMMON_TOOLS gives each arm the CLI's subagent tool (the helper).
+        # round1-answers' first attempt
+        # (2026-11-04) launched 9 at once, each running the a11y tool, and
+        # overloaded the container; round 1's arms never used it.
+        self.no_subagents = no_subagents
 
     # ── process ───────────────────────────────────────────────────────────
     def _env(self, home: Path) -> dict[str, str]:
         env = {k: v for k, v in os.environ.items() if k not in DROP}
         env["HOME"] = str(home)
         env["CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH"] = "1"
+        # One helper at a time (default 20): round1-answers' first attempt
+        # started 9 at once, each running the tool, and overloaded the
+        # machine. A deterministic cap, whatever the model (or text a page
+        # put in front of it) decides. Checked 2026-11-05 with the real CLI:
+        # three parallel helpers ran at the default, one at a cap of 1 (the
+        # other two refused: "Concurrent subagent limit reached").
+        env["CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS"] = str(MAX_CONCURRENT_HELPERS)
         # The CLI cuts an MCP tool call off at 60 s by default; a run of the
         # tool with other pages takes minutes (round 1's first attempt, 2026-11-04).
         env["MCP_TOOL_TIMEOUT"] = str(MCP_TOOL_TIMEOUT_MS)
+        # After 120 s the CLI moves an MCP call to the background; on the -p
+        # route, an agent that then ends its turn to wait ends the session and
+        # the call with it (round1-answers, 2026-11-04: Missions, NACA and KSC
+        # lost). Keep calls in the foreground up to the same hour. Checked
+        # with a 12 s tool and a 3 s threshold: backgrounded and lost; at 60 s
+        # or more, answered. (CLAUDE_CODE_DISABLE_MCP_TASK_BACKGROUND=1 did
+        # not stop it.)
+        env["CLAUDE_CODE_MCP_AUTO_BACKGROUND_MS"] = str(MCP_TOOL_TIMEOUT_MS)
 
         return env
 
     def _args(
         self, prompt: str, mcp: Path, tools: list[str], servers, hosts=(), home=None
     ) -> list[str]:
+        if self.no_subagents:
+            tools = [t for t in tools if t not in SUBAGENT_TOOLS]
         allowed = [f"mcp__{s.name}" for s in servers] + tools
         if tools and home is not None:
             # The CLI saves a large tool result to a file under its home and
@@ -101,6 +133,8 @@ class ClaudeCodeCLI:
             tools = [*tools, "Read"]
             allowed += [f"Read(/{home}/.claude/projects/**)"]
         denied = [f"mcp__{s.name}__{t}" for s in servers for t in s.deny]
+        if self.no_subagents:
+            denied += SUBAGENT_TOOLS
         if "WebFetch" in tools:
             denied += fetch_denials(list(hosts))
         return [

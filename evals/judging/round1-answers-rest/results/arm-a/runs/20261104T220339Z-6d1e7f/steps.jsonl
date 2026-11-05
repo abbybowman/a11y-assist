@@ -1,0 +1,29 @@
+{"ts":"2026-11-04T22:03:39.909131Z","step":"run_start","status":"ok","detail":{"target":"https://www.nasa.gov/feature/naca-at-110-special-feature/","tests":["4.A","4.B","4.C","4.D","4.E","4.F","5.A","5.B","5.C","5.D","5.F","5.G","5.H","9.A","9.B","9.C","19.A"]}}
+{"ts":"2026-11-04T22:03:40.405576Z","step":"browser_launched","status":"ok","detail":{"version":"153.0.8010.12"}}
+{"ts":"2026-11-04T22:03:40.422881Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/feature/naca-at-110-special-feature/","har":"pages/007.har.zip"}}
+{"ts":"2026-11-04T22:03:40.437810Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/missions/","har":"pages/005.har.zip"}}
+{"ts":"2026-11-04T22:03:40.438209Z","step":"captured_other","status":"ok","detail":{"n":1,"final_url":"https://www.nasa.gov/missions/","seconds":0.01}}
+{"ts":"2026-11-04T22:03:40.458650Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/gallery/ksc-history/","har":"pages/009.har.zip"}}
+{"ts":"2026-11-04T22:03:40.459014Z","step":"captured_other","status":"ok","detail":{"n":2,"final_url":"https://www.nasa.gov/gallery/ksc-history/","seconds":0.02}}
+{"ts":"2026-11-04T22:03:40.459158Z","step":"captured","status":"ok","detail":{"final_url":"https://www.nasa.gov/feature/naca-at-110-special-feature/","redirects":[],"seconds":0.05}}
+{"ts":"2026-11-04T22:03:41.027550Z","step":"browser_launched","status":"ok","detail":{"kind":"full Chromium"}}
+{"ts":"2026-11-04T22:03:47.173356Z","step":"egress_refused","status":"blocked","detail":{"host":"mtalk.google.com","port":5228,"reason":"port 5228 is not allowed"}}
+{"ts":"2026-11-04T22:05:46.162586Z","step":"walk","status":"ok","detail":{"P1":{"end":"wrap","presses":102,"cap":260},"P2":{"end":"wrap","presses":102,"cap":323},"cost":{"loads":2,"presses":204,"quick":0,"slow_redos":0,"seconds":125.69}}}
+{"ts":"2026-11-04T22:06:13.674370Z","step":"collected","status":"ok","detail":{"test":"9.A","cost":{"loads":3,"presses":15,"quick":6,"slow_redos":0,"seconds":27.51}}}
+{"ts":"2026-11-04T22:06:13.679812Z","step":"collected","status":"ok","detail":{"test":"9.B","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":0.0}}}
+{"ts":"2026-11-04T22:06:18.662518Z","step":"check_error","status":"error","detail":{"test":"9.C","error":"the run reached its time limit before this test finished"}}
+{"ts":"2026-11-04T22:06:18.663848Z","step":"check_error","status":"error","detail":{"test":"19.A","error":"the run reached its time limit before this test finished"}}
+{"ts":"2026-11-04T22:06:18.672643Z","step":"check_error","status":"error","detail":{"test":"4.D","error":"the run reached its time limit before this test finished"}}
+{"ts":"2026-11-04T22:06:18.681048Z","step":"check_error","status":"error","detail":{"test":"4.F","error":"the run reached its time limit before this test finished"}}
+{"ts":"2026-11-04T22:06:18.684400Z","step":"check_error","status":"error","detail":{"test":"4.A","error":"the run reached its time limit before this test finished"}}
+{"ts":"2026-11-04T22:06:18.691776Z","step":"check_error","status":"error","detail":{"test":"4.B","error":"the run reached its time limit before this test finished"}}
+{"ts":"2026-11-04T22:06:18.692548Z","step":"check_error","status":"error","detail":{"test":"4.C","error":"the run reached its time limit before this test finished"}}
+{"ts":"2026-11-04T22:06:18.693312Z","step":"check_error","status":"error","detail":{"test":"4.E","error":"the run reached its time limit before this test finished"}}
+{"ts":"2026-11-04T22:06:18.693989Z","step":"check_error","status":"error","detail":{"test":"5.D","error":"the run reached its time limit before this test finished"}}
+{"ts":"2026-11-04T22:06:18.694727Z","step":"check_error","status":"error","detail":{"test":"5.F","error":"the run reached its time limit before this test finished"}}
+{"ts":"2026-11-04T22:06:18.699241Z","step":"check_error","status":"error","detail":{"test":"5.G","error":"the run reached its time limit before this test finished"}}
+{"ts":"2026-11-04T22:06:18.704636Z","step":"check_error","status":"error","detail":{"test":"5.H","error":"the run reached its time limit before this test finished"}}
+{"ts":"2026-11-04T22:06:18.711235Z","step":"check_error","status":"error","detail":{"test":"5.A","error":"the run reached its time limit before this test finished"}}
+{"ts":"2026-11-04T22:06:18.718652Z","step":"check_error","status":"error","detail":{"test":"5.B","error":"the run reached its time limit before this test finished"}}
+{"ts":"2026-11-04T22:06:18.725537Z","step":"check_error","status":"error","detail":{"test":"5.C","error":"the run reached its time limit before this test finished"}}
+{"ts":"2026-11-04T22:06:21.407111Z","step":"run_end","status":"error","detail":{}}

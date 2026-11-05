@@ -43,3 +43,18 @@ false PASSes (evals/README.md run 12). Naming the cases that do not count
 ("Go", "Find", "Submit", "Subscribe" only say what the button does) fixed
 it (run 13). When an input field is added to a question, give an example
 on each side of the line.
+
+**The judge eval hands images over as files; a real agent gets links it
+rarely opens** (round1-answers, 2026-11-04).
+- **The difference:** packets copy each `run://` image into the packet
+  folder, so a judge-eval agent opens it like any file. In real use the
+  question names `run://…png`, which only the client's MCP read-resource
+  tool opens.
+- **What happened:** told to answer every question, Agent A viewed 2
+  screenshots across two runs (both 5.A), tried its file `Read` on a
+  `run://` link 3 times (refused), and never opened a 4.F order image. All
+  of its 4.F answers were "unsure, cannot settle", with no reason given.
+- **So** the judge eval measures answers with the evidence in hand, and
+  overstates how often a real agent answers a question that needs
+  looking. To measure the real path, use an agent eval run (or an
+  answering run), not the judge eval. Post-round 1 plan, fix 19.

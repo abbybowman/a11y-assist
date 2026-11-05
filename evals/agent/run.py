@@ -505,10 +505,17 @@ def main(argv: list[str]) -> None:
         help="a development prompt version from prompt_dev.py (Agent A, never "
         "scored as a round); default: the round prompt",
     )
+    ap.add_argument(
+        "--no-subagents",
+        action="store_true",
+        help="cli route only: deny the CLI's own subagent tool",
+    )
     ap.add_argument("round", type=Path)
     a = ap.parse_args(argv)
     provider = (
-        ClaudeCodeCLI(a.model) if a.route == "cli" else AnthropicMessages.from_env()
+        ClaudeCodeCLI(a.model, no_subagents=a.no_subagents)
+        if a.route == "cli"
+        else AnthropicMessages.from_env()
     )
     s = asyncio.run(
         run_arm(a.round, a.arm, provider, label=a.label, prompt_version=a.prompt)
