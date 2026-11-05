@@ -85,7 +85,7 @@ MOTION_INIT_JS = (
         + """
   if (window.__a11yMotion) return;
   const now = () => performance.timeOrigin + performance.now();
-  const M = { recs: [], attrs: 0, dropped: 0, timers: [], audio: 0, snaps: [], live0: new WeakSet(), held: new Map(), focus: [], ctxs: new Set(), t0: null };
+  const M = { recs: [], attrs: 0, dropped: 0, timers: [], audio: 0, snaps: [], live0: new WeakSet(), held: new Map(), focus: [], ctxs: new Set(), io: [], t0: null };
   Object.defineProperty(window, '__a11yMotion', { value: M });
   const REC_MAX = 1500, ATTR_MAX = 300, TIMER_MAX = 200;
   const LIVE = LIVE_SELECTOR;
@@ -110,6 +110,15 @@ MOTION_INIT_JS = (
     if (v >= 1000 && M.timers.length < TIMER_MAX) M.timers.push({ kind: 'timeout', ms: Math.round(v), at: now() });
     return st.call(this, f, ms, ...a);
   };
+  // What the page waits to see scrolled into view (Understanding 2.2.2:
+  // starting when scrolled into view counts as starting by itself).
+  if (window.IntersectionObserver) {
+    const io = IntersectionObserver.prototype.observe;
+    IntersectionObserver.prototype.observe = function (t) {
+      try { if (t && t.nodeType === 1 && M.io.length < 50) M.io.push(t); } catch (e) {}
+      return io.apply(this, arguments);
+    };
+  }
   // Web Audio connected to the speakers (2.A, item 5).
   if (window.AudioNode) {
     const cn = AudioNode.prototype.connect;
@@ -370,6 +379,22 @@ MOTION_INIT_JS = (
   // Motion the frames may not show (below the first screen): animations
   // running with more than 5 s of active time, marquees, playing videos,
   // that are not inside a region already found (2.B Terms).
+  // Hints below the first screen (2.C spec section 2, scrolled watch; plan
+  // Q3): what the page observes for scrolling into view, and carousels,
+  // that lie below the first viewport and are not inside a region found.
+  M.below = (known) => {
+    const inside = (e) => known.some((css) => { const r = M.held.get(css); return r && (r === e || r.contains(e)); });
+    const out = [];
+    const cand = [...M.io, ...document.querySelectorAll(CAROUSEL)];
+    for (const e of cand) {
+      if (!e.isConnected || inside(e)) continue;
+      const r = e.getBoundingClientRect();
+      if (r.top + scrollY < innerHeight || r.width === 0 || r.height === 0) continue;
+      const css = path(e);
+      if (!out.includes(css)) out.push(css);
+    }
+    return out.slice(0, 10);
+  };
   M.images = () => Array.from(new Set(Array.from(document.images)
     .map((i) => (i.currentSrc || '').split('#')[0]).filter((u) => /^https?:/.test(u)))).slice(0, 30);
   M.extras = (known, longImages) => {
@@ -611,6 +636,7 @@ class Region(BaseModel):
     focus_in: list[float] = Field(default_factory=list)  # focus moved into it, s
     animations: list[Animation] = Field(default_factory=list)
     period_s: float | None = None  # median time between pixel changes
+    scrolled: bool = False  # found by the scrolled watch (plan Q3)
     elements: list[int] = Field(default_factory=list)  # Element.i inside it
     # With no element inside: the first element after it in reading order
     # (len(elements) when none follows), so its windows can still be counted.
@@ -712,6 +738,10 @@ class MotionPass(BaseModel):
     polls: list[Poll] = Field(default_factory=list)
     carousels: list[str] = Field(default_factory=list)  # "<frame>|<css>" at 0 s
     blink_markup: bool = False  # <blink> or text-decoration: blink (2.B note)
+    # Below the first screen, not in a region (plan Q3): observed for
+    # scrolling into view, or carousels. The scrolled watch looks at the first.
+    below: list[str] = Field(default_factory=list)
+    scrolled_watch: str | None = None  # what the scrolled watch scrolled to
     # G152: each animated image's frames, one play-through, loops (-1:
     # forever) and total (None: forever), decoded from the recording.
     animated_images: list[dict[str, Any]] = Field(default_factory=list)
@@ -874,9 +904,13 @@ async def pass_t(
     shots: Path | None = None,
     rel: Path | None = None,
     watch_s: float = WATCH_S,
+    scroll_to: str | None = None,
+    prefix: str = "2t",
 ) -> MotionPass:
     """Watch one fresh load for `watch_s` with no input. Never raises: a load
-    or read that fails gives `ok=False` with the reason (2.C A1)."""
+    or read that fails gives `ok=False` with the reason (2.C A1).
+    `scroll_to`: the scrolled watch (plan Q3), with that element scrolled
+    into view first; `prefix` names its frames."""
     out = MotionPass(watch_s=watch_s)
     if har is not None:
         out.polls = polls_in_har(har)
@@ -886,7 +920,14 @@ async def pass_t(
         out.ok, out.error = False, f"the page could not be loaded: {safe_error(exc)}"
         return out
     try:
-        await _watch(page, out, shots, rel, watch_s, har)
+        if scroll_to:
+            await page.evaluate(
+                "(css) => { const e = document.querySelector(css); "
+                "if (e) e.scrollIntoView({ block: 'center' }); }",
+                scroll_to,
+            )
+            await page.wait_for_timeout(300)
+        await _watch(page, out, shots, rel, watch_s, har, prefix)
         if har is not None:
             from a11y_assist.capture import media_index
 
@@ -947,6 +988,7 @@ async def _watch(
     rel: Path | None,
     watch_s: float,
     har: Path | None = None,
+    prefix: str = "2t",
 ) -> None:
     out.elements, out.elements_truncated, where = await read_elements(page)
     starts = await _each_frame(
@@ -1015,7 +1057,7 @@ async def _watch(
         img = Image.open(io.BytesIO(png)).convert("RGB")
         out.frames.append(shot_t)
         if shots is not None:
-            path = shots / f"2t-{n:02d}.png"
+            path = shots / f"{prefix}-{n:02d}.png"
             path.write_bytes(png)
             out.shots.append(str(path.relative_to(rel)) if rel else str(path))
         if prev is not None and prev.size == img.size:
@@ -1093,6 +1135,13 @@ async def _watch(
             here = sorted(i for (f, j), i in where.items() if f == r.frame and j >= nxt)
             r.next_element = here[0] if here else len(out.elements)
     _states(pngs, regions)
+    known = [r.css for r in regions.values() if r.frame == 0]
+    try:
+        out.below = await page.evaluate(
+            "(k) => window.__a11yMotion ? window.__a11yMotion.below(k) : []", known
+        )
+    except Exception:
+        out.below = []
     out.regions = sorted(regions.values(), key=lambda r: (r.box[1:2], r.box[0:1]))
 
     for i, _, facts in await _each_frame(
@@ -1385,6 +1434,29 @@ class Probe(BaseModel):
     cannot_try: str = ""  # K5: a mechanism the tool may not try, named
 
 
+async def _scrolled_watch(ctx: Any, mp: MotionPass, har: Path, keep: bool) -> None:
+    """Plan Q3: one more watch, with the first hint below the first screen
+    scrolled into view (content that starts only when seen). New regions
+    join pass T's, marked scrolled."""
+    target = mp.below[0]
+    second = await pass_t(
+        ctx.open_motion,
+        har if har.exists() else None,
+        ctx.shots if keep else None,
+        ctx.rel,
+        scroll_to=target,
+        prefix="2s",
+    )
+    mp.scrolled_watch = target
+    if not second.ok:
+        return
+    have = {r.key for r in mp.regions}
+    for r in second.regions:
+        if r.key not in have:
+            r.scrolled = True
+            mp.regions.append(r)
+
+
 SETTLE_IGNORE_FROM_S = 5.0  # still changing then: it keeps changing
 
 
@@ -1426,6 +1498,8 @@ async def collect(ctx: Any, keep_shots: bool = True) -> MotionPass:
             ctx.shots if keep_shots else None,
             ctx.rel,
         )
+        if mp.ok and mp.below and not ctx.out_of_time():
+            await _scrolled_watch(ctx, mp, har, keep_shots)
     mp.browser = getattr(ctx, "motion_browser", "")
     ctx.cache["motion"] = mp
     return mp

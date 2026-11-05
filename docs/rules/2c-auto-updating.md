@@ -137,9 +137,15 @@ and names each content that changed and when it stopped.
   [2d-change-notify-auto.md](2d-change-notify-auto.md)), the focus log and
   open dialogs.
 - **Elements** of the page (Terms), read once at 0 s.
-- **Scrolled watch** (plan Q3): when a hint (A2) points to content below
-  the first viewport, one more 6.5 s watch with that content scrolled into
-  view, on a fresh load.
+- **Scrolled watch** (plan Q3): when a hint points to content below the
+  first viewport, one more 6.5 s watch with that content scrolled into
+  view, on a fresh load. Built (0.3.0): the hints are elements the page
+  observes for scrolling into view (`IntersectionObserver`), and carousels,
+  below the first viewport and inside no region found; the first one is
+  scrolled to, and the regions the second watch finds join pass T's,
+  marked scrolled. Content below the first screen that keeps changing
+  without being scrolled to is found by pass T itself (DOM log, animations,
+  marquees, videos, animated images).
 
 **Mechanism probe** (HtT 1–2; shared with 2.A and 2.B), per content, on fresh loads in the batch's browser (`ctx.replay`, `observe.py`):
 

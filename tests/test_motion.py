@@ -257,3 +257,13 @@ async def test_settle_ignores_content_that_keeps_changing(settings, browser, ser
         assert m1 > m0  # still counted for effects (4.A, 4.D)
     finally:
         await ctx.close()
+
+
+async def test_scrolled_watch_finds_content_that_starts_when_seen(
+    settings, browser, server, tmp_path
+):
+    """Plan Q3: the page observes #visits for scrolling into view; the first
+    watch sees nothing change, so it is a hint below the first screen."""
+    mp = await watch(settings, browser, server, "t-scroll-start.html", tmp_path)
+    assert mp.ok, mp.error
+    assert mp.below == ["#visits"] and not mp.regions, (mp.below, mp.regions)

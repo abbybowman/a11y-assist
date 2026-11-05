@@ -141,9 +141,12 @@ a clipping box, so "children moved" now looks at descendants (more than
   first screen: K6) and `t-gif-once` (2 s once: DNA). Audio in a cross-site
   iframe (2.A): `t-audio-frame` (K3, then E3).
 
-Not started: the scrolled watch, 2.A (`t2a.py`), the vendored ACT cases for 2.A (4c31df, 80f0bf, aaa1bf), the walk
-cross-check (A2), and 2.D's note for `aria-live="off"`
-carousels (plan risk 11).
+- The scrolled watch (Q3, V4): `t-scroll-start`, a counter below the first
+  screen that starts only when scrolled into view (2.C K6, 2.D N5).
+
+Not started: the walk cross-check (2.C A2: DOM changes the walk saw where
+pass T saw none), and 2.D's note for `aria-live="off"` carousels (plan
+risk 11).
 
 ## Code changes
 
@@ -221,7 +224,7 @@ network.
 | V1 | Tab reaches a `<video controls>` element's own buttons in Chrome, and Enter or Space on its play button pauses it | 2.A native controls | Test (`t-audio-native`, ACT 0d2dcde8 and 3e932531): Enter on the play button pauses it |
 | V2 | Autoplay plays on replay only with the flag (item 1); loudness from bytes separates silent from audible (item 4); muted and short audio are not instances | 2.A Terms, A3 | Flag: test (`test_autoplay_plays_only_in_the_motion_browser`; a page's own `play()` on a script-made blob plays even without it, so the test uses `<audio autoplay src>`); loudness and instances not built |
 | V3 | `ImageDecoder` gives frames, loops and duration for GIF, APNG and WebP (item 8); pixel diffs separate still-moving from stopped-before-5 s (item 6) | 2.B Terms | Checked (scratch) |
-| V4 | Timer hooks catch a period longer than the watch (item 7); the scrolled watch sees a below-the-fold animation | 2.C A2, 2.B | Hook: test (`test_kinds`, a 10 s interval); scrolled watch not built |
+| V4 | Timer hooks catch a period longer than the watch (item 7); the scrolled watch sees a below-the-fold animation | 2.C A2, 2.B | Hook: test (`test_kinds`, a 10 s interval); scrolled watch: `test_scrolled_watch_finds_content_that_starts_when_seen`, `t-scroll-start` |
 | V5 | Polling repeats the first response on replay, and the HAR lists every poll (item 10) | 2.C A2 | Test (`test_polling_is_in_the_har`): the replay repeats the first response; the HAR held only one or two polls (recording stops at network idle), so pass T also counts requests during the watch |
 | V6 | Slick and Splide pause on focus and resume when it leaves; four of six libraries pause on hover (item 12). Vendor the libraries for the fixtures | 2.C K2 | Checked (scratch, libraries from the network) |
 | V7 | Full Chromium puts cross-site iframes out-of-process; media state, pixels and Tab work through them (items 15–16); a shell recording replays in full Chromium (Q11) | Q11; 2.A–2.D in frames | Out-of-process and replay: `tests/test_full_chromium.py` (main); pass T's regions, live regions and elements in such a frame: `test_cross_site_frame_in_full_chromium`; media and Tab in it not yet |
@@ -257,7 +260,7 @@ network.
 
 ## Left
 
-- V1, V4 (scrolled watch), V8, V9 and V11 above; V12 needs Windows.
+- V8, V9 and V11 above; V12 needs Windows.
 - Real YouTube and Vimeo embeds on a normal network (plan item 17).
 - The ER 3 shortlist (6.A, 7.A, 7.E, 12.D, 13.A, 13.B, 13.C, 18.A) before
   any of 2.A–2.C can PASS.

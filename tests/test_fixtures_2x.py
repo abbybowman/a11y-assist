@@ -24,6 +24,8 @@ CASES = {
     # Five instances: three are probed (K6), the rest are not (K7).
     "t-live.html": ("FAIL", ["K6", "K7"], "FAIL", ["N2", "N5"]),
     "t-carousels.html": ("FAIL", ["K6"], "FAIL", ["N5"]),
+    # Starts only when scrolled into view: the scrolled watch finds it (Q3).
+    "t-scroll-start.html": ("FAIL", ["K6"], "FAIL", ["N5"]),
     # It stops while its own Previous button has focus: never PASS.
     "t-focus-pause.html": ("NEEDS_REVIEW", ["K2"], "FAIL", ["N5"]),
 }
