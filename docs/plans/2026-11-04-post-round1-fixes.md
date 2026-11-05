@@ -4,7 +4,7 @@ Status: **open; round 1 scored 2026-11-04; answering runs done
 2026-11-04** (round 1: [evals/agent/README.md](../../evals/agent/README.md#results);
 Agent A told to answer: [round1-answers](../../evals/judging/round1-answers/README.md)).
 Fix 9 is done; 14, 17 and 18 are decided (Abby); the rest are not
-started. Nothing waits for Abby.
+started. Fix 19's inline images need Abby's approval (a CLAUDE.md rule).
 
 **When (Abby, 2026-11-05):** after the 2.x and 3.A tests on their branch
 reach review. These fixes are made while Abby labels the next judging
@@ -29,9 +29,13 @@ Evidence:
   were still undecided: 5.F and 5.G (18), 19.A (9), 4.F (8) and 20
   others.
 
-1. **Fixes 4, 15 and 6b: answers without a special prompt.** The largest
-   gain (weighted 44-47 to 82), but only when the agent is told to answer.
+1. **Fixes 4, 19, 15 and 6b: answers without a special prompt.** The
+   largest gain (weighted 44-47 to 82), but only when the agent is told to
+   answer.
    - Fix 4: the tool's own wording must get a real user's agent to answer.
+   - Fix 19: questions that need looking must put the screenshot in front
+     of the agent. It opened 2 of them in two runs, and answered every 4.F
+     question "unsure".
    - Fix 15: Missions' 96 identical questions went unanswered and cost a
      correct Fail.
    - Fix 6b: a large result is saved to a file the agent reads only in part.
@@ -465,6 +469,38 @@ asked for the details; checked on the frozen recordings, 2026-11-05.
     by itself.
   - Then an answering run checks that the agent does it.
 - **Status:** decided; not started.
+
+### 19. Visual questions need the screenshot in front of the agent
+
+- **Found:** the answering runs (`docs/solutions/judge-eval.md`). Each
+  question names its images as `run://` links, and only the MCP
+  read-resource tool opens them.
+  - The agent viewed 2 screenshots in two runs, tried its file reader on a
+    `run://` link 3 times (refused), and never opened a 4.F order image.
+  - Its 8 undecided 4.F cells were mostly "unsure, cannot settle", with no
+    reason. 4.D's single question and 4.A's 2 went the same way.
+  - The judge eval copies images into each packet as files, so it never saw
+    this.
+- **Idea (Abby, 2026-11-05):** pass the screenshots along with the text for
+  visual analysis, as a third round for questions still undecided, or
+  alongside the second round. Options, cheapest first:
+  1. **Wording:** each visual question says "open `image_a` with your MCP
+     client's read-resource tool (not a file reader)".
+  2. **A round with the images:** when `a11y_answer_questions` gets
+     "unsure" on a question a careful tester settles by looking (principle
+     8's list), it returns that question again with its image inline (MCP
+     image content, downscaled), once.
+  3. **Images inline from the first round,** for those questions only.
+- **Conflict:** CLAUDE.md says screenshots in a question are `run://`
+  links ("Keep tool output small"). Options 2 and 3 need Abby's approval
+  for inline images, and a size cap per result (fix 6b).
+- **Test:**
+  - the judge eval with `run://` links only (no copied files), to show the
+    effect;
+  - then an answering run on the same frozen pages;
+  - compare the "unsure" counts for 4.A, 4.D and 4.F, and check that no
+    false PASS appears (an image can also mislead).
+- **Status:** not started; option 1 can go with fix 4.
 
 ## Observations to decide after scoring
 
