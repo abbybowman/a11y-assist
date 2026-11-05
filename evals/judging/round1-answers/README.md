@@ -113,11 +113,11 @@ other.
 - **Missions 4.F: a false FAIL from an answer.** The agent answered 4.F
   J1 `does_not_preserve` ("filter list order jumps up and down; card
   image/title order jumps back"), and row M6 failed it. The key passes
-  4.F. The filter list is laid out in columns, and Tab goes along the
-  rows. This is the first error in these runs that comes from an answer,
-  and 4.F J1 is one of the questions a careful tester "settles by
-  looking" (principle 8). For Abby: should J1's rubric say that a grid or
-  multi-column list read row by row preserves meaning?
+  4.F. The tool's signals came from two things: the results grid, read
+  card by card along each row (normal, but J1's rubric names only columns),
+  and the filter checkboxes' boxes, which sit out of line with their
+  labels. The filter list is one column. Details and fix: post-round 1
+  plan, fix 16.
 - **Missions 4.D:** a false FAIL from row M8 at 0 px (fix 11), as in round 1.
 - **KSC 5.B:** Pass where the key says Does Not Apply (fix 14).
 - **Now right:** NACA 4.D (Fail) and Missions 9.A (Fail), and 5.A fails on

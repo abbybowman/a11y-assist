@@ -51,3 +51,20 @@ Results: `evals/agent/README.md` ("Results"). The answering runs:
   152 questions, 96 of them the same 5.D question per checkbox. The CLI
   saved the result to a file the agent read only in part, and the agent
   reran the page six times in smaller pieces rather than answer (fix 15).
+- **Per-test numbers come from `evals/agent/per_test.py`.** It merges a
+  run's split calls, leaves out pages a run is not scored on, and prints
+  a Markdown table, which the README's test table uses. For round 1 it
+  counts one false FAIL more than the locked score (A-2's split Missions
+  call).
+- **Check a disputed finding on the frozen recording before asking the
+  tester.** Replay the page's `*.har.zip` with Playwright's
+  `route_from_har` (`not_found="abort"`) and look:
+  - read the element's attributes;
+  - press the keys in the finding's steps;
+  - list the dialogs open after each step.
+
+  Round 1's "Tab leaves the Internships dialog" was a dropdown
+  (`aria-expanded`) beside a hidden Popup Maker overlay with
+  `role="dialog"`. The Missions "jumps back up" signals were a card grid
+  and checkbox boxes out of line with their labels. Both took minutes, and
+  neither needed the tester's time.

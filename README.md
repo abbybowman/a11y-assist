@@ -6,95 +6,115 @@
 > Tester must perform any test that counts for Section 508 conformance.
 
 An MCP server that runs parts of the DHS Trusted Tester (TT) 5.1.3 Section 508
-web test process in a real, visible Chrome browser and reports findings by TT
-test ID. The package name is provisional.
+web test process in a real Chrome browser and reports findings by TT test
+ID. Your agent calls it, answers the judgment questions it sends back, and
+gets PASS, FAIL, DOES NOT APPLY or NEEDS REVIEW per test, with evidence
+and a pre-SCRT file a Trusted Tester can review. The package name is
+provisional.
 
-## Status
-
-**Seventeen TT tests are implemented: 4.A–4.F (keyboard and focus), 5.A, 5.B, 5.C,
-5.D, 5.F, 5.G and 5.H (forms; all of Test 5, whose 5.E is obsolete), and 9.A–9.C and
-19.A (pages of the same site). The other TT
-tests are not.** Outcome logic comes only from
-the rules specs in [docs/rules/](docs/rules/), one file per TT test
-(`<id>-<short-name>.md`), checked against the TT 5.1.3 PDF in
-[docs/sources/](docs/sources/).
-
-For contributors: start with `CLAUDE.md` (principles and layout), then
-`docs/ROADMAP.md` (what is next) and `docs/solutions/` (lessons). To add a TT
-test, follow the steps at the top of `src/a11y_assist/checks/base.py`.
-
-What works today:
-
-| Area | State |
-| --- | --- |
-| `a11y_run_tt_tests(url, tests=["4.C"], other_pages=[...])` | Runs the selected TT tests (any of the implemented ones) and returns a typed result: findings with plain-language summaries, open questions (with the page text once), evidence as `run://` resources, and the full report for the user to save. One shared keyboard walk (Tab, Shift+Tab) per page feeds every keyboard check; 4.C adds its exit probes. A record per key press (stop identity, role and name from Chrome's accessibility tree, frames, shadow roots, focus events); screenshots at traps. 9.A–9.C and 19.A also compare the page with up to 5 other pages of the same site that the caller names (up to 50 with `no_time_limit`) (`other_pages`; never taken from the page itself). Progress notifications while it runs; at most `RUN_LIMIT_S` (120 s) per call, plus `OTHER_PAGE_S` (20 s) for each other page |
-| Tool errors | A URL outside the allowlist, a redirect out of it, a page that cannot load, or an unknown or expired run id is a tool error (isError) with no findings |
-| TT 5.1.3 as data | The whole PDF as Markdown plus `tt.json` (all 63 conditions with requirements and WCAG links), checked word for word against the PDF. Served as `tt://5.1.3/index`, `tt://5.1.3/tests/{id}` and `tt://5.1.3/parts/{part}`; every finding links its test (`reference`) and Understanding pages. See `docs/sources/README.md` |
-| `explain(about?, run_id?)` prompt | A command that explains Trusted Tester tests in plain language, before a run (what a test checks, what this tool does for it) or after (what was found, how to fix it). `about` takes a test ID, WCAG criterion, test name or words. Built on `explain.py`, which failure reports will reuse |
-| `run://{run_id}/{path}` resources | `report.json`, `pre-scrt.json`, `evidence/*.json` and screenshots of a run, while it is kept (`RUN_TTL_HOURS`, default 24). Durable results belong in the user's repository |
-| HAR record + replay | Page is recorded once (scrolled to load lazy content); every pass and probe runs against the replay. A page with cross-site iframes replays in full Chromium, never Playwright's headless shell (which runs those frames in-process, unlike users' Chrome); the report records each page's replay browser |
-| Frozen pages (evals only) | `FROZEN_PAGES_DIR`: a server setting, never a tool input. In "replay" mode every page a run loads (the tested page, other pages, 19.A's search) comes from a folder of recordings, and a URL with none is a tool error, never fetched live. In "tested_frozen" mode (the agent eval) the tested page must be frozen, and other pages of its site load live as usual |
-| Agent eval (`evals/agent/`) | Agent A (a model with this server) against Agent B (the same model with Playwright MCP) on the same frozen pages and WCAG 2.0 prompt, scored against a tester's SCRT files. **Built and tested on fixtures with a scripted model; not yet run on a real model or real pages.** Runbook: [evals/agent/README.md](evals/agent/README.md) |
-| Navigation allowlist | `.gov` and `.mil` by default, enforced on every top-level navigation and redirect hop; `file://` only in dev mode |
-| Connection address checks | Chrome's only way out is a local proxy (`egress.py`) that resolves each host once, refuses it if any answer is a private, loopback, link-local, multicast, reserved or cloud-metadata address (IPv4-mapped and other alternate forms included) or the port is not 80/443, and connects to the address it checked, so DNS rebinding cannot get past it. Covers the page, iframes, subresources, WebSockets and every redirect hop. A refused page is a tool error; refused page parts are listed in the result's `errors` Optional `UPSTREAM_PROXY` (off by default): for a host whose direct connections are re-signed by a gateway browsers do not trust (a cloud container), the checks run as usual and the connection is then tunneled by name through that proxy, which resolves the name again |
-| ANDI 29.2.2 | Vendored, injected from local files, never loaded from ssa.gov. Used by 5.C (what screen readers announce for each form field) and 9.C (names across pages) |
-| Findings for any active TT test | The seventeen implemented tests: PASS, FAIL, DOES NOT APPLY or NEEDS REVIEW per its spec, with the spec rows that produced it. Every other active TT 5.1.3 test: `NEEDS_REVIEW` with the note "This test could not be performed" (no spec yet). Never `NOT_TESTED`: the PDF allows it only where a test names it (p. 6) |
-| `a11y_answer_questions(run_id, answers)` | Records one answer per question (the calling agent's, or a person's override, which wins); presses documented keys in the recorded page and re-applies the spec. Suggested input values go to a person to try. Answers are facts, never outcomes |
-| `a11y_read_report(content, compare_to?)` | Reads one page's report file: an SCRT JSON file saved from DHS's [SCRT](https://github.com/Section508Coordinators/SCRT), or this server's pre-SCRT file. Returns what failed, what still needs a person and who tested it. With `compare_to` (another report of the same page, such as the one from before a fix) it lists every test whose result changed, without saying which file is right. Takes the file's text or a `run://` link (and a local path in `DEV_MODE`). Scoring the tool against an answer key is evaluation work: `evals/scoring.py` |
-| pre-SCRT files | Every run also writes `pre-scrt.json` (`pre_scrt_uri`): SCRT's fields and its 61 TT 5.1.3 rows, with the spec's outcome in SCRT's words, rows the tool left for a person flagged, screenshots inline, and where each row came from. A top-level object, so SCRT cannot load it as a formal report. Agent-assisted, not a Trusted Tester evaluation |
-| ApiJudge | Stub (`NotImplementedError`) |
-
-Planned: Trusted Tester review of a pre-SCRT file in a local page and export
-to SCRT once every row is checked, merging a partial file into a run, a
-site roll-up, a plain-language report for developers, fix advice for a read
-report (its own tool), and a `compare_to` option on `a11y_run_tt_tests` that
-takes a saved report (verify a fix). Guidance goes in resources or a prompt.
-Tools are broad and outcome-based, not one per test step.
-
-Known limits:
-
-- 4.C: help pages linked from the page are not followed for J1 (only text on
-  the page, including text revealed by Enter in a trap). Content behind
-  collapsed controls (menus, accordions) is not opened; the finding says how
-  many. A run stops at `RUN_LIMIT_S` (default 120 s); tests not finished are
-  NEEDS_REVIEW with the reason.
-- HAR replay freezes network responses, not client-side randomness or time.
-- A page Content-Security-Policy that forbids inline scripts will block ANDI
-  injection. No CSP bypass is enabled.
-- Tests run in CI against Playwright's Chromium (headless): the headless
-  shell, and full Chromium for pages with cross-site iframes. Headed Google
-  Chrome on Windows must be checked locally (see below).
+- **How it decides:** outcomes come only from the rules specs in
+  [docs/rules/](docs/rules/), one per TT test, checked against the TT 5.1.3
+  PDF.
+- **When it can't decide,** the result is NEEDS REVIEW, never a guessed
+  PASS.
+- **Contributors:** read [CLAUDE.md](CLAUDE.md), then
+  [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## TT tests in scope
 
-The implemented tests, with their names and WCAG 2.0 criteria from the TT
-5.1.3 catalog (`tt.json`; `tests/test_readme.py` checks this table against
-`checks.REGISTRY`). Every other active TT test is NEEDS REVIEW, "This test
-could not be performed".
+The 17 implemented tests, each with its rules spec version and how its
+results compared with a certified Trusted Tester's blind SCRT files. Every
+other active TT 5.1.3 test is NEEDS REVIEW, with the note "This test could
+not be performed".
 
-| ID | TT test name | WCAG SC |
+| ID | TT test name | WCAG 2.0 | Spec | Round 1: agree · false PASS · false FAIL · undecided | Told to answer (unscored): same |
+| --- | --- | --- | --- | --- | --- |
+| 4.A | 2.1.1-keyboard-access | 2.1.1 | [1.2.1](docs/rules/4a-keyboard-access.md) | 8 · 0 · 0 · 16 | 4 · 0 · 0 · 5 |
+| 4.B | 2.1.1-no-keystroke-timing | 2.1.1 | [1.2.0](docs/rules/4b-no-keystroke-timing.md) | 15 · 0 · 0 · 9 | 8 · 0 · 0 · 1 |
+| 4.C | 2.1.2-no-keyboard-trap | 2.1.2 | [1.8.0](docs/rules/4c-no-keyboard-trap.md) | 18 · 0 · 0 · 6 | 9 · 0 · 0 · 0 |
+| 4.D | 2.4.7-focus-visible | 2.4.7 | [1.1.1](docs/rules/4d-focus-visible.md) | 10 · 0 · 7 · 7 | 4 · 0 · 4 · 1 |
+| 4.E | 3.2.1-on-focus | 3.2.1 | [1.1.0](docs/rules/4e-on-focus.md) | 16 · 0 · 0 · 8 | 9 · 0 · 0 · 0 |
+| 4.F | 2.4.3-focus-order-meaning | 2.4.3 | [1.1.3](docs/rules/4f-focus-order-meaning.md) | 0 · 0 · 1 · 23 | 0 · 0 · 1 · 8 |
+| 5.A | 3.3.2-label-provided | 3.3.2 | [1.1.0](docs/rules/5a-label-provided.md) | 0 · 0 · 0 · 24 | 9 · 0 · 0 · 0 |
+| 5.B | 2.4.6-label-descriptive | 2.4.6 | [1.1.0](docs/rules/5b-label-descriptive.md) | 0 · 0 · 0 · 24 | 2 · 0 · 0 · 4 (3 other) |
+| 5.C | 1.3.1-programmatic-label | 1.3.1, 4.1.2 | [1.1.0](docs/rules/5c-programmatic-label.md) | 6 · 0 · 0 · 18 | 4 · 0 · 0 · 5 |
+| 5.D | 3.2.2-on-input | 3.2.2 | [1.0.0](docs/rules/5d-on-input.md) | 8 · 0 · 0 · 16 | 6 · 0 · 0 · 3 |
+| 5.F | 3.3.1-error-identification | 3.3.1 | [1.1.0](docs/rules/5f-error-identification.md) | 0 · 0 · 0 · 24 | 0 · 0 · 0 · 9 |
+| 5.G | 3.3.3-error-suggestion | 3.3.3 | [1.1.0](docs/rules/5g-error-suggestion.md) | 0 · 0 · 0 · 24 | 0 · 0 · 0 · 9 |
+| 5.H | 3.3.4-error-prevention | 3.3.4 | [1.1.0](docs/rules/5h-error-prevention.md) | 5 · 0 · 0 · 19 | 9 · 0 · 0 · 0 |
+| 9.A | 2.4.1-bypass-function | 2.4.1 | [1.0.0](docs/rules/9a-bypass.md) | 21 · 0 · 0 · 3 | 8 · 0 · 0 · 1 |
+| 9.B | 3.2.3-consistent-navigation | 3.2.3 | [1.0.0](docs/rules/9b-consistent-navigation.md) | 24 · 0 · 0 · 0 | 9 · 0 · 0 · 0 |
+| 9.C | 3.2.4-consistent-identification | 3.2.4 | [1.1.0](docs/rules/9c-consistent-identification.md) | 11 · 0 · 0 · 13 | 9 · 0 · 0 · 0 |
+| 19.A | 2.4.5-multiple-ways | 2.4.5 | [1.1.0](docs/rules/19a-multiple-ways.md) | 0 · 0 · 0 · 24 | 0 · 0 · 0 · 9 |
+
+**How to read the results columns.**
+- **What was counted:** pages × runs, against the key, for the tool's own
+  results (not what the agent then reported). "Undecided" is the tool's
+  NEEDS REVIEW. `tests/test_readme.py` checks the names and spec versions.
+- **Round 1** (scored 2026-11-04): 9 www.nasa.gov pages and 3 runs, 24
+  page-runs in all. The agent did not answer the open questions, and many
+  calls hit the time limit.
+  - Results: [evals/agent/README.md](evals/agent/README.md#results).
+  - The table comes from `uv run python -m evals.agent.per_test`. It counts
+    one call more than the locked score: a run that split a page's tests
+    across two calls.
+- **Told to answer:** the same 9 pages, one development run told to answer
+  every question and to use `no_time_limit`.
+  - Analysis:
+    [evals/judging/round1-answers/README.md](evals/judging/round1-answers/README.md).
+  - It is unscored: nasa.gov is now a development site, so these figures are
+    not a holdout result.
+- **Why tests are still undecided** (post-round 1 plan:
+  [docs/plans/2026-11-04-post-round1-fixes.md](docs/plans/2026-11-04-post-round1-fixes.md)):
+  - 5.F and 5.G wait for a form's server reply;
+  - 19.A waits for more pages;
+  - 4.F's answers were mostly "unsure".
+
+## Tools
+
+| Tool | What it does | Main inputs |
 | --- | --- | --- |
-| 4.A | 2.1.1-keyboard-access | 2.1.1 |
-| 4.B | 2.1.1-no-keystroke-timing | 2.1.1 |
-| 4.C | 2.1.2-no-keyboard-trap | 2.1.2 |
-| 4.D | 2.4.7-focus-visible | 2.4.7 |
-| 4.E | 3.2.1-on-focus | 3.2.1 |
-| 4.F | 2.4.3-focus-order-meaning | 2.4.3 |
-| 5.A | 3.3.2-label-provided | 3.3.2 |
-| 5.B | 2.4.6-label-descriptive | 2.4.6 |
-| 5.C | 1.3.1-programmatic-label | 1.3.1, 4.1.2 |
-| 5.D | 3.2.2-on-input | 3.2.2 |
-| 5.F | 3.3.1-error-identification | 3.3.1 |
-| 5.G | 3.3.3-error-suggestion | 3.3.3 |
-| 5.H | 3.3.4-error-prevention | 3.3.4 |
-| 9.A | 2.4.1-bypass-function | 2.4.1 |
-| 9.B | 3.2.3-consistent-navigation | 3.2.3 |
-| 9.C | 3.2.4-consistent-identification | 3.2.4 |
-| 19.A | 2.4.5-multiple-ways | 2.4.5 |
+| `a11y_run_tt_tests` | Tests one page: records it once, then runs the chosen TT tests on the recording in Chrome. Returns findings with plain-language summaries, open questions for your agent, and links to the full report and pre-SCRT file. | `url` (allowlisted: `.gov` and `.mil` by default); `tests` (TT IDs; default: every implemented test); `other_pages` (1-5 other pages of the same site, for 9.A-9.C and 19.A; up to 50 with `no_time_limit`); `no_time_limit` (for a page the tool refused as too large) |
+| `a11y_answer_questions` | Records your agent's (or a person's) answers to the open questions and decides again by the spec. A person's answer overrides the agent's. A key the answer names is pressed in the recorded page to check it. | `run_id`; `answers` (one per question: `question_id`, `rationale`, `decided_by`, and the answer object the question asks for) |
+| `a11y_read_report` | Reads an SCRT file (from DHS's [SCRT](https://github.com/Section508Coordinators/SCRT)) or a pre-SCRT file: what failed, what still needs a person, who tested it. With `compare_to`, lists every test whose result differs between two files of the same page (for example, before and after a fix). | `content` (the file's text or a `run://` link); `compare_to` |
 
-## Setup (Windows, Git Bash)
+**Also:**
+- **Resources:** `run://{run_id}/{path}` (a run's report, pre-SCRT file and
+  evidence, kept 24 hours) and `tt://5.1.3/...` (the TT 5.1.3 text).
+- **Prompt:** `explain`, a command that explains a test or a result in plain
+  language.
 
-Run natively on Windows, not in WSL2, so the browser can be shown. Requires
+Answers are facts, never outcomes: the spec turns them into an outcome.
+
+## How long a call takes
+
+- **One `a11y_run_tt_tests` call:** at most 120 s (`RUN_LIMIT_S`), plus 20 s
+  for each other page (`OTHER_PAGE_S`). In round 1, calls on www.nasa.gov
+  with 3 other pages took 100-183 s, and tests not finished in time come
+  back NEEDS REVIEW with the reason.
+- **Large pages:** a page with more than 40 form fields, or too large to Tab
+  through, is refused at once with the advice to call again with
+  `no_time_limit: true`. Then expect minutes: Missions (98 form fields) took
+  15 min and the NACA feature 20 min.
+- **Answering questions:** `a11y_answer_questions` usually takes under a
+  second. It takes longer when it has to press a key in the recorded page.
+- **Client settings:**
+  - Claude Code cut MCP calls off at 60 s in our cloud tests. Set
+    `MCP_TOOL_TIMEOUT` (ms) above your longest call.
+  - It also moves a call that runs past 120 s to the background, and a
+    headless (`claude -p`) session that then ends its turn loses the call.
+    Set `CLAUDE_CODE_MCP_AUTO_BACKGROUND_MS` too.
+  - Both are checked only in a cloud container so far.
+- **Batches:** run a few pages at a time. The server runs calls side by
+  side, each with its own browser. On a 4-CPU, 15 GB machine, 3 at once ran
+  normally, and 12 at once overloaded it: tests timed out and were left
+  NEEDS REVIEW.
+
+## Use it
+
+### Setup (Windows, Git Bash)
+
+Run natively on Windows, not in WSL2, so the browser can be shown. You need
 [uv](https://docs.astral.sh/uv/) and Google Chrome.
 
 ```bash
@@ -102,27 +122,26 @@ cp .env.example .env
 uv sync --group dev
 ```
 
-Check the setup on your machine with real, visible Chrome. This runs every
-browser test (allowlist and redirects, HAR replay, ANDI injection, focus
-walks) in installed Chrome:
+Check the setup with real, visible Chrome. This runs every browser test in
+installed Chrome:
 
 ```bash
 TEST_BROWSER_CHANNEL=chrome TEST_HEADED=1 uv run pytest -v
 ```
 
-Keep the screen on and unlocked while it runs, and don't click in the test
-windows: a locked screen appears to stop Chrome drawing and the run waits
-forever, and a click moves keyboard focus. Playing a video in a small window
-keeps the display awake. What the first Windows runs found:
-[docs/solutions/windows-chrome-results.md](docs/solutions/windows-chrome-results.md).
+While it runs:
+- Keep the screen on and unlocked. A locked screen stops Chrome drawing, and
+  the run then waits forever. Playing a video in a small window keeps the
+  display awake.
+- Don't click in the test windows: a click moves keyboard focus.
 
-Plain `uv run pytest` uses Playwright's bundled Chromium, headless. That needs
-a one-time `uv run playwright install chromium`, which downloads into your
-user profile.
+Plain `uv run pytest` uses Playwright's bundled Chromium, headless; it needs
+`uv run playwright install chromium` once. What the first Windows runs
+found: [docs/solutions/windows-chrome-results.md](docs/solutions/windows-chrome-results.md).
 
-## Connect to Claude Code
+### Connect to Claude Code
 
-Add to `.mcp.json` in your project (use the absolute path to this repo):
+Add to `.mcp.json` in your project, with the absolute path to this repository:
 
 ```json
 {
@@ -135,30 +154,36 @@ Add to `.mcp.json` in your project (use the absolute path to this repo):
 }
 ```
 
-Then ask, for example: "Run TT test 4.C on https://www.section508.gov/".
+### Examples
 
-## Examples
+Ask in plain words, and your agent makes calls like these.
+`tests/test_readme.py` checks each one against the tool's schema and runs
+example 4 end to end.
 
-Three ways to call `a11y_run_tt_tests`, the main tool. Your agent makes these
-calls when you ask in plain words; they are shown as tool name and arguments.
-`tests/test_readme.py` checks every example below against the tool's schema,
-and runs example 3 end to end.
-
-**1. Every implemented test on a page.** Ask: "Check
-https://www.section508.gov/ for keyboard and focus problems."
+**1. Every implemented test on a page.** "Check https://www.section508.gov/
+for keyboard, focus and form problems."
 
 <!-- example -->
 ```json
 {"tool": "a11y_run_tt_tests", "arguments": {"url": "https://www.section508.gov/"}}
 ```
 
-`tests` defaults to every implemented test. Without `other_pages`, 9.A–9.C and 19.A
-come back NEEDS REVIEW (they need pages to compare). The result has one
-finding per test (PASS, FAIL, DOES NOT APPLY or NEEDS REVIEW, with a
-plain-language summary), any open questions, and `report_uri`, the full
-report to save in your repository.
+`tests` defaults to every implemented test. Without `other_pages`, 9.A-9.C
+and 19.A come back NEEDS REVIEW, because they need pages to compare.
 
-**2. Chosen tests only.** Ask: "Is there a keyboard trap on
+**2. With other pages of the site.** "Test the home page, and compare it
+with two other pages for navigation and multiple ways."
+
+<!-- example -->
+```json
+{"tool": "a11y_run_tt_tests", "arguments": {"url": "https://www.section508.gov/", "other_pages": ["https://www.section508.gov/manage/", "https://www.section508.gov/test/"]}}
+```
+
+Each other page must be on the same host, and each adds up to 20 s to the
+call. 19.A may suggest more pages (a site map, the home page). Your agent
+can add them in another call.
+
+**3. Chosen tests only.** "Is there a keyboard trap on
 https://www.section508.gov/, and is focus visible?"
 
 <!-- example -->
@@ -166,10 +191,7 @@ https://www.section508.gov/, and is focus visible?"
 {"tool": "a11y_run_tt_tests", "arguments": {"url": "https://www.section508.gov/", "tests": ["4.C", "4.D"]}}
 ```
 
-Any active TT 5.1.3 test ID is accepted; one with no rules yet comes back
-NEEDS REVIEW with the note "This test could not be performed".
-
-**3. A local page, then an open question.** With `DEV_MODE=true`, `file://`
+**4. A local page, then an open question.** With `DEV_MODE=true`, `file://`
 pages can be tested (use your clone's absolute path). This fixture has three
 links that pass focus among themselves forever:
 
@@ -190,44 +212,68 @@ text it was given and answers:
 4.C is now FAIL: "Keyboard focus gets trapped on this page. Keyboard focus
 kept cycling between "Loop link 1" (link), "Loop link 2" (link), "Loop link
 3" (link), and none of the usual keys … move it out." A person can override
-the answer with `"decided_by": "human"`; if they name a key, the server
+the answer with `"decided_by": "human"`. If they name a key, the server
 presses it in the recorded page to check it.
 
-## Output
+### Example output from a real run
 
-Each run writes `runs/<timestamp>-<id>/`:
+These are files from the answering run on NASA's accounts receivable form
+page (2026-11-04). It ran all 17 tests, and the agent answered its 10
+questions:
 
-```
-evidence/page.har.zip       recorded page
-evidence/pages/*.har.zip    other pages and 19.A's site search, each recorded
-evidence/walk.json          the shared Tab / Shift+Tab walk
-evidence/4c.json …          each check's evidence (one file per TT test)
-evidence/shots/*.png        screenshots where a check needs them
-steps.jsonl                 step log (URLs without query strings, no page text)
-report.json                 findings, open questions, answers, versions, disclaimer
-pre-scrt.json               the results in SCRT's shape, for a Trusted Tester to review
-```
+- **[report.json](evals/judging/round1-answers/results/arm-a/runs/20261104T200634Z-d02d2f/report.json):**
+  the findings, each with its spec rows, instances and plain-language
+  summary; the questions, the agent's answers and its reasons; and every
+  version (spec, ANDI, browser, model).
+- **[pre-scrt.json](evals/judging/round1-answers/results/arm-a/runs/20261104T200634Z-d02d2f/pre-scrt.json):**
+  the same results as SCRT's 61 TT 5.1.3 rows, in SCRT's words, with
+  screenshots inline and rows left for a person flagged. It is a top-level
+  object, so SCRT does not load it as a formal report.
+- **[steps.jsonl](evals/judging/round1-answers/results/arm-a/runs/20261104T200634Z-d02d2f/steps.jsonl):**
+  the run's step log, with each phase's time.
 
-`runs/` is git-ignored. Evidence holds page content; treat it as untrusted.
+Each run writes these to `runs/<timestamp>-<id>/` (git-ignored), with the
+page recordings and evidence under `evidence/`. Evidence holds page content:
+treat it as untrusted. Save the report in your repository before it expires
+(24 hours).
 
 ## Configuration
 
-See `.env.example` and `src/a11y_assist/config.py`. Settings come from the
-environment or from `.env` in this repository's root, whatever directory the
-client starts the server in. Main settings:
-`ALLOWED_DOMAINS`, `DEV_MODE`, `EGRESS_PORTS`, `UPSTREAM_PROXY` (see the table above), `DEV_ALLOWED_ADDRESSES` (dev
-mode only: addresses the connection check lets through, e.g.
-`["127.0.0.1/32"]` for a local test server), `BROWSER_CHANNEL`, `HEADLESS`,
-`JUDGE_BACKEND`, `JUDGING_MODEL`, and for evals only `FROZEN_PAGES_DIR` and
-`FROZEN_PAGES_MODE` (`replay`, `tested_frozen` or `record_missing`). Rules spec versions are
-read from each spec's front matter (`spec_version`) and recorded in every report.
+Settings come from the environment or `.env` in this repository's root
+(`.env.example`, `src/a11y_assist/config.py`):
+- `ALLOWED_DOMAINS`: the allowlist, `.gov` and `.mil` by default. It is
+  enforced on every navigation and redirect.
+- `RUN_LIMIT_S` and `OTHER_PAGE_S`: the time limits above.
+- `BROWSER_CHANNEL` and `HEADLESS`: which Chrome, and whether it is shown.
+- `DEV_MODE`: allows `file://` pages and `DEV_ALLOWED_ADDRESSES`.
+- `UPSTREAM_PROXY`: for a container that re-signs TLS.
+- Evals only: `FROZEN_PAGES_DIR` and `FROZEN_PAGES_MODE`.
 
-## Contributing
+## Safety
 
-Read [CLAUDE.md](CLAUDE.md) first. It lists the project's principles: never
-claim certification, outcome logic only from the rules spec, NEEDS_REVIEW over
-a false PASS, pinned and recorded versions, page content as untrusted data, and
-verify with tests.
+- **Allowlist:** every top-level navigation and redirect hop is checked
+  against it.
+- **Address checks:** Chrome connects only through a local proxy that
+  refuses private, loopback and cloud-metadata addresses and pins the
+  address it checked, so DNS rebinding cannot get past it.
+- **ANDI:** served from the vendored copy, never from ssa.gov.
+- **Page content is untrusted data:** it never chooses a URL, a tool or an
+  outcome. The one approved exception is 19.A's single live site search.
+- **Versions:** all are pinned, and every report records them.
+
+Details: [docs/hackathon/evaluation.md](docs/hackathon/evaluation.md).
+
+## Known limits
+
+- **Recording:** a recorded page freezes network responses, not
+  client-side randomness or time.
+- **Content-Security-Policy:** a page's CSP that forbids inline scripts
+  blocks ANDI. No CSP bypass is enabled.
+- **Linked help pages:** pages linked from the tested page are not
+  followed for 4.C's question.
+- **Browsers tested:** CI runs Playwright's Chromium, headless. Headed
+  Google Chrome on Windows is checked by hand.
+- **Planned:** see [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## License
 

@@ -42,19 +42,18 @@ nasa.gov is now a development site. Pages with cross-site iframes replay
 in full Chromium
 ([solutions/full-chromium-iframes.md](solutions/full-chromium-iframes.md)).
 
-Next:
-1. **The post-round 1 fixes, in the plan's order**
-   ([plans/2026-11-04-post-round1-fixes.md](plans/2026-11-04-post-round1-fixes.md)):
-   answers without a special prompt, time and concurrency, 4.D row M8,
-   and the 5.x rule questions. They change the scores of tests that are
-   already built, and round 2 (a new site) measures those.
-2. **New tests:** 2.B, 2.C and 2.D (moving, auto-updating and changing
-   content) as one batch on the walk's mutation log, 4.E's dialog
-   detection and 5.F's live-region rule; then the visual-versus-code
-   cluster. Choose with the coverage map and CLAUDE.md's research rule.
-
-Open (Abby): confirm that order, given the results-service MVP for Nov 20
-([plans/2026-11-04-results-service.md](plans/2026-11-04-results-service.md)).
+Next (Abby, 2026-11-05):
+1. **The 2.x and 3.A tests,** on their branch, nearly ready for code
+   review.
+2. **The post-round 1 fixes, in the plan's order**
+   ([plans/2026-11-04-post-round1-fixes.md](plans/2026-11-04-post-round1-fixes.md)),
+   while Abby labels the next judging round blind:
+   - answers without a special prompt;
+   - time and concurrency;
+   - 4.D row M8;
+   - the 5.F/5.G, 5.A/5.B, 19.A and 4.F fixes.
+3. **Then the visual-versus-code cluster.** Choose with the coverage map
+   and CLAUDE.md's research rule.
 
 Per-test leftovers live in each `docs/rules/<id>-build-tasks.md` (mostly
 browser checks on Windows headed Chrome, which this Linux container cannot
@@ -64,9 +63,8 @@ run).
 
 - **Fixes found in agent eval round 1:** 18 fixes, ranked, in
   [plans/2026-11-04-post-round1-fixes.md](plans/2026-11-04-post-round1-fixes.md).
-  Make them before the next round. Three wait for Abby: 4.F's question for
-  columns and the Careers dialog (16), 5.F/5.G on a site search (17), and
-  who may add 19.A's suggested pages (18).
+  Make them before the next round. Abby answered the open questions on
+  2026-11-05: fixes 17 and 18 are decided, and fix 16 is the tool's.
 - **MCP client limits (found 2026-11-04; the plan's fix 2):**
   - the Claude Code CLI cuts an MCP call off at 60 s by default
     (`MCP_TOOL_TIMEOUT`);

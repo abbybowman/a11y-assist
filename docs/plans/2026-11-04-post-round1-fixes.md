@@ -3,8 +3,12 @@
 Status: **open; round 1 scored 2026-11-04; answering runs done
 2026-11-04** (round 1: [evals/agent/README.md](../../evals/agent/README.md#results);
 Agent A told to answer: [round1-answers](../../evals/judging/round1-answers/README.md)).
-Fix 9 is done; 14 is decided; 16, 17 and 18 wait for Abby; the rest are
-not started. The harness fixes made during the round are listed at the
+Fix 9 is done; 14, 17 and 18 are decided (Abby); the rest are not
+started. Nothing waits for Abby.
+
+**When (Abby, 2026-11-05):** after the 2.x and 3.A tests on their branch
+reach review. These fixes are made while Abby labels the next judging
+round blind. The harness fixes made during the round are listed at the
 end. Each fix below is made after
 round 1 is locked and before the next round. They are not made during
 round 1: the round measures the code as it was at its start. Results and
@@ -40,27 +44,23 @@ Evidence:
    answering runs' 8 errors and 7 of round 1's 9. Results are unstable from
    run to run.
 4. **Fix 17: 5.F and 5.G on a search form.** 18 undecided cells, 2 on every
-   page. A question for Abby first.
+   page. Decided: Does Not Apply when no input can be wrong.
 5. **Fixes 10 and 14: 5.A row M3 and 5.B, the header buttons.**
    - 3 errors (5.B).
    - Today 5.A is right only because the agent answered J1; M3 would fail
      it mechanically.
    - Abby decided 5.B.
-6. **Fix 18: 19.A is never decided.** 9 cells: it waits for the user to
-   approve more pages, and in these runs no one did. A question for Abby.
-7. **Fix 16 (and the Careers 4.F question below): 4.F.** 1 error from an
-   answer; 8 cells undecided, mostly "unsure" answers. Waiting for Abby.
+6. **Fix 18: 19.A is never decided.** 9 cells. Decided: the agent may add
+   pages itself.
+7. **Fix 16: 4.F.** 2 false FAILs, both the tool's: a card grid the rubric
+   does not name, checkbox boxes, and a dropdown taken for a dialog. 8 cells
+   undecided, mostly "unsure" answers.
 8. **Fix 12: refused pages.** With `no_time_limit` Missions ran, but only
    after a refusal and a second call.
 9. **Fix 1: a detached frame.** Cost a call once; a retry recovered it.
 10. **Fix 13: the scorer (harness).** It changes no outcome, but it must be
     right before round 2's lock, which also locks the scorer.
 11. **Fixes 3, 7 and 8: harness and setup.** No effect on accuracy.
-
-**For Abby (4.F, Careers):** `arm-a-1`'s tool failed 4.F (row M2: Tab left
-the "Internships" dialog onto the page behind it), and the key passes it.
-Is that dialog modal? If not, M2 should not apply to it. The spec row
-needs the answer before any change.
 
 ## Fixes
 
@@ -381,17 +381,50 @@ needs the answer before any change.
   keep `a11y_run_tt_tests`' result small (fix 6b). Then the judge eval.
 - **Status:** not started.
 
-### 16. 4.F J1 and a list laid out in columns
+### 16. 4.F: a card grid, a filter list's boxes, and a dropdown taken for a dialog
 
-- **Found:** round1-answers-rest, Missions. Tab goes along the rows of a
-  filter list laid out in columns, so focus "jumps back up" between
-  columns. The agent answered J1 `does_not_preserve`, and the tool failed
-  4.F, where the key passes it. This is the only error in these runs that
-  came from an answer.
-- **For Abby:** does a grid or multi-column list read row by row preserve
-  meaning? If so, add it to J1's rubric as a "preserves" example, then run
-  the judge eval.
-- **Status:** waiting for Abby.
+Both 4.F false FAILs are in the tool, not a question for the key. Abby
+asked for the details; checked on the frozen recordings, 2026-11-05.
+
+- **Missions (round1-answers-rest): J1 answered `does_not_preserve`, and M6
+  failed it.** The key passes 4.F. The order image and the signals show
+  three things:
+  - **The results grid.** Cards in rows of three, each an image link then
+    a title link. Tab goes card by card along a row, so focus "jumps back
+    up" from one card's title to the next card's image (":envihab" to "3D
+    Tissue Chips Image"). A grid read row by row, each card's parts
+    together, preserves meaning, but J1's rubric does not name it: it
+    names "columns read one after another".
+  - **The footer.** Link columns read row by row ("About NASA's Mission",
+    then "Join Us", then "Home"). This is the same case as the grid.
+  - **The filter list is one column, not several.** Its signals ("Flyby"
+    to "Ground-based Telescope") come from the checkbox boxes: "Flyby"'s
+    box is at y=983 and "Ground-based Telescope"'s at 949, though "Flyby"'s
+    label is above. Focus follows the list. The signal measures the box,
+    not what a user sees (the label beside it).
+- **Careers (round 1, `arm-a-1`): row M2, "Tab leaves the Internships
+  dialog".** "Internships" is a dropdown in the Careers sub-navigation
+  (`aria-expanded`, `aria-controls="basic-nav-section-one"`), not a dialog.
+  On the frozen page, Enter opens it, no `dialog`, `role="dialog"` or
+  `aria-modal` element becomes visible, and Tab moves through its links
+  ("Internships Home", "Pathways Internships", "Fellowships"). The page
+  has a hidden Popup Maker overlay (`#pum-872473`, `role="dialog"`,
+  `aria-modal="false"`), the one 4.D also met on Artemis III. Pass R
+  probably took it for the dialog Enter opened. To confirm, read that
+  run's `evidence/4f.json` in Abby's `round1-results.zip`.
+- **Fix:**
+  - **J1's rubric (spec, MINOR):** add "a grid of cards or footer link
+    columns read row by row, each item's parts together" as `preserves`.
+  - **The O signals:** read the position of a checkbox or radio button
+    from its label when the label is beside it.
+  - **Pass R:** count a modal dialog only when it is `aria-modal="true"`
+    (or `showModal`) at the time of the check, and only when it is what the
+    trigger opened: named by `aria-controls`, or focus moved into it after
+    Enter. An overlay that opens on a timer or scroll is not the
+    trigger's.
+  - Fixtures for each, then the judge eval on the rubric.
+- **Status:** not started. Abby's key passes both pages; nothing waits
+  for her.
 
 ### 17. 5.F and 5.G on a form with nothing to get wrong (site search)
 
@@ -400,11 +433,17 @@ needs the answer before any change.
   could not see the server's reply in the recording ("Please submit…").
   The key says Does Not Apply on 7 pages (only the search form) and Pass
   on the forms page.
-- **For Abby:** is a form whose fields accept any input (a site search,
-  with no required field and no format) Does Not Apply for 5.F and 5.G,
-  since it has no input error to identify? If so, the spec could decide
-  that before sending the form.
-- **Status:** waiting for Abby.
+- **Decided (Abby, 2026-11-05):** a form whose fields accept any input,
+  with no errors or validation (a site search: no required field, no
+  format), is Does Not Apply for 5.F and 5.G.
+- **Fix (spec, MINOR):**
+  - `5f-error-identification.md` and 5.G, which reads 5.F's pass: decide
+    Does Not Apply before sending a form that has no required field, no
+    pattern or type that limits input, and no validation script.
+  - Research first: which free-input forms the Baseline cases cover.
+  - Then fixtures (a site search, and a search with a required field) and
+    the judge eval if a question changes.
+- **Status:** decided; not started.
 
 ### 18. 19.A is never decided
 
@@ -413,12 +452,19 @@ needs the answer before any change.
   asks the user whether to run again with the pages it suggests (the home
   page, the site map). No user was there. In the rerun, the agent noted the
   suggestion and did not act on it. The key decides 19.A on all 9 pages.
-- **For Abby:** may the calling agent add the suggested same-site pages
-  itself? It is still the caller choosing, so principle 5 holds, and an
-  `other_pages` page is allowlisted and on the same host. Or should the
-  question stay with the user? Either way, the result's wording should say
-  what the agent may do (fix 4).
-- **Status:** waiting for Abby.
+- **Decided (Abby, 2026-11-05):** the calling agent may add pages itself.
+  Any same-site page it finds can count, as long as the pages show two
+  different ways, as the 19.A spec already defines them.
+- **Fix:**
+  - The 19.A summary tells the agent it may call again with the
+    suggested pages, or other same-site pages it finds, as `other_pages`,
+    instead of asking the user.
+  - Update CLAUDE.md's line "Other URLs found on pages are only *suggested*
+    to the user" to say they are suggested to the calling agent, which may
+    pass them back (Abby, 2026-11-05). The server still never visits them
+    by itself.
+  - Then an answering run checks that the agent does it.
+- **Status:** decided; not started.
 
 ## Observations to decide after scoring
 
