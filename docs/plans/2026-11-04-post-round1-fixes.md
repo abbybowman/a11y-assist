@@ -1,10 +1,12 @@
 # Plan: fixes after agent eval round 1
 
-Status: **open; round 1 scored 2026-11-04; answering runs done
-2026-11-04** (round 1: [evals/agent/README.md](../../evals/agent/README.md#results);
-Agent A told to answer: [round1-answers](../../evals/judging/round1-answers/README.md)).
-Fix 9 is done; 14, 17 and 18 are decided (Abby); the rest are not
-started. Fix 19's inline images need Abby's approval (a CLAUDE.md rule).
+Status: **built 2026-11-05 on branch `post-round1-fixes`** (round 1:
+[evals/agent/README.md](../../evals/agent/README.md#results); Agent A told
+to answer: [round1-answers](../../evals/judging/round1-answers/README.md);
+after the fixes: [round1-postfix](../../evals/judging/round1-postfix/README.md)).
+Every fix is built. Open: Artemis III's covered player button (fix 11,
+Abby checking), NACA's time (fix 5), the answering run's check of 19.A's
+follow-up (fix 18), and CI's first run with Playwright MCP (fix 3).
 
 **When (Abby, 2026-11-05):** after the 2.x and 3.A tests on their branch
 reach review. These fixes are made while Abby labels the next judging
@@ -176,8 +178,10 @@ Evidence:
     was "unsure", with no reason given, and it opened only 2 screenshots in
     that run;
   - one answer was wrong (fix 16).
-- **Status:** not started. `arm-a-2` and `arm-a-3`, unchanged repeats,
-  made no `a11y_answer_questions` call either: 3 of 3 runs.
+- **Status:** built (`next_step`, the tool description). Checked: the
+  development run with no special prompt answered 12 of 13 questions
+  (`evals/judging/round1-postfix/README.md`); round 1's three runs
+  answered none.
 
 ### 5. Pages that need more than the time limit
 
@@ -224,7 +228,9 @@ Evidence:
     description says calls queue.
 - **With `no_time_limit`:** NACA took 1190 s and Missions 896 s, on a
   quiet machine. These are the budget's real targets.
-- **Status:** not started.
+- **Status:** the cap and long polling are built; the run limit is 600 s
+  (Abby, 2026-11-05). Not done: measuring NACA alone and where its time
+  goes (`evals/time_budget.py`); NACA's 1190 s is still over 600 s.
 
 ### 6. Agent A asked for a shell
 
@@ -523,8 +529,8 @@ Evidence:
   keep `a11y_run_tt_tests`' result small (fix 6b). Then the judge eval.
 - **Status:** built (5.D spec 1.1.0, `t5d.j1_groups`, fixture F15). On
   Missions' saved questions the rule makes 96 into 4 (Status 4, Types 32,
-  Targets 37, Program 23). Judge eval on the group question: pending, run
-  with the next question changes.
+  Targets 37, Program 23). Judge eval run 18: F15's group question
+  answered `not_told` (FAIL, as expected).
 
 ### 16. 4.F: a card grid, a filter list's boxes, and a dropdown taken for a dialog
 
