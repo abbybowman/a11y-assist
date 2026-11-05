@@ -14,7 +14,10 @@ obsolete in TT 5.1.3), 9.A (Bypass), 9.B (Consistent navigation), 9.C
 (Consistent identification) and 19.A (Multiple ways). Judge eval (fresh agents, no scripted
 answers): 43/44 Test 4 fixtures and every 5.x, 9.x and 19.A packet, no
 false PASS after fixes (5.A 1.1.0's rubric change gave two, fixed: runs 12
-and 13; [evals/README.md](../evals/README.md)). Every implemented test fits
+and 13; [evals/README.md](../evals/README.md)). Those agents had every
+screenshot as a file. A real agent gets `run://` links and rarely opens
+them, so these figures hold for answers with the evidence in hand (fix 19
+in the post-round 1 plan). Every implemented test fits
 one 120 s call on the realistic pages in `tests/fixtures/budget/` (the
 agency page has no margin left, so the next single-page test must find
 time elsewhere); pages too large to walk, or with more than 40 form

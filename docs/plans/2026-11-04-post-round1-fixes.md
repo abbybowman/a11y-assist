@@ -62,8 +62,10 @@ Evidence:
 8. **Fix 12: refused pages.** With `no_time_limit` Missions ran, but only
    after a refusal and a second call.
 9. **Fix 1: a detached frame.** Cost a call once; a retry recovered it.
-10. **Fix 13: the scorer (harness).** It changes no outcome, but it must be
-    right before round 2's lock, which also locks the scorer.
+10. **Fixes 13 and 20: the scorer and the lock (harness).** They change no
+    outcome, but they must be right before round 2's lock, which also locks
+    the scorer. Fix 20 also blocks outside testers' rounds from being
+    scored on another machine.
 11. **Fixes 3, 7 and 8: harness and setup.** No effect on accuracy.
 
 ## Fixes
@@ -501,6 +503,26 @@ asked for the details; checked on the frozen recordings, 2026-11-05.
   - compare the "unsure" counts for 4.A, 4.D and 4.F, and check that no
     false PASS appears (an image can also mislead).
 - **Status:** not started; option 1 can go with fix 4.
+
+### 20. A judging round's lock covers files git ignores
+
+- **Found:** writing the judging how-to (2026-11-05). `judging.py lock`
+  hashes everything in `results/`, including each page's `*.har.zip`. Since
+  round 1, `.gitignore` drops those under `evals/judging/`. So a round
+  locked on one machine fails `score` on any other clone ("Result files
+  changed after the lock"), as round 1's first lock would have. Outside
+  testers (`docs/how-to/run-a-judging-round.md`) therefore score on their
+  own machine for now.
+- **Fix:** hash only the files git tracks (`git ls-files`, or skip what
+  `git check-ignore` matches). Record the recordings' hashes in a separate
+  manifest the lock also hashes, so the archive can still be checked.
+- **Cost:** `evals/judging.py` is in every lock's code list, so after the
+  change, round 1 scores only at its lock commit, by design (the scorer
+  says so).
+- **Test:** lock in a temporary clone with a git-ignored recording, then
+  score in a second clone without it.
+- **Status:** not started; before the first outside round is scored on
+  another machine.
 
 ## Observations to decide after scoring
 
