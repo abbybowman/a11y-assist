@@ -278,7 +278,12 @@ class OpenQuestion(BaseModel):
     choices: list[str] = Field(
         default_factory=list, description='For kind "choice": the allowed answers.'
     )
-    instance: str = Field(description="The trap instance the question is about.")
+    instance: str = Field(description="The instance the question is about.")
+    also_instances: list[str] = Field(
+        default_factory=list,
+        description="Other instances the same answer is recorded for (one "
+        "question for a group of alike instances).",
+    )
     question: str
     rubric: str
     input: dict[str, Any] = Field(
@@ -531,6 +536,12 @@ SHARED_DESC = (
 
 class RunResult(BaseModel):
     disclaimer: str = NOT_CERTIFIED_DISCLAIMER
+    status: Literal["done"] = "done"
+    next_step: str = Field(
+        default="",
+        description="What to do next: answer the open questions, or relay "
+        "the findings (NEEDS_REVIEW as needs review) and save the report.",
+    )
     run_id: str
     target: str
     final_url: str | None = None
@@ -569,8 +580,30 @@ class RunResult(BaseModel):
     untrusted_content_notice: str = UNTRUSTED_NOTICE
 
 
+class RunPending(BaseModel):
+    """A run that did not finish while the call waited (jobs.py). It goes
+    on in the server; a11y_run_status waits for it again."""
+
+    disclaimer: str = NOT_CERTIFIED_DISCLAIMER
+    status: Literal["queued", "running"] = Field(
+        description='"queued": waiting for a free browser slot (its time limit '
+        'has not started); "running": being tested.'
+    )
+    job_id: str = Field(description="Pass to a11y_run_status to wait again.")
+    target: str
+    seconds_waiting: float = Field(description="Seconds it waited for a slot.")
+    seconds_running: float = Field(description="Seconds since its run started.")
+    progress: str = Field(description="The phase it is in.")
+    next_step: str
+
+
 class AnswerResult(BaseModel):
     disclaimer: str = NOT_CERTIFIED_DISCLAIMER
+    next_step: str = Field(
+        default="",
+        description="What to do next: answer the open questions, or relay "
+        "the findings (NEEDS_REVIEW as needs review) and save the report.",
+    )
     run_id: str
     accepted: list[str]
     rejected: list[str]

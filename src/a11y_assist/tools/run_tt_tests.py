@@ -8,9 +8,9 @@ from fastmcp import Context, FastMCP
 from fastmcp.exceptions import ToolError
 from pydantic import Field
 
-from a11y_assist import config
+from a11y_assist import config, jobs
 from a11y_assist.checks import REGISTRY
-from a11y_assist.models import RunResult, TestId
+from a11y_assist.models import RunPending, RunResult, TestId
 from a11y_assist.pipeline import RunRefused
 from a11y_assist.pipeline import run_tt_tests as run_pipeline
 from a11y_assist.redact import safe_error
@@ -37,9 +37,15 @@ same content.
 
 Open questions are judgment calls the rules leave to you (is there another
 keyboard way to do this? is this tooltip essential? does this dialog take over
-the page?). Answer each with a11y_answer_questions using its rubric and evidence;
+the page?). The findings that need them stay NEEDS_REVIEW until they are
+answered, and the process expects you to answer them: `next_step` in the
+result says how many there are and what to do. Answer each with
+a11y_answer_questions using its rubric and evidence;
 answer "unsure" when the evidence does not settle it, and only then ask the
-user. To save your context, hand all of a run's open questions together to
+user. Images a question names (image_a, ...) are run:// resources: open them
+with your MCP client's resource reader, not a file reader, and look before
+answering. Report a NEEDS_REVIEW finding as needs review, never as a pass or
+a fail of your own. To save your context, hand all of a run's open questions together to
 one subagent (with question, rubric, input and evidence_paths, which are
 run:// resources) and keep only the answer objects it returns; a subagent per
 question costs far more in total. For one or two short questions, answering
@@ -55,9 +61,16 @@ if the user wants to keep it, read it and save it in their repository before
 
 Errors (isError): a URL outside the allowlist (default *.gov, *.mil), a
 redirect out of it, or a page that cannot be loaded; nothing is tested then.
-One call takes at most the server's run limit ({s.run_limit_s} s, plus
-{s.other_page_s} s for each other page, so {most} s with five);
-work not done in time is NEEDS_REVIEW with the reason.
+
+Time: a run takes up to the server's run limit ({s.run_limit_s} s, plus
+{s.other_page_s} s for each other page, so {most} s with five); work not done
+in time is NEEDS_REVIEW with the reason. This call waits up to
+{s.call_wait_s} s. A run not done by then goes on in the server, and the
+result has status "queued" or "running" and a job_id: call a11y_run_status
+with it (each call waits again) until status is "done", which gives this
+result. Never start the same run again. The server runs
+{s.max_concurrent_runs} pages at once; others queue, and a queued run's time
+limit starts only when it starts.
 Progress notifications name each phase and page. A page too large to walk within the
 limit (several hundred keyboard stops) is an error as soon as the walk's pace
 shows it, and nothing is tested: ask the user whether to call again with
@@ -113,8 +126,8 @@ def register(mcp: FastMCP) -> None:
                     "Run without the server's run limit (default 120 s), so a "
                     "large page is tested in full. Set it only when the user "
                     "chooses to, after a call said the page is too large: the "
-                    "call can take many minutes, and a client or proxy with a "
-                    "shorter timeout may give up first. The report records it."
+                    "run can take many minutes (follow it with a11y_run_status). "
+                    "The report records it."
                 ),
             ),
         ] = False,
@@ -143,12 +156,16 @@ def register(mcp: FastMCP) -> None:
             ),
         ] = [],  # noqa: B006 (pydantic copies mutable defaults per call)
         ctx: Context | None = None,
-    ) -> RunResult:
+    ) -> RunResult | RunPending:
+        s = config.settings
         progress = ctx.report_progress if ctx is not None else None
+        job = jobs.start(
+            s,
+            url,
+            lambda p: run_pipeline(s, url, tests, p, no_time_limit, other_pages),
+        )
         try:
-            return await run_pipeline(
-                config.settings, url, tests, progress, no_time_limit, other_pages
-            )
+            return await jobs.wait(job, s.call_wait_s, progress)
         except RunRefused as exc:
             raise ToolError(str(exc)) from None
         except Exception as exc:

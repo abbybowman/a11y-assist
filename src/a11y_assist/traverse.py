@@ -345,12 +345,19 @@ async def dom_inventory(page: Page) -> Inventory:
             continue
         skipped = False
         f = frame
-        while f.parent_frame is not None:
-            owner = await f.frame_element()
-            if await owner.evaluate(_NEG_TABINDEX_FRAME_JS):
-                skipped = True
-                break
-            f = f.parent_frame
+        try:
+            while f.parent_frame is not None:
+                owner = await f.frame_element()
+                if await owner.evaluate(_NEG_TABINDEX_FRAME_JS):
+                    skipped = True
+                    break
+                f = f.parent_frame
+        except Exception:
+            # The frame (or a parent) detached or reloaded mid-read: an embed
+            # can do that at any moment. Counted like a frame whose script
+            # cannot run (post-round 1 fix 1).
+            inv.unreachable_frames += 1
+            continue
         inv.form_fields += got["fields"]
         if skipped:
             inv.keyboard_unreachable += n

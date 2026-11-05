@@ -205,6 +205,22 @@ EXPECTED: dict[str, dict[str, dict]] = {
             "answers": {"J1": {"choice": "guides", "quote": "Please"}},
         },
     },
+    # Post-round 1 fix 17 (Abby, 2026-11-05): a site search accepts any
+    # input, so both are Does Not Apply (A3s), though it was sent.
+    "f18-site-search": {
+        "5.F": {"outcome": "DNA", "rows": []},
+        "5.G": {"outcome": "DNA", "rows": []},
+    },
+    # A required search box is not free input: empty, the browser names it
+    # (M2); with "abc" it is sent, and the server's reply cannot be seen (A4).
+    "f19-site-search-required": {
+        "5.F": {"outcome": "NEEDS_REVIEW", "rows": []},
+        "5.G": {
+            "outcome": "NEEDS_REVIEW",
+            "rows": [],
+            "answers": {"J1": {"choice": "guides", "quote": "Please"}},
+        },
+    },
 }
 
 

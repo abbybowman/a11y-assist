@@ -93,7 +93,14 @@ Evidence:
   (`results/arm-a-1/runs/20261104T125122Z-6e3198/`), though CLAUDE.md says a
   call that ends in a tool error leaves none. The pipeline should remove it,
   or keep it as a failed run the report links to.
-- **Status:** not started.
+- **Status:** built. `dom_inventory` counts a frame that detaches while
+  its parents are read as unreachable (the only unguarded frame call: the
+  other frame loops on the walk and checks already catch errors). A walk
+  that fails for any other reason is now an error in the result, like a
+  walk out of time: the tests that need it are left for review, the rest
+  run. Any other unexpected error removes the run folder before the tool
+  error. Tests: `test_traverse.py` (a detach mid-read, simulated on a real
+  page), `test_tools.py` (a failed walk; no folder after a tool error).
 
 ### 2. MCP clients' tool timeouts
 
@@ -113,7 +120,22 @@ Evidence:
   clients. Then either document both settings in the README's setup, or
   keep each call under common client limits (for example, return a run id
   at once and let the client poll). Decide with fix 5.
-- **Status:** not started; also in `docs/ROADMAP.md`.
+- **Decided (Abby, 2026-11-05): option C, long polling.** A call waits up
+  to `CALL_WAIT_S` (45 s); a run not done by then goes on as a job and the
+  result has `status` "queued" or "running" and a `job_id`;
+  `a11y_run_status` waits again (45 s a call) until `status` is "done",
+  which is the usual result. Small runs are unchanged. Considered: (A) one
+  call, a cap and documented client settings (breaks on any client with a
+  60 s timeout, and needs every user to set environment variables); (B) a
+  call that always returns at once (every run needs polling, and agents
+  may end their turn instead).
+- **Status:** built (`jobs.py`, `tools/run_status.py`; tests in
+  `test_tools.py`: a run past a 1 s wait finished through
+  `a11y_run_status`, one run folder; an unknown job). The README says how
+  long to expect. Not checked yet: whether a real agent polls, rather than
+  ending its turn; run an answering round with the new descriptions.
+  Jobs live in memory: a hosted, multi-worker server needs shared state
+  (results-service plan, T7).
 
 ### 3. CI skips Agent B's browser tests
 
@@ -136,6 +158,14 @@ Evidence:
   are answered, how many there are, and that answering takes one call;
   check the `a11y_run_tt_tests` and `a11y_answer_questions` descriptions.
   Then the judge eval on the new wording.
+- **Built:** every result has `next_step` (`pipeline.next_step`): with open
+  questions, which tests stay NEEDS_REVIEW until they are answered, how
+  many questions, "answer them now, yourself, all in one call", how to open
+  run:// images (fix 19, option 1), and that NEEDS_REVIEW is reported as
+  needs review; without, relay and save. The tool description says the
+  same. A real agent's behaviour is not checked yet: that needs an
+  answering run with no special prompt (the judge eval gives its agent
+  the questions directly, so it cannot show this).
 - **Measured (round1-answers):** told plainly to answer (prompt
   `answers-v1`), the agent answered 59 of 59 questions on 6 pages, and 57
   of 152 on Missions. The tool's 9-page weighted score went from 44-47 to
@@ -186,6 +216,10 @@ Evidence:
     it waits.
   - The hosted runner in the results-service plan
     (`2026-11-04-results-service.md`, story T7) needs the same cap.
+  - **Built:** `MAX_CONCURRENT_RUNS` (default 2) in `jobs.py`; a queued job
+    has not called the pipeline, so its clock has not started (test:
+    `test_runs_beyond_the_cap_wait_without_using_their_time`). The tool
+    description says calls queue.
 - **With `no_time_limit`:** NACA took 1190 s and Missions 896 s, on a
   quiet machine. These are the budget's real targets.
 - **Status:** not started.
@@ -285,7 +319,14 @@ Evidence:
   not "Explore", "Go" or "Submit". Research it first (CLAUDE.md), then
   `docs/rules/5a-label-provided.md`, a fixture with an unrelated button
   near a placeholder-only field, and the judge eval.
-- **Status:** not started.
+- **Status:** built with fix 14 (5.A spec 1.2.0). Checked on Careers'
+  recording: the header search is a `form role=search` with a hidden submit
+  button, and "Explore" is an `aria-expanded` button outside that form. So
+  the rule is structural rather than a word list: a button is beside the
+  field (M3, J1's `buttons_next_to_it`) only when it acts on the field's
+  form (in that form, or in none when the field has none) and is not a
+  menu or disclosure button. Fixture 5.A F18. J1's wording is unchanged;
+  its input lists fewer buttons.
 
 ### 11. 4.D row M8: false FAILs at 0 px
 
@@ -308,7 +349,27 @@ Evidence:
   NEEDS REVIEW, not FAIL. The spec already does this for M4, where there is
   no clear view. Add a check that the element is in view and unobscured
   in the "on" shot.
-- **Status:** not started.
+- **Looked at (2026-11-05, Abby's evidence for arm-a-3 df1bb9 and arm-a-1
+  b4a2ef):** two causes.
+  - **A layout shift (Artemis III, "About Orion", "Go To Gallery", "Start
+    Exploring"):** `moved` is true; the "on" picture shows the link's
+    focus ring about 50 px below the region the tool compared ("About
+    Orion" is not in its picture at all), so the empty region gave 0 px.
+    **Built (4.D spec 1.2.0):** moved with fewer than `MIN_CHANGED_PX`
+    is M4 (no clear view), not M8; moved with a clear change still counts
+    (a skip link that slides in). Unit test in `test_fixtures_4d.py`.
+  - **Style changed, nothing drawn where the element is (Missions' card
+    titles, every other link in the A-Z grid: the card's image link
+    passes at 3,600 px, its title link fails at 0 px with outline
+    properties changed; Artemis III's two video player controls, box-shadow
+    changed):** the indicator may be drawn elsewhere (the card, its image)
+    or covered (the player). Not built yet: the evidence keeps only the
+    names of the changed properties. Next: record their on and off values,
+    and make M8 lead to NEEDS REVIEW when the on style draws something
+    (an outline or shadow with width and colour) that the pictures do not
+    show, while `outline: none` and the like still FAIL. Check on Missions'
+    and Artemis III's frozen recordings.
+- **Status:** first cause built; second designed.
 
 ### 12. A refused page is never tested fully
 
@@ -328,7 +389,12 @@ Evidence:
   tool said NEEDS_REVIEW (the key passes it). Fix 4's wording should also
   say that a NEEDS_REVIEW is reported as needs review, not decided by the
   agent.
-- **Status:** not started.
+- **Status:** built for 5.D's field cap (5.D spec 1.1.0): over 40 fields
+  the run leaves 5.D out at the first load, walks again for the rest, and
+  5.D's finding gives the call (`tests: ["5.D"]`, `no_time_limit`). A page
+  too large to walk at all is still refused: no test fits. The "Also" is in
+  fix 4's `next_step` and the tool description. Test:
+  `test_time_budget.py::test_more_fields_than_5d_checks_leaves_out_only_5d`.
 
 ### 13. The scorer (harness), before round 2's lock
 
@@ -372,7 +438,12 @@ Evidence:
   Research first (CLAUDE.md), then a fixture (a placeholder-only search
   beside a menu button) and the judge eval. 5.A's row M3 (fix 10) reads
   the same buttons, so do both together.
-- **Status:** decided; not started.
+- **Status:** built (5.B spec 1.2.0). A button is an item only when its
+  form (or "none") has a field that is an item and it is not a menu or
+  disclosure button. The first part already held (a placeholder-only
+  field was never an item); the header's menu buttons, in no form, were
+  what made the "form". Tests: 5.A F18 run for 5.B (DNA, A2) and a unit
+  test of `items_of`. J1's wording is unchanged; its items are fewer.
 
 ### 15. Many identical open questions
 
@@ -385,7 +456,10 @@ Evidence:
 - **Fix:** ask once for a set of fields whose change and text before them
   are the same, with the set as instances, and apply the answer to each;
   keep `a11y_run_tt_tests`' result small (fix 6b). Then the judge eval.
-- **Status:** not started.
+- **Status:** built (5.D spec 1.1.0, `t5d.j1_groups`, fixture F15). On
+  Missions' saved questions the rule makes 96 into 4 (Status 4, Types 32,
+  Targets 37, Program 23). Judge eval on the group question: pending, run
+  with the next question changes.
 
 ### 16. 4.F: a card grid, a filter list's boxes, and a dropdown taken for a dialog
 
@@ -429,8 +503,21 @@ asked for the details; checked on the frozen recordings, 2026-11-05.
     Enter. An overlay that opens on a timer or scroll is not the
     trigger's.
   - Fixtures for each, then the judge eval on the rubric.
-- **Status:** not started. Abby's key passes both pages; nothing waits
-  for her.
+- **Confirmed (arm-a-1 9287e8, `evidence/4f.json`):** instance `dlg6`,
+  keys Tab ×13, Enter, Tab: after Enter on "Internships" the next Tab
+  stop was in a modal dialog, and the following Tab reached "Internships
+  Home", the menu's first link ("escaped"). "Internships" names its list
+  in `aria-controls`; the dialog was not it.
+- **Status:** the pass R part is built (4.F spec 1.2.0, `t4f._opened_by`):
+  when the trigger names its content in `aria-controls`, a modal dialog
+  counts only when focus is inside that content; a trigger with no
+  `aria-controls` is unchanged (a script-opened dialog, F10-F12).
+  Fixture F16 (a menu button and a site overlay that shows itself on the
+  first click): FAIL M2 without the change, PASS with it. J1's rubric now
+  names "a grid of cards, or columns of footer links, read row by row with
+  each card's or item's parts together" as preserves (fixture F17 asks J1
+  with four S3 signals, as Missions did); judge eval pending. Left: the O
+  signals for a checkbox read from its label's position.
 
 ### 17. 5.F and 5.G on a form with nothing to get wrong (site search)
 
@@ -449,7 +536,16 @@ asked for the details; checked on the frozen recordings, 2026-11-05.
   - Research first: which free-input forms the Baseline cases cover.
   - Then fixtures (a site search, and a search with a required field) and
     the judge eval if a question changes.
-- **Status:** decided; not started.
+- **Status:** built (5.F and 5.G spec 1.2.0, row A3s). Research: the
+  Baseline's only DNA case (TC10.D-ic-dna-1, "Enter A Number", no script)
+  is decided by behaviour, not by the field's limits, and F02 ("Case
+  number", "ZIP code", no `required` or `pattern`) shows that a form with
+  no stated limit can still be checked by its server. So the row is
+  narrower than "no required field, no format": only a site search (one
+  box, marked as a search by the page, nothing limiting it) that was sent
+  with no error shown is DNA; any other sent form stays A4. The pass still
+  sends both attempts, so a search that checks its input on the page is
+  still tested. No question changed (no judge eval). Fixtures F18, F19.
 
 ### 18. 19.A is never decided
 
@@ -470,7 +566,10 @@ asked for the details; checked on the frozen recordings, 2026-11-05.
     pass them back (Abby, 2026-11-05). The server still never visits them
     by itself.
   - Then an answering run checks that the agent does it.
-- **Status:** decided; not started.
+- **Status:** built (19.A spec 1.1.1, wording only): the summary tells the
+  agent to call again with 19.A and the suggested pages, or other pages
+  of the site that show another way, without asking the user; CLAUDE.md
+  says so. The answering run is still to do.
 
 ### 19. Visual questions need the screenshot in front of the agent
 

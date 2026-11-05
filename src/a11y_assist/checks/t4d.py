@@ -672,6 +672,13 @@ def _best(inst: Inst4D) -> Attempt | None:
         if (a.mask_fraction or 0) > MASK_MAX_FRACTION:
             e["incomplete"] = "the next element covers it"
             continue
+        if e.get("moved") and a.changed_px < MIN_CHANGED_PX:
+            # The page moved it between its measure and the pictures (a
+            # layout shift), so the region compared was not where it was
+            # drawn: no clear view, not "nothing changed" (1.2.0; post-round
+            # 1 fix 11: NASA's Artemis III links failed at 0 px this way).
+            e["incomplete"] = "it moved on the page while we took the pictures"
+            continue
         return a
     return None
 

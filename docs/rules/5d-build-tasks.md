@@ -1,7 +1,8 @@
 # Build tasks: 5.D
 
-Spec [5d-on-input.md](5d-on-input.md) 1.0.0 is built (`checks/t5d.py`,
-`tests/test_fixtures_5d.py`: 14 custom fixtures, unit tests on hand-built
+Spec [5d-on-input.md](5d-on-input.md) 1.1.0 is built (`checks/t5d.py`,
+`tests/test_fixtures_5d.py`: 15 custom fixtures (F15: alike filter boxes,
+one J1 for all, 1.1.0), unit tests on hand-built
 evidence; the 5 Section 508 Baseline Alignment TC10.C cases in
 `tests/test_baseline_cases.py`). Judge eval run 4: 14/14. Left to do:
 

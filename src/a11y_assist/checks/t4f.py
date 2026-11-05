@@ -93,8 +93,10 @@ J1_RUBRIC = (
     "jumping back and forth between "
     "unrelated areas; a menu's or dialog's content reached far from its trigger; "
     "a positive tabindex sending focus to an unrelated place first. preserves: "
-    "columns read one after another; header, navigation, main, footer; a skip "
-    "link first; independent sidebars in either order. does_not_matter: "
+    "columns read one after another; a grid of cards, or columns of footer "
+    "links, read row by row with each card's or item's parts together (its "
+    "image link, then its title link); header, navigation, main, footer; a "
+    "skip link first; independent sidebars in either order. does_not_matter: "
     "independent items whose order cannot change meaning, such as a row of "
     "social media icons. unsure: whenever the evidence does not settle it (the "
     "image does not show every numbered stop clearly; the grouping that matters "
@@ -291,6 +293,17 @@ def signals(fwd: list[StopInfo], bwd: list[StopInfo] | None) -> list[dict[str, A
     return out
 
 
+def _opened_by(trig: StopInfo, inside: dict | None) -> bool:
+    """A modal dialog focus is in counts as the trigger's (spec 1.x, pass R)
+    when the trigger names no container, or focus is inside the container it
+    names (`aria-controls`). A site overlay that opens by itself is not what
+    a menu button opened (post-round 1 fix 16: NASA's Careers "Internships"
+    menu, and a Popup Maker dialog)."""
+    if not trig.info.get("container"):
+        return True
+    return bool((inside or {}).get("inside"))
+
+
 async def _reveal(
     ctx: RunContext, st: State4F, triggers: list[tuple[int, StopInfo]]
 ) -> None:
@@ -323,16 +336,16 @@ async def _reveal(
             await s.traversal.resync()
             after, _ = await s.traversal.reader.read()
             container = trig.info.get("container")
-            if after.modal:
+            c = (
+                await s.traversal.reader.call(after, CONTAINS_FN, [container])
+                if container and after.kind == "element"
+                else None
+            )
+            if after.modal and _opened_by(trig, c):
                 st.instances.append(await _dialog_check(ctx, keys, trig, n))
                 continue
             if not container:
                 continue
-            c = (
-                await s.traversal.reader.call(after, CONTAINS_FN, [container])
-                if after.kind == "element"
-                else None
-            )
             if c is None or not c.get("has_stops"):
                 continue
             moved_in = bool(c.get("inside"))
@@ -360,7 +373,7 @@ async def _reveal(
                     "next_tab_is_inside": bool((c2 or {}).get("inside")),
                 },
             )
-            if nxt.stop.modal:
+            if nxt.stop.modal and _opened_by(trig, c2):
                 st.instances.append(await _dialog_check(ctx, keys + ["Tab"], trig, n))
                 continue
             if not moved_in and not (c2 or {}).get("inside"):

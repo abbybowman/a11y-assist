@@ -217,6 +217,101 @@ async def test_redirect_out_of_allowlist_is_a_tool_error(settings, server):
     assert not any(settings.runs_dir.iterdir())  # nothing kept for an untested page
 
 
+async def test_a_walk_that_fails_still_gives_findings(settings, monkeypatch):
+    """Post-round 1 fix 1: an unexpected error in the walk (an embed that
+    detached) is an error in the result, not a tool error; tests that need
+    the walk are left for review and the rest still run."""
+    from a11y_assist import pipeline
+
+    async def broken(*a, **kw):
+        raise RuntimeError("Frame.frame_element: Frame has been detached.")
+
+    monkeypatch.setattr(pipeline, "walk_page", broken)
+    url = (FIXTURES / "no_trap.html").as_uri()
+    out = await _call("a11y_run_tt_tests", {"url": url, "tests": ["4.C", "5.A"]})
+    assert any("keyboard walk failed" in e for e in out["errors"]), out["errors"]
+    assert {f["test_id"]: f["outcome"] for f in out["findings"]}["4.C"] == (
+        Outcome.NEEDS_REVIEW.value
+    )
+    assert (settings.runs_dir / out["run_id"] / "report.json").exists()
+
+
+async def test_an_unexpected_error_leaves_no_run_folder(settings, monkeypatch):
+    """A call that ends in a tool error leaves no run folder (CLAUDE.md)."""
+    from a11y_assist import pipeline
+
+    def broken(*a, **kw):
+        raise RuntimeError("boom")
+
+    monkeypatch.setattr(pipeline, "_context", broken)
+    url = (FIXTURES / "no_trap.html").as_uri()
+    await _call_error("a11y_run_tt_tests", {"url": url, "tests": ["4.C"]})
+    assert not any(settings.runs_dir.iterdir())
+
+
+async def test_a_run_longer_than_the_call_wait_continues_in_the_background(
+    settings, monkeypatch
+):
+    """Post-round 1 fixes 2 and 5 (option C): a call returns the job id and
+    progress after call_wait_s; the run goes on, and a11y_run_status returns
+    its full result. Nothing is started twice."""
+    from a11y_assist import jobs
+
+    monkeypatch.setattr(
+        config, "settings", settings.model_copy(update={"call_wait_s": 1})
+    )
+    url = (FIXTURES / "no_trap.html").as_uri()
+    first = await _call("a11y_run_tt_tests", {"url": url, "tests": ["4.C"]})
+    assert first["status"] in ("queued", "running"), first
+    assert (
+        first["job_id"].startswith("job-") and "a11y_run_status" in first["next_step"]
+    )
+    got = first
+    for _ in range(120):
+        got = await _call("a11y_run_status", {"job_id": first["job_id"]})
+        if got["status"] == "done":
+            break
+    assert got["status"] == "done", got
+    assert [f["test_id"] for f in got["findings"]] == ["4.C"]
+    assert len(list(settings.runs_dir.iterdir())) == 1  # one run, not two
+    assert jobs.running() == []
+
+
+async def test_run_status_of_an_unknown_job_is_a_tool_error(settings):
+    msg = await _call_error("a11y_run_status", {"job_id": "job-000000000000"})
+    assert "start the run again" in msg
+
+
+async def test_runs_beyond_the_cap_wait_without_using_their_time(settings):
+    """At most max_concurrent_runs runs at once; a queued job has not
+    started, so its time limit has not either."""
+    import asyncio
+
+    from a11y_assist import jobs
+
+    s = settings.model_copy(update={"max_concurrent_runs": 1})
+    gate = asyncio.Event()
+    started: list[str] = []
+
+    def runner(name):
+        async def run(progress):
+            started.append(name)
+            await gate.wait()
+            return name
+
+        return run
+
+    a = jobs.start(s, "a", runner("a"))
+    b = jobs.start(s, "b", runner("b"))
+    await asyncio.sleep(0.05)
+    assert started == ["a"]
+    assert jobs.pending(b, 1).status == "queued"
+    assert jobs.pending(a, 1).status == "running"
+    gate.set()
+    assert await a.task == "a" and await b.task == "b"
+    assert started == ["a", "b"]
+
+
 def _seed_run_with_question(settings) -> tuple[str, str]:
     run = RunRecorder(settings.runs_dir)
     from a11y_assist.models import utcnow
@@ -424,6 +519,11 @@ async def test_open_questions_are_named_in_the_summary(settings, server):
     assert f["summary"].startswith("This test is not finished yet: 1 question about")
     assert "a person needs to check it" not in f["summary"]
     assert '"Show delivery times"' in f["summary"]
+    # Post-round 1 fix 4: the result says plainly what to do next.
+    step = out["next_step"]
+    assert step.startswith("Not finished: 4.A stay NEEDS_REVIEW until you answer")
+    assert "1 open question" in step and "one a11y_answer_questions call" in step
+    assert "never as a pass or a fail" in step
 
 
 async def test_shared_evidence_is_sent_once(settings, server):

@@ -14,6 +14,7 @@ from a11y_assist.checks import t5d
 from a11y_assist.engine import first_match
 from a11y_assist.models import TestId
 from a11y_assist.observe import Effect
+from a11y_assist.pipeline import run_tt_tests
 
 from .conftest import FIXTURES
 from .drafts import drafts  # noqa: F401 (a fixture)
@@ -74,6 +75,12 @@ EXPECTED: dict[str, dict] = {
     "f12-slider-reloads": {"outcome": "FAIL", "rows": ["M9"], "answers": NOT_TOLD},
     "f13-spinbutton-updates-total": {"outcome": "PASS", "rows": []},
     "f14-plain-form-controls": {"outcome": "PASS", "rows": []},
+    # Four filter boxes that each go to another page, one question for all.
+    "f15-filter-checkboxes-navigate": {
+        "outcome": "FAIL",
+        "rows": ["M9", "M9", "M9", "M9"],
+        "answers": NOT_TOLD,
+    },
 }
 HELPERS = {"f01-other", "f09-frame"}
 # Pages from other tests: no form fields at all. A small page: row A1 does
@@ -100,6 +107,28 @@ async def test_outcome(name, settings, server, drafts):  # noqa: F811
         f.rationale,
         f.summary,
     )
+
+
+async def test_f15_one_question_for_a_list_of_alike_fields(
+    settings,
+    server,
+    drafts,  # noqa: F811
+):
+    """Post-round 1 fix 15: alike fields in a list are asked about once, and
+    the one answer decides each of them (an instance per field)."""
+    url = f"{server.base}/5d/f15-filter-checkboxes-navigate.html"
+    out = await run_tt_tests(settings, url, [TestId.T5D])
+    qs = [q for q in out.report.open_questions if q.test_id is TestId.T5D]
+    assert len(qs) == 1, [q.question_id for q in qs]
+    [q] = qs
+    assert len(q.also_instances) == 3
+    assert [f["label"] for f in q.input["fields"]] == [
+        "Active",
+        "Future",
+        "Past",
+        "Inactive",
+    ]
+    assert q.input["before"] == "Mission status"
 
 
 # ── The pages behave as designed (plain Chrome, no tool) ─────────────────────

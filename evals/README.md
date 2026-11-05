@@ -24,6 +24,17 @@ because fixture names describe the expected answer ("key-in-comment-only").
 The answer key (`/tmp/eval/state.json`) is outside the packet tree. Agents
 are told to open nothing else and to list every file they opened.
 
+**Pictures (post-round 1 fix 19).** A fourth argument picks how the
+packets give pictures: `all` (the default: copied in, as before), `none`
+(left as `run://` links the agent cannot open, as for a real agent that
+does not read them) or `retry` (as `none`, then each look-to-settle
+question answered "unsure" comes back once with its pictures). The arm is
+kept in `OUT/images.txt`. `TESTS` may be `all`:
+
+```bash
+uv run python evals/judge_eval.py prepare /tmp/eval-none all none
+```
+
 ## Judging rounds: real pages against a tester's blind SCRT files
 
 A certified tester running their own round: follow

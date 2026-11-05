@@ -129,6 +129,13 @@ EXPECTED: dict[str, dict] = {
         "5.A": {"outcome": "PASS", "rows": ["M4"], "answers": labeled("Search")},
         "5.C": {"outcome": "PASS", "rows": ["M5", "M5"]},
     },
+    # Post-round 1 fix 10: a header's menu button beside a placeholder-only
+    # search box does not label it (5.A 1.2.0): M3, no question. Its name
+    # comes from a hidden <label>, so screen readers announce "Search".
+    "f18-header-menu-beside-search": {
+        "5.A": {"outcome": "FAIL", "rows": ["M3"]},
+        "5.C": {"outcome": "PASS", "rows": ["M5", "M5", "M5"]},
+    },
     # Each option's words are beside it but not connected: a person looks
     # (5.A J1); screen readers announce only the question (5.C).
     "f17-option-text-not-connected": {

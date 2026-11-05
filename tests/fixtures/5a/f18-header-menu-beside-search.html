@@ -1,0 +1,30 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>F18 Agency careers</title>
+<style>
+  header { display: flex; gap: 12px; align-items: center; }
+  .hidden-submit { display: none; }
+  #menu[hidden] { display: none; }
+</style></head><body>
+<header>
+<nav aria-label="Primary">
+<button type="button" aria-expanded="false" aria-controls="menu" id="explore">Explore</button>
+<button type="button" aria-expanded="false" aria-controls="news">News &amp; Events</button>
+</nav>
+<form role="search" action="search" method="get">
+<label class="hidden-submit" for="q">Search</label>
+<input id="q" name="q" type="search" placeholder="Search">
+<button class="hidden-submit" type="submit" aria-label="Search"></button>
+</form>
+</header>
+<ul id="menu" hidden><li><a href="#missions">Missions</a></li></ul>
+<main>
+<h1>Careers</h1>
+<p>Find a job with the agency.</p>
+<p><a href="#apply">How to apply</a></p>
+</main>
+<script>
+document.getElementById("explore").addEventListener("click", (e) => {
+  const open = e.currentTarget.getAttribute("aria-expanded") === "true";
+  e.currentTarget.setAttribute("aria-expanded", String(!open));
+  document.getElementById("menu").hidden = open;
+});
+</script></body></html>

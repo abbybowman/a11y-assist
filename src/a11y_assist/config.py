@@ -93,6 +93,16 @@ class Settings(BaseSettings):
     # ticker, a carousel), added once pass T finds it (Abby, 2026-11-04, T1
     # (a)): every key press waits longer there, and 2.A-2.C probe it.
     moving_allowance_s: int = Field(default=45, ge=0, le=300)
+    # How long one tool call waits for its run before it returns the job id
+    # and progress (post-round 1 fixes 2 and 5, option C): under the common
+    # 60 s MCP client timeout. The run goes on; a11y_run_status waits again.
+    call_wait_s: int = Field(default=45, ge=1, le=600)
+    # Browser runs one server does at once. A run waiting for a slot does not
+    # use its own time limit (round1-answers: 12 at once overloaded 4 CPUs).
+    max_concurrent_runs: int = Field(default=2, ge=1, le=32)
+    # Finished jobs kept in memory for a11y_run_status (the run folder is kept
+    # for run_ttl_hours either way).
+    job_keep_s: int = Field(default=3600, ge=60)
     runs_dir: Path = REPO_ROOT / "runs"
     # Runs are working files, not an archive: deleted after this many hours.
     # Durable results belong in the user's codebase (saved from tool output).

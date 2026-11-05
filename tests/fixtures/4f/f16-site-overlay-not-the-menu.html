@@ -1,0 +1,28 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>F16 Careers</title>
+<style>#promo[hidden] { display: none; } #promo { border: 1px solid #333; padding: 8px; }</style></head><body>
+<p><a href="#a">Before</a></p>
+<nav aria-label="Careers">
+<button id="intern" aria-expanded="false" aria-controls="intern-menu">Internships</button>
+<div id="promo" role="dialog" aria-modal="true" aria-label="Newsletter" hidden>
+<p>Sign up for our newsletter.</p><button id="promo-close">Close</button>
+</div>
+<ul id="intern-menu" hidden>
+<li><a href="#home">Internships Home</a></li>
+<li><a href="#pathways">Pathways Internships</a></li>
+</ul>
+</nav>
+<p><a href="#c">After</a></p>
+<script>
+// The menu button opens its own list. A site overlay, not the menu, shows
+// itself after the first click on the page, without taking focus.
+intern.addEventListener("click", () => {
+  const open = intern.getAttribute("aria-expanded") === "true";
+  intern.setAttribute("aria-expanded", String(!open));
+  document.getElementById("intern-menu").hidden = open;
+});
+let shown = false;
+document.addEventListener("click", () => {
+  if (!shown) { shown = true; setTimeout(() => { promo.hidden = false; }, 50); }
+});
+promo.querySelector("#promo-close").addEventListener("click", () => { promo.hidden = true; });
+</script></body></html>

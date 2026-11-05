@@ -209,6 +209,27 @@ async def test_dom_inventory(browser, settings):
     await ctx.close()
 
 
+async def test_inventory_counts_a_frame_that_detaches_mid_read(
+    browser, settings, monkeypatch
+):
+    """Post-round 1 fix 1: an embed that detaches while the inventory walks
+    its parents ("Frame has been detached.") is counted as unreachable; the
+    run goes on instead of ending in a tool error."""
+    from playwright.async_api import Error, Frame
+
+    async def detached(self):
+        raise Error("Frame.frame_element: Frame has been detached.")
+
+    ctx = await new_context(browser, settings)
+    page = await ctx.new_page()
+    await page.goto(_fixture("no_trap.html"))
+    monkeypatch.setattr(Frame, "frame_element", detached)
+    inv = await dom_inventory(page)
+    # The top page's 7 candidates; the frame's 1 is left out and counted.
+    assert (inv.candidates, inv.unreachable_frames) == (7, 1)
+    await ctx.close()
+
+
 async def test_inventory_leaves_out_negative_tabindex_iframes(
     browser, settings, server
 ):

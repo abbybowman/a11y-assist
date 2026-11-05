@@ -65,10 +65,23 @@ def _shown(c: Comp) -> str:
     )
 
 
+def _field_label(c: Comp) -> tuple[str, list[str]]:
+    label = _shown(c)
+    nearby = c.nearby_own if in_set(c) else c.nearby
+    return label, [t for t in nearby if t.strip() and t.strip() != label][:NEAR_MAX]
+
+
 def items_of(lp: LabelsPass) -> tuple[list[Item], list[str], int]:
     forms: list[str] = []
     items: list[Item] = []
     no_label = 0
+    # A form counts only when one of its fields has a label to judge: buttons
+    # alone (a site header's menu) are not a form (1.2.0; Abby, 2026-11-04).
+    judged = {
+        c.form
+        for c in lp.components
+        if not c.button and not c.readonly and any(_field_label(c))
+    }
     for c in lp.components:
         if c.readonly:
             continue
@@ -76,11 +89,11 @@ def items_of(lp: LabelsPass) -> tuple[list[Item], list[str], int]:
             label = (c.own_text or "").strip()
             if not label:
                 continue  # an icon-only button: no visual text to judge
+            if c.menu or c.form not in judged:
+                continue  # it does not act on a form's data (1.2.0)
             near: list[str] = []
         else:
-            label = _shown(c)
-            nearby = c.nearby_own if in_set(c) else c.nearby
-            near = [t for t in nearby if t.strip() and t.strip() != label][:NEAR_MAX]
+            label, near = _field_label(c)
             if not label and not near:
                 no_label += 1
                 continue

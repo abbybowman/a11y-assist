@@ -367,6 +367,18 @@ async def _bounded(aw, hard: float):
     return await asyncio.wait_for(aw, left)
 
 
+def _cap_skipped(exc: TooManyItems) -> str:
+    c = exc.cap
+    minutes = max(1, round(exc.estimate_s / 60))
+    return (
+        f"this page has {exc.count} {c.noun}, and one call checks at "
+        f"most {c.limit}. The other tests ran. To run this one too, call again "
+        f'with tests ["{c.test}"] and no_time_limit=true (about {minutes} min '
+        "or more; follow it with a11y_run_status), and replace its result in "
+        "the saved report."
+    )
+
+
 def _too_long(exc: WalkTooLong, limit: int) -> str:
     minutes = max(1, round(exc.estimate_s / 60))
     if isinstance(exc, TooManyItems):
@@ -473,8 +485,14 @@ def _load_states(run: RunRecorder) -> dict[TestId, Any]:
     return states
 
 
-def _evaluate(run: RunRecorder, report: Report, states: dict[TestId, Any]) -> None:
-    """Findings and questions for every selected test, from the checks' rules."""
+def _evaluate(
+    run: RunRecorder,
+    report: Report,
+    states: dict[TestId, Any],
+    skipped: dict[TestId, str] | None = None,
+) -> None:
+    """Findings and questions for every selected test, from the checks' rules.
+    `skipped`: tests the run left out on purpose, with the reason."""
     tests = report_tests(report)
     asked = {q.question_id for q in report.questions}
     findings: list[Finding] = []
@@ -482,6 +500,9 @@ def _evaluate(run: RunRecorder, report: Report, states: dict[TestId, Any]) -> No
         check = REGISTRY.get(t)
         if check is None:
             findings.append(Finding.not_performed(t, NO_SPEC_REASON))
+            continue
+        if t not in states and skipped and t in skipped:
+            findings.append(Finding.not_performed(t, skipped[t]))
             continue
         if t not in states:
             why = "; ".join(report.errors) or "unknown error"
@@ -580,6 +601,7 @@ async def run_tt_tests(
     # replays that may reveal fields for them. Findings keep the report's order.
     checks.sort(key=lambda c: -getattr(c, "shares", 0))
     states: dict[TestId, Any] = {}
+    skipped: dict[TestId, str] = {}  # tests left out, and why (fix 12)
     walk: KeyboardWalk | None = None
     motion_task: asyncio.Task | None = None
     allowance = [0]  # T1 (a): seconds added once pass T finds moving content
@@ -743,7 +765,7 @@ async def run_tt_tests(
                     )
                 )
                 ctx.cache["motion_task"] = motion_task
-            if any(needs_walk(c, ctx) for c in checks):
+            while any(needs_walk(c, ctx) for c in checks):
                 await say(1, "Walking the page with Tab and Shift+Tab")
                 caps = [c.cap for c in checks if getattr(c, "cap", None)]
                 pace = None if no_time_limit else Pace(soft, caps=caps)
@@ -761,6 +783,16 @@ async def run_tt_tests(
                             ),
                             hard,
                         )
+                except TooManyItems as exc:
+                    # Over one check's cap (5.D's form fields), found at the
+                    # first load: leave that test out, say how to run it, and
+                    # test the rest (post-round 1 fix 12).
+                    t = TestId(exc.cap.test)
+                    checks = [c for c in checks if c.test_id is not t]
+                    skipped[t] = _cap_skipped(exc)
+                    report.errors.append(f"{t.value} was not run: {skipped[t]}")
+                    run.log("cap_skipped", test=t.value, count=exc.count)
+                    continue
                 except WalkTooLong as exc:
                     # Stop and say so instead of running out of time: the
                     # caller chooses no_time_limit or another page.
@@ -771,6 +803,13 @@ async def run_tt_tests(
                         "The keyboard walk did not finish within the time limit."
                     )
                     run.log("walk", "error", error="time limit", cost=asdict(cost))
+                except Exception as exc:
+                    # E.g. an embed that detached mid-read (post-round 1 fix 1):
+                    # the checks that need the walk are left for review, the
+                    # rest still run.
+                    err = safe_error(exc)
+                    report.errors.append(f"The keyboard walk failed: {err}")
+                    run.log("walk", "error", error=err, cost=asdict(cost))
                 if walk is not None:
                     ctx.plan = ReplayPlan.of(walk.p1, walk.p2)
                     # 2.C A2's walk cross-check: steps that never settled.
@@ -779,6 +818,7 @@ async def run_tt_tests(
                     )
                     run.write_json(run.evidence_dir / "walk.json", walk)
                     run.log("walk", **_walk_summary(walk), cost=asdict(cost))
+                break
             for c in checks:
                 if pages_cut and uses_pages(c):
                     continue  # NEEDS REVIEW, not performed: pages_cut says why
@@ -811,6 +851,12 @@ async def run_tt_tests(
                 report.errors.append(
                     TIME_NOTE.format(limit=_limit(settings, len(others)) + allowance[0])
                 )
+        except RunRefused:
+            raise  # its folder is already removed
+        except BaseException:
+            # A tool error leaves no run folder (CLAUDE.md).
+            shutil.rmtree(run.dir, ignore_errors=True)
+            raise
         finally:
             if motion_task is not None and not motion_task.done():
                 motion_task.cancel()
@@ -819,7 +865,7 @@ async def run_tt_tests(
 
     await say(3, "Evaluating")
     report.findings = []
-    _evaluate(run, report, states)
+    _evaluate(run, report, states, skipped)
     result = await get_judge(settings.judge_backend).judge(report.open_questions)
     report.open_questions = result.pending
     report.finished_at = utcnow()
@@ -842,6 +888,49 @@ async def run_tt_tests(
         report_uri=run_uri(run.run_id, run.rel(run.report_path)),
         pre_scrt_uri=run_uri(run.run_id, run.rel(pre_scrt)),
         errors=report.errors,
+        next_step=next_step(report),
+    )
+
+
+def _has_image(value: Any) -> bool:
+    if isinstance(value, str):
+        return value.startswith("run://") and value.endswith(".png")
+    if isinstance(value, dict):
+        return any(_has_image(v) for v in value.values())
+    if isinstance(value, list):
+        return any(_has_image(v) for v in value)
+    return False
+
+
+def next_step(report: Report) -> str:
+    """What the calling agent does next, in one place in every result
+    (post-round 1 fixes 4, 12 and 19: agents left every question unanswered,
+    decided NEEDS_REVIEW findings themselves, and opened few images)."""
+    qs = report.open_questions
+    review = (
+        "a NEEDS_REVIEW finding is reported as needs review (a person checks "
+        "it), never as a pass or a fail"
+    )
+    if not qs:
+        return (
+            f"No open questions. Relay each finding's summary; {review}. Then "
+            "save the report (save_hint)."
+        )
+    asked = {q.test_id for q in qs}
+    tests = [t.value for t in TestId if t in asked]
+    looks = (
+        " Some questions ask what an image shows: open each run:// image they "
+        "name with your MCP client's resource reader (read resource; a file "
+        "reader cannot open run:// links) and look before answering."
+        if any(_has_image(q.input) for q in qs)
+        else ""
+    )
+    return (
+        f"Not finished: {', '.join(tests)} stay NEEDS_REVIEW until you answer "
+        f"the {len(qs)} open question(s) in open_questions. Answer them now, "
+        "yourself, all in one a11y_answer_questions call, each by its rubric; "
+        "answer unsure only when the evidence does not settle it (only those go "
+        f"to a person).{looks} Until then, {review}."
     )
 
 
@@ -904,4 +993,5 @@ async def answer_questions(
         report_uri=run_uri(run.run_id, run.rel(run.report_path)),
         pre_scrt_uri=run_uri(run.run_id, run.rel(pre_scrt)),
         errors=errors,
+        next_step=next_step(report),
     )

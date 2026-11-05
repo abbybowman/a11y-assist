@@ -72,16 +72,11 @@ run).
   [plans/2026-11-04-post-round1-fixes.md](plans/2026-11-04-post-round1-fixes.md).
   Make them before the next round. Abby answered the open questions on
   2026-11-05: fixes 17 and 18 are decided, and fix 16 is the tool's.
-- **MCP client limits (found 2026-11-04; the plan's fix 2):**
-  - the Claude Code CLI cuts an MCP call off at 60 s by default
-    (`MCP_TOOL_TIMEOUT`);
-  - after 120 s it moves the call to the background
-    (`CLAUDE_CODE_MCP_AUTO_BACKGROUND_MS`), and a headless session that
-    ends its turn then loses the call.
-
-  One `a11y_run_tt_tests` call takes up to 120 s plus 20 s per other page,
-  or 15-20 min with `no_time_limit` on a large page. Not checked on a
-  laptop.
+- **MCP client limits (the plan's fixes 2 and 5):** built as long
+  polling (a call waits 45 s, then `a11y_run_status`; at most 2 runs at
+  once). Left: an answering round to see that a real agent polls instead
+  of ending its turn, and shared job state for a hosted, multi-worker
+  server.
 
 - **`tt.json` steps for 7.C and 16.B.** Each repeats the previous
   test's "How to Test" (the same PDF heading trap that scrambled 9.B, fixed

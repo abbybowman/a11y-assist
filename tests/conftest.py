@@ -47,6 +47,9 @@ def settings(tmp_path: Path) -> Settings:
         # The fixture servers listen on 127.0.0.1 only (any port). 127.0.0.2
         # stays refused: tests use it as a sentinel for leaks.
         dev_allowed_addresses=["127.0.0.1/32"],
+        # Tool tests read a finished result from one call, even on a loaded
+        # machine; the job tests in test_tools.py lower it on purpose.
+        call_wait_s=600,
     )
 
 

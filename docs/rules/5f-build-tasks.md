@@ -1,10 +1,10 @@
 # Build tasks: 5.F and 5.G
 
 Specs [5f-error-identification.md](5f-error-identification.md) and
-[5g-error-suggestion.md](5g-error-suggestion.md) 1.1.0 are built
+[5g-error-suggestion.md](5g-error-suggestion.md) 1.2.0 are built
 (`checks/t5f.py`, `checks/t5g.py`, registered; shared pieces in `forms.py`):
 the seven TC10.D Baseline cases (14 pairs, `tests/test_baseline_cases.py`) and
-17 custom pages (`tests/test_fixtures_5f.py`, both tests in one call). Judge
+19 custom pages (`tests/test_fixtures_5f.py`, both tests in one call). Judge
 eval: evals/README.md runs 5 and 6.
 
 ## Fixtures
@@ -28,6 +28,8 @@ pages in `tests/fixtures/5f/` only for what they do not cover:
 | f12 "Save" is the only button and checks the form | A plain "Save" is a submit control |
 | f13 native date with `max` and `required` | Out-of-range date, native validation (M2) |
 | f14 birth date checked by script, no `max` | Far-future date, J1 |
+| f18 header site search (`role=search`, one box, nothing required), sent | A3s DNA for 5.F and 5.G (1.2.0) |
+| f19 the same search box with `required` | Not A3s: M2 empty, then sent with "abc" (A4) |
 | f10 "Invalid entry" with no format given | 5.G N5 |
 
 ## Browser behavior to verify in code

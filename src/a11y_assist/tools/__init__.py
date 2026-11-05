@@ -11,12 +11,13 @@ To add a tool:
 
 from __future__ import annotations
 
-from a11y_assist.tools import answer_questions, read_report, run_tt_tests
+from a11y_assist.tools import answer_questions, read_report, run_status, run_tt_tests
 
 
 def register_tools(mcp) -> None:
     """Register all tools with the MCP server."""
     run_tt_tests.register(mcp)
+    run_status.register(mcp)
     answer_questions.register(mcp)
     read_report.register(mcp)
 

@@ -265,16 +265,32 @@ def _write_packet(out: Path, case: dict, run_id: str, rnd: int, res) -> None:
     # Neutral folder names: case names describe the expected answer.
     d = packets(out) / case["packet"] / f"round{rnd}"
     qs = [q for q in res.open_questions if q.test_id.value == case["tt"]]
-    write_packet(d, out / "runs" / run_id, run_id, qs, res, _ANSWER_FORMAT)
+    write_packet(
+        d,
+        out / "runs" / run_id,
+        run_id,
+        qs,
+        res,
+        _ANSWER_FORMAT,
+        _IMAGES != "none" and not (_IMAGES == "retry" and rnd == 1),
+    )
     scrub(d)
 
 
 def write_packet(
-    d: Path, run_dir: Path, run_id: str, questions: list, res, answer_format: str
+    d: Path,
+    run_dir: Path,
+    run_id: str,
+    questions: list,
+    res,
+    answer_format: str,
+    images: bool = True,
 ) -> None:
     """A packet folder: questions.json with the questions, page text, shared
     inputs and answer format, and the run:// evidence they name copied in as
-    local files. Shared with evals/judging.py."""
+    local files. Shared with evals/judging.py. With images=False, pictures
+    stay run:// links the agent cannot open, as for a real agent that does
+    not read them (post-round 1 fix 19's text-only arm)."""
     if d.exists():
         shutil.rmtree(d)
     (d / "evidence").mkdir(parents=True)
@@ -283,7 +299,7 @@ def write_packet(
     def local(uri: str) -> str:
         rel = uri[len(prefix) :] if uri.startswith(prefix) else uri
         src = run_dir / rel
-        if not src.is_file():
+        if not src.is_file() or (not images and src.suffix == ".png"):
             return uri
         dst = d / "evidence" / rel.replace("/", "__")
         shutil.copyfile(src, dst)
@@ -316,6 +332,72 @@ def write_packet(
 
 
 _ANSWER_FORMAT = ""
+# Fix 19's arms (post-round 1 plan): "all" copies every picture into the
+# packet (the eval as before); "none" leaves pictures as run:// links the
+# agent cannot open; "retry" starts as "none", then sends each look-to-settle
+# question answered "unsure" again, once, with its pictures.
+_IMAGES = "all"
+
+
+def _has_png(v) -> bool:
+    if isinstance(v, str):
+        return v.startswith("run://") and v.endswith(".png")
+    if isinstance(v, dict):
+        return any(_has_png(x) for x in v.values())
+    if isinstance(v, list):
+        return any(_has_png(x) for x in v)
+    return False
+
+
+def _retry_round(out: Path, c: dict, answers: list) -> list | None:
+    """For the "retry" arm: the answers to send now, or None after writing a
+    round with pictures for the visual questions answered unsure (once)."""
+    if _IMAGES != "retry" or c.get("retried"):
+        return answers
+    d = packets(out) / c["packet"] / f"round{c['round']}"
+    asked = json.loads((d / "questions.json").read_text())
+    raw = {q["question_id"]: q for q in asked["questions"]}
+    again = [
+        a.question_id
+        for a in answers
+        if a.choice is not None
+        and a.choice.choice == "unsure"
+        and _has_png(raw.get(a.question_id, {}).get("input"))
+    ]
+    if not again:
+        return answers
+    c["retried"] = again
+    c["held"] = [
+        a.model_dump(mode="json") for a in answers if a.question_id not in again
+    ]
+    c["round"] += 1
+    nd = packets(out) / c["packet"] / f"round{c['round']}"
+    (nd / "evidence").mkdir(parents=True, exist_ok=True)
+    prefix = f"run://{c['run_id']}/"
+
+    def local(v):
+        if isinstance(v, str) and v.startswith(prefix) and v.endswith(".png"):
+            rel = v[len(prefix) :]
+            src = out / "runs" / c["run_id"] / rel
+            if src.is_file():
+                dst = nd / "evidence" / rel.replace("/", "__")
+                shutil.copyfile(src, dst)
+                return f"evidence/{dst.name}"
+        if isinstance(v, list):
+            return [local(x) for x in v]
+        if isinstance(v, dict):
+            return {k: local(x) for k, x in v.items()}
+        return v
+
+    asked["questions"] = [local(raw[q]) for q in again]
+    asked["about"] += (
+        " These questions were answered unsure without their pictures; the "
+        "pictures are now in this folder. Look at them and answer again."
+    )
+    (nd / "questions.json").write_text(json.dumps(asked, indent=1))
+    return None
+
+
 _URL = re.compile(r"http://(?:127\.0\.0\.1|localhost):\d+(/[^\s\"'#?]*)")
 
 
@@ -396,6 +478,13 @@ async def apply(out: Path) -> None:
             c["status"] = "bad_answers"
             results[name] = {"error": repr(exc)[:300]}
             continue
+        if c.get("held") is not None:
+            answers = [Answer.model_validate(a) for a in c.pop("held")] + answers
+        else:
+            sent = _retry_round(out, c, answers)
+            if sent is None:
+                continue  # a round with pictures, for the unsure answers
+            answers = sent
         res = await answer_questions(s, c["run_id"], answers)
         rejected = [
             r.model_dump(mode="json") if hasattr(r, "model_dump") else r
@@ -450,10 +539,25 @@ if __name__ == "__main__":
     args = sys.argv[1:]
     # "prepare --help" once wrote packets into the repo (2026-11-02).
     if len(args) < 2 or args[0] not in ("prepare", "apply") or args[1][:1] == "-":
-        sys.exit("usage: judge_eval.py prepare|apply OUT [TESTS, e.g. 5.F,5.G]")
+        sys.exit(
+            "usage: judge_eval.py prepare|apply OUT [TESTS, e.g. 5.F,5.G or all] "
+            "[IMAGES: all|none|retry]"
+        )
     cmd, out = args[0], Path(args[1]).resolve()
-    only = set(sys.argv[3].split(",")) if len(sys.argv) > 3 else None
+    only = (
+        set(sys.argv[3].split(","))
+        if len(sys.argv) > 3 and sys.argv[3] != "all"
+        else None
+    )
     out.mkdir(parents=True, exist_ok=True)
+    arm = out / "images.txt"  # the arm is the OUT folder's, set at prepare
+    if cmd == "prepare":
+        _IMAGES = sys.argv[4] if len(sys.argv) > 4 else "all"
+        if _IMAGES not in ("all", "none", "retry"):
+            sys.exit("IMAGES must be all, none or retry")
+        arm.write_text(_IMAGES)
+    elif arm.exists():
+        _IMAGES = arm.read_text().strip()
     os.chdir(REPO)
     if cmd == "prepare":
         asyncio.run(prepare(out, only))

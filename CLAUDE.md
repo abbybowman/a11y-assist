@@ -76,9 +76,11 @@ by TT test ID. Package: `a11y_assist` (name is provisional).
   printed pages.
 - One tool per file in `src/a11y_assist/tools/`, registered in
   `tools/__init__.py`. Tools are broad and outcome-based, not one per step:
-  `a11y_run_tt_tests`, `a11y_answer_questions` and `a11y_read_report` now
-  (files `run_tt_tests.py`, `answer_questions.py`, `read_report.py`; the
-  last reads an SCRT or pre-SCRT file and lists what changed against another);
+  `a11y_run_tt_tests`, `a11y_run_status`, `a11y_answer_questions` and
+  `a11y_read_report` now (files `run_tt_tests.py`, `run_status.py`,
+  `answer_questions.py`, `read_report.py`; `a11y_run_status` waits for a
+  run its call left running; the last reads an SCRT or pre-SCRT file and
+  lists what changed against another);
   `verify_fix` (an option on a11y_run_tt_tests that takes a saved report),
   merging a partial SCRT file, TT review and export, and fix advice for a
   read report (its own optional tool) planned
@@ -107,13 +109,17 @@ by TT test ID. Package: `a11y_assist` (name is provisional).
   only works locally: evidence must be reachable without the server's file
   paths, run state is short-lived (results belong in the user's codebase: the
   client reads `report_uri` and saves it before `expires_at`), and one tool
-  call stays within `RUN_LIMIT_S`
-  (default 120 s) so it survives HTTP proxy timeouts, plus `OTHER_PAGE_S`
+  call returns within `CALL_WAIT_S` (default 45 s, under common MCP client
+  timeouts and HTTP proxies): a run not done by then goes on as a job
+  (`jobs.py`) and `a11y_run_status` waits for it again (Abby, 2026-11-05,
+  post-round 1 option C). One run stays within `RUN_LIMIT_S`
+  (default 120 s), plus `OTHER_PAGE_S`
   (default 20 s) for each other page the caller names (Abby, 2026-11-02),
   plus `MOVING_ALLOWANCE_S` (default 45 s) once pass T finds content that
   keeps changing by itself (Abby, 2026-11-04, T1),
   unless the caller sets `no_time_limit` for a page the run refused as too
-  large (the user's choice).
+  large (the user's choice). At most `MAX_CONCURRENT_RUNS` (default 2) runs
+  use a browser at once; a queued run's limit starts when it starts.
 - Other pages of the same site (`other_pages`, 9.A-9.C) come only from the
   caller: allowlisted, on the tested page's host before and after
   redirects, each its own HAR. Never follow the tested page's links.
@@ -122,7 +128,9 @@ by TT test ID. Package: `a11y_assist` (name is provisional).
   two kinds of way; one per run; a GET form whose action passes the
   allowlist and is on the tested page's host (every redirect hop checked);
   the term is the tested page's own heading; recorded as its own HAR.
-  Other URLs found on pages are only *suggested* to the user, never visited.
+  Other URLs found on pages are only *suggested* to the calling agent, which
+  may pass them back as `other_pages` (Abby, 2026-11-05); the server never
+  visits them by itself.
 - Hackathon docs: when a TT test, spec version, evaluation method or
   security control changes, update `docs/hackathon/evaluation.md` and the
   matching slide in `docs/hackathon/deck.md` in the same commit. Remove a
@@ -195,6 +203,7 @@ src/a11y_assist/
     t19a.py     19.A multiple ways: links by kind, live site search, suggested pages, J1
   judgment.py   Judge interface: ClientJudge, ApiJudge (stub); answer recording
   pipeline.py   run_tt_tests / answer_questions orchestration (generic)
+  jobs.py       runs that outlive one call: the call wait, the run cap, a11y_run_status
   runlog.py     runs/<run_id>/ folder, steps.jsonl
   versions.py   version collection
   catalog.py    the TT 5.1.3 test catalog (from docs/sources/tt-5.1.3/tt.json)

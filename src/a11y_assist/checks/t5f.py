@@ -177,6 +177,26 @@ FORMS_JS = (
         !!(last.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING)).slice(0, 10);
     }
     f.buttons = bs.filter((b) => !b.disabled).map((b) => ({ css: path(b), name: name(b), kind: kind(b) }));
+    // Site search evidence (section 1, A3s): what marks the form as a search,
+    // and anything that limits what its fields accept.
+    const formEl = key ? els[f.fields[0]].form : null;
+    const own = f.fields.map((i) => els[i]);
+    const said = (t) => /search/i.test(t || '');
+    const marks = [];
+    if ((formEl || own[0]).closest('[role=search], search')) marks.push('landmark');
+    if (formEl && said(formEl.getAttribute('action'))) marks.push('action');
+    for (const el of own) {
+      const lab = el.labels && el.labels.length ? el.labels[0].textContent : '';
+      if (el.type === 'search') marks.push('type');
+      if ([el.name, el.id, el.getAttribute('aria-label'), el.placeholder, lab].some(said)) marks.push('words');
+    }
+    f.search = Array.from(new Set(marks));
+    f.limits = own.flatMap((el) => [
+      el.required || el.getAttribute('aria-required') === 'true' ? 'required' : null,
+      el.getAttribute('pattern') ? 'pattern' : null,
+      el.minLength > 0 ? 'minlength' : null,
+      el.tagName === 'INPUT' && !['text', 'search'].includes(el.type) ? 'type ' + el.type : null,
+    ].filter(Boolean));
   }
   return forms;
 })"""
@@ -222,6 +242,8 @@ class Form5F(BaseModel):
     buttons: list[Btn] = Field(default_factory=list)
     submit: int | None = None  # Btn.n chosen by the rules of section 2
     tried: list[int] = Field(default_factory=list)  # Btn.n pressed so far
+    search: list[str] = Field(default_factory=list)  # what marks it a search (A3s)
+    limits: list[str] = Field(default_factory=list)  # what limits its input (A3s)
 
 
 class Read(BaseModel):
@@ -550,6 +572,8 @@ async def _forms(ctx: RunContext, ps: PassE, walk: KeyboardWalk) -> None:
                 and (ps.info.get(str(f.n)) or {}).get("type") == "date"
             ],
             buttons=btns,
+            search=g.get("search") or [],
+            limits=g.get("limits") or [],
         )
         form.submit = _choose(btns)
         ps.forms.append(form)
@@ -999,15 +1023,38 @@ class State5F(BaseModel):
     j: dict[str, dict] = Field(default_factory=dict)  # "<id>-J1" -> answer
 
 
+SEARCH_DNA = (
+    "The page's only form that was sent is a site search: it accepts anything "
+    "typed into it and showed no error on the page, so there is nothing to get "
+    "wrong and this test does not apply."
+)
+
+
+def site_search(ps: PassE, form_id: str) -> bool:
+    """Section 1, A3s: a site search, where no input can be wrong. One text
+    or search box, marked as a search by the page, that nothing limits."""
+    form = next((f for f in ps.forms if f.id == form_id), None)
+    if form is None or len(form.fields) != 1 or form.limits or not form.search:
+        return False
+    (n,) = form.fields
+    return form.text == [n]
+
+
 def applicability(ps: PassE, insts: list[Inst5F]) -> str:
-    """Section 1 (shared by 5.G): A1, A2, A4 or A5 (A3 is decided after the
-    instance rows: no instance at all means no detection)."""
+    """Section 1 (shared by 5.G): A1, A2, A4 or A5 (A3 and A3s are decided
+    after the instance rows: no instance at all means no detection)."""
     if ps.field_stops == 0:
         return "A2" if ps.inventory_fields > 0 else "A1"
     for ai, a in enumerate(ps.attempts):
         if a.sent and not any(i.attempt == ai for i in insts):
-            return "A4"
+            if not site_search(ps, a.form):
+                return "A4"
     return "A5"
+
+
+def sent_searches(ps: PassE) -> bool:
+    """Some attempt sent its form, and it was a site search (A3s)."""
+    return any(a.sent and site_search(ps, a.form) for a in ps.attempts)
 
 
 def _j(st: State5F, i: Inst5F, q: str) -> str | None:
@@ -1225,6 +1272,9 @@ def evaluate(st: State5F, evidence_refs: list[str]) -> Finding:
         )
     if pending_j0:
         incomplete.append("A question about which button sends the form is still open.")
+    if not results and not incomplete and not pending_j0 and sent_searches(ps):
+        trace += ["A3s", "G1"]
+        return finding(Outcome.DNA, SEARCH_DNA, trace)
     if not results and not incomplete and not pending_j0:
         trace += ["A3", "G1"]
         return finding(

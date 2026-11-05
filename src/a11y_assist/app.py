@@ -40,6 +40,9 @@ conformant".
 TOOL SELECTION GUIDE:
 - Check a page for keyboard or focus problems, or run TT tests on a URL
   -> a11y_run_tt_tests (url; tests defaults to every implemented test)
+- A run's result says status "queued" or "running" (it was not done when
+  the call stopped waiting) -> a11y_run_status (job_id) until status is
+  "done"; never start the run again
 - A run returned open questions, or a person wants to override an answer
   -> a11y_answer_questions (run_id and one answer per question); repeat until
   none are open

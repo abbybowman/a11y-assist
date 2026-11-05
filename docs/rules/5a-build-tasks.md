@@ -1,9 +1,10 @@
 # Build tasks: 5.A and 5.C
 
-Specs [5a-label-provided.md](5a-label-provided.md) and
+Specs [5a-label-provided.md](5a-label-provided.md) 1.2.0 (only buttons
+that act on the field's form are beside it; F18) and
 [5c-programmatic-label.md](5c-programmatic-label.md) 1.1.0 are built as `checks/t5a.py` and `checks/t5c.py` on the shared
 `labels.py` (pass L), registered. Judge eval: evals/README.md run 7.
-Green with scripted answers: 26 TC10.A/TC10.E pairs and 17 custom pages
+Green with scripted answers: 26 TC10.A/TC10.E pairs and 18 custom pages
 (`tests/test_fixtures_5a.py`, both tests in one call).
 Judge eval after the 1.1.0 review fixes: runs 12 (15/18, two false PASS, fixed) and 13 (13/13).
 Order of work: [plans/2026-11-01-forms-5a-5c.md](../plans/2026-11-01-forms-5a-5c.md).

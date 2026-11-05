@@ -1,6 +1,8 @@
 # Build tasks: 5.B and 5.H
 
-Specs [5b-label-descriptive.md](5b-label-descriptive.md) and
+Specs [5b-label-descriptive.md](5b-label-descriptive.md) 1.2.0 (menu
+buttons and button-only groups are not judged; Abby, 2026-11-04; tests in
+`test_fixtures_5b.py` on 5.A's F18) and
 [5h-error-prevention.md](5h-error-prevention.md) 1.1.0 (Abby, 2026-11-02; 1.1.0 after
 the PR #4 review: an incomplete pass is never DNA; 5.B: an option's legend is its
 group, not its label; 5.H: more hint words, the hint reads all page text, and

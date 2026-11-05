@@ -1,7 +1,7 @@
 ---
 tt_test: 5.D
 tt_name: 3.2.2-on-input
-spec_version: 1.0.0
+spec_version: 1.1.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -62,7 +62,7 @@ Typed values are cut to `maxlength`. Every value used is recorded.
 
 **Time budget:** pass F is one load plus about two settled presses and two observes per field (more for radio groups); leaving a field reuses the noise window its completion just measured. Measured (Linux, headless, all of 4.A–4.F and 5.D): 22 s for the benefits form's 21 fields (about 1.1 s a field), 8.5 s on the agency home page; both pages finish every test within the 120 s limit (108.8 s and 107.8 s). Each change of context or J3 answer adds one replay. The whole run stays within `run_limit_s` (4.C spec section 2, Run limits): no field starts after the checks' deadline.
 
-**Run limits.** At most `FIELD_MAX` (40) fields per page; a radio group counts once. Each option of a radio group is chosen because a page can react to one option only, or to leaving the group from it (TC10.C-3-fail-2 opens a window when focus leaves the last option). The fields are counted on the run's first load (the DOM inventory counts form fields too); when 5.D is selected, the time limit is on and the page has more than `FIELD_MAX`, the run stops before anything is tested, as the walk's early stop does (4.C spec section 2): a tool error giving the number of fields and a time estimate (the walk at a default 0.3 s a press, plus the fields at the measured 1.1 s each), offering `no_time_limit`, which also lifts `FIELD_MAX`, leaving 5.D out of the tests, or another page.
+**Run limits.** At most `FIELD_MAX` (40) fields per page; a radio group counts once. Each option of a radio group is chosen because a page can react to one option only, or to leaving the group from it (TC10.C-3-fail-2 opens a window when focus leaves the last option). The fields are counted on the run's first load (the DOM inventory counts form fields too); when 5.D is selected, the time limit is on and the page has more than `FIELD_MAX`, 5.D is left out at once and the run goes on with the other tests (1.1.0; post-round 1 fix 12: a refused page was never tested at all, since no agent called again): 5.D is NEEDS REVIEW, not performed, giving the number of fields, a time estimate (the walk at a default 0.3 s a press, plus the fields at the measured 1.1 s each) and the call that runs it: 5.D alone with `no_time_limit`, which also lifts `FIELD_MAX`.
 
 ## 3. Mechanical checks
 
@@ -146,6 +146,8 @@ J1 and J2 are questions a careful tester settles by reading and looking (CLAUDE.
 | "Fields may update as you type" above a field that submits the form | unsure |
 
 **Use:** M4–M6 ask it; M7 asks it with J2, in the same round; M8–M10 consume the answer.
+
+**Alike fields, one question (1.1.0).** Consecutive fields in walk order of the same kind, with the same change in plain words, where each field's `before` is the previous field's `before` followed only by that field's own label (as read; whitespace and case aside, or its end when `before` is cut to its last 1,500 characters), are asked as one J1: `fields` lists each field's label, kind, type and description, and `before` is the first field's. The question reads "Filling in each field listed in input.fields and tabbing away caused the change described in input.change. input.before is the page text before the first of them; between the fields there is only their own labels. Does the text in input.before tell the user that this will happen when they change these fields? …; the answer applies to every field listed." The one answer is recorded for each field, each field is still its own instance (M8–M10), and the quote check reads the group's `before`. A person may still answer one field alone, and that answer wins for it. A tester reads a list of filter checkboxes under one heading once, not once per box. Found on a NASA search page whose 96 filter checkboxes each went to another address: 96 questions that agent did not answer, a correct FAIL lost (post-round 1 fix 15).
 
 ### J2. Does this change only add content?
 
