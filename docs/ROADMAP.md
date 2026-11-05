@@ -46,7 +46,7 @@ in full Chromium
 ([solutions/full-chromium-iframes.md](solutions/full-chromium-iframes.md)).
 
 Next (Abby, 2026-11-05):
-1. **The 2.x tests** (2.A-2.D, specs 1.0.0) in PR #12, with pass T, the
+1. **The 2.x tests** (2.A-2.D, specs 1.0.0) are merged (PR #12), with pass T, the
    mechanism probe and the media store
    ([solutions/watching-a-page-over-time.md](solutions/watching-a-page-over-time.md));
    their leftovers are in [2c-build-tasks.md](rules/2c-build-tasks.md).
@@ -68,21 +68,12 @@ run).
 
 ## Soon
 
-- **Fixes found in agent eval round 1:** 18 fixes, ranked, in
-  [plans/2026-11-04-post-round1-fixes.md](plans/2026-11-04-post-round1-fixes.md).
-  Make them before the next round. Abby answered the open questions on
-  2026-11-05: fixes 17 and 18 are decided, and fix 16 is the tool's.
-- **MCP client limits (found 2026-11-04; the plan's fix 2):**
-  - the Claude Code CLI cuts an MCP call off at 60 s by default
-    (`MCP_TOOL_TIMEOUT`);
-  - after 120 s it moves the call to the background
-    (`CLAUDE_CODE_MCP_AUTO_BACKGROUND_MS`), and a headless session that
-    ends its turn then loses the call.
-
-  One `a11y_run_tt_tests` call takes up to 120 s plus 20 s per other page,
-  or 15-20 min with `no_time_limit` on a large page. Not checked on a
-  laptop.
-
+- **Fixes found in agent eval round 1:** 20 fixes, ranked, in
+  [plans/2026-11-04-post-round1-fixes.md](plans/2026-11-04-post-round1-fixes.md),
+  including MCP clients' tool timeouts (fix 2) and pages over the time
+  limit (fix 5). Make them before the next round. Abby answered the open
+  questions on 2026-11-05: fixes 17 and 18 are decided, and fix 16 is the
+  tool's.
 - **`tt.json` steps for 7.C and 16.B.** Each repeats the previous
   test's "How to Test" (the same PDF heading trap that scrambled 9.B, fixed
   2026-11-02; `tests/test_tt_source.py`). Fix each from its printed pages
@@ -133,13 +124,20 @@ run).
   matters for real sites: resumable runs (walk in one call, checks in the
   next), or walking P1 and P2 in parallel (headed Chrome focus in a
   background window needs checking on Windows first).
-- **Starter-template leftovers.** `pyproject.toml` still says "Starter MCP
-  server for the GSA MCP hackathon". (The 0.0.0.0 HTTP branch is gone; HTTP
-  is loopback-only with Host/Origin checks. Authentication is still needed
-  before any hosted deployment.)
-- **Tidy the checks** (from the PR #3 review and a 2026-11-02 cleanup
-  draft that was never approved; recheck each item against the code first;
-  its principle gaps were fixed in PR #6). Sharing: the "could not be
+- **Authentication before any hosted deployment.** HTTP is loopback-only
+  with Host/Origin checks today (the starter template's 0.0.0.0 branch is
+  gone).
+- **Tidy the checks** (from the PR #3 review, a 2026-11-02 cleanup draft
+  that was never approved, and the unbuilt half of the 2026-11-01
+  spring-cleaning plan, removed 2026-11-05 and in git history; recheck each
+  item against the code first; the principle gaps were fixed in PR #6).
+  Large enough for its own plan. Rules from that plan: every outcome stays
+  the same (wording may change; rerun the judge eval when question text
+  does); share only what means the same thing, and keep each check's spec
+  constants and the conditions that feed its page rows in the check; a
+  `checks/common.py` for findings, plain text and questions, a
+  `checks/js.py` for snippets, `RunContext.shot` and `replay_to` for
+  screenshots and replays. Sharing: the "could not be
   performed" note is typed by hand in 19 places (use
   `models.TEST_NOT_PERFORMED_NOTE`; the harness guards it). The checks also
   put it on findings that only wait for an answer, so scoring cannot tell
@@ -148,9 +146,8 @@ run).
   could be its own module like `labels.py`; `forms.py` exports underscore
   names; `RunContext.cache` keys are bare strings (a typo silently redoes
   work); the checks repeat findings, plain-text, question and replay code,
-  and base.py's "add a check" steps say to copy a check. Last: CLAUDE.md's
-  Layout lacks `egress.py`, `redact.py` and `routes.py` and says
-  `verify_fix` where this list says `compare_to`; `_KEY_WORDS` (4.C) and
+  and base.py's "add a check" steps say to copy a check. Last: CLAUDE.md
+  says `verify_fix` where this list says `compare_to`; `_KEY_WORDS` (4.C) and
   `NO_INSTANCE` (4.E) look unused. Keep `traverse.py` and `pipeline.py`
   frozen; aim at the current tests, not future ones (Abby, 2026-11-02).
 - **"Test a page" prompt** for operators who are not Trusted Testers: run,
@@ -213,6 +210,11 @@ run).
   [plans/2026-11-02-scrt-io.md](plans/2026-11-02-scrt-io.md)). Fix advice for
   a read report is a separate, optional tool, reusing `explain.py`. ACRs and
   OpenACR are out of scope (product level, not page level).
+- **Hosted results service and dashboard** (proposed; plan:
+  [plans/2026-11-04-results-service.md](plans/2026-11-04-results-service.md)):
+  a second, hosted MCP server that keeps results inside NASA, with a
+  dashboard for site owners, Trusted Testers and web governance. Its MVP
+  was cut for the GSA hackathon demo (Nov 20).
 - **`compare_to` on `a11y_run_tt_tests`** (verify a fix) taking a saved report, not
   a server-side run ID (runs expire after `RUN_TTL_HOURS`).
 - **OpenACR export**, as a draft labelled agent-assisted; NEEDS_REVIEW maps

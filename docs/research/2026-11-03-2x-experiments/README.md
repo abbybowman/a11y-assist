@@ -8,7 +8,7 @@ git history at commit 9efe907. The 3.A scripts (`flash_*.py`,
 results tables below are kept as the record of what was measured.
 
 These scratch scripts back the "Verified" items in
-[plans/2026-11-03-auto-updating-2a-2d.md](../../plans/2026-11-03-auto-updating-2a-2d.md).
+[2026-11-03-auto-updating-2a-2d.md](../2026-11-03-auto-updating-2a-2d.md).
 They are research evidence, not tests. They start their own local HTTP
 servers, use plain Playwright (not the tool's pipeline), and some load
 pages from the network. The build turns each one into a V-check in

@@ -9,8 +9,7 @@ are built
 as `checks/t5b.py` (on pass L, shared with 5.A and 5.C; components now
 record their form) and `checks/t5h.py` (on 5.F's error pass E),
 registered. Judge eval:
-evals/README.md runs 10 (30/30) and 11 (5.H, 9/9). Order of work:
-[plans/2026-11-02-forms-5b-5h.md](../plans/2026-11-02-forms-5b-5h.md).
+evals/README.md runs 10 (30/30) and 11 (5.H, 9/9).
 
 ## Fixtures
 

@@ -154,6 +154,9 @@ src/a11y_assist/
   app.py        FastMCP server (stdio by default)
   config.py     Settings (env / .env)
   policy.py     URL allowlist decision (pure)
+  egress.py     connection-time address checks: the proxy every browser connection goes through
+  redact.py     redaction for tool errors and logs (no query strings, headers, page text)
+  routes.py     HTTP-only routes beside /mcp (/health)
   browser.py    Chrome launch, fresh contexts, NavigationGuard
   capture.py    HAR record + replay; notes cross-site frames; the media store (2.A-2.D)
   frozen.py     frozen pages for evals: replay a folder of recordings, or record into it

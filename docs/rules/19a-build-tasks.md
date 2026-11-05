@@ -4,8 +4,7 @@ Spec [19a-multiple-ways.md](19a-multiple-ways.md) 1.1.0 after the PR #4 review (
 2026-11-02, including G4) is built as `checks/t19a.py` on the shared `site.py` read (each page's title
 and search forms added) and `RunContext.record_live` (the live site
 search), registered.
-Judge eval: evals/README.md run 9 (2/2). Order of work:
-[plans/2026-11-02-multiple-ways.md](../plans/2026-11-02-multiple-ways.md).
+Judge eval: evals/README.md run 9 (2/2).
 
 ## Fixtures
 

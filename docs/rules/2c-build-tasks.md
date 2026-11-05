@@ -9,7 +9,7 @@ Specs at 0.1.0 (drafts, no outcome):
 - [2a-audio-control.md](2a-audio-control.md).
 
 Plan, research and measurements:
-[plans/2026-11-03-auto-updating-2a-2d.md](../plans/2026-11-03-auto-updating-2a-2d.md).
+[research/2026-11-03-auto-updating-2a-2d.md](../research/2026-11-03-auto-updating-2a-2d.md).
 Order (plan Q8): 2.C and 2.D, then 2.B, then 2.A.
 
 ## Status (2026-11-04)

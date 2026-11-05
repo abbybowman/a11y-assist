@@ -4,8 +4,7 @@ Specs [9a-bypass.md](9a-bypass.md),
 [9b-consistent-navigation.md](9b-consistent-navigation.md) and
 [9c-consistent-identification.md](9c-consistent-identification.md) 1.0.0 (9.C 1.1.0)
 (Abby, 2026-11-02) are built as `checks/t9a.py`, `t9b.py` and `t9c.py` on
-the shared `site.py` read, registered. Judge eval: evals/README.md run 8 (4/4). Order of work:
-[plans/2026-11-02-multi-page.md](../plans/2026-11-02-multi-page.md).
+the shared `site.py` read, registered. Judge eval: evals/README.md run 8 (4/4).
 
 ## Fixtures
 
