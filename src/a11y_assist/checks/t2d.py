@@ -1,5 +1,5 @@
 """Test 2.D (4.1.2-change-notify-auto), from docs/rules/2d-change-notify-auto.md
-(draft: registered in tests/drafts.py only).
+(spec 1.0.0).
 
 Reads 2.C's pass T (motion.collect, shared in ctx.cache) and 2.C's instances;
 presses no keys. Only evaluate() and the row tables decide outcomes.
@@ -343,7 +343,7 @@ async def collect(ctx: RunContext, walk: KeyboardWalk | None) -> State2D:
 
 
 class Check2D:
-    """2.D as a draft check (tests/drafts.py) until its spec reaches 1.0.0."""
+    """2.D as a registered check (checks/base.py)."""
 
     test_id = TestId.T2D
     state_type = State2D

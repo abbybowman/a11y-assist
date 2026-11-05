@@ -1,7 +1,7 @@
 ---
 tt_test: 2.C
 tt_name: 2.2.2-auto-updating
-spec_version: 0.3.0
+spec_version: 1.0.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -14,7 +14,7 @@ NEEDS REVIEW. It never emits NOT TESTED (p. 6). **PASS is gated** (Abby,
 can apply to it is built (G4 and section 3c). This spec also defines what
 2.A, 2.B and 2.D share: pass T, regions, elements and the mechanism probe.
 
-Draft (0.3.0): no outcome until 1.0.0. 0.2.0 (2026-11-04) defines regions over the whole watch and adds polling seen during the watch (Terms, section 2), from building pass T. 0.3.0 (2026-11-04): the mechanism probe as built (section 2: what is pressed, how "slowed" is judged, the caps), K2 and K3 on the focus-only probe, O1 decided. Order of work and research:
+1.0.0 (Abby, 2026-11-05): approved and built, from draft 0.3.0. 0.2.0 (2026-11-04) defines regions over the whole watch and adds polling seen during the watch (Terms, section 2), from building pass T. 0.3.0 (2026-11-04): the mechanism probe as built (section 2: what is pressed, how "slowed" is judged, the caps), K2 and K3 on the focus-only probe, O1 decided. Order of work and research:
 [plans/2026-11-03-auto-updating-2a-2d.md](../plans/2026-11-03-auto-updating-2a-2d.md)
 ("plan" below; "item N" means its numbered "Verified" items).
 

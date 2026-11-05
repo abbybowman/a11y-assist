@@ -1,7 +1,7 @@
 ---
 tt_test: 2.A
 tt_name: 1.4.2-audio-control
-spec_version: 0.2.0
+spec_version: 1.0.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -13,7 +13,7 @@ NEEDS REVIEW. It never emits NOT TESTED (p. 6). PASS is gated as in 2.C:
 a working mechanism gives NEEDS REVIEW until every test that can apply to
 it is built ([2c-auto-updating.md](2c-auto-updating.md) section 3c).
 
-Draft (0.2.0): no outcome until 1.0.0. 0.2.0 (2026-11-04), from building
+1.0.0 (Abby, 2026-11-05): approved and built, from draft 0.2.0. 0.2.0 (2026-11-04), from building
 it (`checks/t2a.py`, `mechanism.audio_watch`, the media store in
 `capture.py`):
 

@@ -1,5 +1,5 @@
 """Test 2.A (1.4.2-audio-control), from docs/rules/2a-audio-control.md
-(draft: tests/drafts.py only).
+(spec 1.0.0).
 
 Reads pass T (motion.py: media state at each read, loudness from the
 recorded bytes, Web Audio, the media store) and the mechanism probe with the
@@ -416,7 +416,7 @@ async def collect(ctx: RunContext, walk: KeyboardWalk | None) -> State2A:
 
 
 class Check2A:
-    """2.A as a draft check (tests/drafts.py) until its spec reaches 1.0.0."""
+    """2.A as a registered check (checks/base.py)."""
 
     test_id = TestId.T2A
     state_type = State2A

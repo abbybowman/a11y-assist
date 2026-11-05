@@ -1,5 +1,5 @@
 """Test 2.C (2.2.2-auto-updating), from docs/rules/2c-auto-updating.md
-(draft: registered in tests/drafts.py only, so the server gives no outcome).
+(spec 1.0.0).
 
 Reads pass T (motion.py, shared with 2.A, 2.B and 2.D) and the mechanism
 probe's evidence (mechanism.probe, motion.Probe): up to three instances are
@@ -640,7 +640,7 @@ async def press_answered_keys(ctx: RunContext, st: State2C) -> list[str]:
 
 
 class Check2C:
-    """2.C as a draft check (tests/drafts.py) until its spec reaches 1.0.0."""
+    """2.C as a registered check (checks/base.py)."""
 
     test_id = TestId.T2C
     state_type = State2C

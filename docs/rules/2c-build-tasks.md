@@ -148,9 +148,23 @@ a clipping box, so "children moved" now looks at descendants (more than
   settled, `test_walk_cross_check_is_a_hint`) and 2.D's note for
   `aria-live="off"` carousels (plan risk 11, `t-apg-carousel`).
 
-Everything in the plan is built as drafts. Left before 1.0.0: Abby's
-review of the four specs; V11 below; Windows headed Chrome
-(V12); the judge eval again after any change to a question.
+**1.0.0 (Abby, 2026-11-05):** 2.A-2.D are registered checks. Forward work
+(none blocks the outcomes; each is NEEDS REVIEW-safe today):
+
+- Windows headed Chrome: autoplay with the flag, and the walk unaffected by
+  the second browser (V11, V12); run `TEST_BROWSER_CHANNEL=chrome
+  TEST_HEADED=1 uv run pytest tests/test_*2*.py tests/test_motion*.py`.
+- ER 3's shortlist (6.A, 7.A, 7.E, 12.D, 13.A, 13.B, 13.C, 18.A): until each
+  is built, a working, evident mechanism is NEEDS REVIEW (E3), never PASS.
+- 2.C J1's wording when the mechanism is page text naming a key, not a
+  control (judge eval run 15); 2.B J1 for content no frame shows (below the
+  first screen): give it a crop of the content (run 16). Rerun the judge
+  eval after either.
+- A large media file fetched in several byte ranges is not reproduced in a
+  test (V10's live half); real YouTube and Vimeo embeds on a normal network
+  (plan item 17) are NEEDS REVIEW (2.A A2).
+- Timing on real agency pages with motion: one budget page measured
+  (153.6 s of 165 s with every test).
 
 ## Code changes
 

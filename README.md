@@ -74,6 +74,10 @@ could not be performed".
 
 | ID | TT test name | WCAG SC |
 | --- | --- | --- |
+| 2.A | 1.4.2-audio-control | 1.4.2 |
+| 2.B | 2.2.2-blinking-moving-scrolling | 2.2.2 |
+| 2.C | 2.2.2-auto-updating | 2.2.2 |
+| 2.D | 4.1.2-change-notify-auto | 4.1.2 |
 | 4.A | 2.1.1-keyboard-access | 2.1.1 |
 | 4.B | 2.1.1-no-keystroke-timing | 2.1.1 |
 | 4.C | 2.1.2-no-keyboard-trap | 2.1.2 |

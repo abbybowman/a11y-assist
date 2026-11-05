@@ -4,7 +4,7 @@ What is left to build, newest priorities first. A living list, not a log:
 delete an item once it is built, and put any decision it needed into the
 spec, CLAUDE.md or `docs/solutions/` where it belongs.
 
-## Now: Tests 4 and 5, the multi-page batch and 19.A are built
+## Now: Tests 2, 4 and 5, the multi-page batch and 19.A are built
 
 Built (spec 1.0.0+, check registered, fixtures green): 4.A, 4.B, 4.C, 4.D,
 4.E, 4.F, 5.A (Label provided), 5.B (Label descriptive), 5.C
@@ -34,13 +34,12 @@ Round 1 runs on the CLI route: Abby commits `pages.txt` and freezes the
 pages on her laptop, then both arms run in a cloud session. Pages with cross-site iframes now replay in full Chromium
 ([solutions/full-chromium-iframes.md](solutions/full-chromium-iframes.md)).
 
-In progress: 2.A, 2.B, 2.C and 2.D (auto-playing and auto-updating content)
-are built as drafts (specs 0.2.0-0.3.0, registered in `tests/drafts.py`),
-with pass T, the mechanism probe and the media store; what is left before
-1.0.0 is in [2c-build-tasks.md](rules/2c-build-tasks.md) (Abby's review of
-the four specs, the scrolled watch, animated images below the first screen,
-audio in an iframe, Windows headed Chrome). Then the visual-versus-code
-cluster. Choose with the coverage map and CLAUDE.md's research rule.
+Built 2026-11-05: 2.A, 2.B, 2.C and 2.D (auto-playing and auto-updating
+content, specs 1.0.0) with pass T, the mechanism probe and the media store
+([solutions/watching-a-page-over-time.md](solutions/watching-a-page-over-time.md));
+their leftovers are in [2c-build-tasks.md](rules/2c-build-tasks.md). Next:
+the visual-versus-code cluster, or 3.A (flashing; spec 0.1.0 and research
+done, it can reuse pass T's frames). Choose with the coverage map and CLAUDE.md's research rule.
 
 Per-test leftovers live in each `docs/rules/<id>-build-tasks.md` (mostly
 browser checks on Windows headed Chrome, which this Linux container cannot
