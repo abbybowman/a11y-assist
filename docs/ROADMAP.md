@@ -14,7 +14,10 @@ obsolete in TT 5.1.3), 9.A (Bypass), 9.B (Consistent navigation), 9.C
 (Consistent identification) and 19.A (Multiple ways). Judge eval (fresh agents, no scripted
 answers): 43/44 Test 4 fixtures and every 5.x, 9.x and 19.A packet, no
 false PASS after fixes (5.A 1.1.0's rubric change gave two, fixed: runs 12
-and 13; [evals/README.md](../evals/README.md)). Every implemented test fits
+and 13; [evals/README.md](../evals/README.md)). Those agents had every
+screenshot as a file. A real agent gets `run://` links and rarely opens
+them, so these figures hold for answers with the evidence in hand (fix 19
+in the post-round 1 plan). Every implemented test fits
 one 120 s call on the realistic pages in `tests/fixtures/budget/` (the
 agency page has no margin left, so the next single-page test must find
 time elsewhere); pages too large to walk, or with more than 40 form
@@ -27,19 +30,37 @@ REVIEW at no cost ([solutions/multi-page.md](solutions/multi-page.md));
 must (the one approved exception to principle 5).
 
 Agent eval ([plan](plans/2026-10-31-agent-eval.md), [runbook](../evals/agent/README.md)):
-the round 1 harness is built and tested on fixtures with a scripted model
-(freeze, both arms, lock, score), and the Claude Code CLI route was
-smoke-run on a fixture site with Sonnet 5.5. It has not run on real pages.
-Round 1 runs on the CLI route: Abby commits `pages.txt` and freezes the
-pages on her laptop, then both arms run in a cloud session. Pages with cross-site iframes now replay in full Chromium
+round 1 ran on 9 nasa.gov pages (CLI route, Sonnet 5.5) and was scored
+on 2026-11-04 against Abby's blind SCRT files
+([results](../evals/agent/README.md#results)).
+- **Agent A:** no false PASS. It left about two thirds of the cells for
+  review, because of the time limit and its unanswered questions.
+- **Agent B:** 16-20 false PASSes per run, and no Fail reported.
+- **Answering runs (unscored):** Agent A was told to answer the
+  questions and to use `no_time_limit`. The tool's weighted score rose
+  from 44-47 to 82, still with no false PASS
+  ([round1-answers](../evals/judging/round1-answers/README.md)).
+
+nasa.gov is now a development site. Pages with cross-site iframes replay
+in full Chromium
 ([solutions/full-chromium-iframes.md](solutions/full-chromium-iframes.md)).
 
-Built 2026-11-05: 2.A, 2.B, 2.C and 2.D (auto-playing and auto-updating
-content, specs 1.0.0) with pass T, the mechanism probe and the media store
-([solutions/watching-a-page-over-time.md](solutions/watching-a-page-over-time.md));
-their leftovers are in [2c-build-tasks.md](rules/2c-build-tasks.md). Next:
-the visual-versus-code cluster, or 3.A (flashing; spec 0.1.0 and research
-done, it can reuse pass T's frames). Choose with the coverage map and CLAUDE.md's research rule.
+Next (Abby, 2026-11-05):
+1. **The 2.x tests** (2.A-2.D, specs 1.0.0) in PR #12, with pass T, the
+   mechanism probe and the media store
+   ([solutions/watching-a-page-over-time.md](solutions/watching-a-page-over-time.md));
+   their leftovers are in [2c-build-tasks.md](rules/2c-build-tasks.md).
+   Not yet in a judging round. 3.A (flashing) has its spec at 0.1.0 and its
+   research done; it can reuse pass T's frames.
+2. **The post-round 1 fixes, in the plan's order**
+   ([plans/2026-11-04-post-round1-fixes.md](plans/2026-11-04-post-round1-fixes.md)),
+   while Abby labels the next judging round blind:
+   - answers without a special prompt;
+   - time and concurrency;
+   - 4.D row M8;
+   - the 5.F/5.G, 5.A/5.B, 19.A and 4.F fixes.
+3. **Then the visual-versus-code cluster.** Choose with the coverage map
+   and CLAUDE.md's research rule.
 
 Per-test leftovers live in each `docs/rules/<id>-build-tasks.md` (mostly
 browser checks on Windows headed Chrome, which this Linux container cannot
@@ -47,15 +68,20 @@ run).
 
 ## Soon
 
-- **Fixes found in agent eval round 1:** [plans/2026-11-04-post-round1-fixes.md](plans/2026-11-04-post-round1-fixes.md) (a detached-frame crash, client tool timeouts, CI for Agent B's tests). Before the next round.
-- **MCP client tool timeouts (found 2026-11-04).** The Claude Code CLI in a
-  cloud session cut every MCP tool call off at 60 s by default
-  (`MCP_TOOL_TIMEOUT`); one `a11y_run_tt_tests` call may take up to
-  `RUN_LIMIT_S` (120 s) plus 20 s per other page, or longer with
-  `no_time_limit`. Check the default on a laptop's Claude Code; then either
-  say in the README's setup how to raise it, or keep each call under the
-  common client limits (for example by returning a run id at once and
-  letting the client poll). Not checked on a laptop.
+- **Fixes found in agent eval round 1:** 18 fixes, ranked, in
+  [plans/2026-11-04-post-round1-fixes.md](plans/2026-11-04-post-round1-fixes.md).
+  Make them before the next round. Abby answered the open questions on
+  2026-11-05: fixes 17 and 18 are decided, and fix 16 is the tool's.
+- **MCP client limits (found 2026-11-04; the plan's fix 2):**
+  - the Claude Code CLI cuts an MCP call off at 60 s by default
+    (`MCP_TOOL_TIMEOUT`);
+  - after 120 s it moves the call to the background
+    (`CLAUDE_CODE_MCP_AUTO_BACKGROUND_MS`), and a headless session that
+    ends its turn then loses the call.
+
+  One `a11y_run_tt_tests` call takes up to 120 s plus 20 s per other page,
+  or 15-20 min with `no_time_limit` on a large page. Not checked on a
+  laptop.
 
 - **`tt.json` steps for 7.C and 16.B.** Each repeats the previous
   test's "How to Test" (the same PDF heading trap that scrambled 9.B, fixed
@@ -115,7 +141,9 @@ run).
   draft that was never approved; recheck each item against the code first;
   its principle gaps were fixed in PR #6). Sharing: the "could not be
   performed" note is typed by hand in 19 places (use
-  `models.TEST_NOT_PERFORMED_NOTE`; the harness guards it); 5.G imports 5.F's private
+  `models.TEST_NOT_PERFORMED_NOTE`; the harness guards it). The checks also
+  put it on findings that only wait for an answer, so scoring cannot tell
+  "not performed" from "needs review" (post-round 1 fix 13); 5.G imports 5.F's private
   helpers (`t5f._errors_of`, `_field_input`, `_label`), so error pass E
   could be its own module like `labels.py`; `forms.py` exports underscore
   names; `RunContext.cache` keys are bare strings (a typo silently redoes
@@ -130,9 +158,9 @@ run).
   `report_uri` and offer to save it.
 - **Agent-level eval: round 1 and after** (plan: [plans/2026-10-31-agent-eval.md](plans/2026-10-31-agent-eval.md);
   runbook: `evals/agent/README.md`). Next, in order (weights and forms wording
-  approved 2026-11-04): Abby commits `pages.txt` and freezes on her laptop (no model needed), then
-  commits `frozen/`; Agent A, then Agent B at the start of a fresh 5-hour
-  window, on the CLI route; lock, reveal, score. Later: the Ask Sage route
+  approved 2026-11-04): round 1 is scored. Next is round 2, on a new site,
+  after the post-round 1 fixes and fix 13's changes to the scorer. Keep its
+  recordings outside git from the start (runbook step 4). Later: the Ask Sage route
   (set `AGENT_API_AUTH_HEADER`; install Tavily MCP for Agent B's search),
   reported apart from CLI-route rounds; matching a failing element
   Agent B names to the key's element, plain-language rounds, repeats, the

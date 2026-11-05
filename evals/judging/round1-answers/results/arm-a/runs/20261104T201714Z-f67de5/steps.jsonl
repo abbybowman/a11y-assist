@@ -1,0 +1,10 @@
+{"ts":"2026-11-04T20:17:14.212481Z","step":"run_start","status":"ok","detail":{"target":"https://www.nasa.gov/careers/","tests":["5.A","5.B","5.C"]}}
+{"ts":"2026-11-04T20:17:14.654491Z","step":"browser_launched","status":"ok","detail":{"version":"153.0.8010.12"}}
+{"ts":"2026-11-04T20:17:14.661721Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/careers/","har":"pages/004.har.zip"}}
+{"ts":"2026-11-04T20:17:14.661924Z","step":"captured","status":"ok","detail":{"final_url":"https://www.nasa.gov/careers/","redirects":[],"seconds":0.01}}
+{"ts":"2026-11-04T20:17:46.476083Z","step":"walk","status":"ok","detail":{"P1":{"end":"loop","presses":12,"cap":275},"P2":{"end":"wrap","presses":77,"cap":275},"cost":{"loads":2,"presses":89,"quick":0,"slow_redos":0,"seconds":31.81}}}
+{"ts":"2026-11-04T20:17:52.565179Z","step":"collected","status":"ok","detail":{"test":"5.A","cost":{"loads":1,"presses":0,"quick":0,"slow_redos":0,"seconds":6.09}}}
+{"ts":"2026-11-04T20:17:52.566679Z","step":"collected","status":"ok","detail":{"test":"5.B","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":0.0}}}
+{"ts":"2026-11-04T20:17:52.570265Z","step":"collected","status":"ok","detail":{"test":"5.C","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":0.0}}}
+{"ts":"2026-11-04T20:17:52.670605Z","step":"run_end","status":"ok","detail":{}}
+{"ts":"2026-11-04T20:17:55.721351Z","step":"answers_recorded","status":"ok","detail":{"accepted":["5.A-c2-J1","5.B-f1-J1"],"rejected":[],"errors":[]}}

@@ -1,0 +1,1 @@
+Six of the nine pages are tested and their open questions answered. Three runs are still going in the background: missions, the NACA feature and the KSC gallery. I'm waiting for their results before giving the final RESULT line.

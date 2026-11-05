@@ -1,0 +1,36 @@
+{"ts":"2026-11-04T19:42:04.095270Z","step":"run_start","status":"ok","detail":{"target":"https://www.nasa.gov/spot-the-station/","tests":["4.A","4.B","4.C","4.D","4.E","4.F","5.A","5.B","5.C","5.D","5.F","5.G","5.H","9.A","9.B","9.C","19.A"]}}
+{"ts":"2026-11-04T19:42:04.954032Z","step":"browser_launched","status":"ok","detail":{"version":"153.0.8010.12"}}
+{"ts":"2026-11-04T19:42:05.072612Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/spot-the-station/","har":"pages/001.har.zip"}}
+{"ts":"2026-11-04T19:42:05.175986Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/careers/","har":"pages/004.har.zip"}}
+{"ts":"2026-11-04T19:42:05.176498Z","step":"captured_other","status":"ok","detail":{"n":1,"final_url":"https://www.nasa.gov/careers/","seconds":0.1}}
+{"ts":"2026-11-04T19:42:05.265838Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/missions/","har":"pages/005.har.zip"}}
+{"ts":"2026-11-04T19:42:05.267843Z","step":"captured_other","status":"ok","detail":{"n":2,"final_url":"https://www.nasa.gov/missions/","seconds":0.09}}
+{"ts":"2026-11-04T19:42:05.397717Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/mission/artemis-iii/","har":"pages/006.har.zip"}}
+{"ts":"2026-11-04T19:42:05.398190Z","step":"captured_other","status":"ok","detail":{"n":3,"final_url":"https://www.nasa.gov/mission/artemis-iii/","seconds":0.13}}
+{"ts":"2026-11-04T19:42:05.511489Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/gallery/ksc-history/","har":"pages/009.har.zip"}}
+{"ts":"2026-11-04T19:42:05.511989Z","step":"captured_other","status":"ok","detail":{"n":4,"final_url":"https://www.nasa.gov/gallery/ksc-history/","seconds":0.11}}
+{"ts":"2026-11-04T19:42:05.512245Z","step":"captured","status":"ok","detail":{"final_url":"https://www.nasa.gov/spot-the-station/","redirects":[],"seconds":0.56}}
+{"ts":"2026-11-04T19:42:06.763736Z","step":"browser_launched","status":"ok","detail":{"kind":"full Chromium"}}
+{"ts":"2026-11-04T19:42:17.889862Z","step":"egress_refused","status":"blocked","detail":{"host":"mtalk.google.com","port":5228,"reason":"port 5228 is not allowed"}}
+{"ts":"2026-11-04T19:43:18.269607Z","step":"walk","status":"ok","detail":{"P1":{"end":"wrap","presses":72,"cap":248},"P2":{"end":"wrap","presses":72,"cap":248},"cost":{"loads":2,"presses":144,"quick":0,"slow_redos":0,"seconds":72.74}}}
+{"ts":"2026-11-04T19:43:51.388995Z","step":"collected","status":"ok","detail":{"test":"9.A","cost":{"loads":3,"presses":16,"quick":5,"slow_redos":0,"seconds":33.12}}}
+{"ts":"2026-11-04T19:43:51.403618Z","step":"collected","status":"ok","detail":{"test":"9.B","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":0.01}}}
+{"ts":"2026-11-04T19:44:11.526762Z","step":"collected","status":"ok","detail":{"test":"9.C","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":20.11}}}
+{"ts":"2026-11-04T19:44:11.530977Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/","live":true}}
+{"ts":"2026-11-04T19:44:19.981258Z","step":"capture_scroll","status":"ok","detail":{"pass_":1,"page_grew":false}}
+{"ts":"2026-11-04T19:44:21.222936Z","step":"captured_live","status":"ok","detail":{"n":1,"seconds":9.69}}
+{"ts":"2026-11-04T19:44:24.258756Z","step":"collected","status":"ok","detail":{"test":"19.A","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":12.73}}}
+{"ts":"2026-11-04T19:44:24.681246Z","step":"collected","status":"ok","detail":{"test":"4.D","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":0.42}}}
+{"ts":"2026-11-04T19:44:45.864505Z","step":"collected","status":"ok","detail":{"test":"4.F","cost":{"loads":4,"presses":12,"quick":5,"slow_redos":0,"seconds":21.18}}}
+{"ts":"2026-11-04T19:44:56.876982Z","step":"collected","status":"ok","detail":{"test":"4.A","cost":{"loads":2,"presses":0,"quick":0,"slow_redos":0,"seconds":11.01}}}
+{"ts":"2026-11-04T19:45:00.557849Z","step":"collected","status":"ok","detail":{"test":"4.B","cost":{"loads":1,"presses":0,"quick":0,"slow_redos":0,"seconds":3.68}}}
+{"ts":"2026-11-04T19:45:04.619125Z","step":"collected","status":"ok","detail":{"test":"4.C","cost":{"loads":1,"presses":0,"quick":0,"slow_redos":0,"seconds":4.06}}}
+{"ts":"2026-11-04T19:45:04.623296Z","step":"collected","status":"ok","detail":{"test":"4.E","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":0.0}}}
+{"ts":"2026-11-04T19:45:14.896029Z","step":"collected","status":"ok","detail":{"test":"5.D","cost":{"loads":1,"presses":16,"quick":10,"slow_redos":0,"seconds":10.27}}}
+{"ts":"2026-11-04T19:45:22.098337Z","step":"check_error","status":"error","detail":{"test":"5.F","error":"the run reached its time limit before this test finished"}}
+{"ts":"2026-11-04T19:45:22.098759Z","step":"check_error","status":"error","detail":{"test":"5.G","error":"the run reached its time limit before this test finished"}}
+{"ts":"2026-11-04T19:45:22.116385Z","step":"check_error","status":"error","detail":{"test":"5.H","error":"the run reached its time limit before this test finished"}}
+{"ts":"2026-11-04T19:45:22.122528Z","step":"check_error","status":"error","detail":{"test":"5.A","error":"the run reached its time limit before this test finished"}}
+{"ts":"2026-11-04T19:45:22.126565Z","step":"check_error","status":"error","detail":{"test":"5.B","error":"the run reached its time limit before this test finished"}}
+{"ts":"2026-11-04T19:45:22.128284Z","step":"check_error","status":"error","detail":{"test":"5.C","error":"the run reached its time limit before this test finished"}}
+{"ts":"2026-11-04T19:45:22.490912Z","step":"run_end","status":"error","detail":{}}

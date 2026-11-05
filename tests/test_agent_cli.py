@@ -95,6 +95,11 @@ async def test_cli_route_isolation_and_log(tmp_path, monkeypatch):
         argv, env = c["argv"], c["env"]
         assert not set(DROP) & set(env)  # the email and session ids are gone
         assert int(env["MCP_TOOL_TIMEOUT"]) >= 3_600_000  # the CLI's default is 60 s
+        assert (
+            int(env["CLAUDE_CODE_MCP_AUTO_BACKGROUND_MS"]) >= 3_600_000
+        )  # no 120 s background move
+        # one helper at a time (the CLI's default is 20)
+        assert env["CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS"] == "1"
         assert Path(env["HOME"]).name == "home" and env["HOME"] != os.environ["HOME"]
         assert Path(c["cwd"]).name == "work" and c["cwd_files"] == []
         for flag in (
@@ -120,3 +125,20 @@ async def test_cli_route_isolation_and_log(tmp_path, monkeypatch):
         "WebFetch(domain:example.gov)",
         "WebFetch(domain:www.example.gov)",
     ]
+
+
+def test_no_subagents_denies_the_cli_subagent_tool(tmp_path):
+    srv = [Server("a11y", "python", [])]
+
+    from evals.agent.cli import ARM_TOOLS
+
+    def denied(cli):
+        args = cli._args("task", tmp_path / "mcp.json", ARM_TOOLS["a"], srv)
+        assert ("Agent" in args[args.index("--tools") + 1]) != cli.no_subagents
+        if "--disallowedTools" not in args:
+            return []
+        return args[args.index("--disallowedTools") + 1].split(",")
+
+    assert "Agent" not in denied(ClaudeCodeCLI())
+    got = denied(ClaudeCodeCLI(no_subagents=True))
+    assert "Agent" in got and "Task" in got

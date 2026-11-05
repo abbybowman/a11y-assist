@@ -1,0 +1,12 @@
+{"ts":"2026-11-04T22:59:52.284341Z","step":"run_start","status":"ok","detail":{"target":"https://www.nasa.gov/missions/","tests":["5.C","5.D","5.F","5.G"]}}
+{"ts":"2026-11-04T22:59:52.658802Z","step":"browser_launched","status":"ok","detail":{"version":"153.0.8010.12"}}
+{"ts":"2026-11-04T22:59:52.668490Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/missions/","har":"pages/005.har.zip"}}
+{"ts":"2026-11-04T22:59:52.668678Z","step":"captured","status":"ok","detail":{"final_url":"https://www.nasa.gov/missions/","redirects":[],"seconds":0.01}}
+{"ts":"2026-11-04T23:01:08.996022Z","step":"walk","status":"ok","detail":{"P1":{"end":"wrap","presses":163,"cap":533},"P2":{"end":"wrap","presses":163,"cap":533},"cost":{"loads":2,"presses":326,"quick":0,"slow_redos":0,"seconds":76.32}}}
+{"ts":"2026-11-04T23:12:26.332808Z","step":"collected","status":"ok","detail":{"test":"5.D","cost":{"loads":96,"presses":5422,"quick":4944,"slow_redos":0,"seconds":677.33}}}
+{"ts":"2026-11-04T23:12:42.978843Z","step":"collected","status":"ok","detail":{"test":"5.F","cost":{"loads":5,"presses":20,"quick":11,"slow_redos":0,"seconds":16.64}}}
+{"ts":"2026-11-04T23:12:42.991814Z","step":"collected","status":"ok","detail":{"test":"5.G","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":0.01}}}
+{"ts":"2026-11-04T23:12:50.467021Z","step":"collected","status":"ok","detail":{"test":"5.C","cost":{"loads":1,"presses":0,"quick":0,"slow_redos":0,"seconds":7.47}}}
+{"ts":"2026-11-04T23:12:50.557859Z","step":"run_end","status":"ok","detail":{}}
+{"ts":"2026-11-04T23:13:05.330586Z","step":"answers_recorded","status":"ok","detail":{"accepted":["5.D-f3-J1"],"rejected":[],"errors":[]}}
+{"ts":"2026-11-04T23:13:21.127635Z","step":"answers_recorded","status":"ok","detail":{"accepted":["5.C-c5-J1","5.C-c6-J1","5.C-c7-J1","5.C-c8-J1","5.C-c9-J1","5.C-c10-J1","5.C-c11-J1","5.C-c12-J1","5.C-c13-J1","5.C-c14-J1","5.C-c15-J1","5.C-c16-J1","5.C-c17-J1","5.C-c18-J1","5.C-c19-J1","5.C-c20-J1","5.C-c21-J1","5.C-c22-J1","5.C-c23-J1","5.C-c24-J1","5.C-c25-J1","5.C-c26-J1","5.C-c27-J1","5.C-c28-J1","5.C-c29-J1","5.C-c30-J1","5.C-c31-J1","5.C-c32-J1","5.C-c33-J1","5.C-c34-J1","5.C-c35-J1","5.C-c36-J1","5.C-c37-J1","5.C-c38-J1","5.C-c39-J1","5.C-c40-J1","5.C-c41-J1","5.C-c42-J1","5.C-c43-J1","5.C-c44-J1","5.C-c45-J1","5.C-c46-J1","5.C-c47-J1","5.C-c48-J1","5.C-c49-J1","5.C-c50-J1","5.C-c51-J1","5.C-c52-J1","5.C-c53-J1","5.C-c54-J1","5.C-c55-J1","5.C-c56-J1","5.C-c57-J1","5.C-c58-J1","5.C-c59-J1","5.C-c60-J1"],"rejected":[],"errors":[]}}

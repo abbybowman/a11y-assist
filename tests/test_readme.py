@@ -76,3 +76,24 @@ def test_tests_in_scope_table_matches_the_registry():
     rows = re.findall(r"^\| (\d+\.[A-Z]) \| (\S+) \|", section, re.M)
     assert [i for i, _ in rows] == [t.value for t in TestId if t in REGISTRY]
     assert all(catalog.tests()[i]["name"] == name for i, name in rows)
+
+
+def test_tests_in_scope_table_shows_each_spec_version_and_links_it():
+    from a11y_assist import rules
+
+    text = (REPO_ROOT / "README.md").read_text("utf-8")
+    section = text.split("## TT tests in scope", 1)[1].split("\n## ", 1)[0]
+    rows = re.findall(
+        r"^\| (\d+\.[A-Z]) \|[^|]*\|[^|]*\| \[([^\]]+)\]\(([^)]+)\) \|", section, re.M
+    )
+    specs = rules.load_specs(REPO_ROOT / "docs/rules")
+    versions = rules.spec_versions(REPO_ROOT / "docs/rules")
+    # Implemented tests only: a draft spec (0.y.z, such as 3.A) has no row.
+    from a11y_assist.checks import REGISTRY
+
+    assert [i for i, _, _ in rows] == [
+        t.value for t in TestId if t in specs and t in REGISTRY
+    ]
+    for tid, shown, link in rows:
+        assert versions[tid].split()[0] == shown, tid
+        assert (REPO_ROOT / link).is_file(), link

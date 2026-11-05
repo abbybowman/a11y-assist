@@ -26,6 +26,9 @@ are told to open nothing else and to list every file they opened.
 
 ## Judging rounds: real pages against a tester's blind SCRT files
 
+A certified tester running their own round: follow
+[docs/how-to/run-a-judging-round.md](../docs/how-to/run-a-judging-round.md).
+
 A round can be scored two ways, both against the same keys by commit and
 reveal: the scan below (a script drives the tool; one agent fills in the
 question packets), or the agent eval (`agent/README.md`: a model drives the

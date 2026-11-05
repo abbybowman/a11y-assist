@@ -1,45 +1,72 @@
 # Plan: fixes after agent eval round 1
 
-Status: **open; round 1 scored 2026-11-04** (results in
-[evals/agent/README.md](../../evals/agent/README.md#results)). Fixes 1-13
-are not started; the harness fixes made during the round are listed at
-the end. Each fix below is made after
+Status: **open; round 1 scored 2026-11-04; answering runs done
+2026-11-04** (round 1: [evals/agent/README.md](../../evals/agent/README.md#results);
+Agent A told to answer: [round1-answers](../../evals/judging/round1-answers/README.md)).
+Fix 9 is done; 14, 17 and 18 are decided (Abby); the rest are not
+started. Fix 19's inline images need Abby's approval (a CLAUDE.md rule).
+
+**When (Abby, 2026-11-05):** after the 2.x and 3.A tests on their branch
+reach review. These fixes are made while Abby labels the next judging
+round blind. The harness fixes made during the round are listed at the
+end. Each fix below is made after
 round 1 is locked and before the next round. They are not made during
 round 1: the round measures the code as it was at its start. Results and
 scores: `evals/judging/round1/`. Eval plan:
 [2026-10-31-agent-eval.md](2026-10-31-agent-eval.md).
 
-## Order, from round 1's scores
+## Order, from round 1 and the answering runs
 
-Ranked by how many scored cells each would have changed in round 1. Agent
-A made no false PASS. Its only errors were false FAILs, and about two
-thirds of its cells were needs review. The fixes that turn needs review
-into correct answers come first; the one that removes false FAILs comes
-next.
+Ranked by how many cells each would change on round 1's 9 pages, errors
+before undecided cells of the same size. No run made a false PASS.
+Evidence:
+- **Round 1:** the tool scored weighted 44-47. About two thirds of its
+  cells were needs review, from the time limit (35-48 per run) and the
+  unanswered questions (21-26).
+- **The answering runs:** with every question answered and
+  `no_time_limit`, the tool scored 82, with 90/98 decided cells agreeing.
+  Its 8 errors were 4.D row M8 (4), 5.B (3) and one 4.F answer. 55 cells
+  were still undecided: 5.F and 5.G (18), 19.A (9), 4.F (8) and 20
+  others.
 
-1. **Fix 5: pages that need more than the time limit.** 35-48 cells per
-   run. Every test on NACA in all three runs; most on Artemis III. Key Fails
-   lost this way include NACA's 4.A, 4.D and 9.A.
-2. **Fixes 4 and 9: the unanswered open questions.** 21-26 cells per run.
-   Run fix 9 first: it shows which answers would be right before fix 4
-   changes how the questions are asked.
-3. **Fix 10: 5.A row M3 counts any button.** The key fails 5.A on all 9
-   pages, and the tool decided none. With M3 fixed, every page whose search
-   field is read fails mechanically, with no question.
-4. **Fix 11: 4.D row M8's 0 px false FAILs.** 7 of Agent A's 9 errors.
-   Results differ run to run on the same frozen page.
-5. **Fix 12: refused pages are never tested fully.** Missions in 0 of 3
-   runs; its key Fails (5.C, 5.D) were never tested.
-6. **Fix 6b: result size; fix 1: a detached frame.** Each cost a page or a
-   call once, and a retry recovered it.
-7. **Fix 13: the scorer (harness).** No outcome changes, but it must be
-   right before round 2's lock, which also locks the scorer.
-8. **Fixes 2, 3, 7 and 8: harness and setup.** No effect on accuracy.
-
-**For Abby (4.F, Careers):** `arm-a-1`'s tool failed 4.F (row M2: Tab left
-the "Internships" dialog onto the page behind it), and the key passes it.
-Is that dialog modal? If not, M2 should not apply to it. The spec row
-needs the answer before any change.
+1. **Fixes 4, 19, 15 and 6b: answers without a special prompt.** The
+   largest gain (weighted 44-47 to 82), but only when the agent is told to
+   answer.
+   - Fix 4: the tool's own wording must get a real user's agent to answer.
+   - Fix 19: questions that need looking must put the screenshot in front
+     of the agent. It opened 2 of them in two runs, and answered every 4.F
+     question "unsure".
+   - Fix 15: Missions' 96 identical questions went unanswered and cost a
+     correct Fail.
+   - Fix 6b: a large result is saved to a file the agent reads only in part.
+2. **Fix 5 (with fix 2): time.**
+   - Without `no_time_limit`, 35-48 cells per run are lost. With it, NACA
+     took 20 min and Missions 15.
+   - It also covers the concurrency cap (one server ran 12 browser runs
+     at once) and the CLI's 120 s background move (fix 2).
+3. **Fix 11: 4.D row M8 at 0 px.** The largest error source left: 4 of the
+   answering runs' 8 errors and 7 of round 1's 9. Results are unstable from
+   run to run.
+4. **Fix 17: 5.F and 5.G on a search form.** 18 undecided cells, 2 on every
+   page. Decided: Does Not Apply when no input can be wrong.
+5. **Fixes 10 and 14: 5.A row M3 and 5.B, the header buttons.**
+   - 3 errors (5.B).
+   - Today 5.A is right only because the agent answered J1; M3 would fail
+     it mechanically.
+   - Abby decided 5.B.
+6. **Fix 18: 19.A is never decided.** 9 cells. Decided: the agent may add
+   pages itself.
+7. **Fix 16: 4.F.** 2 false FAILs, both the tool's: a card grid the rubric
+   does not name, checkbox boxes, and a dropdown taken for a dialog. 8 cells
+   undecided, mostly "unsure" answers.
+8. **Fix 12: refused pages.** With `no_time_limit` Missions ran, but only
+   after a refusal and a second call.
+9. **Fix 1: a detached frame.** Cost a call once; a retry recovered it.
+10. **Fixes 13 and 20: the scorer and the lock (harness).** They change no
+    outcome, but they must be right before round 2's lock, which also locks
+    the scorer. Fix 20 also blocks outside testers' rounds from being
+    scored on another machine.
+11. **Fixes 3, 7 and 8: harness and setup.** No effect on accuracy.
 
 ## Fixes
 
@@ -75,10 +102,17 @@ needs the answer before any change.
   session cut each MCP tool call off at 60 s by default, and one call took
   minutes. The harness now sets `MCP_TOOL_TIMEOUT` to an hour, but a real
   user's client may have the same limit.
-- **Fix:** check the default on a laptop's Claude Code and other MCP
-  clients. Then either document how to raise it in the README's setup, or
+- **Also found (round1-answers, 2026-11-04):** after 120 s the CLI moves a
+  running MCP call to the background (`CLAUDE_CODE_MCP_AUTO_BACKGROUND_MS`).
+  If the agent then ends its turn to wait, a `-p` (headless) session ends,
+  and the call ends with it: Missions, NACA and KSC were lost this way. An
+  interactive user's session survives, and the result arrives later as a
+  notification. The harness now keeps calls in the foreground for up to an
+  hour. `CLAUDE_CODE_DISABLE_MCP_TASK_BACKGROUND=1` did not stop the move.
+- **Fix:** check the defaults on a laptop's Claude Code and other MCP
+  clients. Then either document both settings in the README's setup, or
   keep each call under common client limits (for example, return a run id
-  at once and let the client poll).
+  at once and let the client poll). Decide with fix 5.
 - **Status:** not started; also in `docs/ROADMAP.md`.
 
 ### 3. CI skips Agent B's browser tests
@@ -102,6 +136,14 @@ needs the answer before any change.
   are answered, how many there are, and that answering takes one call;
   check the `a11y_run_tt_tests` and `a11y_answer_questions` descriptions.
   Then the judge eval on the new wording.
+- **Measured (round1-answers):** told plainly to answer (prompt
+  `answers-v1`), the agent answered 59 of 59 questions on 6 pages, and 57
+  of 152 on Missions. The tool's 9-page weighted score went from 44-47 to
+  82, with no false PASS. Two things to keep in mind for the new wording:
+  - its visual answers were thin. Every 4.F answer on the first 6 pages
+    was "unsure", with no reason given, and it opened only 2 screenshots in
+    that run;
+  - one answer was wrong (fix 16).
 - **Status:** not started. `arm-a-2` and `arm-a-3`, unchanged repeats,
   made no `a11y_answer_questions` call either: 3 of 3 runs.
 
@@ -134,6 +176,18 @@ needs the answer before any change.
       client can chain.
   - Also say in the tool's description that calls run side by side and
     each has its own limit.
+- **Concurrency (round1-answers' first attempt):** the agent started 9
+  subagents, and one server ran up to 12 browser runs at once. The
+  container (4 CPUs, 15 GB) reached a load average of 51, and checks
+  failed with `Page.goto` timeouts, so their tests were left NEEDS REVIEW
+  for reasons unrelated to the page.
+  - Cap the browser runs one server does at once.
+  - A call waiting for a free slot must not use its own time limit while
+    it waits.
+  - The hosted runner in the results-service plan
+    (`2026-11-04-results-service.md`, story T7) needs the same cap.
+- **With `no_time_limit`:** NACA took 1190 s and Missions 896 s, on a
+  quiet machine. These are the budget's real targets.
 - **Status:** not started.
 
 ### 6. Agent A asked for a shell
@@ -207,7 +261,15 @@ needs the answer before any change.
   on KSC the images could not be compared). If an agent answers yes, that
   is a false PASS, so check the rubric against the key's case before
   round 2.
-- **Status:** not started.
+- **Done another way (2026-11-04):** instead of answering saved
+  questions, Agent A ran the pages again with prompt `answers-v1`
+  (`evals/judging/round1-answers/`, `round1-answers-rest/`). The frozen
+  recordings came from Abby's archive and were checked against
+  `lock-1.json`'s hashes. The 4.D watch above still holds:
+  - NACA's 4.D was decided Fail, which is right;
+  - KSC's 4.D stayed undecided (40 image links not compared), so the
+    rubric case is still untested.
+- **Status:** done.
 
 ### 10. 5.A row M3 counts any button beside the field
 
@@ -288,6 +350,180 @@ needs the answer before any change.
   - Fix 8's efficiency columns.
 - **Status:** not started.
 
+### 14. 5.B: Does Not Apply without a visible label; header menu buttons are not form controls
+
+- **Found:** round1-answers (`evals/judging/round1-answers/README.md`). On
+  Careers and the news release, the only field is the header search,
+  whose only label is its placeholder. The key says 5.B Does Not Apply,
+  but the tool passed it: the agent answered J1 `all_descriptive` for a
+  form that included the header's menu buttons ("Explore", "News &
+  Events").
+- **Decided (Abby, 2026-11-04):**
+  - 5.B is Does Not Apply when no field has a visible label, since there
+    is no visible label to check.
+  - Header menu buttons are not form elements. Count only buttons that
+    act on the form's data (submit, clear).
+- **Fix (spec, MINOR):** `docs/rules/5b-label-descriptive.md` and pass L
+  (`labels.py`):
+  - a field with no visible label (5.A M3, placeholder only) gives 5.B
+    nothing to judge, so a form whose fields all lack one is Does Not Apply;
+  - buttons count only when they submit or clear that form.
+
+  Research first (CLAUDE.md), then a fixture (a placeholder-only search
+  beside a menu button) and the judge eval. 5.A's row M3 (fix 10) reads
+  the same buttons, so do both together.
+- **Status:** decided; not started.
+
+### 15. Many identical open questions
+
+- **Found:** round1-answers-rest, Missions. 5.D asked 96 questions, one
+  per filter checkbox, all the same ("does the text before it say that
+  checking it changes the page?"). The agent answered none of them: the
+  result was too large to read whole. The key fails 5.D there for exactly
+  that reason, so the unanswered questions lost a correct FAIL. The page's
+  152 questions also led the agent to rerun the page six times.
+- **Fix:** ask once for a set of fields whose change and text before them
+  are the same, with the set as instances, and apply the answer to each;
+  keep `a11y_run_tt_tests`' result small (fix 6b). Then the judge eval.
+- **Status:** not started.
+
+### 16. 4.F: a card grid, a filter list's boxes, and a dropdown taken for a dialog
+
+Both 4.F false FAILs are in the tool, not a question for the key. Abby
+asked for the details; checked on the frozen recordings, 2026-11-05.
+
+- **Missions (round1-answers-rest): J1 answered `does_not_preserve`, and M6
+  failed it.** The key passes 4.F. The order image and the signals show
+  three things:
+  - **The results grid.** Cards in rows of three, each an image link then
+    a title link. Tab goes card by card along a row, so focus "jumps back
+    up" from one card's title to the next card's image (":envihab" to "3D
+    Tissue Chips Image"). A grid read row by row, each card's parts
+    together, preserves meaning, but J1's rubric does not name it: it
+    names "columns read one after another".
+  - **The footer.** Link columns read row by row ("About NASA's Mission",
+    then "Join Us", then "Home"). This is the same case as the grid.
+  - **The filter list is one column, not several.** Its signals ("Flyby"
+    to "Ground-based Telescope") come from the checkbox boxes: "Flyby"'s
+    box is at y=983 and "Ground-based Telescope"'s at 949, though "Flyby"'s
+    label is above. Focus follows the list. The signal measures the box,
+    not what a user sees (the label beside it).
+- **Careers (round 1, `arm-a-1`): row M2, "Tab leaves the Internships
+  dialog".** "Internships" is a dropdown in the Careers sub-navigation
+  (`aria-expanded`, `aria-controls="basic-nav-section-one"`), not a dialog.
+  On the frozen page, Enter opens it, no `dialog`, `role="dialog"` or
+  `aria-modal` element becomes visible, and Tab moves through its links
+  ("Internships Home", "Pathways Internships", "Fellowships"). The page
+  has a hidden Popup Maker overlay (`#pum-872473`, `role="dialog"`,
+  `aria-modal="false"`), the one 4.D also met on Artemis III. Pass R
+  probably took it for the dialog Enter opened. To confirm, read that
+  run's `evidence/4f.json` in Abby's `round1-results.zip`.
+- **Fix:**
+  - **J1's rubric (spec, MINOR):** add "a grid of cards or footer link
+    columns read row by row, each item's parts together" as `preserves`.
+  - **The O signals:** read the position of a checkbox or radio button
+    from its label when the label is beside it.
+  - **Pass R:** count a modal dialog only when it is `aria-modal="true"`
+    (or `showModal`) at the time of the check, and only when it is what the
+    trigger opened: named by `aria-controls`, or focus moved into it after
+    Enter. An overlay that opens on a timer or scroll is not the
+    trigger's.
+  - Fixtures for each, then the judge eval on the rubric.
+- **Status:** not started. Abby's key passes both pages; nothing waits
+  for her.
+
+### 17. 5.F and 5.G on a form with nothing to get wrong (site search)
+
+- **Found:** the answering runs. 5.F and 5.G are undecided on all 9 pages
+  (18 cells). On each page the tool sent the header's search form and
+  could not see the server's reply in the recording ("Please submit…").
+  The key says Does Not Apply on 7 pages (only the search form) and Pass
+  on the forms page.
+- **Decided (Abby, 2026-11-05):** a form whose fields accept any input,
+  with no errors or validation (a site search: no required field, no
+  format), is Does Not Apply for 5.F and 5.G.
+- **Fix (spec, MINOR):**
+  - `5f-error-identification.md` and 5.G, which reads 5.F's pass: decide
+    Does Not Apply before sending a form that has no required field, no
+    pattern or type that limits input, and no validation script.
+  - Research first: which free-input forms the Baseline cases cover.
+  - Then fixtures (a site search, and a search with a required field) and
+    the judge eval if a question changes.
+- **Status:** decided; not started.
+
+### 18. 19.A is never decided
+
+- **Found:** round 1 and the answering runs. 19.A was NEEDS_REVIEW on every
+  page in every run. The tool finds 0-1 ways in the pages it was given and
+  asks the user whether to run again with the pages it suggests (the home
+  page, the site map). No user was there. In the rerun, the agent noted the
+  suggestion and did not act on it. The key decides 19.A on all 9 pages.
+- **Decided (Abby, 2026-11-05):** the calling agent may add pages itself.
+  Any same-site page it finds can count, as long as the pages show two
+  different ways, as the 19.A spec already defines them.
+- **Fix:**
+  - The 19.A summary tells the agent it may call again with the
+    suggested pages, or other same-site pages it finds, as `other_pages`,
+    instead of asking the user.
+  - Update CLAUDE.md's line "Other URLs found on pages are only *suggested*
+    to the user" to say they are suggested to the calling agent, which may
+    pass them back (Abby, 2026-11-05). The server still never visits them
+    by itself.
+  - Then an answering run checks that the agent does it.
+- **Status:** decided; not started.
+
+### 19. Visual questions need the screenshot in front of the agent
+
+- **Found:** the answering runs (`docs/solutions/judge-eval.md`). Each
+  question names its images as `run://` links, and only the MCP
+  read-resource tool opens them.
+  - The agent viewed 2 screenshots in two runs, tried its file reader on a
+    `run://` link 3 times (refused), and never opened a 4.F order image.
+  - Its 8 undecided 4.F cells were mostly "unsure, cannot settle", with no
+    reason. 4.D's single question and 4.A's 2 went the same way.
+  - The judge eval copies images into each packet as files, so it never saw
+    this.
+- **Idea (Abby, 2026-11-05):** pass the screenshots along with the text for
+  visual analysis, as a third round for questions still undecided, or
+  alongside the second round. Options, cheapest first:
+  1. **Wording:** each visual question says "open `image_a` with your MCP
+     client's read-resource tool (not a file reader)".
+  2. **A round with the images:** when `a11y_answer_questions` gets
+     "unsure" on a question a careful tester settles by looking (principle
+     8's list), it returns that question again with its image inline (MCP
+     image content, downscaled), once.
+  3. **Images inline from the first round,** for those questions only.
+- **Conflict:** CLAUDE.md says screenshots in a question are `run://`
+  links ("Keep tool output small"). Options 2 and 3 need Abby's approval
+  for inline images, and a size cap per result (fix 6b).
+- **Test:**
+  - the judge eval with `run://` links only (no copied files), to show the
+    effect;
+  - then an answering run on the same frozen pages;
+  - compare the "unsure" counts for 4.A, 4.D and 4.F, and check that no
+    false PASS appears (an image can also mislead).
+- **Status:** not started; option 1 can go with fix 4.
+
+### 20. A judging round's lock covers files git ignores
+
+- **Found:** writing the judging how-to (2026-11-05). `judging.py lock`
+  hashes everything in `results/`, including each page's `*.har.zip`. Since
+  round 1, `.gitignore` drops those under `evals/judging/`. So a round
+  locked on one machine fails `score` on any other clone ("Result files
+  changed after the lock"), as round 1's first lock would have. Outside
+  testers (`docs/how-to/run-a-judging-round.md`) therefore score on their
+  own machine for now.
+- **Fix:** hash only the files git tracks (`git ls-files`, or skip what
+  `git check-ignore` matches). Record the recordings' hashes in a separate
+  manifest the lock also hashes, so the archive can still be checked.
+- **Cost:** `evals/judging.py` is in every lock's code list, so after the
+  change, round 1 scores only at its lock commit, by design (the scorer
+  says so).
+- **Test:** lock in a temporary clone with a git-ignored recording, then
+  score in a second clone without it.
+- **Status:** not started; before the first outside round is scored on
+  another machine.
+
 ## Observations to decide after scoring
 
 These describe how Agent A used the tool. They are not bugs. Whether to act
@@ -319,6 +555,16 @@ on them depends on what round 1's scores show.
   any page (all NEEDS_REVIEW), so the degraded searches changed no score.
 
 ## Done during round 1 (the harness, not the tool)
+
+- After scoring, for round1-answers (`evals/agent/`):
+  - `--prompt` (development prompt versions, `prompt_dev.py`);
+  - `--no-subagents` (attempt 1 launched 9 subagents and overloaded the
+    container);
+  - `CLAUDE_CODE_MCP_AUTO_BACKGROUND_MS` set to an hour, because on the
+    `-p` route a call moved to the background was lost when the agent
+    ended its turn to wait for it. Checked with a 12 s test tool.
+
+  Round 1's arms ran with the CLI's 120 s background move.
 
 - Recordings and screenshots out of git: `.gitignore` had excluded every
   `runs/` folder, so Agent A's tool reports were not committed, and the

@@ -1,0 +1,26 @@
+{"ts":"2026-11-04T19:48:38.848266Z","step":"run_start","status":"ok","detail":{"target":"https://www.nasa.gov/forms/nssc-accounts-receivable","tests":["4.A","4.B","4.C","4.D","4.E","4.F","5.A","5.B","5.C","5.D","5.F","5.G","5.H","9.A","9.B","9.C","19.A"]}}
+{"ts":"2026-11-04T19:48:40.674261Z","step":"browser_launched","status":"ok","detail":{"version":"153.0.8010.12"}}
+{"ts":"2026-11-04T19:48:40.826527Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/forms/nssc-accounts-receivable","har":"pages/003.har.zip"}}
+{"ts":"2026-11-04T19:48:41.055011Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/careers/","har":"pages/004.har.zip"}}
+{"ts":"2026-11-04T19:48:41.055348Z","step":"captured_other","status":"ok","detail":{"n":1,"final_url":"https://www.nasa.gov/careers/","seconds":0.02}}
+{"ts":"2026-11-04T19:48:41.189063Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/missions/","har":"pages/005.har.zip"}}
+{"ts":"2026-11-04T19:48:41.189310Z","step":"captured_other","status":"ok","detail":{"n":2,"final_url":"https://www.nasa.gov/missions/","seconds":0.1}}
+{"ts":"2026-11-04T19:48:41.372279Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/mission/artemis-iii/","har":"pages/006.har.zip"}}
+{"ts":"2026-11-04T19:48:41.372569Z","step":"captured_other","status":"ok","detail":{"n":3,"final_url":"https://www.nasa.gov/mission/artemis-iii/","seconds":0.14}}
+{"ts":"2026-11-04T19:48:41.550155Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/gallery/ksc-history/","har":"pages/009.har.zip"}}
+{"ts":"2026-11-04T19:48:41.551444Z","step":"captured_other","status":"ok","detail":{"n":4,"final_url":"https://www.nasa.gov/gallery/ksc-history/","seconds":0.06}}
+{"ts":"2026-11-04T19:48:41.604942Z","step":"frozen_page","status":"ok","detail":{"url":"https://www.nasa.gov/sitemap/","live":true}}
+{"ts":"2026-11-04T19:48:51.863936Z","step":"capture_scroll","status":"ok","detail":{"pass_":1,"page_grew":false}}
+{"ts":"2026-11-04T19:48:54.295559Z","step":"captured_other","status":"ok","detail":{"n":5,"final_url":"https://www.nasa.gov/sitemap/","seconds":12.69}}
+{"ts":"2026-11-04T19:48:54.295805Z","step":"captured","status":"ok","detail":{"final_url":"https://www.nasa.gov/forms/nssc-accounts-receivable/","redirects":[{"from":"https://www.nasa.gov/forms/nssc-accounts-receivable","status":301,"to":"https://www.nasa.gov/forms/nssc-accounts-receivable/"}],"seconds":13.48}}
+{"ts":"2026-11-04T19:48:54.704555Z","step":"browser_launched","status":"ok","detail":{"kind":"full Chromium"}}
+{"ts":"2026-11-04T19:49:25.744611Z","step":"egress_refused","status":"blocked","detail":{"host":"mtalk.google.com","port":5228,"reason":"port 5228 is not allowed"}}
+{"ts":"2026-11-04T19:51:03.002604Z","step":"walk","status":"ok","detail":{"P1":{"end":"wrap","presses":56,"cap":212},"P2":{"end":"wrap","presses":56,"cap":212},"cost":{"loads":2,"presses":112,"quick":0,"slow_redos":0,"seconds":128.7}}}
+{"ts":"2026-11-04T19:52:06.982250Z","step":"collected","status":"ok","detail":{"test":"9.A","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":63.98}}}
+{"ts":"2026-11-04T19:52:06.990990Z","step":"collected","status":"ok","detail":{"test":"9.B","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":0.0}}}
+{"ts":"2026-11-04T19:53:49.799576Z","step":"collected","status":"ok","detail":{"test":"9.C","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":102.8}}}
+{"ts":"2026-11-04T19:53:49.810289Z","step":"collected","status":"ok","detail":{"test":"19.A","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":0.0}}}
+{"ts":"2026-11-04T19:53:50.141921Z","step":"collected","status":"ok","detail":{"test":"4.D","cost":{"loads":0,"presses":0,"quick":0,"slow_redos":0,"seconds":0.24}}}
+{"ts":"2026-11-04T19:54:55.667962Z","step":"egress_refused","status":"blocked","detail":{"host":"mtalk.google.com","port":5228,"reason":"port 5228 is not allowed"}}
+{"ts":"2026-11-04T19:56:38.362525Z","step":"collected","status":"ok","detail":{"test":"4.F","cost":{"loads":4,"presses":12,"quick":7,"slow_redos":0,"seconds":168.04}}}
+{"ts":"2026-11-04T19:57:12.184846Z","step":"check_error","status":"error","detail":{"test":"4.A","error":"TimeoutError: Page.goto: Timeout 30000ms exceeded."}}
