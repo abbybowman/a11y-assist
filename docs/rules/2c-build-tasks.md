@@ -201,7 +201,7 @@ Vendored first (`tests/fixtures/act/sync_act.py`; expected outcomes in
 No Baseline Alignment cases exist for any of these tests.
 
 Custom pages in `tests/fixtures/2x/` (starting points:
-`docs/research/2026-11-03-2x-experiments/pages/`):
+the experiment pages, in git history at 9efe907):
 
 | Case | Covers |
 | --- | --- |
@@ -233,7 +233,7 @@ Custom pages in `tests/fixtures/2x/` (starting points:
 
 ## Browser behavior to verify in code
 
-The scratch scripts in `docs/research/2026-11-03-2x-experiments/` checked
+The scratch scripts in `docs/research/2026-11-03-2x-experiments/` (removed at 1.0.0; in git history at 9efe907) checked
 most of these on Linux. Each becomes a test with local fixtures and no
 network.
 

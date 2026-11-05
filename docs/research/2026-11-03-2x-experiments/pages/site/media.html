@@ -1,6 +1,0 @@
-<!doctype html><p>x</p>
-<video id=h264 src="v264.mp4" autoplay></video><video id=vp9 src="v9.webm" autoplay></video>
-<iframe src="http://localhost:8770/inner.html" width=300 height=200></iframe>
-<span id=q>-</span>
-<script>let n=0;setInterval(async()=>{const r=await fetch('/poll');document.getElementById('q').textContent=await r.text();n++},700);
-setInterval(()=>fetch('/bust?t='+Date.now()).catch(()=>{}),900);</script>
