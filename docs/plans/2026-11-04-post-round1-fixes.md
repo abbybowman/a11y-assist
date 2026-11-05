@@ -246,7 +246,22 @@ Evidence:
   harness now gives both arms `Read`, allowed only in the CLI's folder of
   saved results (`cli.py`; checked: a saved result read, a repo file
   refused).
-- **Status:** the harness part done; the tool part not started.
+- **Measured (2026-11-05, frozen recordings, every test,
+  `no_time_limit`):** Careers 32k characters (about 8k tokens; 2
+  questions). Missions 203k characters (about 51k tokens; 62 questions
+  after fix 15): 5.C's 56 questions 104k (each repeats the same question
+  and rubric, about 1.6k characters), findings 47k, 5.B 17k, 5.D 15k,
+  4.F 11k, the evidence list 13k. Over Claude Code's limit for one MCP
+  result (about 25k tokens).
+- **Proposed (needs Abby, with fix 19's option 3, which adds pictures):**
+  give each distinct question and rubric text once per result (a
+  `question_texts` map that questions name by key, as `shared_inputs`
+  does for evidence): about 90k characters less on Missions; drop the
+  evidence URI list from the result (it is in the report); cap a
+  finding's listed instances in the result (the report keeps them all).
+  Then the judge eval, since agents would read questions differently.
+- **Status:** the harness part done; the tool part measured, design
+  proposed.
 
 ### 7. The freeze should check its own recordings (the harness)
 
@@ -645,7 +660,20 @@ asked for the details; checked on the frozen recordings, 2026-11-05.
   - then an answering run on the same frozen pages;
   - compare the "unsure" counts for 4.A, 4.D and 4.F, and check that no
     false PASS appears (an image can also mislead).
-- **Status:** not started; option 1 can go with fix 4.
+- **Option 1 built** with fix 4 (`next_step` and the tool description say
+  to open run:// images with the resource reader).
+- **Measured (judge eval run 19, `evals/README.md`):** with pictures from
+  the start 67/70, no false result; without them 64/70 and one false
+  FAIL (5.A F09: the magnifier icon unseen, answered not_labeled with
+  confidence); with a picture round for unsure answers 69/70, but the
+  same false FAIL, since a confident wrong answer never comes back. The
+  pictures cost few tokens beside each agent's fixed start-up.
+- **Recommendation:** option 3 (pictures inline in the first round for
+  the look-to-settle questions, downscaled, with a size cap per result),
+  because option 2 cannot catch a confident answer made without looking.
+  Needs Abby's approval (CLAUDE.md: screenshots in a question are run://
+  links).
+- **Status:** options 1 measured and built; option 3 waits for approval.
 
 ### 20. A judging round's lock covers files git ignores
 

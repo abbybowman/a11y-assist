@@ -90,6 +90,32 @@ reload the page, then right-click a request and "Save all as HAR with
 content". Whether a DevTools HAR replays like our own recordings is not yet
 checked.
 
+## Run 19, 2026-11-05: fix 19's picture arms (4.A, 4.D, 4.F, 5.A-5.D)
+
+The same 71 cases prepared three ways (`all`, `none`, `retry`), each
+answered by one fresh Sonnet agent with the same prompt; `retry`'s first
+round reused `none`'s answers (identical packets), then a fresh agent
+answered its picture round (5 packets). 70 cases scored in each arm (5.D
+F10's follow-up round left open in all three).
+
+| Arm | Match | False PASS | False FAIL | Unsure | Agent tokens |
+| --- | --- | --- | --- | --- | --- |
+| `all` (pictures from the start) | 67 | 0 | 0 | 3 | about 296k |
+| `none` (`run://` links only) | 64 | 0 | 1 | 6 | about 300k |
+| `retry` (pictures for unsure answers) | 69 | 0 | 1 | 0 | about 300k + 96k |
+
+- Without pictures the agent answered 5.A F09 (a magnifier icon is the
+  search box's label) `not_labeled`, sure of itself: a false FAIL. The
+  retry arm cannot catch it, since only unsure answers come back.
+- The retry round settled all 5 of its unsure answers correctly (two 4.F
+  orders, 4.A, two 5.B forms).
+- Pictures cost little here: `all` used about as many tokens as `none`
+  (each agent's fixed start-up and the questions dominate). The retry
+  round's 96k is mostly a new agent's start-up; in real use the same
+  agent would answer it.
+- The `all` arm's three mismatches are unsure answers (NEEDS REVIEW), so
+  the arms differ by agent as much as by pictures: one run per arm.
+
 ## Run 18, 2026-11-05: post-round 1 fixes (4.F, 5.A, 5.B, 5.D), their packets only
 
 `prepare OUT 4.F,5.A,5.B,5.D` (images `all`): 61 cases ask questions,
