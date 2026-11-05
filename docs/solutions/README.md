@@ -31,4 +31,5 @@ took more than an hour to understand; update it when the answer changes.
 | [multi-page.md](multi-page.md) | Other pages come from the caller; read content, not stops (ACT's text-only blocks); where a skip link lands; stop once bypassed; rules-only cases and the judge eval; 19.A's live search and suggested pages |
 | [scrt-format.md](scrt-format.md) | SCRT's JSON: one-item array, strings, child rows, screenshots inside; a row set back to "No Selection" is dropped on save; child issues shift Global issue choices |
 | [full-chromium-iframes.md](full-chromium-iframes.md) | Headless `chromium` is the shell, which runs cross-site iframes in-process; those pages replay in full Chromium |
-| [agent-eval-harness.md](agent-eval-harness.md) | Freezing a round for two arms; Playwright MCP's snapshots go to a file; read-resource and helper tools; leak check; subprocess environment |
+| [agent-eval-harness.md](agent-eval-harness.md) | Freezing a round for two arms; Playwright MCP's snapshots go to a file; read-resource and helper tools; leak check; subprocess environment; the CLI's 120 s background move; subagent fan-out |
+| [agent-eval-scoring.md](agent-eval-scoring.md) | The lock covers the scorer and the prompt; "not performed" is mostly needs review; split calls; rerunning a locked round's pages; usage and cost per run |

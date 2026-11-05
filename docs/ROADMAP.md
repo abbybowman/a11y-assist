@@ -27,17 +27,34 @@ REVIEW at no cost ([solutions/multi-page.md](solutions/multi-page.md));
 must (the one approved exception to principle 5).
 
 Agent eval ([plan](plans/2026-10-31-agent-eval.md), [runbook](../evals/agent/README.md)):
-the round 1 harness is built and tested on fixtures with a scripted model
-(freeze, both arms, lock, score), and the Claude Code CLI route was
-smoke-run on a fixture site with Sonnet 5.5. It has not run on real pages.
-Round 1 runs on the CLI route: Abby commits `pages.txt` and freezes the
-pages on her laptop, then both arms run in a cloud session. Pages with cross-site iframes now replay in full Chromium
+round 1 ran on 9 nasa.gov pages (CLI route, Sonnet 5.5) and was scored
+on 2026-11-04 against Abby's blind SCRT files
+([results](../evals/agent/README.md#results)).
+- **Agent A:** no false PASS. It left about two thirds of the cells for
+  review, because of the time limit and its unanswered questions.
+- **Agent B:** 16-20 false PASSes per run, and no Fail reported.
+- **Answering runs (unscored):** Agent A was told to answer the
+  questions and to use `no_time_limit`. The tool's weighted score rose
+  from 44-47 to 82, still with no false PASS
+  ([round1-answers](../evals/judging/round1-answers/README.md)).
+
+nasa.gov is now a development site. Pages with cross-site iframes replay
+in full Chromium
 ([solutions/full-chromium-iframes.md](solutions/full-chromium-iframes.md)).
 
-Next: 2.B, 2.C and 2.D (moving, auto-updating and changing content) as one
-batch on the walk's mutation log, 4.E's dialog detection and 5.F's
-live-region rule; then the visual-versus-code cluster. Choose with the
-coverage map and CLAUDE.md's research rule.
+Next:
+1. **The post-round 1 fixes, in the plan's order**
+   ([plans/2026-11-04-post-round1-fixes.md](plans/2026-11-04-post-round1-fixes.md)):
+   answers without a special prompt, time and concurrency, 4.D row M8,
+   and the 5.x rule questions. They change the scores of tests that are
+   already built, and round 2 (a new site) measures those.
+2. **New tests:** 2.B, 2.C and 2.D (moving, auto-updating and changing
+   content) as one batch on the walk's mutation log, 4.E's dialog
+   detection and 5.F's live-region rule; then the visual-versus-code
+   cluster. Choose with the coverage map and CLAUDE.md's research rule.
+
+Open (Abby): confirm that order, given the results-service MVP for Nov 20
+([plans/2026-11-04-results-service.md](plans/2026-11-04-results-service.md)).
 
 Per-test leftovers live in each `docs/rules/<id>-build-tasks.md` (mostly
 browser checks on Windows headed Chrome, which this Linux container cannot
@@ -45,15 +62,21 @@ run).
 
 ## Soon
 
-- **Fixes found in agent eval round 1:** [plans/2026-11-04-post-round1-fixes.md](plans/2026-11-04-post-round1-fixes.md) (a detached-frame crash, client tool timeouts, CI for Agent B's tests). Before the next round.
-- **MCP client tool timeouts (found 2026-11-04).** The Claude Code CLI in a
-  cloud session cut every MCP tool call off at 60 s by default
-  (`MCP_TOOL_TIMEOUT`); one `a11y_run_tt_tests` call may take up to
-  `RUN_LIMIT_S` (120 s) plus 20 s per other page, or longer with
-  `no_time_limit`. Check the default on a laptop's Claude Code; then either
-  say in the README's setup how to raise it, or keep each call under the
-  common client limits (for example by returning a run id at once and
-  letting the client poll). Not checked on a laptop.
+- **Fixes found in agent eval round 1:** 18 fixes, ranked, in
+  [plans/2026-11-04-post-round1-fixes.md](plans/2026-11-04-post-round1-fixes.md).
+  Make them before the next round. Three wait for Abby: 4.F's question for
+  columns and the Careers dialog (16), 5.F/5.G on a site search (17), and
+  who may add 19.A's suggested pages (18).
+- **MCP client limits (found 2026-11-04; the plan's fix 2):**
+  - the Claude Code CLI cuts an MCP call off at 60 s by default
+    (`MCP_TOOL_TIMEOUT`);
+  - after 120 s it moves the call to the background
+    (`CLAUDE_CODE_MCP_AUTO_BACKGROUND_MS`), and a headless session that
+    ends its turn then loses the call.
+
+  One `a11y_run_tt_tests` call takes up to 120 s plus 20 s per other page,
+  or 15-20 min with `no_time_limit` on a large page. Not checked on a
+  laptop.
 
 - **`tt.json` steps for 7.C and 16.B.** Each repeats the previous
   test's "How to Test" (the same PDF heading trap that scrambled 9.B, fixed
@@ -113,7 +136,9 @@ run).
   draft that was never approved; recheck each item against the code first;
   its principle gaps were fixed in PR #6). Sharing: the "could not be
   performed" note is typed by hand in 19 places (use
-  `models.TEST_NOT_PERFORMED_NOTE`; the harness guards it); 5.G imports 5.F's private
+  `models.TEST_NOT_PERFORMED_NOTE`; the harness guards it). The checks also
+  put it on findings that only wait for an answer, so scoring cannot tell
+  "not performed" from "needs review" (post-round 1 fix 13); 5.G imports 5.F's private
   helpers (`t5f._errors_of`, `_field_input`, `_label`), so error pass E
   could be its own module like `labels.py`; `forms.py` exports underscore
   names; `RunContext.cache` keys are bare strings (a typo silently redoes
@@ -128,9 +153,9 @@ run).
   `report_uri` and offer to save it.
 - **Agent-level eval: round 1 and after** (plan: [plans/2026-10-31-agent-eval.md](plans/2026-10-31-agent-eval.md);
   runbook: `evals/agent/README.md`). Next, in order (weights and forms wording
-  approved 2026-11-04): Abby commits `pages.txt` and freezes on her laptop (no model needed), then
-  commits `frozen/`; Agent A, then Agent B at the start of a fresh 5-hour
-  window, on the CLI route; lock, reveal, score. Later: the Ask Sage route
+  approved 2026-11-04): round 1 is scored. Next is round 2, on a new site,
+  after the post-round 1 fixes and fix 13's changes to the scorer. Keep its
+  recordings outside git from the start (runbook step 4). Later: the Ask Sage route
   (set `AGENT_API_AUTH_HEADER`; install Tavily MCP for Agent B's search),
   reported apart from CLI-route rounds; matching a failing element
   Agent B names to the key's element, plain-language rounds, repeats, the

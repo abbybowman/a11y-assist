@@ -94,3 +94,28 @@ frozen round. Plan: `docs/plans/2026-10-31-agent-eval.md`. Runbook:
   `WebFetch(domain:<host>)`, with and without `www.` (checked 2026-11-04:
   the rule refuses that domain and allows others). Search results show
   snippets of any site; only fetching the tested pages is blocked.
+- **After 120 s the CLI moves an MCP call to the background, and a `-p`
+  session can lose it.** If the agent then ends its turn to wait, the
+  headless session ends, and the call is killed with it (round1-answers,
+  2026-11-04: Missions, NACA and KSC lost, no RESULT line). `cli.py` sets
+  `CLAUDE_CODE_MCP_AUTO_BACKGROUND_MS` to one hour.
+  `CLAUDE_CODE_DISABLE_MCP_TASK_BACKGROUND=1` did not stop the move.
+  - **How it was found:** the setting names come from the CLI binary
+    (`grep -a`), then a 12 s FastMCP tool with the threshold at 3 s (moved
+    to the background, then lost) and at 60 s (answered).
+  - **The CLI step log's call durations include the 120 s hold.** Calls
+    sent together show 120, 239, 359 s… That looks like a queue, but it is
+    not. Read each run's start time in the server's own `steps.jsonl`
+    (`run_start`) before calling anything queued.
+- **The helper tool can fan out.** Both arms get the CLI's subagent tool
+  (`Agent`, shown as `Task`). Told to finish every test, Agent A started 9
+  subagents at once, each running the tool. The 4-CPU container reached a
+  load average of 51 with 310 Chrome processes, and checks failed with
+  `Page.goto` timeouts. Such results measure the machine, not the tool.
+  - Development runs use `--no-subagents`.
+  - Watch a long run's load (a Monitor on `/proc/loadavg`), and stop it
+    by hand if it climbs.
+  - Kill the CLI process, then the `a11y_assist.app` servers, by PID: a
+    `pkill -f` whose pattern appears in the shell's own command line kills
+    that shell too.
+  - Record a stopped run under `attempts/` with a README.
