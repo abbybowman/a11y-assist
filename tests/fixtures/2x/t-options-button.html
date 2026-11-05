@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+<head><title>Visitor ticker</title></head>
+<body>
+<main>
+<h1>Visitor ticker</h1>
+<p>Static text.</p>
+<button id="opt">Options</button>
+<div id="tick" style="width: 300px">Visitors today: <span>100</span></div>
+<p>Text after the ticker.</p>
+</main>
+<script>
+let n = 100;
+const timer = setInterval(() => { document.querySelector('#tick span').textContent = ++n; }, 1000);
+document.getElementById('opt').addEventListener('click', () => clearInterval(timer));
+</script>
+</body>
+</html>

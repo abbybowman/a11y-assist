@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<title>Motion kinds</title>
+<style>
+.b { display: inline-block; width: 140px; height: 100px; margin: 6px; vertical-align: top; border: 1px solid #ccc; overflow: hidden; font: 14px sans-serif; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.sp { width: 30px; height: 30px; background: #c00; margin: 30px; animation: spin 2s linear infinite; }
+.sp3 { width: 30px; height: 30px; background: #00c; margin: 30px; animation: spin 1s linear 3; }
+</style>
+</head>
+<body>
+<main>
+<h1>Motion kinds</h1>
+<p>Static intro text that never changes.</p>
+<div class="b" id="css-inf"><div class="sp"></div></div>
+<div class="b" id="css-3s"><div class="sp3"></div></div>
+<div class="b" id="marq"><marquee>Scrolling marquee text</marquee></div>
+<div class="b" id="canvas"><canvas id="cv" width="140" height="100"></canvas></div>
+<div class="b" id="ticker">Count: <span id="t">0</span></div>
+<div class="b" id="slow">Slide A</div>
+<div class="b" id="spinner"><div class="sp"></div></div>
+<div class="b" id="field"><input aria-label="Name" autofocus value="caret here"></div>
+</main>
+<script>
+let i = 0;
+setInterval(() => { document.getElementById('t').textContent = ++i; }, 1000);
+setInterval(() => { const s = document.getElementById('slow'); s.textContent = s.textContent === 'Slide A' ? 'Slide B' : 'Slide A'; }, 10000);
+setTimeout(() => document.querySelector('#spinner .sp').remove(), 2000);
+const cv = document.getElementById('cv').getContext('2d');
+let x = 0;
+(function f() { cv.clearRect(0, 0, 140, 100); cv.fillRect(x % 140, 40, 20, 20); x += 2; requestAnimationFrame(f); })();
+</script>
+</body>
+</html>

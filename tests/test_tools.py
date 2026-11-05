@@ -159,6 +159,11 @@ async def test_no_test_is_reported_not_tested(settings):
         "9.B": "NEEDS_REVIEW",
         "9.C": "NEEDS_REVIEW",
         "19.A": "NEEDS_REVIEW",
+        # Nothing on the page moves, updates or plays by itself.
+        "2.A": "DNA",
+        "2.B": "DNA",
+        "2.C": "DNA",
+        "2.D": "DNA",
     }
     for t in built:
         assert by_id[t]["outcome"] == expected.get(t, "PASS"), (t, by_id[t]["summary"])

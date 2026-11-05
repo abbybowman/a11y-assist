@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+<head><title>Welcome</title></head>
+<body>
+<p>Press Ctrl+Shift+M to mute the sound.</p>
+<main>
+<h1>Welcome</h1>
+<p>Static text.</p>
+<audio id="a" autoplay loop src="/tone20.wav"></audio>
+</main>
+<script>
+addEventListener('keydown', (e) => { if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'm') document.getElementById('a').muted = true; });
+</script>
+</body>
+</html>

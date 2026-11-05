@@ -79,6 +79,59 @@ reload the page, then right-click a request and "Save all as HAR with
 content". Whether a DevTools HAR replays like our own recordings is not yet
 checked.
 
+## Run 17, 2026-11-04: 2.A (draft spec 0.2.0), its packets only
+
+`prepare OUT 2.A`: one case asks a question (2.A asks none of its own):
+the page's first text, "Press Ctrl+Shift+M to mute the sound." (J2).
+Preparing it showed that 2.A had borrowed 2.C's J2 wording ("pause, stop,
+hide or slow"), which leaves out muting and the volume that 2.A's ER 1
+counts: a careful agent could have answered no, a false FAIL. 2.A now has
+its own J2 ("pause or stop that audio, or turn its volume down or mute
+it"). Leak grep clean. One fresh Sonnet agent, told to use file tools
+only: **1/1 match**: describes, key Ctrl+Shift+M; the tool pressed it once
+and the audio was muted (K4, then E3, gated). It opened only packet
+files.
+
+## Run 16, 2026-11-04: 2.B (draft spec 0.2.0), its packets only
+
+`prepare OUT 2.B`: 7 cases ask questions (`test_fixtures_2b.EVAL`): an
+infinite spinning badge, a marquee, a two-colour blink, a four-colour
+cycle, a sliding carousel, a badge with a "Pause animation" button (J2 in
+round 2, after the probe found it works) and a badge below the first
+screen. Leak grep clean. One fresh Sonnet agent, told to start no
+sub-agents and write no scripts (about 100,000 tokens, 34 s, plus round
+2): **7/7 match, no false PASS, no false DNA.** Every J1 was not essential
+except the badge below the first screen, which it answered unsure: no
+frame shows it (A5, NEEDS REVIEW, as intended; a crop of the content
+itself would let J1 settle it, a follow-up). Its least sure calls: the two
+spinning squares, which could be loading indicators; the usable page
+around them decided it. It read one file through a shell one-liner and
+wrote the answers with printf, against its instructions (no file saved
+outside the packets).
+
+## Run 15, 2026-11-04: 2.C and 2.D (draft specs 0.3.0 and 0.2.0), their packets only
+
+`prepare OUT 2.C,2.D`: 10 cases ask questions: 5 ACT efbfc7 cases (four
+J1 on a working Stop, Pause or Hide button; passed 5's J2 on "activate the
+"Control changes" button"), and 6 custom pages in `tests/fixtures/2x/`
+(`test_fixtures_2x.EVAL`): pause, "Update less often", "Options" (works,
+not evident: the false-PASS check), a hotkey named in the first text (J2,
+then J1 after the tool pressed it, round 2), focus moved to "New message
+4 from Ana" (2.D J1) and a dialog "Prices were updated." (2.D J2). Before
+the run, 2.C J1 had no image although its question named "image A": it
+now carries pass T's first frame, the control's box and where it is in
+words. Leak grep clean (the only hit is 2.D J1's own example, "New
+message from Ana", which the fixture echoes, so that case is easy). One
+fresh Sonnet agent, told to start no sub-agents and write no scripts
+(about 99,000 tokens, 30 s, plus round 2): **10/10 match, no false PASS.**
+"Options" was not evident. Its least sure call was passed 5's J2, which
+it answered unsure: the text names a button but not what it does (NEEDS
+REVIEW either way, K8 instead of K5). For the hotkey's J1 it noted the
+mechanism is text naming a key, not a button, and judged it evident by
+the rubric: J1's wording ("Pressing input.mechanism") fits controls
+better than text; a follow-up for the 2.C spec. It opened only packet
+files; it wrote the ten answers with one shell command.
+
 ## Run 14, 2026-11-02: 5.B 1.1.0 after the merge, its packets only
 
 `prepare OUT 5.B` after 5.B 1.1.0 (an option in a set no longer takes the

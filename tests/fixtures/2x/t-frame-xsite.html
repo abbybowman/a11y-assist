@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+<head><title>Ticker in a cross-site frame</title></head>
+<body>
+<main>
+<h1>Ticker in a cross-site frame</h1>
+<p>Text before the frame.</p>
+<iframe id="f" title="Ticker" width="320" height="120"></iframe>
+</main>
+<script>
+// Another host than the page (localhost vs 127.0.0.1): a cross-site frame.
+document.getElementById('f').src = 'http://localhost:' + location.port + '/2x/t-frame-inner.html';
+</script>
+</body>
+</html>

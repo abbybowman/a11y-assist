@@ -39,6 +39,10 @@ Details: [round 1](evals/agent/README.md#results);
 
 | ID | TT test name | WCAG 2.0 | Spec | Results from real-page tests |
 | --- | --- | --- | --- | --- |
+| 2.A | 1.4.2-audio-control | 1.4.2 | [1.0.0](docs/rules/2a-audio-control.md) | Not yet tested in a judging round: checked on W3C ACT and custom pages only |
+| 2.B | 2.2.2-blinking-moving-scrolling | 2.2.2 | [1.0.0](docs/rules/2b-blinking-moving-scrolling.md) | Not yet tested in a judging round: checked on W3C ACT and custom pages only |
+| 2.C | 2.2.2-auto-updating | 2.2.2 | [1.0.0](docs/rules/2c-auto-updating.md) | Not yet tested in a judging round: checked on W3C ACT and custom pages only |
+| 2.D | 4.1.2-change-notify-auto | 4.1.2 | [1.0.0](docs/rules/2d-change-notify-auto.md) | Not yet tested in a judging round: checked on custom pages only |
 | 4.A | 2.1.1-keyboard-access | 2.1.1 | [1.2.1](docs/rules/4a-keyboard-access.md) | Mostly undecided: embedded frames and time limits. Agrees where decided |
 | 4.B | 2.1.1-no-keystroke-timing | 2.1.1 | [1.2.0](docs/rules/4b-no-keystroke-timing.md) | Sure and accurate |
 | 4.C | 2.1.2-no-keyboard-trap | 2.1.2 | [1.8.0](docs/rules/4c-no-keyboard-trap.md) | Sure and accurate |
@@ -72,7 +76,10 @@ Details: [round 1](evals/agent/README.md#results);
 
 ## How long it takes
 
-- **One call:** at most 120 s, plus 20 s for each other page. On
+- **One call:** at most 120 s, plus 20 s for each other page, plus 45 s
+  when something on the page keeps changing by itself (a ticker, a
+  carousel: every key press waits longer there, and Test 2 tries its
+  controls). On
   www.nasa.gov, calls with 3 other pages took 2-3 minutes. Tests not
   finished in time come back NEEDS REVIEW, with the reason.
 - **Large pages:** a page too large to finish in time (more than 40 form
@@ -85,7 +92,9 @@ Details: [round 1](evals/agent/README.md#results);
     `MCP_TOOL_TIMEOUT` (ms).
   - Claude Code also moves calls longer than 120 s to the background
     (`CLAUDE_CODE_MCP_AUTO_BACKGROUND_MS`).
-- **Batches:** test a few pages at a time. Each call gets its own browser.
+- **Batches:** test a few pages at a time. Each call gets its own browser,
+  and a second, headless one that watches the page for Test 2 (the
+  concurrency figures below were measured before it was added).
   On a 4-CPU machine, 3 at once ran normally, and 12 at once timed out.
 
 ## Use it

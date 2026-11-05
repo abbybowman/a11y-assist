@@ -11,6 +11,7 @@ import http.server
 import json
 import os
 import random
+import re
 import threading
 import time
 from collections import Counter
@@ -74,6 +75,43 @@ async def browser(settings: Settings):
         await b.close()
 
 
+def _gif(forever: bool) -> bytes:
+    """An animated GIF: 20 frames of 100 ms (2 s), looping forever or once."""
+    import io
+
+    from PIL import Image
+
+    frames = [Image.new("RGB", (40, 40), (12 * i, 0, 255 - 12 * i)) for i in range(20)]
+    out = io.BytesIO()
+    extra = {"loop": 0} if forever else {}
+    frames[0].save(
+        out, "GIF", save_all=True, append_images=frames[1:], duration=100, **extra
+    )
+    return out.getvalue()
+
+
+def _tone(seconds: int = 4, rate: int = 8000, loud: bool = True) -> bytes:
+    import io
+    import math
+    import struct
+    import wave
+
+    out = io.BytesIO()
+    with wave.open(out, "wb") as w:
+        w.setnchannels(1)
+        w.setsampwidth(2)
+        w.setframerate(rate)
+        w.writeframes(
+            b"".join(
+                struct.pack(
+                    "<h", int(12000 * loud * math.sin(2 * math.pi * 440 * i / rate))
+                )
+                for i in range(seconds * rate)
+            )
+        )
+    return out.getvalue()
+
+
 class _Handler(http.server.BaseHTTPRequestHandler):
     hits: Counter  # set per server
 
@@ -116,6 +154,18 @@ class _Handler(http.server.BaseHTTPRequestHandler):
         if self.path == "/inner":
             body = "<!doctype html><title>inner</title><button>Inner</button>"
             return self._send(200, body.encode())
+        if self.path == "/tone.wav":  # 4 s, 440 Hz (2.A-2.D fixtures; no files)
+            return self._send(200, _tone(), "audio/wav")
+        if self.path in ("/anim-forever.gif", "/anim-once.gif"):  # 2.B, G152
+            return self._send(
+                200, _gif(forever=self.path == "/anim-forever.gif"), "image/gif"
+            )
+        tone = re.fullmatch(r"/(tone|silence)(\d+)\.wav", self.path)
+        if tone:  # /tone20.wav: 20 s; /silence20.wav: 20 s of silence
+            secs = int(tone.group(2))
+            return self._send(
+                200, _tone(secs, loud=tone.group(1) == "tone"), "audio/wav"
+            )
         if self.path == "/data.json":
             return self._send(
                 200, json.dumps({"n": nonce}).encode(), "application/json"

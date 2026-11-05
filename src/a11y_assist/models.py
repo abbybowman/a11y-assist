@@ -146,6 +146,11 @@ class Step(BaseModel):
     top_has_focus: bool
     open_pages: int
     mutations: int = Field(description="DOM mutations since the previous step.")
+    settle_mutations: int | None = Field(
+        default=None,
+        description="The same, without changes inside content pass T found "
+        "changing by itself (the settle rule's count; None in older walks).",
+    )
     focus_events: list[dict[str, Any]] = Field(default_factory=list)
     screenshot: str | None = Field(default=None, description="Relative to the run.")
     unsettled: bool = False

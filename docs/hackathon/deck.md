@@ -101,7 +101,7 @@ flowchart LR
 
 - One keyboard walk per page feeds every Test 4 check, and 5.D On input
 - Each check declares the extra evidence it needs
-- Time budget: under 60 s per page for Test 4, hard limit 120 s per call
+- Time budget: under 60 s per page for Test 4, hard limit 120 s per call (+45 s when content keeps changing by itself, like a ticker)
 - A page too large for the limit is refused early; the user can choose to run it with no time limit
 - Replays reuse what the walk saw: realistic agency page 151 s → 97 s, same outcomes
 - Checks reuse each other's replays (4.A reads 4.D's arrow presses and 4.F's Enter presses): with 5.F and 5.G added, both realistic pages still fit with all eleven tests (110.2 s and 97.1 s)
@@ -230,6 +230,7 @@ flowchart LR
 - Real-site holdout with a second certified tester
 - A published side-by-side on real .gov pages: certified testers, A11y Assist and five scanners
 - Export drafts to DHS's SCRT format so a certified tester can review and finish them
+- Test 2 (2.A Audio control, 2.B Blinking and moving, 2.C Auto-updating, 2.D Change notification; 1.0.0): a second browser watches the page with autoplay allowed, then tries the controls near changing content with the keyboard (W3C ACT efbfc7 11/11 and 80f0bf, 4c31df, aaa1bf 14/14 as expected; judge eval 18/18, no false PASS)
 - Built after Test 4: 5.D On input (forms that change context when filled in), 5.F Error identification and 5.G Error suggestion (forms whose errors are not named, explained, announced or fixable), 5.A Label provided, 5.B Label descriptive and 5.C Programmatic label (labels people can see, and what ANDI says screen readers announce); 5.H Error prevention (payments and other consequential forms can be reviewed, undone or checked), which completes Test 5
 - Multi-page 9.A Bypass, 9.B Consistent navigation, 9.C Consistent identification and 19.A Multiple ways: the page compared with other pages of the same site the user names (judge eval 6/6, no false PASS, with the evidence in hand; real agents rarely opened screenshots, which a fix addresses)
 - Then: more form tests, headings, reading order — where scanners fall short

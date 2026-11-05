@@ -79,15 +79,34 @@ WORLD = "a11y-assist"
 # Runs in every frame before page scripts (main world, so it sees page events).
 INIT_JS = """(() => {
   if (window.__a11yLog) return;
-  const log = { m: 0, lastM: 0, f: [], lastF: 0, pause: 0, s: [] };
+  const log = { m: 0, lastM: 0, q: 0, lastQ: 0, ignore: [], f: [], lastF: 0, pause: 0, s: [] };
   Object.defineProperty(window, "__a11yLog", { value: log });
   // Paused while the tool takes a screenshot: Playwright adds and removes a
   // style element for every shot, which is not the page changing.
-  const obs = new MutationObserver((r) => { if (log.pause) return; log.m += r.length; log.lastM = performance.now(); });
+  // `q` and `lastQ`: the same count without changes inside content that
+  // keeps changing by itself (a ticker; regions pass T found, set later by
+  // setIgnore). The settle rule waits on these, so a ticker does not make
+  // every key press wait; `m` still counts every change (effects, 4.D).
+  const ignored = (n) => {
+    if (!log.ignore.length) return false;
+    const el = n && (n.nodeType === 1 ? n : n.parentElement);
+    if (!el || !el.closest) return false;
+    for (const sel of log.ignore) { try { if (el.closest(sel)) return true; } catch (e) {} }
+    return false;
+  };
+  const count = (r) => {
+    log.m += r.length; log.lastM = performance.now();
+    let q = 0;
+    for (const x of r) if (!ignored(x.target)) q++;
+    if (q) { log.q += q; log.lastQ = performance.now(); }
+  };
+  log.setIgnore = (sels) => { log.ignore = Array.isArray(sels) ? sels.slice(0, 40) : []; };
+  const obs = new MutationObserver((r) => { if (log.pause) return; count(r); });
   // Records still pending when a pause starts are the page's: count them.
   // Records taken when it ends are the shot's: drop them.
+  const count_ = count;
   log.flush = (count) => { const r = obs.takeRecords();
-    if (count && r.length && !log.pause) { log.m += r.length; log.lastM = performance.now(); } };
+    if (count && r.length && !log.pause) count_(r); };
   obs.observe(document, { subtree: true, childList: true, attributes: true, characterData: true });
   const watchRoot = (root) => obs.observe(root, { subtree: true, childList: true, attributes: true, characterData: true });
   const attach = Element.prototype.attachShadow;
@@ -156,7 +175,7 @@ _LOG_JS = """() => {
   const l = window.__a11yLog;
   if (!l) return null;
   const now = performance.now();
-  return { m: l.m, f: l.f.length, sinceM: l.lastM ? now - l.lastM : 1e9, sinceF: l.lastF ? now - l.lastF : 1e9 };
+  return { m: l.m, q: l.q, f: l.f.length, sinceM: l.lastQ ? now - l.lastQ : 1e9, sinceF: l.lastF ? now - l.lastF : 1e9 };
 }"""
 
 _EVENTS_JS = "(from) => (window.__a11yLog ? window.__a11yLog.f.slice(from) : [])"
@@ -679,9 +698,11 @@ class FocusReader:
         )
 
 
-async def _read_logs(page: Page) -> tuple[int, int, float, float]:
-    """Total mutations and focus events, and ms since the latest of each."""
-    m = f = 0
+async def _read_logs(page: Page) -> tuple[int, int, float, float, int]:
+    """Total mutations and focus events; ms since the latest mutation outside
+    ignored content (the settle rule's) and since the latest focus event; and
+    mutations outside ignored content."""
+    m = f = q = 0
     since_m = since_f = 1e9
     for frame in page.frames:
         try:
@@ -690,10 +711,11 @@ async def _read_logs(page: Page) -> tuple[int, int, float, float]:
             continue
         if v:
             m += v["m"]
+            q += v.get("q", v["m"])
             f += v["f"]
             since_m = min(since_m, v["sinceM"])
             since_f = min(since_f, v["sinceF"])
-    return m, f, since_m, since_f
+    return m, f, since_m, since_f, q
 
 
 async def _focus_events(page: Page, before: dict[str, int]) -> list[dict[str, Any]]:
@@ -767,7 +789,7 @@ async def settle(page: Page, quiet_ms: int, window_ms: int = SETTLE_MAX_MS) -> b
         pass
     waited = 0
     while waited < window_ms:
-        _, _, since_m, since_f = await _read_logs(page)
+        _, _, since_m, since_f, _ = await _read_logs(page)
         if since_m >= quiet_ms and since_f >= quiet_ms:
             return True
         await page.wait_for_timeout(POLL_MS)
@@ -806,6 +828,7 @@ class Traversal:
     _seen_focus: dict[str, int] = field(default_factory=dict)
     _last_focus_total: int = 0
     _last_mutations: int = 0
+    _last_q: int = 0
 
     def __post_init__(self) -> None:
         self.reader = FocusReader(self.context, self.page)
@@ -815,23 +838,23 @@ class Traversal:
         for hook in self.hooks:
             if hasattr(hook, "on_start"):
                 await hook.on_start(self)
-        m, f, _, _ = await _read_logs(self.page)
-        self._last_mutations, self._last_focus_total = m, f
+        m, f, _, _, q = await _read_logs(self.page)
+        self._last_mutations, self._last_focus_total, self._last_q = m, f, q
         await _focus_events(self.page, self._seen_focus)
 
     async def resync(self) -> None:
         """Take the focus and mutation logs as they are now, after keys were
         pressed outside press() (5.D's observed actions), so the next press
         does not re-read the previous step for a change it did not cause."""
-        m, f, _, _ = await _read_logs(self.page)
-        self._last_mutations, self._last_focus_total = m, f
+        m, f, _, _, q = await _read_logs(self.page)
+        self._last_mutations, self._last_focus_total, self._last_q = m, f, q
 
     async def press(self, key: str, quick: bool = False) -> Step:
         """Press `key`, settle and read. `quick` (replay prefixes only, see
         replay()) skips the quiet window: two animation frames, then read."""
         # A focus change after the last step was read: re-read that step after
         # the 1,000 ms window (settle rule).
-        _, f, _, _ = await _read_logs(self.page)
+        _, f, _, _, _ = await _read_logs(self.page)
         if self.steps and f != self._last_focus_total:
             prev = self.steps[-1]
             ok = await settle(
@@ -846,14 +869,14 @@ class Traversal:
                     "unsettled": prev.unsettled or not ok,
                 }
             )
-            _, self._last_focus_total, _, _ = await _read_logs(self.page)
+            _, self._last_focus_total, _, _, _ = await _read_logs(self.page)
         _count("presses")
         if quick:
             _count("quick")
         await self.page.keyboard.press(key)
         settled = await settle(self.page, 0 if quick else self.quiet_ms)
         stop, has_focus = await self.reader.read()
-        m, f, _, _ = await _read_logs(self.page)
+        m, f, _, _, q = await _read_logs(self.page)
         step = Step(
             n=len(self.steps) + 1,
             key=key,
@@ -862,11 +885,12 @@ class Traversal:
             top_has_focus=has_focus,
             open_pages=len(self.context.pages),
             mutations=m - self._last_mutations,
+            settle_mutations=q - self._last_q,
             focus_events=await _focus_events(self.page, self._seen_focus),
             unsettled=not settled,
             quick=quick,
         )
-        self._last_mutations, self._last_focus_total = m, f
+        self._last_mutations, self._last_focus_total, self._last_q = m, f, q
         self.steps.append(step)
         for hook in self.hooks:
             value = await hook.on_step(self, step)
@@ -1068,7 +1092,8 @@ class ReplayPlan:
 def _quiet(step: Step, p: PassResult) -> bool:
     return (
         step.stop.kind == "element"
-        and step.mutations == 0
+        and (step.mutations if step.settle_mutations is None else step.settle_mutations)
+        == 0
         and not step.rerun
         and not step.unsettled
         and not navigated(step, p.start_url, p.start_pages)

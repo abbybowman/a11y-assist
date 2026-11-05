@@ -95,6 +95,13 @@ class RunContext:
     # only; CLAUDE.md). Returns its PageRef; raises ValueError if refused.
     # None when resuming (no live loads then).
     record_live: Any = None
+    # A fresh load with pass T's hooks (motion.MOTION_INIT_JS) before page
+    # scripts, for 2.A-2.D (motion.collect). None when not available.
+    open_motion: NewPage | None = None
+    motion_browser: str = ""  # what runs those loads, for the evidence
+    # Content pass T found still changing, which the settle rule stops
+    # waiting on once pass T ends (pipeline.SettleIgnore; T1 (b)).
+    settle_ignore: Any = None
 
     def out_of_time(self) -> bool:
         """Past the checks' deadline (4.C spec section 2, Run limits). Use it

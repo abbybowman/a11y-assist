@@ -1,0 +1,14 @@
+<!doctype html><title>flash</title><style>
+body{margin:0;background:#888} .b{position:absolute;width:200px;height:200px}
+@keyframes fl{0%,49.9%{background:#000}50%,100%{background:#fff}}
+#css{left:0;top:0;animation:fl 200ms steps(1) infinite}        /* 5 flashes/s */
+#int{left:220px;top:0;background:#000}                         /* setInterval 80 ms: 6.25 flashes/s */
+#raf{left:440px;top:0;background:#000}                         /* toggles every frame: 30 flashes/s at 60 Hz */
+#slow{left:660px;top:0;animation:fl 1000ms steps(1) infinite}  /* 1 flash/s */
+#gif{left:880px;top:0}
+</style>
+<div class=b id=css></div><div class=b id=int></div><div class=b id=raf></div><div class=b id=slow></div><img class=b id=gif src="flash5.gif">
+<script>
+const i=document.getElementById('int');let a=0;setInterval(()=>{a^=1;i.style.background=a?'#fff':'#000'},80);
+const r=document.getElementById('raf');let b=0;(function f(){b^=1;r.style.background=b?'#fff':'#000';requestAnimationFrame(f)})();
+</script>

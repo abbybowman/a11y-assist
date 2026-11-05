@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<title>Live regions</title>
+<style>div { margin: 12px; font: 16px sans-serif; width: 300px; height: 40px; }</style>
+</head>
+<body>
+<main>
+<h1>Live regions</h1>
+<div id="polite" aria-live="polite">Polite: <span>0</span></div>
+<div id="timer" role="timer">Timer: <span>60</span></div>
+<div id="off" role="status" aria-live="off">Off: <span>0</span></div>
+<div id="plain">Plain: <span>0</span></div>
+<div id="late"></div>
+</main>
+<script>
+let n = 0;
+setInterval(() => {
+  n++;
+  for (const id of ['polite', 'off', 'plain']) document.querySelector('#' + id + ' span').textContent = n;
+  document.querySelector('#timer span').textContent = 60 - n;
+  // A live region created in the same task as its text does not count.
+  const late = document.getElementById('late');
+  late.innerHTML = '<span aria-live="assertive">Late ' + n + '</span>';
+}, 1000);
+</script>
+</body>
+</html>

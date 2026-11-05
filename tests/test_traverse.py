@@ -251,11 +251,19 @@ async def test_replay_plan_marks_quiet_presses_and_keeps_the_last_settled(
     assert plan.flags(["Tab", "Tab", "Enter"]) == [True, False, False]
     assert plan.expect(["Tab", "Enter"], 1) is None
     assert plan.flags(["Shift+Tab", "Shift+Tab"]) == [False, False]  # no P2
+
     # A press that changed the page is always fully settled.
-    changed = p.model_copy(
-        update={"steps": [p.steps[0].model_copy(update={"mutations": 2})] + p.steps[1:]}
-    )
+    def first(**kw):
+        return p.model_copy(
+            update={"steps": [p.steps[0].model_copy(update=kw)] + p.steps[1:]}
+        )
+
+    changed = first(mutations=2, settle_mutations=2)
     assert ReplayPlan.of(changed).flags(keys) == [False, True, True, False]
+    # Changes only inside content that keeps changing by itself (a ticker the
+    # settle rule ignores, T1 (b)) leave the press quick.
+    ticker = first(mutations=2, settle_mutations=0)
+    assert ReplayPlan.of(ticker).flags(keys) == [True, True, True, False]
 
 
 async def test_replay_ends_where_the_walk_did_or_is_redone_settled(browser, settings):

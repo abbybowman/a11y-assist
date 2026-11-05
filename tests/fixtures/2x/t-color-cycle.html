@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+<head><title>Colorful notice</title></head>
+<body>
+<main>
+<h1>Colorful notice</h1>
+<p>Static text.</p>
+<p id="note" style="font: bold 20px sans-serif">Welcome to our site</p>
+<p>Text after the notice.</p>
+</main>
+<script>
+const colors = ['red', 'green', 'blue', 'black'];
+let k = 0;
+setInterval(() => { k = (k + 1) % colors.length; document.getElementById('note').style.color = colors[k]; }, 1000);
+</script>
+</body>
+</html>

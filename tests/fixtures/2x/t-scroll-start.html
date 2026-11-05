@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head><title>Visitor counter</title></head>
+<body>
+<main>
+<h1>Visitor counter</h1>
+<p>Static text.</p>
+<div style="height: 1500px"></div>
+<p id="visits" style="width: 300px">Visitors today: <span>1200</span></p>
+<p>Text after the counter.</p>
+</main>
+<script>
+// It starts counting only once it is scrolled into view.
+let n = 1200, timer = null;
+new IntersectionObserver((es) => {
+  if (es.some((e) => e.isIntersecting) && !timer)
+    timer = setInterval(() => { document.querySelector('#visits span').textContent = ++n; }, 1000);
+}).observe(document.getElementById('visits'));
+</script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+<head><title>Welcome</title></head>
+<body>
+<iframe id="f" title="Player" width="320" height="120"></iframe>
+<main>
+<h1>Welcome</h1>
+<p>Static text.</p>
+</main>
+<script>
+// Another host than the page (localhost vs 127.0.0.1): a cross-site frame.
+document.getElementById('f').src = 'http://localhost:' + location.port + '/2x/t-audio-frame-inner.html';
+</script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="en">
+<head><title>Live ticker</title></head>
+<body>
+<main>
+<h1>Live ticker</h1>
+<p>Static text.</p>
+<div id="tick" aria-live="polite" style="width: 300px">Visitors today: <span>100</span></div>
+</main>
+<script>let n = 100; setInterval(() => { document.querySelector('#tick span').textContent = ++n; }, 1000);</script>
+</body>
+</html>

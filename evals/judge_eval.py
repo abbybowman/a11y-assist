@@ -35,6 +35,9 @@ from a11y_assist.config import Settings  # noqa: E402
 from a11y_assist.models import Answer, TestId  # noqa: E402
 from a11y_assist.pipeline import answer_questions, run_tt_tests  # noqa: E402
 from tests import (  # noqa: E402
+    test_fixtures_2a,
+    test_fixtures_2b,
+    test_fixtures_2x,
     test_fixtures_4a,
     test_fixtures_4b,
     test_fixtures_4c,
@@ -158,6 +161,36 @@ def cases() -> list[dict]:
                 "expected": exp,
             }
         )
+    for name, exp in test_fixtures_2a.EVAL.items():
+        out.append(
+            {
+                "case": f"2.A-{name}",
+                "tt": "2.A",
+                "root": "fix",
+                "path": f"2x/{name}.html",
+                "expected": exp,
+            }
+        )
+    for name, exp in test_fixtures_2b.EVAL.items():
+        out.append(
+            {
+                "case": f"2.B-{name}",
+                "tt": "2.B",
+                "root": "fix",
+                "path": f"2x/{name}.html",
+                "expected": exp,
+            }
+        )
+    for name, (tt, exp) in test_fixtures_2x.EVAL.items():
+        out.append(
+            {
+                "case": f"{tt}-{name}",
+                "tt": tt,
+                "root": "fix",
+                "path": f"2x/{name}.html",
+                "expected": exp,
+            }
+        )
     act = json.loads((ACT_ROOT / "manifest.json").read_text())["cases"]
     for c in act:
         if c["tt_test"] == "9.A":
@@ -171,7 +204,7 @@ def cases() -> list[dict]:
                     "expected": c["expected"],
                 }
             )
-        if c["tt_test"] in ("4.A", "4.C", "5.B"):
+        if c["tt_test"] in ("4.A", "4.C", "5.B", "2.C"):
             out.append(
                 {
                     "case": f"{c['tt_test']}-act-{c['id']}",

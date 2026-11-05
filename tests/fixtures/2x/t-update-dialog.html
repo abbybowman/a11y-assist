@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+<head><title>Update with a dialog</title></head>
+<body>
+<main>
+<h1>Update with a dialog</h1>
+<p>Static text.</p>
+<p id="price" style="width: 300px">Price: <span>10</span></p>
+<dialog id="dlg" style="position: absolute; top: 300px"><p>Prices were updated.</p><button>OK</button></dialog>
+</main>
+<script>
+let n = 10;
+setInterval(() => { document.querySelector('#price span').textContent = ++n; }, 1000);
+setTimeout(() => document.getElementById('dlg').show(), 2000);
+</script>
+</body>
+</html>

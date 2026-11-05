@@ -88,7 +88,12 @@ def test_tests_in_scope_table_shows_each_spec_version_and_links_it():
     )
     specs = rules.load_specs(REPO_ROOT / "docs/rules")
     versions = rules.spec_versions(REPO_ROOT / "docs/rules")
-    assert [i for i, _, _ in rows] == [t.value for t in TestId if t in specs]
+    # Implemented tests only: a draft spec (0.y.z, such as 3.A) has no row.
+    from a11y_assist.checks import REGISTRY
+
+    assert [i for i, _, _ in rows] == [
+        t.value for t in TestId if t in specs and t in REGISTRY
+    ]
     for tid, shown, link in rows:
         assert versions[tid].split()[0] == shown, tid
         assert (REPO_ROOT / link).is_file(), link

@@ -4,7 +4,7 @@ What is left to build, newest priorities first. A living list, not a log:
 delete an item once it is built, and put any decision it needed into the
 spec, CLAUDE.md or `docs/solutions/` where it belongs.
 
-## Now: Tests 4 and 5, the multi-page batch and 19.A are built
+## Now: Tests 2, 4 and 5, the multi-page batch and 19.A are built
 
 Built (spec 1.0.0+, check registered, fixtures green): 4.A, 4.B, 4.C, 4.D,
 4.E, 4.F, 5.A (Label provided), 5.B (Label descriptive), 5.C
@@ -46,8 +46,12 @@ in full Chromium
 ([solutions/full-chromium-iframes.md](solutions/full-chromium-iframes.md)).
 
 Next (Abby, 2026-11-05):
-1. **The 2.x and 3.A tests,** on their branch, nearly ready for code
-   review.
+1. **The 2.x tests** (2.A-2.D, specs 1.0.0) in PR #12, with pass T, the
+   mechanism probe and the media store
+   ([solutions/watching-a-page-over-time.md](solutions/watching-a-page-over-time.md));
+   their leftovers are in [2c-build-tasks.md](rules/2c-build-tasks.md).
+   Not yet in a judging round. 3.A (flashing) has its spec at 0.1.0 and its
+   research done; it can reuse pass T's frames.
 2. **The post-round 1 fixes, in the plan's order**
    ([plans/2026-11-04-post-round1-fixes.md](plans/2026-11-04-post-round1-fixes.md)),
    while Abby labels the next judging round blind:
