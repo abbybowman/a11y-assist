@@ -337,6 +337,9 @@ MOTION_INIT_JS = (
         live: r.live ? (r.live.isConnected ? path(r.live) : '') : null, live_at_start: !!(r.live && M.live0.has(r.live)) });
     const mine = M.recs.filter((r) => r.at >= M.t0 && (el === r.el || el.contains(r.el)));
     const changes = mine.filter((r) => r.kind !== 'attr').slice(0, 100).map(rec);
+    // 2.D's note: inside or holding aria-live="off" (W3C's carousel pattern
+    // turns announcements off while it rotates).
+    const liveOff = !!(el.closest('[aria-live="off" i]') || el.querySelector('[aria-live="off" i]'));
     // Class and style changes (slides shown by a class or slid by transform): 2.D's changes when
     // a region shows new content with no text change.
     // Style changes too: a carousel that slides with transform has nothing else.
@@ -353,7 +356,7 @@ MOTION_INIT_JS = (
           duration_ms: typeof t.duration === 'number' ? Math.round(t.duration) : 0, state: a.playState };
       });
     } catch (e) {}
-    return { sigs, colors, transforms, moved, changes, attr_list: attrList, attrs, focus_in: focusIn, anims, text: textOf(el), connected: el.isConnected };
+    return { live_off: liveOff, sigs, colors, transforms, moved, changes, attr_list: attrList, attrs, focus_in: focusIn, anims, text: textOf(el), connected: el.isConnected };
   };
   M.media = () => Array.from(document.querySelectorAll('video, audio')).slice(0, 20).map((m) => ({
     css: path(m), tag: m.tagName.toLowerCase(), paused: m.paused, muted: m.muted, volume: m.volume,
@@ -637,6 +640,7 @@ class Region(BaseModel):
     animations: list[Animation] = Field(default_factory=list)
     period_s: float | None = None  # median time between pixel changes
     scrolled: bool = False  # found by the scrolled watch (plan Q3)
+    live_off: bool = False  # inside or holding aria-live="off" (2.D note)
     elements: list[int] = Field(default_factory=list)  # Element.i inside it
     # With no element inside: the first element after it in reading order
     # (len(elements) when none follows), so its windows can still be counted.
@@ -741,6 +745,9 @@ class MotionPass(BaseModel):
     # Below the first screen, not in a region (plan Q3): observed for
     # scrolling into view, or carousels. The scrolled watch looks at the first.
     below: list[str] = Field(default_factory=list)
+    # Walk steps whose DOM never settled (2.C A2's walk cross-check), set by
+    # the checks from ctx.cache["walk_unsettled"] once the walk has run.
+    walk_unsettled: int = 0
     scrolled_watch: str | None = None  # what the scrolled watch scrolled to
     # G152: each animated image's frames, one play-through, loops (-1:
     # forever) and total (None: forever), decoded from the recording.
@@ -1099,6 +1106,7 @@ async def _watch(
         if not d:
             continue
         epoch0 = t0_epoch
+        r.live_off = bool(d.get("live_off"))
         r.sigs = d["sigs"]
         r.colors = d["colors"]
         r.transforms = d["transforms"]

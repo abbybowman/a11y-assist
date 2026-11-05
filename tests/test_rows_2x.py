@@ -197,3 +197,13 @@ def test_questions():
     assert q.question_id == "2.C-r1-J1" and q.input["mechanism"]["name"] == "Pause"
     # None before the probe exists.
     assert questions_for(_state(Probe()), []) == []
+
+
+def test_walk_cross_check_is_a_hint():
+    """2.C A2: nothing changed in pass T, but the walk's presses kept finding
+    the page changing: NEEDS REVIEW, never DOES NOT APPLY."""
+    quiet = State2C(mp=MotionPass())
+    assert evaluate(quiet, []).rows == ["A3", "G1"]
+    busy = State2C(mp=MotionPass(walk_unsettled=5))
+    f = evaluate(busy, [])
+    assert f.rows == ["A2", "G1"] and "5 presses" in f.summary, f.summary

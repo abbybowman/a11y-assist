@@ -33,6 +33,8 @@ CASES = {
     # Audio in a cross-site frame (full Chromium, out of process), with its
     # "Stop sound" button first in the frame, the page's first element.
     "t-audio-frame": ({}, "NEEDS_REVIEW", "K3/E3"),
+    # A volume slider first on the page: Home turns it to 0 (V9).
+    "t-audio-volume": ({}, "NEEDS_REVIEW", "K3/E3"),
     # Web Audio: no bytes to measure (A2).
     "t-webaudio": ({}, "NEEDS_REVIEW", "A2"),
 }

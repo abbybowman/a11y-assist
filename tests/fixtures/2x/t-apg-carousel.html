@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<title>Featured stories</title>
+<style>.slide { display: none; height: 40px; } .slide.on { display: block; }</style>
+</head>
+<body>
+<main>
+<h1>Featured stories</h1>
+<p>Static text.</p>
+<section aria-roledescription="carousel" aria-label="Featured">
+  <div id="slides" aria-live="off" style="width: 320px">
+    <div class="slide on" role="group" aria-roledescription="slide">First story</div>
+    <div class="slide" role="group" aria-roledescription="slide">Second story</div>
+    <div class="slide" role="group" aria-roledescription="slide">Third story</div>
+  </div>
+</section>
+<p>Text after the carousel.</p>
+</main>
+<script>
+// Like W3C's carousel pattern: announcements off while it rotates.
+const s = document.querySelectorAll('.slide');
+let k = 0;
+setInterval(() => { s[k].classList.remove('on'); k = (k + 1) % s.length; s[k].classList.add('on'); }, 1200);
+</script>
+</body>
+</html>

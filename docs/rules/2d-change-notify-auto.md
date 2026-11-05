@@ -81,7 +81,8 @@ Each auto-updating region (2.C's instances) is an *instance*.
 - `aria-live="off"` while the content rotates, as W3C's carousel pattern
   does, is in no live region (N5). The note says that announcements come
   on when the rotation is paused, and that the TT asks for a notification
-  of each change.
+  of each change. Built: `Region.live_off` (inside or holding
+  `aria-live="off"`), fixture `t-apg-carousel`.
 
 **Plain-language sentences.**
 

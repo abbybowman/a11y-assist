@@ -32,6 +32,8 @@ from a11y_assist.walk import KeyboardWalk
 
 # Still changing at this time: an instance (spec O1; Abby, 2026-11-04).
 STILL_CHANGING_S = 5.0
+# Walk steps whose DOM never settled: a sign of updates pass T missed (A2).
+WALK_UNSETTLED = 3
 
 # J2 is asked only for text that mentions a way to stop it (spec section 4).
 # "control" and "button": text that points to another control, such as ACT
@@ -72,6 +74,11 @@ def hints(mp: MotionPass) -> list[str]:
     """Signs the page updates more slowly than the watch, or with data a
     recording cannot replay (A2). Plain words; no outcome."""
     out = []
+    if mp.walk_unsettled >= WALK_UNSETTLED:
+        out.append(
+            f"while we pressed Tab through it, the page kept changing after "
+            f"{mp.walk_unsettled} presses"
+        )
     for p in mp.polls:
         every = f" about every {p.gap_ms / 1000:.1f} s" if p.gap_ms else ""
         out.append(f"it asks its server for new data{every}")
@@ -613,6 +620,7 @@ def apply_answers(st: State2C, report) -> None:
 
 async def collect(ctx: RunContext, walk: KeyboardWalk | None) -> State2C:
     mp = await motion.collect(ctx)
+    mp.walk_unsettled = ctx.cache.get("walk_unsettled", mp.walk_unsettled)
     st = State2C(mp=mp, selected=sorted(ctx.selected))
     row, page = applicability(mp)
     if row.id != "A5":

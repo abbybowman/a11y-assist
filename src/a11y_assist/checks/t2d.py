@@ -102,11 +102,19 @@ def _sentence(rows: list[str], r: Region, outcome: Outcome) -> str:
             "announce the changes."
         )
     if last == "N5":
+        off = (
+            ' It turns its announcements off while it changes (aria-live="off"), '
+            "as W3C's carousel pattern does; the test asks that each change be "
+            "announced, so announcements should come on, for example while it "
+            "is paused."
+            if r.live_off
+            else ""
+        )
         return (
             f"{c} changes by itself, but screen reader users are not told: it "
             "is not in a live region, focus does not move to it, and no dialog "
             "appears. Put it in an aria-live region, or let users pause it and "
-            "announce the change."
+            "announce the change." + off
         )
     if last in ("J1", "J2"):
         how = "focus moves to it" if last == "J1" else "a dialog appears"
@@ -329,7 +337,9 @@ def apply_answers(st: State2D, report) -> None:
 
 
 async def collect(ctx: RunContext, walk: KeyboardWalk | None) -> State2D:
-    return State2D(mp=await motion.collect(ctx))
+    mp = await motion.collect(ctx)
+    mp.walk_unsettled = ctx.cache.get("walk_unsettled", mp.walk_unsettled)
+    return State2D(mp=mp)
 
 
 class Check2D:

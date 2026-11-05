@@ -144,9 +144,13 @@ a clipping box, so "children moved" now looks at descendants (more than
 - The scrolled watch (Q3, V4): `t-scroll-start`, a counter below the first
   screen that starts only when scrolled into view (2.C K6, 2.D N5).
 
-Not started: the walk cross-check (2.C A2: DOM changes the walk saw where
-pass T saw none), and 2.D's note for `aria-live="off"` carousels (plan
-risk 11).
+- The walk cross-check (2.C A2: at least three walk steps whose DOM never
+  settled, `test_walk_cross_check_is_a_hint`) and 2.D's note for
+  `aria-live="off"` carousels (plan risk 11, `t-apg-carousel`).
+
+Everything in the plan is built as drafts. Left before 1.0.0: Abby's
+review of the four specs; V11 below; Windows headed Chrome
+(V12); the judge eval again after any change to a question.
 
 ## Code changes
 
@@ -228,8 +232,8 @@ network.
 | V5 | Polling repeats the first response on replay, and the HAR lists every poll (item 10) | 2.C A2 | Test (`test_polling_is_in_the_har`): the replay repeats the first response; the HAR held only one or two polls (recording stops at network idle), so pass T also counts requests during the watch |
 | V6 | Slick and Splide pause on focus and resume when it leaves; four of six libraries pause on hover (item 12). Vendor the libraries for the fixtures | 2.C K2 | Checked (scratch, libraries from the network) |
 | V7 | Full Chromium puts cross-site iframes out-of-process; media state, pixels and Tab work through them (items 15–16); a shell recording replays in full Chromium (Q11) | Q11; 2.A–2.D in frames | Out-of-process and replay: `tests/test_full_chromium.py` (main); pass T's regions, live regions and elements in such a frame: `test_cross_site_frame_in_full_chromium`; media and Tab in it not yet |
-| V8 | A live region added in the same task as its text is told apart from one present at 0 s | 2.D Terms | Not checked |
-| V9 | Home, End and arrows on a volume slider set the media's volume to 0 | 2.A | Not checked |
+| V8 | A live region added in the same task as its text is told apart from one present at 0 s | 2.D Terms | Test (`test_live_regions`, `#late`: never `live_at_start`) |
+| V9 | Home, End and arrows on a volume slider set the media's volume to 0 | 2.A | Test (`t-audio-volume`): Home on a range input that sets the volume gives 0, stopped (K3) |
 | V10 | Media fetched in several ranges fails on replay, and the media store fixes it (items 13–14) | 2.A, 2.B A1 | Store and ranges: `tests/test_media_store.py`; seeking on replay: ACT 80f0bf passed 2 (`#t=8,10`); a large file fetched in several ranges not reproduced in a test |
 | V11 | Pass T beside P1 does not slow the walk (item 18), and a second headless browser beside a headed walk takes no focus | Q2 | Linux checked; Windows headed not |
 | V12 | Windows headed Chrome: autoplay with the flag; the walk unaffected by the second browser | Q1, Q2 | Not checkable from Linux |

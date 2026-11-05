@@ -773,6 +773,10 @@ async def run_tt_tests(
                     run.log("walk", "error", error="time limit", cost=asdict(cost))
                 if walk is not None:
                     ctx.plan = ReplayPlan.of(walk.p1, walk.p2)
+                    # 2.C A2's walk cross-check: steps that never settled.
+                    ctx.cache["walk_unsettled"] = sum(
+                        st.unsettled for p in (walk.p1, walk.p2) for st in p.steps
+                    )
                     run.write_json(run.evidence_dir / "walk.json", walk)
                     run.log("walk", **_walk_summary(walk), cost=asdict(cost))
             for c in checks:

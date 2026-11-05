@@ -124,3 +124,14 @@ EVAL = {
     "t-focus-news": ("2.D", "PASS"),  # "New message 3 from Ana" says it
     "t-update-dialog": ("2.D", "PASS"),  # "Prices were updated."
 }
+
+
+async def test_2d_explains_a_carousel_with_announcements_off(settings, server, drafts):  # noqa: F811
+    """Plan risk 11: W3C's carousel pattern sets aria-live="off" while it
+    rotates; TT 2.D still fails it, and the note says why."""
+    got = await run_tests(
+        settings, f"{server.base}/2x/t-apg-carousel.html", ["2.D"], {}
+    )
+    f = got["2.D"]
+    assert f.outcome.value == "FAIL", (f.rows, f.summary)
+    assert 'aria-live="off"' in f.summary, f.summary
