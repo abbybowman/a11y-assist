@@ -8,8 +8,9 @@ items. The specs hold the rules:
 elements and the mechanism probe for the batch;
 [2d-change-notify-auto.md](../rules/2d-change-notify-auto.md);
 [2b-blinking-moving-scrolling.md](../rules/2b-blinking-moving-scrolling.md);
-and [2a-audio-control.md](../rules/2a-audio-control.md). What is left is in
-[2c-build-tasks.md](../rules/2c-build-tasks.md). The text below is as
+and [2a-audio-control.md](../rules/2a-audio-control.md). What is left is in the
+ROADMAP ("Per-test leftovers") and
+[_browser-checks.md](../rules/_browser-checks.md#2c). The text below is as
 approved and built; it is not updated.
 
 **Decided (Abby, 2026-11-03):**
@@ -45,7 +46,7 @@ approved and built; it is not updated.
   Pass T and the 2.x probes always use full Chromium.
 
 **Building (2026-11-04).** Pass T (`motion.py`) is built and tested; status
-and what waits for Q11 are in [2c-build-tasks.md](../rules/2c-build-tasks.md).
+and what waits for Q11 were in `2c-build-tasks.md` (removed at 1.0.0; in git history).
 Q11 (the replay-browser choice, `Capture.cross_site_frames`, the
 full-Chromium launch) came from the eval branch through `main`; pass T now
 runs in its own autoplay browser beside the walk (Q1, Q2).

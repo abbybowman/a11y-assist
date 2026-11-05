@@ -2,7 +2,7 @@
 
 **2026-11-05: the 2.A–2.D scripts and pages were removed** once 2.A–2.D
 were built at spec 1.0.0: their checks are tests in `tests/` now (see the
-V-checks in [2c-build-tasks.md](../../rules/2c-build-tasks.md)). They are in
+V-checks in [_browser-checks.md](../../rules/_browser-checks.md#2c)). They are in
 git history at commit 9efe907. The 3.A scripts (`flash_*.py`,
 `make_flash_media.py`) and `pages/flash` stay until 3.A is built. The
 results tables below are kept as the record of what was measured.

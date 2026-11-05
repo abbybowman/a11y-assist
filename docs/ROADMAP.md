@@ -49,7 +49,7 @@ Next (Abby, 2026-11-05):
 1. **The 2.x tests** (2.A-2.D, specs 1.0.0) are merged (PR #12), with pass T, the
    mechanism probe and the media store
    ([solutions/watching-a-page-over-time.md](solutions/watching-a-page-over-time.md));
-   their leftovers are in [2c-build-tasks.md](rules/2c-build-tasks.md).
+   their leftovers are under "Per-test leftovers" below.
    Not yet in a judging round. 3.A (flashing) has its spec at 0.1.0 and its
    research done; it can reuse pass T's frames.
 2. **The post-round 1 fixes, in the plan's order**
@@ -62,12 +62,21 @@ Next (Abby, 2026-11-05):
 3. **Then the visual-versus-code cluster.** Choose with the coverage map
    and CLAUDE.md's research rule.
 
-Per-test leftovers live in each `docs/rules/<id>-build-tasks.md` (mostly
-browser checks on Windows headed Chrome, which this Linux container cannot
-run).
+Browser checks still to run for the built tests (mostly Windows headed
+Chrome, which a Linux container cannot run) are in
+[rules/_browser-checks.md](rules/_browser-checks.md); the rest of each
+test's leftovers are under "Per-test leftovers" below.
 
 ## Soon
 
+- **5.F row M1 is half built (found 2026-11-05).** The spec's M1 gives
+  NEEDS REVIEW when "a read was unsettled or unresolved"; `t5f.py` ignores
+  the result of `settle()` after the submit press, so an attempt read
+  before the page settled is used as if complete. A failed read and an
+  attempt that never reached the form are handled (as incomplete, page row
+  G3). 5.G's N1 reads 5.F's pass, so it shares the gap. Fix in the code
+  (the spec is right), with a fixture whose error text appears after the
+  settle window; it can move outcomes toward NEEDS REVIEW only.
 - **Fixes found in agent eval round 1:** 20 fixes, ranked, in
   [plans/2026-11-04-post-round1-fixes.md](plans/2026-11-04-post-round1-fixes.md),
   including MCP clients' tool timeouts (fix 2) and pages over the time
@@ -181,6 +190,49 @@ run).
   run still exercises the guard and passes. Find why Chrome skips them, so
   both browsers test the guard
   ([solutions/windows-chrome-results.md](solutions/windows-chrome-results.md)).
+
+## Per-test leftovers
+
+From the build-tasks files, removed at 1.0.0 (2026-11-05; in git history).
+None blocks an outcome: each is NEEDS REVIEW-safe today.
+
+- **Real government pages** (with the agent-eval pages): calibrate 4.A's
+  `HOVER_MAX`, `CLICK_MAX` and `EXECUTE_MAX` and 5.D's `FIELD_MAX` (40) and
+  `FIELD_SECONDS` (1.1 s); how often nearby text sends a 5.A/5.C field to
+  J1; 5.H's consequence words and the error words for "checked" (known
+  over-match: "order" in "tab order" or "in order to" asks J1; narrowing
+  is a MINOR change); 9.B's region match and 9.C's same-place pairing;
+  19.A's site search on real .gov sites (W2-W4); timing of 2.x on agency
+  pages with motion (one budget page measured: 153.6 s of 165 s).
+- **4.A:** controls inside content that opens only on click or Enter are
+  not scanned (ER Note 1 covers them); reading 4.F's pass R would add them.
+- **4.B (known limits):** timing the page does not describe in words is not
+  found (a tester finds it while operating; 4.A's Enter and Space presses
+  cover custom controls); the timing words are English only.
+- **4.C:** a late-refocus fixture (refocus 600 ms after blur, no DOM
+  change) once the xfail in `tests/test_traverse.py` is settled.
+- **4.D and 4.F:** run 4.C's f19 (cross-origin frame), f24 (open shadow
+  root) and f32 (two traps) for 4.D, and f32 for 4.F (expected NEEDS
+  REVIEW: the forward order past a trap is unknown). Shared replays
+  (4.D's pass W with 4.C's P4; 4.C reading 4.F's pass R) are under "More
+  shared replays".
+- **5.A, 5.C:** fields in frames and shadow roots are not read (frames: a
+  NEEDS REVIEW note); a field revealed by 5.D's fill pass is wired but has
+  no fixture.
+- **5.B:** icon-only buttons are left out (pass L has no picture of
+  buttons); add one if real pages show icon buttons with misleading names.
+- **5.D:** after a retry, a submission that navigates away reads as
+  navigation (both M4; only the wording differs).
+- **5.F, 5.G:** fields in frames are not checked (a NEEDS REVIEW note);
+  `time`, `datetime-local`, `month` and `week` fields are left as loaded in
+  attempt 2.
+- **2.A-2.D:** ER 3's shortlist (6.A, 7.A, 7.E, 12.D, 13.A, 13.B, 13.C,
+  18.A): until each is built, a working mechanism is NEEDS REVIEW (E3),
+  never PASS. 2.C J1's wording when the mechanism is page text naming a
+  key; 2.B J1 for content below the first screen needs a crop (judge eval
+  runs 15, 16; rerun it after either). A large media file fetched in
+  several byte ranges is not reproduced in a test; real YouTube and Vimeo
+  embeds on a normal network are NEEDS REVIEW (2.A A2).
 
 ## Later
 

@@ -213,7 +213,8 @@ src/a11y_assist/
   explain.py    plain-language explanations of tests and results (prompt now,
                 failure reports later)
   prompts/      explain (a command in clients)
-docs/rules/     rules specs (one per TT test), <id>-build-tasks.md checklists,
+docs/rules/     rules specs (one per TT test), <id>-build-tasks.md checklists
+                (while a test is built), _browser-checks.md (V-checks of built tests),
                 _template.md (start new specs from it)
 docs/plans/     plans, newest first by date
 docs/hackathon/ GSA hackathon evaluation document and deck (drafts)

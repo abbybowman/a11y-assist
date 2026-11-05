@@ -308,7 +308,7 @@ Asked only for text candidates whose text mentions pausing, stopping, hiding, a 
 
 ## 5. Edge cases
 
-V-numbers are in [2c-build-tasks.md](2c-build-tasks.md).
+V-numbers are in [_browser-checks.md](_browser-checks.md#2c).
 
 | Case | Rule | Verify |
 | --- | --- | --- |

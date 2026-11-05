@@ -152,7 +152,7 @@ async def test_no_test_is_reported_not_tested(settings):
         "5.C": "NEEDS_REVIEW",
         "5.B": "NEEDS_REVIEW",  # its J1 is open, and the framed button
         # 5.H's consequence hint matches "order" in "Not in tab order": J1
-        # is asked (docs/rules/5b-build-tasks.md, Left).
+        # is asked (docs/ROADMAP.md, Per-test leftovers).
         "5.H": "NEEDS_REVIEW",
         # No other pages given: not performed (9.A-9.C specs, A1).
         "9.A": "NEEDS_REVIEW",

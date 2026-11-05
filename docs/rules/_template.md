@@ -10,8 +10,11 @@ owner: <name>
 How to use this template (delete this comment block in the real spec).
 
 File names: docs/rules/<id>-<short-name>.md, where <short-name> is the TT test
-name without its WCAG number (4c-no-keyboard-trap). Companion file:
-docs/rules/<id>-build-tasks.md with the Fixtures and Verify tables.
+name without its WCAG number (4c-no-keyboard-trap). Companion file while building:
+docs/rules/<id>-build-tasks.md with the Fixtures and Verify tables. At
+1.0.0 its Verify table moves to _browser-checks.md, anything left goes to
+docs/ROADMAP.md, and the file is deleted (expected outcomes live in the
+tests; the ACT differences in tests/fixtures/act/sync_act.py).
 
 Versions (spec_version):
 - 0.y.z: draft. Bump y on each revision. A draft gives no outcome.
@@ -33,7 +36,8 @@ Rules for every spec:
 - Deterministic first. Model judgment only where no mechanical check can
   decide, each as a narrow question with a rubric, examples, and a mechanical
   check on the answer where possible.
-- Never assume browser behavior: list it as a V-check in the build-tasks file.
+- Never assume browser behavior: list it as a V-check in the build-tasks file
+  (in _browser-checks.md once the test is built).
 - Where the PDF is ambiguous, silent or contradicts itself, mark it
   OPEN inline at the rule it affects, with options, effects and a
   recommendation. No rulings log: once decided, the decision is written into
@@ -129,7 +133,7 @@ Rules for every spec:
 
 ## 5. Edge cases
 
-Only cases that need a rule of their own; everything else follows sections 2–3. V-numbers are browser checks in [<id>-build-tasks.md](<id>-build-tasks.md).
+Only cases that need a rule of their own; everything else follows sections 2–3. V-numbers are browser checks in [<id>-build-tasks.md](<id>-build-tasks.md) (at 1.0.0: [_browser-checks.md](_browser-checks.md#<id>)).
 
 | Case | Rule | Verify |
 | --- | --- | --- |

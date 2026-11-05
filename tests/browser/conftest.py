@@ -1,4 +1,4 @@
-"""Browser behavior checks V1-V13 (docs/rules/4c-build-tasks.md).
+"""Browser behavior checks V1-V13 (docs/rules/_browser-checks.md, 4.C).
 
 Each test records what Chrome does through Playwright, so a rule that depends
 on it can rely on a checked fact. Run them in headed Chrome on Windows with:
