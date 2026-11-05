@@ -112,7 +112,13 @@ frozen round. Plan: `docs/plans/2026-10-31-agent-eval.md`. Runbook:
   subagents at once, each running the tool. The 4-CPU container reached a
   load average of 51 with 310 Chrome processes, and checks failed with
   `Page.goto` timeouts. Such results measure the machine, not the tool.
-  - Development runs use `--no-subagents`.
+  - `cli.py` caps helpers at one at a time
+    (`CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS=1`; the CLI's default is 20).
+    Checked with the real CLI: asked for three in parallel, one ran and
+    two were refused. The cap holds whatever the model decides, including
+    when page text steers it (a security review flagged the uncapped
+    default on PR #11).
+  - Development runs can also drop the helper (`--no-subagents`).
   - Watch a long run's load (a Monitor on `/proc/loadavg`), and stop it
     by hand if it climbs.
   - Kill the CLI process, then the `a11y_assist.app` servers, by PID: a

@@ -53,6 +53,7 @@ DROP = (
 # tested site's hosts (Abby, 2026-11-04): the tested pages come only from
 # the frozen copies.
 MCP_TOOL_TIMEOUT_MS = 3_600_000  # one hour per tool call
+MAX_CONCURRENT_HELPERS = 1
 COMMON_TOOLS = ["Agent", "ListMcpResourcesTool", "ReadMcpResourceTool"]
 ARM_TOOLS = {"a": COMMON_TOOLS, "b": [*COMMON_TOOLS, "WebSearch", "WebFetch"]}
 
@@ -96,6 +97,13 @@ class ClaudeCodeCLI:
         env = {k: v for k, v in os.environ.items() if k not in DROP}
         env["HOME"] = str(home)
         env["CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH"] = "1"
+        # One helper at a time (default 20): round1-answers' first attempt
+        # started 9 at once, each running the tool, and overloaded the
+        # machine. A deterministic cap, whatever the model (or text a page
+        # put in front of it) decides. Checked 2026-11-05 with the real CLI:
+        # three parallel helpers ran at the default, one at a cap of 1 (the
+        # other two refused: "Concurrent subagent limit reached").
+        env["CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS"] = str(MAX_CONCURRENT_HELPERS)
         # The CLI cuts an MCP tool call off at 60 s by default; a run of the
         # tool with other pages takes minutes (round 1's first attempt, 2026-11-04).
         env["MCP_TOOL_TIMEOUT"] = str(MCP_TOOL_TIMEOUT_MS)

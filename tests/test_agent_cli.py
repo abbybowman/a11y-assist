@@ -98,6 +98,8 @@ async def test_cli_route_isolation_and_log(tmp_path, monkeypatch):
         assert (
             int(env["CLAUDE_CODE_MCP_AUTO_BACKGROUND_MS"]) >= 3_600_000
         )  # no 120 s background move
+        # one helper at a time (the CLI's default is 20)
+        assert env["CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS"] == "1"
         assert Path(env["HOME"]).name == "home" and env["HOME"] != os.environ["HOME"]
         assert Path(c["cwd"]).name == "work" and c["cwd_files"] == []
         for flag in (
