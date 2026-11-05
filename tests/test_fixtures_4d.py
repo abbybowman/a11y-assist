@@ -45,6 +45,10 @@ EXPECTED: dict[str, dict] = {
     "f05-outline-transition": {"outcome": "PASS"},
     "f06-slideshow-behind-links": {"outcome": "FAIL", "choice": "no"},
     "f07-sticky-header-covers": {"outcome": "FAIL"},
+    # Post-round 1 fix 11 (1.2.0): the title's focus outline is drawn but
+    # clipped, and the card marks focus elsewhere; 0 px where the title is
+    # is no clear view (M4), not a FAIL.
+    "f15-card-title-outline-clipped": {"outcome": "NEEDS_REVIEW", "rows": ["M4"]},
     "f08-focusable-iframe": {"outcome": "PASS"},
     "f09-faint-outline": {"outcome": "NEEDS_REVIEW", "choice": "unsure"},
     # ~59-62 s alone on the 2026-11-01 container (was ~55 s when the guard was

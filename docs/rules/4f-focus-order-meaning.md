@@ -27,7 +27,7 @@ The tool gives each page one 4.F outcome: PASS, FAIL, DOES NOT APPLY or NEEDS RE
 
 ## 2. Evidence to collect
 
-**From the shared keyboard walk** (`walk.py`): every P1 and P2 step's stop identity, frame chain, CSS path, tag, role, name, bounding box, modal flag, collapsed flag, unsettled and unresolved flags, and each pass's end. Tabbing through the page (HtT 1) is the walk itself.
+**From the shared keyboard walk** (`walk.py`): every P1 and P2 step's stop identity, frame chain, CSS path, tag, role, name, bounding box (for a checkbox or radio button with a visible label, its label's box: what people see, 1.2.0; post-round 1 fix 16: NASA's filter boxes are drawn apart from their labels, and their boxes made a one-column list look out of order), modal flag, collapsed flag, unsettled and unresolved flags, and each pass's end. Tabbing through the page (HtT 1) is the walk itself.
 
 **Walk extras** (collected only when 4.F is selected; cheap, no images): per stop, its page scroll offset (so boxes are in page coordinates), its tabindex attribute, its position in DOM order (document order within its frame, frames in DOM order), and its form group (form, and nearest fieldset, role=group or role=radiogroup, with its legend or label). Per trigger: aria-haspopup's value.
 

@@ -90,6 +90,24 @@ reload the page, then right-click a request and "Save all as HAR with
 content". Whether a DevTools HAR replays like our own recordings is not yet
 checked.
 
+## Run 18, 2026-11-05: post-round 1 fixes (4.F, 5.A, 5.B, 5.D), their packets only
+
+`prepare OUT 4.F,5.A,5.B,5.D` (images `all`): 61 cases ask questions,
+including the new F15 (5.D: one J1 for four filter boxes) and F16 and F17
+(4.F: a site overlay; a card grid). One fresh Sonnet agent, file tools
+only, answered all 61 (about 223k tokens), then a second answered 5.D
+F10's follow-up round. **60/61 match, no false PASS.**
+- 5.D F15: `not_told` for the four boxes at once (FAIL, as expected).
+- 4.F F17: `preserves` for a card grid read row by row (the rubric's new
+  line), PASS.
+- 4.F F16: `does_not_preserve` where the test data said `preserves`:
+  after the menu opens, the next Tab lands in the overlay, which sits
+  between the button and its menu. The agent is right, and F16 now
+  expects FAIL through J1. The fix (no mechanical M2 for a dialog the
+  menu did not open) is unchanged.
+- It opened only packet files, and each 4.F order image and 5.A image a
+  question named.
+
 ## Run 17, 2026-11-04: 2.A (draft spec 0.2.0), its packets only
 
 `prepare OUT 2.A`: one case asks a question (2.A asks none of its own):

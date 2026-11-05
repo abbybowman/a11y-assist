@@ -1,0 +1,18 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>F18 Filters</title>
+<style>
+  /* Each box is drawn by itself, offset from its label (custom checkboxes):
+     the second box sits above the first, though its label is below. */
+  fieldset { position: relative; width: 300px; padding: 8px 8px 8px 40px; }
+  .opt { display: block; position: relative; height: 32px; line-height: 32px; }
+  .opt input { position: absolute; left: -30px; }
+  .opt:nth-of-type(1) input { top: 40px; }
+  .opt:nth-of-type(2) input { top: -20px; }
+</style></head><body>
+<h1>Missions</h1>
+<form onsubmit="return false"><fieldset><legend>Mission type</legend>
+<label class="opt"><input type="checkbox" name="t" value="flyby"> Flyby</label>
+<label class="opt"><input type="checkbox" name="t" value="ground"> Ground-based Telescope</label>
+<label class="opt"><input type="checkbox" name="t" value="lander"> Lander</label>
+</fieldset></form>
+<p><a href="#results">Results</a></p>
+</body></html>

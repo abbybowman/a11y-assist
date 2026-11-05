@@ -156,9 +156,10 @@ uv run python evals/judging.py score $R
 git add $R/score.md $R/score.json && git commit -m "smith-2026-11-20: score" && git push
 ```
 
-Score on your own machine. The lock includes the recordings, which only
-your machine has, so `score` on another clone fails until the zip is
-restored there (being fixed: post-round 1 plan, fix 20).
+You can score on any clone. The lock checks the files git keeps on every
+clone, and the recordings (which git ignores) only where they are present:
+a clone without the zip scores, and one with it restored checks each
+recording against the lock.
 
 `score.md` lists, test by test:
 - agreement;

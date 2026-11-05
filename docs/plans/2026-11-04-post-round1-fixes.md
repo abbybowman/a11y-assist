@@ -144,7 +144,9 @@ Evidence:
   because the workflow does not install Playwright MCP.
 - **Fix:** add `npm ci --prefix evals/agent/node` to the workflow (Node is
   on GitHub's runners).
-- **Status:** not started.
+- **Status:** built (`ci.yml`). Checked in the container: after `npm ci`
+  both tests run and pass (`test_agent_freeze.py`, `test_agent_run.py`: 7
+  passed, none skipped). The first CI run on GitHub is still to see.
 
 ### 4. Agent A chose not to answer the open questions
 
@@ -257,7 +259,14 @@ Evidence:
   call a page frozen when the document is not a 2xx or when most of them
   failed (with a flag to accept it anyway). Show the page's title and
   heading in `freeze.json`, so a typo shows at a glance.
-- **Status:** not started.
+- **Status:** built (`freeze.check_recording`): each page's
+  `freeze.json` entry has the document's status, the CSS, font and script
+  requests and how many failed, the title and the first heading; a
+  document that is not 2xx, or more than half of those requests failed,
+  makes the page `suspect` and the command exits with an error, unless
+  `--accept-suspect`. Round 1's five restored recordings all pass (NACA:
+  1 of 52 failed). Test: `test_agent_freeze.py` (a 404 page, a page with
+  no assets, a good one).
 
 ### 8. Efficiency in the score (the harness)
 
@@ -270,7 +279,11 @@ Evidence:
   and the usage-window change for each run, beside wall time. A tool call's
   duration includes its wait in the server's queue (fix 5), so the per-run
   wall time is the efficiency figure, not the sum of call durations.
-- **Status:** not started.
+- **Status:** built (`evals/agent/score.py`): each arm's section in
+  `agent-score.md` shows tokens by type, the cost at list price and each
+  usage window's change (round 1, arm-a-1: cache writes 154,875, cache
+  reads 349,470, output 15,590; $0.81; five hour +8%, seven day +2%), and
+  says that wall time is the efficiency figure.
 
 ### 9. After the lock: what Agent A would have answered (not scored)
 
@@ -369,7 +382,22 @@ Evidence:
     (an outline or shadow with width and colour) that the pictures do not
     show, while `outline: none` and the like still FAIL. Check on Missions'
     and Artemis III's frozen recordings.
-- **Status:** first cause built; second designed.
+  - **Built for the second cause too (4.D 1.2.0):** each changed part
+    keeps its indicator values on and off; with fewer than
+    `MIN_CHANGED_PX`, a focus style that draws (an outline, a shadow, a
+    wider border) on an element that is on top at its centre
+    (`elementFromPoint`) is M4. Covered (F07) or drawing nothing
+    (`outline: none`) is still M8. Fixture F15 (a card title whose outline
+    is clipped, the card marking focus on its picture): M8 before, M4 now.
+- **Checked on the frozen recordings (4.D alone, `no_time_limit`):**
+  Careers FAIL to NEEDS REVIEW (no M8 left), Missions FAIL to NEEDS
+  REVIEW (no M8 left; its card titles are M4), Artemis III FAIL with 2
+  M8 left (was 6): the video player's "Hide player controls" button,
+  whose inset blue shadow is under another element at its centre. The
+  key passes Artemis III: a question for Abby (is that button covered
+  when it has focus?). Saved evidence re-evaluated: Careers FAIL to
+  NEEDS REVIEW.
+- **Status:** built; Artemis III's covered button is open.
 
 ### 12. A refused page is never tested fully
 
@@ -414,7 +442,19 @@ Evidence:
   - **Page keys drop the query:** `?search=artemis` scores as the home
     page (`nasa.gov`). A round that has both would collide.
   - Fix 8's efficiency columns.
-- **Status:** not started.
+- **Status:** built.
+  - Split calls: `evals/agent/score.tool_files` takes each TT test from
+    the latest run whose `tests` included it. Checked on round 1: only
+    arm-a-2's Missions changes, from 1 to 3 (the hand count's +2; 41 to
+    43). Test in `test_agent_score.py` on the committed round 1 files.
+  - Needs review: the checks keep the note on every NEEDS_REVIEW
+    (principle 2, the template's G3, asserted by the harness), so the
+    scorer tells the reasons apart from the comment instead:
+    `review_reason` (open question, time limit, could not be performed),
+    counted in `agent-score.json` and shown in `agent-score.md`. On round
+    1, arm-a-1/2/3: open question 24/28/23, time limit 37/33/46.
+  - Page keys keep the query (`compare.page_key`): round 1's search
+    page's key names it with its query, so it still matches.
 
 ### 14. 5.B: Does Not Apply without a visible label; header menu buttons are not form controls
 
@@ -508,7 +548,7 @@ asked for the details; checked on the frozen recordings, 2026-11-05.
   stop was in a modal dialog, and the following Tab reached "Internships
   Home", the menu's first link ("escaped"). "Internships" names its list
   in `aria-controls`; the dialog was not it.
-- **Status:** the pass R part is built (4.F spec 1.2.0, `t4f._opened_by`):
+- **Status:** built. The pass R part (4.F spec 1.2.0, `t4f._opened_by`):
   when the trigger names its content in `aria-controls`, a modal dialog
   counts only when focus is inside that content; a trigger with no
   `aria-controls` is unchanged (a script-opened dialog, F10-F12).
@@ -516,8 +556,12 @@ asked for the details; checked on the frozen recordings, 2026-11-05.
   first click): FAIL M2 without the change, PASS with it. J1's rubric now
   names "a grid of cards, or columns of footer links, read row by row with
   each card's or item's parts together" as preserves (fixture F17 asks J1
-  with four S3 signals, as Missions did); judge eval pending. Left: the O
-  signals for a checkbox read from its label's position.
+  with four S3 signals, as Missions did); judge eval run 18: F17
+  answered preserves (PASS), and F16, whose overlay sits between the
+  button and its menu, does_not_preserve (F16 now expects that FAIL).
+  The O signals place a checkbox or radio button by its label's box
+  (fixture F18: boxes drawn apart from their labels gave an S3 signal
+  before, none now). Fix 16 is built.
 
 ### 17. 5.F and 5.G on a form with nothing to get wrong (site search)
 
@@ -620,8 +664,14 @@ asked for the details; checked on the frozen recordings, 2026-11-05.
   says so).
 - **Test:** lock in a temporary clone with a git-ignored recording, then
   score in a second clone without it.
-- **Status:** not started; before the first outside round is scored on
-  another machine.
+- **Status:** built (`judging._split`): `lock.json` has `files` (what
+  git keeps, checked strictly) and `ignored` (what `git check-ignore`
+  matches, each checked only where present; an ignored file the lock does
+  not name is refused). A lock without `ignored` (round 1) is checked as
+  before. Test: `test_judging.py::test_a_lock_scores_on_a_clone_without_the_ignored_recordings`
+  (lock with a git-ignored recording; score without it, then with a
+  changed copy and with a new one). As the cost note says, round 1 now
+  scores only at its lock commit.
 
 ## Observations to decide after scoring
 

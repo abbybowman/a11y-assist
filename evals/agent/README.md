@@ -83,7 +83,12 @@ Round folder `evals/judging/<round>/`, for example `evals/judging/round1/`.
 
    It records the tested pages only, into `frozen/` (an index, the
    recordings and `freeze.json`). Check that every page says `frozen`, and
-   compare each frozen page's footer timestamp with your own testing.
+   compare each frozen page's footer timestamp with your own testing. It
+   prints each page's status, title and first heading and how many of its
+   CSS, font and script requests failed, and stops with an error on a page
+   that is not a 2xx or lost most of them (a typo in `pages.txt`, a
+   container that cannot load the site's files); `--accept-suspect` keeps
+   such a page anyway.
    During the arms, the tested pages come only from these copies; other
    pages of the same site (site maps, search results) load live for both
    arms, so run the two arms close together.

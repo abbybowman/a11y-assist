@@ -50,7 +50,14 @@ ORDER_FN = """function () {
       const p = c.parentElement; const same = p ? Array.from(p.children).filter((x) => x.tagName === c.tagName) : [];
       a.unshift(c.tagName.toLowerCase() + (same.length > 1 ? `:nth-of-type(${same.indexOf(c) + 1})` : '')); }
     return a.join(' > '); };
+  // A checkbox or radio button is placed by its label, what people see
+  // (post-round 1 fix 16: NASA's filter boxes are drawn apart from their
+  // labels, and their boxes made a one-column list look out of order).
   const r = el.getBoundingClientRect();
+  const opt = el.tagName === 'INPUT' && ['checkbox', 'radio'].includes((el.type || '').toLowerCase());
+  const lab = opt && el.labels && el.labels.length ? el.labels[0].getBoundingClientRect() : null;
+  const label_box = lab && lab.width > 0 && lab.height > 0
+    ? [lab.x - r.x, lab.y - r.y, lab.width, lab.height] : null;
   const ti = el.getAttribute('tabindex');
   let container = null;
   const ctl = el.getAttribute('aria-controls');
@@ -59,7 +66,7 @@ ORDER_FN = """function () {
   return { dom_index: all.indexOf(host), tabindex: ti === null ? null : parseInt(ti, 10),
     group: g ? gpath(g) : null, group_label: legend.trim().slice(0, 80),
     form: el.form ? gpath(el.form) : null, haspopup: el.getAttribute('aria-haspopup'),
-    container, dir: getComputedStyle(el).direction,
+    container, dir: getComputedStyle(el).direction, label_box,
     page: [r.x + scrollX, r.y + scrollY, r.width, r.height] };
 }"""
 
@@ -126,6 +133,14 @@ class OrderHook:
             # top-level (frames included), so add the top page's scroll.
             scroll = await t.reader.evaluate_top("[scrollX, scrollY]") or [0, 0]
             info["page"] = [bb.x + scroll[0], bb.y + scroll[1], bb.width, bb.height]
+            lb = info.get("label_box")
+            if lb:  # a checkbox or radio button: where its label is (1.2.0)
+                info["page"] = [
+                    bb.x + lb[0] + scroll[0],
+                    bb.y + lb[1] + scroll[1],
+                    lb[2],
+                    lb[3],
+                ]
         return info
 
 
