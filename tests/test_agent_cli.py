@@ -18,12 +18,16 @@ FAKE = r"""
 import json, os, sys, time
 out = os.environ["FAKE_OUT"]
 prompt = sys.argv[sys.argv.index("-p") + 1]
+mcp_cfg = json.load(open(sys.argv[sys.argv.index("--mcp-config") + 1]))
 json.dump({"argv": sys.argv, "env": dict(os.environ), "cwd": os.getcwd(),
-           "cwd_files": os.listdir(".")},
+           "cwd_files": os.listdir("."), "mcp": mcp_cfg},
           open(os.path.join(out, "call-%d.json" % len(os.listdir(out))), "w"))
 def say(e): print(json.dumps(e), flush=True)
-say({"type": "system", "subtype": "init", "tools": ["mcp__x__t"],
+say({"type": "system", "subtype": "init", "tools": ["mcp__x__t"], "session_id": "s1",
      "mcp_servers": [{"name": "x", "status": "connected"}], "model": "m"})
+if "--resume" in sys.argv:
+    say({"type": "result", "result": "I skipped 56 questions: too many.", "session_id": "s1"})
+    sys.exit(0)
 if prompt.startswith("Before the task"):
     say({"type": "result", "result": '{"user": null, "project": null, "instructions": []}',
          "modelUsage": {"m": {"inputTokens": 1}}})
@@ -142,3 +146,38 @@ def test_no_subagents_denies_the_cli_subagent_tool(tmp_path):
     assert "Agent" not in denied(ClaudeCodeCLI())
     got = denied(ClaudeCodeCLI(no_subagents=True))
     assert "Agent" in got and "Task" in got
+
+
+async def test_a_debrief_is_asked_after_the_run_with_nothing_to_act_with(
+    tmp_path, monkeypatch
+):
+    """Development runs (--debrief): after the final answer, one resumed turn
+    in the same session asks why work was left undone. It has no tools and
+    no MCP servers, and its answer goes to debrief.md, never to results."""
+    fake = tmp_path / "claude"
+    fake.write_text(f"#!{sys.executable}\n{FAKE}")
+    fake.chmod(0o755)
+    calls = tmp_path / "calls"
+    calls.mkdir()
+    monkeypatch.setenv("FAKE_OUT", str(calls))
+    rd = tmp_path / "round"
+    (rd / "frozen").mkdir(parents=True)
+    (rd / "frozen" / "index.json").write_text("{}")
+    (rd / "pages.txt").write_text(f"https://www.example.gov/a {'ab' * 32}\n")
+    servers = [Server("x", "true", [], {})]
+    cli = ClaudeCodeCLI("m", str(fake), debrief="Why did you skip work?")
+    s = await agent_run.run_arm(rd, "a", cli, servers)
+    assert s.get("error") is None and s["ended"] == "completed", s
+    out = rd / "results" / "arm-a"
+    assert (out / "debrief.md").read_text().startswith("I skipped 56 questions")
+    assert (out / "final.md").read_text().startswith("Done.")
+    runs = [json.loads(p.read_text()) for p in sorted(calls.iterdir())]
+    main, ask = runs[-2], runs[-1]
+    assert "--no-session-persistence" not in main["argv"]
+    argv = ask["argv"]
+    assert argv[argv.index("--resume") + 1] == "s1"
+    assert argv[argv.index("-p") + 1] == "Why did you skip work?"
+    assert argv[argv.index("--tools") + 1] == ""
+    assert argv[argv.index("--allowedTools") + 1] == ""
+    assert ask["mcp"] == {"mcpServers": {}}
+    assert main["mcp"]["mcpServers"]  # the run itself had its server

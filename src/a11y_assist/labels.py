@@ -47,7 +47,10 @@ _SHARED_JS = """
     return o.tagName === 'BUTTON' || (o.tagName === 'INPUT' && ['submit', 'reset', 'button'].includes(t)) ||
       o.getAttribute('role') === 'button';
   };
-  const comps = () => Array.from(doc.querySelectorAll(SEL)).filter((el) => {
+  // A menu or disclosure button opens content; it does not act on form data.
+  const isMenu = (o) => o.hasAttribute('aria-expanded') ||
+    !['', 'false'].includes((o.getAttribute('aria-haspopup') || '').toLowerCase());
+  const comps =() => Array.from(doc.querySelectorAll(SEL)).filter((el) => {
     if (el.closest('#ANDI508')) return false;
     const t = (el.type || '').toLowerCase();
     if (el.tagName === 'INPUT' && ['hidden', 'image'].includes(t)) return false;
@@ -96,6 +99,18 @@ COMPONENTS_JS = (
     }
     return out.filter(Boolean);
   };
+  // The visible heading over an option (5.C 1.3.0): the nearest heading
+  // before it in the page, inside its form (or its section or landmark).
+  const HEAD = 'h1,h2,h3,h4,h5,h6,[role=heading]';
+  const headingOf = (el) => {
+    const scope = el.form || el.closest('form') ||
+      el.closest('section,aside,nav,main,[role=region],[role=search],[role=complementary]') || doc.body;
+    let best = null;
+    for (const h of scope.querySelectorAll(HEAD)) {
+      if (h.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING && !h.contains(el) && vis(h)) best = h;
+    }
+    return best ? txt(best) : '';
+  };
   return els.map((el, i) => {
     const tag = el.tagName.toLowerCase(), type = (el.type || '').toLowerCase(), role = el.getAttribute('role') || '';
     const button = tag === 'button' || (tag === 'input' && ['submit', 'reset', 'button'].includes(type)) || role === 'button';
@@ -119,6 +134,8 @@ COMPONENTS_JS = (
       aria_label: el.getAttribute('aria-label') || '',
       title: el.getAttribute('title') || '',
       own_text: button ? (txt(el) || el.value || '') : '',
+      menu: button && isMenu(el),
+      heading: isOpt(el) ? headingOf(el) : '',
       table_headers: headers(el),
       list_text: Array.from((function* () { for (let li = el.closest('li'); li; li = li.parentElement && li.parentElement.closest('li')) yield li; })())
         .map(ownText).filter(Boolean),
@@ -161,9 +178,13 @@ FOCUS_JS = (
     text: txt(l), shown: shown(l) && inReg(l.getBoundingClientRect()), group: g }));
   // A button's text beside the field can label it (G167: a "Search" button
   // by a search box); kept apart, it is not the field's own text (5.C).
+  // Only a button that acts on this field's form can label it: not one in
+  // another form or outside the field's form, and not a menu or disclosure
+  // button (a site header's "Explore" beside its search box; 5.A 1.2.0).
   const btns = [];
   for (const o of els) {
     if (o === el || !isBtn(o) || !shown(o) || !inReg(o.getBoundingClientRect())) continue;
+    if ((form && !form.contains(o)) || (o.form && o.form !== form) || isMenu(o)) continue;
     const t = txt(o) || o.value || '';
     if (t && !btns.includes(t)) btns.push(t);
   }
@@ -236,6 +257,10 @@ class Comp(BaseModel):
     aria_label: str = ""
     title: str = ""
     own_text: str = ""
+    menu: bool = False  # a menu or disclosure button (aria-expanded, aria-haspopup)
+    heading: str = (
+        ""  # an option's nearest visible heading in its form or section (5.C)
+    )
     table_headers: list[str] = Field(default_factory=list)
     list_text: list[str] = Field(default_factory=list)
     # With focus (data-entry fields only)

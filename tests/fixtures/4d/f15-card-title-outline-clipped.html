@@ -1,0 +1,15 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>F15 Missions</title>
+<style>
+  .card { width: 240px; margin: 16px; }
+  .card .pic { display: block; width: 240px; height: 120px; background: #ccd; }
+  .card a:focus { outline: 3px solid #0050d8; outline-offset: 2px; }
+  /* The title's own outline is clipped by its box; the card marks focus on
+     its picture instead, which is not part of the title. */
+  .card h3 { overflow: hidden; margin: 28px 0 0; font: 16px/22px sans-serif; }
+  .card h3 a { display: block; clip-path: inset(0); }
+  .card:focus-within .pic { box-shadow: 0 0 0 4px #0050d8; }
+</style></head><body>
+<h1>Missions</h1>
+<div class="card"><span class="pic" aria-hidden="true"></span><h3><a href="#m1">Apollo 11</a></h3></div>
+<p><a href="#more">More missions</a></p>
+</body></html>

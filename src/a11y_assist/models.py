@@ -278,7 +278,12 @@ class OpenQuestion(BaseModel):
     choices: list[str] = Field(
         default_factory=list, description='For kind "choice": the allowed answers.'
     )
-    instance: str = Field(description="The trap instance the question is about.")
+    instance: str = Field(description="The instance the question is about.")
+    also_instances: list[str] = Field(
+        default_factory=list,
+        description="Other instances the same answer is recorded for (one "
+        "question for a group of alike instances).",
+    )
     question: str
     rubric: str
     input: dict[str, Any] = Field(
@@ -288,6 +293,12 @@ class OpenQuestion(BaseModel):
     shared: list[str] = Field(
         default_factory=list,
         description="Keys of the result's shared_inputs this question uses.",
+    )
+    texts: str | None = Field(
+        default=None,
+        description="When set, this question's `question` and `rubric` are in "
+        "the result's question_texts under this key (given once for the "
+        "questions that share them).",
     )
 
 
@@ -425,6 +436,12 @@ class OtherPage(BaseModel):
     url: str
     final_url: str | None = None
     har: str = Field(description="HAR path relative to the run folder.")
+    reused_from: str | None = Field(
+        default=None,
+        description="When the recording was reused from an earlier call in "
+        "this server session instead of recorded again (pagecache.py): when "
+        "that recording was made (UTC).",
+    )
     cross_site_frames: list[str] = Field(
         default_factory=list,
         description="Frames on another host, seen while recording (URLs without "
@@ -449,6 +466,12 @@ class Report(BaseModel):
     final_url: str | None = None
     other_pages: list[OtherPage] = Field(
         default_factory=list, description="Other pages of the same site compared."
+    )
+    follow_up_calls: list[dict[str, Any]] = Field(
+        default_factory=list,
+        description="a11y_run_tt_tests calls that would let tests left for "
+        "review decide, as of the latest evaluation (kept for "
+        "a11y_run_status's list of outstanding work).",
     )
     live_pages: list[OtherPage] = Field(
         default_factory=list,
@@ -486,6 +509,35 @@ class Report(BaseModel):
 # ── Tool results ─────────────────────────────────────────────────────────────
 
 
+# Tool output stays small (post-round 1 fix 6b: NASA's Missions result was
+# about 51k tokens, over Claude Code's limit for one MCP result). The report
+# at report_uri keeps every sentence and row; a result shortens only these.
+SUMMARY_VIEW_MAX = 1500
+ROWS_VIEW_MAX = 40
+
+
+def _short_summary(text: str) -> str:
+    """The first sentences of a long summary, then how many more there are
+    (a page with 96 failing fields gives 96 alike sentences)."""
+    if len(text) <= SUMMARY_VIEW_MAX:
+        return text
+    cut = text.rfind(". ", 0, SUMMARY_VIEW_MAX)
+    cut = cut + 1 if cut > 0 else SUMMARY_VIEW_MAX
+    rest = text[cut:].count(". ") + 1
+    return (
+        text[:cut].rstrip()
+        + f" (And {rest} more sentence{'s' if rest != 1 else ''} like these: the "
+        "full summary is in the report at report_uri.)"
+    )
+
+
+def _short_rows(rows: list[str]) -> list[str]:
+    if len(rows) <= ROWS_VIEW_MAX:
+        return rows
+    keep = rows[: ROWS_VIEW_MAX - 1]
+    return keep + [f"... {len(rows) - len(keep)} more rows in the report"]
+
+
 class FindingView(BaseModel):
     """One TT test's result, as tool output."""
 
@@ -504,17 +556,42 @@ class FindingView(BaseModel):
     understanding: list[str] = Field(
         default_factory=list, description="W3C Understanding pages for the WCAG SCs."
     )
+    confirmed: str | None = Field(
+        default=None,
+        description=(
+            "FAIL only: the outcome stands on the instances the rules decided "
+            "(the rows); report it as a confirmed failure."
+        ),
+    )
+    unconfirmed: int = Field(
+        default=0,
+        description=(
+            "Open questions on this test not answered yet. In a FAIL they are "
+            "further instances that may or may not fail: report them apart "
+            "from the confirmed failure, never as failures."
+        ),
+    )
 
     @classmethod
-    def of(cls, f: Finding) -> FindingView:
+    def of(cls, f: Finding, report: Report | None = None) -> FindingView:
+        waiting = (
+            sum(1 for q in report.open_questions if q.test_id == f.test_id)
+            if report is not None
+            else 0
+        )
+        failed = f.outcome == Outcome.FAIL
         return cls(
+            confirmed=(
+                "Decided by the rules on the instances in rows." if failed else None
+            ),
+            unconfirmed=waiting,
             test_id=f.test_id.value,
             test_name=f.test_name,
             wcag_sc=f.test_id.wcag_sc,
             outcome=f.outcome,
-            summary=f.summary,
+            summary=_short_summary(f.summary),
             note=f.note,
-            rows=f.rows,
+            rows=_short_rows(f.rows),
             reference=f"tt://{_catalog.TT_VERSION}/tests/{f.test_id.value}",
             understanding=_catalog.understanding_urls(f.test_id.value),
         )
@@ -541,6 +618,20 @@ SHARED_DESC = (
 
 class RunResult(BaseModel):
     disclaimer: str = NOT_CERTIFIED_DISCLAIMER
+    status: Literal["done"] = "done"
+    next_step: str = Field(
+        default="",
+        description="What to do next: answer the open questions, or relay "
+        "the findings (NEEDS_REVIEW as needs review) and save the report.",
+    )
+    follow_up_calls: list[dict[str, Any]] = Field(
+        default_factory=list,
+        description="a11y_run_tt_tests arguments, ready to send as they are, "
+        "that let tests left for review decide (19.A with the pages it "
+        "suggests; a test left out over a cap, with no_time_limit). Make each "
+        "call yourself, without asking the user, after answering the open "
+        "questions, and replace those tests' results in the saved report.",
+    )
     run_id: str
     target: str
     final_url: str | None = None
@@ -563,6 +654,12 @@ class RunResult(BaseModel):
         default_factory=list,
         description="MCP resource URIs (run://...) for evidence files of this run.",
     )
+    question_texts: dict[str, dict[str, str]] = Field(
+        default_factory=dict,
+        description="The question and rubric that several open questions "
+        "share, once per result: a question whose `texts` names a key here "
+        "uses its question and rubric.",
+    )
     shared_inputs: dict[str, Any] = Field(default_factory=dict, description=SHARED_DESC)
     expires_at: datetime
     report_uri: str = Field(description="run:// resource holding the full report.")
@@ -579,14 +676,78 @@ class RunResult(BaseModel):
     untrusted_content_notice: str = UNTRUSTED_NOTICE
 
 
+class RunPending(BaseModel):
+    """A run that did not finish while the call waited (jobs.py). It goes
+    on in the server; a11y_run_status waits for it again."""
+
+    disclaimer: str = NOT_CERTIFIED_DISCLAIMER
+    status: Literal["queued", "running"] = Field(
+        description='"queued": waiting for a free browser slot (its time limit '
+        'has not started); "running": being tested.'
+    )
+    job_id: str = Field(description="Pass to a11y_run_status to wait again.")
+    target: str
+    seconds_waiting: float = Field(description="Seconds it waited for a slot.")
+    seconds_running: float = Field(description="Seconds since its run started.")
+    progress: str = Field(description="The phase it is in.")
+    next_step: str
+
+
+class OutstandingRun(BaseModel):
+    run_id: str
+    target: str
+    open_questions: int = Field(description="Questions still unanswered.")
+    tests_waiting: list[str] = Field(
+        default_factory=list, description="Tests those questions keep in review."
+    )
+    follow_up_calls: list[dict[str, Any]] = Field(default_factory=list)
+    report_uri: str
+
+
+class Outstanding(BaseModel):
+    """What is left across this server session's runs (a11y_run_status with
+    no job_id; the 2026-11-06 development run's debrief asked for it)."""
+
+    disclaimer: str = NOT_CERTIFIED_DISCLAIMER
+    status: Literal["outstanding"] = "outstanding"
+    runs: list[OutstandingRun] = Field(
+        default_factory=list,
+        description="Finished runs with open questions or follow-up calls left.",
+    )
+    running: list[dict[str, Any]] = Field(
+        default_factory=list, description="Runs still going: job_id, target, status."
+    )
+    done: int = Field(description="Finished runs with nothing left to do.")
+    next_step: str
+
+
 class AnswerResult(BaseModel):
     disclaimer: str = NOT_CERTIFIED_DISCLAIMER
+    next_step: str = Field(
+        default="",
+        description="What to do next: answer the open questions, or relay "
+        "the findings (NEEDS_REVIEW as needs review) and save the report.",
+    )
+    follow_up_calls: list[dict[str, Any]] = Field(
+        default_factory=list,
+        description="a11y_run_tt_tests arguments, ready to send as they are, "
+        "that let tests left for review decide (19.A with the pages it "
+        "suggests; a test left out over a cap, with no_time_limit). Make each "
+        "call yourself, without asking the user, after answering the open "
+        "questions, and replace those tests' results in the saved report.",
+    )
     run_id: str
     accepted: list[str]
     rejected: list[str]
     findings: list[FindingView]
     open_questions: list[OpenQuestion] = Field(default_factory=list)
     page_text: list[dict[str, str]] = Field(default_factory=list)
+    question_texts: dict[str, dict[str, str]] = Field(
+        default_factory=dict,
+        description="The question and rubric that several open questions "
+        "share, once per result: a question whose `texts` names a key here "
+        "uses its question and rubric.",
+    )
     shared_inputs: dict[str, Any] = Field(default_factory=dict, description=SHARED_DESC)
     report_uri: str = Field(description="run:// resource holding the full report.")
     pre_scrt_uri: str = Field(

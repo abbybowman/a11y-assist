@@ -354,3 +354,33 @@ def test_scoring_a_tool_file_against_a_persons_file(tmp_path):
     assert v["4.B"] is Verdict.NOT_SCORED
     assert [t.test.test_id for t in s.disagreements()] == ["1.A"]
     assert rates(s.counts)["false PASS"] == "1"
+
+
+def test_a_lock_scores_on_a_clone_without_the_ignored_recordings(tmp_path):
+    """Post-round 1 fix 20: the lock hashes files git keeps strictly, and
+    files it ignores (recordings, kept in an archive) only where present,
+    so a round locked on one machine scores on another clone."""
+    import subprocess
+
+    def git(*a, cwd):
+        subprocess.run(["git", *a], cwd=cwd, check=True, capture_output=True)
+
+    rd = _round(tmp_path)
+    git("init", "-q", cwd=tmp_path)
+    (tmp_path / ".gitignore").write_text("*.har.zip\n")
+    rec = rd / "results" / "p01" / "page.har.zip"
+    rec.write_bytes(b"recording")
+    judging.lock(rd)
+    lk = json.loads((rd / "results" / "lock.json").read_text())
+    assert "results/p01/page.har.zip" in lk["ignored"]
+    assert "results/p01/page.har.zip" not in lk["files"]
+    _reveal(rd)
+    rec.unlink()  # another clone: the archive is not restored
+    judging.score(rd)
+    rec.write_bytes(b"changed")  # restored, but not the locked copy
+    with pytest.raises(judging.JudgingError, match="Archived files that differ"):
+        judging.score(rd)
+    rec.write_bytes(b"recording")
+    (rd / "results" / "p01" / "extra.har.zip").write_bytes(b"new")
+    with pytest.raises(judging.JudgingError, match="Archived files that differ"):
+        judging.score(rd)

@@ -43,7 +43,14 @@ sys.path.insert(0, str(REPO))
 
 from a11y_assist import scrt  # noqa: E402
 from a11y_assist.compare import compare, page_key  # noqa: E402
-from evals.scoring import SEVERITY, Score, ScoredTest, rates, totals  # noqa: E402
+from evals.scoring import (  # noqa: E402
+    SEVERITY,
+    Score,
+    ScoredTest,
+    adjudications,
+    rates,
+    totals,
+)
 from evals.scoring import score as score_page  # noqa: E402
 
 MAX_ROUNDS = 3
@@ -277,6 +284,37 @@ def _result_files(rd: Path) -> dict[str, str]:
     }
 
 
+def _ignored(rd: Path, names: list[str]) -> set[str]:
+    """The names (relative to rd) git ignores: recordings and screenshots kept
+    in an archive, not in the repository (post-round 1 fix 20). Outside a git
+    repository, none."""
+    if not names:
+        return set()
+    try:
+        got = subprocess.run(
+            ["git", "check-ignore", "--stdin", "-z"],
+            cwd=rd,
+            input="\0".join(names) + "\0",
+            capture_output=True,
+            text=True,
+        )
+    except OSError:
+        return set()
+    if got.returncode not in (0, 1):  # 1: none ignored; 128: not a repository
+        return set()
+    return {x for x in got.stdout.split("\0") if x}
+
+
+def _split(rd: Path) -> tuple[dict[str, str], dict[str, str]]:
+    """(files git keeps, files git ignores), each name -> SHA-256."""
+    allf = _result_files(rd)
+    ign = _ignored(rd, list(allf))
+    return (
+        {k: v for k, v in allf.items() if k not in ign},
+        {k: v for k, v in allf.items() if k in ign},
+    )
+
+
 def lock(rd: Path) -> Path:
     state = _state(rd)
     pages = _pages(rd)
@@ -299,10 +337,15 @@ def lock(rd: Path) -> Path:
         "code_commit": _git_commit(),
         "pages_txt": sha256(rd / "pages.txt"),
         "code": {c: sha256(REPO / c) for c in CODE},
-        "files": _result_files(rd),
     }
+    # Files git keeps must match on any clone; files it ignores (an
+    # archive's recordings) are checked wherever they are present.
+    data["files"], data["ignored"] = _split(rd)
     out.write_text(json.dumps(data, indent=1) + "\n")
-    print(f"Locked {len(data['files'])} files. Commit {out} before any answer key.")
+    print(
+        f"Locked {len(data['files'])} files and {len(data['ignored'])} the "
+        f"repository ignores. Commit {out} before any answer key."
+    )
     return out
 
 
@@ -313,8 +356,19 @@ def _verify(rd: Path) -> dict:
     lk = json.loads(f.read_text())
     if sha256(rd / "pages.txt") != lk["pages_txt"]:
         raise JudgingError("pages.txt changed after the lock")
-    if _result_files(rd) != lk["files"]:
-        raise JudgingError("Result files changed after the lock")
+    if "ignored" not in lk:  # locked before fix 20: every file, as then
+        if _result_files(rd) != lk["files"]:
+            raise JudgingError("Result files changed after the lock")
+    else:
+        kept, ignored = _split(rd)
+        if kept != lk["files"]:
+            raise JudgingError("Result files changed after the lock")
+        bad = [k for k, h in ignored.items() if lk["ignored"].get(k) != h]
+        if bad:
+            raise JudgingError(
+                f"Archived files that differ from the lock: {bad[:5]}"
+                + (f" and {len(bad) - 5} more" if len(bad) > 5 else "")
+            )
     changed = [c for c, h in lk["code"].items() if sha256(REPO / c) != h]
     if changed:
         raise JudgingError(
@@ -369,7 +423,10 @@ def score(rd: Path) -> dict:
             )
             comparisons.append((pid, url, None, why))
             continue
-        c = score_page(compare(ref, scrt.parse(cand.read_text("utf-8"))))
+        c = score_page(
+            compare(ref, scrt.parse(cand.read_text("utf-8"))),
+            adjudications(rd).get(page_key(url)),
+        )
         comparisons.append((pid, url, c, ""))
     done = [c for _, _, c, _ in comparisons if c]
     tot = totals(done)

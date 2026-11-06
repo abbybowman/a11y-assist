@@ -52,6 +52,24 @@ EXPECTED: dict[str, dict] = {
     },
     # Focus reads "Step 3, Step 4, Step 1, Step 2": numbered steps out of
     # sequence (was "unsure"; the judge eval's agent was right, Abby 2026-10-31).
+    # Post-round 1 fix 16: a site overlay (role=dialog, aria-modal) that
+    # shows itself is not the dialog the menu button opened (it names its
+    # list with aria-controls), so Tab leaving it is not M2. The overlay sits
+    # between the button and its menu, so Tab after opening the menu lands
+    # in the overlay: J1 decides (judge eval run 18: does_not_preserve, which
+    # a careful tester would say too).
+    "f16-site-overlay-not-the-menu": {
+        "outcome": "FAIL",
+        "choice": "does_not_preserve",
+        "signals": {"S6"},
+    },
+    # Post-round 1 fix 16 (4.F 1.2.0's rubric): a card grid read row by row,
+    # each card's image link then its title link, preserves meaning.
+    "f17-card-grid-row-by-row": {"outcome": "PASS", "choice": "preserves"},
+    # Post-round 1 fix 16 (1.2.0): filter boxes drawn apart from their
+    # labels are placed by their labels, so a one-column list raises no
+    # order signal.
+    "f18-filter-boxes-drawn-apart": {"outcome": "PASS", "rows": ["M4"]},
     "f15-columns-arbitrary": {
         "outcome": "FAIL",
         "choice": "does_not_preserve",

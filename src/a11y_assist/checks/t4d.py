@@ -77,7 +77,12 @@ SNAP_FN = """function (useActive, itemId) {
   const tag = el.tagName.toLowerCase(), type = (el.type || '').toLowerCase();
   const textLike = tag === 'textarea' || el.isContentEditable || (tag === 'input' &&
     !['button','submit','reset','image','checkbox','radio','range','color','file','hidden'].includes(type));
-  return { parts, editable: textLike && !el.readOnly && !el.disabled,
+  // Whether the element is on top at its own centre (1.2.0): not covered by
+  // a fixed header, an overlay or a player's controls.
+  const r0 = el.getBoundingClientRect();
+  const top = doc.elementFromPoint(r0.x + r0.width / 2, r0.y + r0.height / 2);
+  const hit = !!top && (top === el || el.contains(top));
+  return { parts, hit, editable: textLike && !el.readOnly && !el.disabled,
     caret: getComputedStyle(el).caretColor,
     activedescendant: this.hasAttribute('aria-activedescendant'),
     subject_id: el === this ? null : (el.id || null),
@@ -226,6 +231,7 @@ class FocusHook:
             "caret": snap["caret"],
             "activedescendant": snap["activedescendant"],
             "is_frame": snap["is_frame"],
+            "hit": snap.get("hit"),
             "dpr": view[4],
         }
         if clip is None:
@@ -304,6 +310,13 @@ class FocusHook:
             c["pseudo"] = [p for p in c["pseudo"] if (c["index"], p) not in noisy]
             if c["props"] or c["pseudo"]:
                 c["rect"] = prev["parts"][c["index"]]["rect"]
+                # The values of the indicator properties, on and off (1.2.0):
+                # whether the on style draws something (_draws).
+                on_s = prev["snap"]["parts"][c["index"]]["style"]
+                off_s = off["parts"][c["index"]]["style"]
+                if any(x.startswith(INDICATOR_PROPS) for x in c["props"]):
+                    c["on"] = {x: on_s.get(x) for x in INDICATOR_VALUES}
+                    c["off"] = {x: off_s.get(x) for x in INDICATOR_VALUES}
                 changed.append(c)
         out["changed"] = changed
         a0, b0 = prev["snap"]["parts"][0]["rect"], off["parts"][0]["rect"]
@@ -672,8 +685,79 @@ def _best(inst: Inst4D) -> Attempt | None:
         if (a.mask_fraction or 0) > MASK_MAX_FRACTION:
             e["incomplete"] = "the next element covers it"
             continue
+        if a.changed_px < MIN_CHANGED_PX and e.get("hit") is True and _draws(e):
+            # The focus style draws an outline or a shadow and the element
+            # is on top at its centre, yet nothing changed where it is:
+            # clipped, or drawn elsewhere (a card around it). A covered
+            # element (a fixed header over it, F07) still fails. No clear view, not "nothing
+            # changed" (1.2.0; post-round 1 fix 11: NASA's card titles and
+            # a video player's controls failed at 0 px).
+            e["incomplete"] = (
+                "its focus style draws an outline or a shadow that our "
+                "pictures did not show where it is"
+            )
+            continue
+        if e.get("moved") and a.changed_px < MIN_CHANGED_PX:
+            # The page moved it between its measure and the pictures (a
+            # layout shift), so the region compared was not where it was
+            # drawn: no clear view, not "nothing changed" (1.2.0; post-round
+            # 1 fix 11: NASA's Artemis III links failed at 0 px this way).
+            e["incomplete"] = "it moved on the page while we took the pictures"
+            continue
         return a
     return None
+
+
+INDICATOR_PROPS = ("outline", "box-shadow", "border")
+INDICATOR_VALUES = [
+    "outline-style",
+    "outline-width",
+    "outline-color",
+    "box-shadow",
+    *(
+        f"border-{x}-{k}"
+        for x in ("top", "right", "bottom", "left")
+        for k in ("width", "color")
+    ),
+]
+
+
+def _px(v: str | None) -> float:
+    try:
+        return float((v or "0").removesuffix("px"))
+    except ValueError:
+        return 0.0
+
+
+def _seen_color(v: str | None) -> bool:
+    v = (v or "").replace(" ", "")
+    return bool(v) and v != "transparent" and not v.endswith(",0)")
+
+
+def _draws(e: dict[str, Any]) -> bool:
+    """Whether a changed part's focus (on) style draws an outline, a shadow
+    or a wider border, in a property that changed with focus: what
+    `outline: none` never does. Evidence from before 1.2.0 has no values:
+    False."""
+    for c in e.get("changed", []):
+        on, off = c.get("on") or {}, c.get("off") or {}
+        props = c.get("props", [])
+        if (
+            any(k.startswith("outline") for k in props)
+            and on.get("outline-style") not in (None, "none", "hidden")
+            and _px(on.get("outline-width")) > 0
+            and _seen_color(on.get("outline-color"))
+        ):
+            return True
+        if "box-shadow" in props and on.get("box-shadow") not in (None, "", "none"):
+            return True
+        for side in ("top", "right", "bottom", "left"):
+            k = f"border-{side}-width"
+            if _px(on.get(k)) > _px(off.get(k)) and _seen_color(
+                on.get(f"border-{side}-color")
+            ):
+                return True
+    return False
 
 
 def _style_signal(e: dict[str, Any]) -> bool:

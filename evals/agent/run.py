@@ -64,6 +64,16 @@ HELPER = {
     },
 }
 
+DEBRIEF = (
+    "This is a follow-up for the people building the tools you used, not "
+    "part of the task, and it changes no result. Answer briefly and "
+    "honestly: did you leave any of the tools' open questions unanswered, or "
+    "skip any call the results asked you to make (follow_up_calls, "
+    "no_time_limit, other pages)? For each, why: for example time, cost, the "
+    "number of questions, unclear instructions, not believing it would help, "
+    "or not noticing. What would have made you do it?"
+)
+
 LEAK_QUESTION = (
     "Before the task: answer from your context only, not general knowledge, "
     "as one line of JSON with these keys: "
@@ -297,6 +307,22 @@ def leak_values() -> list[str]:
     return [v for v in vals if v]
 
 
+def _without_server_instructions(got: dict) -> dict:
+    """The answer without entries that only name an attached MCP server's own
+    instructions: Agent A is meant to see its server's (which name Trusted
+    Tester); a leak is what the user, this repo or memory told it. The
+    2026-11-05 development run stopped on "MCP server instructions for the
+    a11y server (Trusted Tester 5.1.3 tools)"."""
+    if not isinstance(got, dict) or not isinstance(got.get("instructions"), list):
+        return got
+    keep = [
+        i
+        for i in got["instructions"]
+        if not (isinstance(i, str) and "mcp server instructions" in i.lower())
+    ]
+    return {**got, "instructions": keep}
+
+
 async def leak_check(provider, log: StepLog, servers: list[Server]) -> dict:
     """The arm's context before the task holds nothing of the user, this
     repo or its memory (plan section 7.2). On the CLI route the arm's
@@ -319,7 +345,7 @@ async def leak_check(provider, log: StepLog, servers: list[Server]) -> dict:
         got = json.loads(text[text.index("{") : text.rindex("}") + 1])
     except ValueError:
         got = {"unparsed": text}
-    said = json.dumps(got).lower()
+    said = json.dumps(_without_server_instructions(got)).lower()
     hits = [v for v in leak_values() if v in said]
     out = {"answer": got, "leaked": hits, "usage": usage, "model": model, **extra}
     log.add(type="leak_check", seconds=round(time.monotonic() - t0, 3), **out)
@@ -443,6 +469,8 @@ async def _run_arm(
             agent.totals, agent.models = res["tokens"], set(res["models"])
             agent.tool_calls = res["tool_calls"]
             agent.transcripts = res["transcript"]
+            if res.get("debrief") is not None:
+                (out / "debrief.md").write_text(res["debrief"] + "\n", "utf-8")
             for k in (
                 "init",
                 "model_usage",
@@ -510,10 +538,21 @@ def main(argv: list[str]) -> None:
         action="store_true",
         help="cli route only: deny the CLI's own subagent tool",
     )
+    ap.add_argument(
+        "--debrief",
+        action="store_true",
+        help="development runs only: after the final answer, ask the agent "
+        "(tools off) why it left questions or follow-up calls undone; saved "
+        "to debrief.md, never scored",
+    )
     ap.add_argument("round", type=Path)
     a = ap.parse_args(argv)
     provider = (
-        ClaudeCodeCLI(a.model, no_subagents=a.no_subagents)
+        ClaudeCodeCLI(
+            a.model,
+            no_subagents=a.no_subagents,
+            debrief=DEBRIEF if a.debrief else None,
+        )
         if a.route == "cli"
         else AnthropicMessages.from_env()
     )

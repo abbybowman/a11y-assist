@@ -1,7 +1,7 @@
 ---
 tt_test: 5.G
 tt_name: 3.3.3-error-suggestion
-spec_version: 1.1.0
+spec_version: 1.2.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -20,7 +20,7 @@ The tool gives each page one 5.G outcome: PASS, FAIL, DOES NOT APPLY or NEEDS RE
 
 | # | Evidence | Outcome | Source |
 | --- | --- | --- | --- |
-| A1 | 5.F's section 1 gives DOES NOT APPLY or NEEDS REVIEW | The same outcome, for the same reason | p. 28 Identify Content ("DOES NOT APPLY: 5.F and 5.G"); p. 29 HtT 1 |
+| A1 | 5.F's section 1 gives DOES NOT APPLY or NEEDS REVIEW (including 5.F's A3s, a site search that was sent: DOES NOT APPLY with 5.F's sentence, 1.2.0) | The same outcome, for the same reason | p. 28 Identify Content ("DOES NOT APPLY: 5.F and 5.G"); p. 29 HtT 1 |
 | A2 | Otherwise | Applies; go to section 3 | |
 
 ## 2. Evidence to collect

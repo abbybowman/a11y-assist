@@ -77,12 +77,12 @@ test's leftovers are under "Per-test leftovers" below.
   G3). 5.G's N1 reads 5.F's pass, so it shares the gap. Fix in the code
   (the spec is right), with a fixture whose error text appears after the
   settle window; it can move outcomes toward NEEDS REVIEW only.
-- **Fixes found in agent eval round 1:** 20 fixes, ranked, in
-  [plans/2026-11-04-post-round1-fixes.md](plans/2026-11-04-post-round1-fixes.md),
-  including MCP clients' tool timeouts (fix 2) and pages over the time
-  limit (fix 5). Make them before the next round. Abby answered the open
-  questions on 2026-11-05: fixes 17 and 18 are decided, and fix 16 is the
-  tool's.
+- **Fixes found in agent eval round 1:** 20 fixes, all built, in
+  [plans/2026-11-04-post-round1-fixes.md](plans/2026-11-04-post-round1-fixes.md)
+  (PR #14), including MCP clients' tool timeouts as long polling (fix 2: a
+  call waits 45 s, then `a11y_run_status`; at most 2 runs at once) and
+  pages over the time limit (fix 5). Left: shared job state for a hosted,
+  multi-worker server; the agent's follow-through is the next plan.
 - **`tt.json` steps for 7.C and 16.B.** Each repeats the previous
   test's "How to Test" (the same PDF heading trap that scrambled 9.B, fixed
   2026-11-02; `tests/test_tt_source.py`). Fix each from its printed pages

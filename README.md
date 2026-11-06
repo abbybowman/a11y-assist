@@ -46,20 +46,20 @@ Details: [round 1](evals/agent/README.md#results);
 | 4.A | 2.1.1-keyboard-access | 2.1.1 | [1.2.1](docs/rules/4a-keyboard-access.md) | ⚠️ Mostly undecided: embedded frames and time limits. Agrees where decided |
 | 4.B | 2.1.1-no-keystroke-timing | 2.1.1 | [1.2.0](docs/rules/4b-no-keystroke-timing.md) | 🟢 Sure and accurate |
 | 4.C | 2.1.2-no-keyboard-trap | 2.1.2 | [1.8.0](docs/rules/4c-no-keyboard-trap.md) | 🟢 Sure and accurate |
-| 4.D | 2.4.7-focus-visible | 2.4.7 | [1.1.1](docs/rules/4d-focus-visible.md) | ⚠️ Finds real failures, but some false FAILs on elements whose screenshots differ by 0 px (being fixed) |
+| 4.D | 2.4.7-focus-visible | 2.4.7 | [1.2.0](docs/rules/4d-focus-visible.md) | ⚠️ Finds real failures, but some false FAILs on elements whose screenshots differ by 0 px. An element the page moved while it was pictured, or whose focus style draws something the pictures miss, is now left for review; on the frozen pages Careers and Missions have no 0 px FAIL left (fixed after round 1; a video player button on Artemis III still fails) |
 | 4.E | 3.2.1-on-focus | 3.2.1 | [1.1.0](docs/rules/4e-on-focus.md) | 🟢 Sure and accurate |
-| 4.F | 2.4.3-focus-order-meaning | 2.4.3 | [1.1.3](docs/rules/4f-focus-order-meaning.md) | ⚠️ Mostly undecided ("unsure" answers); two false FAILs from a card grid and a dropdown (being fixed) |
-| 5.A | 3.3.2-label-provided | 3.3.2 | [1.1.0](docs/rules/5a-label-provided.md) | 🟢 Sure and accurate once the agent answers its question |
-| 5.B | 2.4.6-label-descriptive | 2.4.6 | [1.1.0](docs/rules/5b-label-descriptive.md) | ⚠️ Passes where a placeholder-only field should make it Does Not Apply (being fixed) |
-| 5.C | 1.3.1-programmatic-label | 1.3.1, 4.1.2 | [1.1.0](docs/rules/5c-programmatic-label.md) | ⚠️ About half decided; agrees where decided |
-| 5.D | 3.2.2-on-input | 3.2.2 | [1.0.0](docs/rules/5d-on-input.md) | 🟢 Mostly sure and accurate. Missed a fail when 96 identical questions went unanswered (being fixed) |
-| 5.F | 3.3.1-error-identification | 3.3.1 | [1.1.0](docs/rules/5f-error-identification.md) | ⚠️ Undecided on every page: a site search has no errors to check (being fixed) |
-| 5.G | 3.3.3-error-suggestion | 3.3.3 | [1.1.0](docs/rules/5g-error-suggestion.md) | ⚠️ Undecided on every page, as 5.F (being fixed) |
+| 4.F | 2.4.3-focus-order-meaning | 2.4.3 | [1.2.0](docs/rules/4f-focus-order-meaning.md) | ⚠️ Mostly undecided ("unsure" answers); two false FAILs from a card grid and a dropdown. A site overlay is no longer taken for the dialog a menu opened (part fixed after round 1, not yet re-measured) |
+| 5.A | 3.3.2-label-provided | 3.3.2 | [1.2.0](docs/rules/5a-label-provided.md) | 🟢 Sure and accurate once the agent answers its question; a site header's menu button no longer counts as a search box's label (fixed after round 1, not yet re-measured) |
+| 5.B | 2.4.6-label-descriptive | 2.4.6 | [1.2.0](docs/rules/5b-label-descriptive.md) | ⚠️ Passed where a placeholder-only field should make it Does Not Apply: header menu buttons were judged as a form (fixed after round 1, not yet re-measured) |
+| 5.C | 1.3.1-programmatic-label | 1.3.1, 4.1.2 | [1.3.0](docs/rules/5c-programmatic-label.md) | ⚠️ About half decided; agrees where decided. Groups of checkboxes under different headings that announce none of them now fail (NASA's Missions, as the tester found; not yet re-measured) |
+| 5.D | 3.2.2-on-input | 3.2.2 | [1.1.0](docs/rules/5d-on-input.md) | 🟢 Mostly sure and accurate. Missed a fail when 96 identical questions went unanswered; alike fields are now asked once (fixed after round 1, not yet re-measured) |
+| 5.F | 3.3.1-error-identification | 3.3.1 | [1.2.0](docs/rules/5f-error-identification.md) | ⚠️ Undecided on every page: a site search has no errors to check. Now Does Not Apply for a site search (fixed after round 1, not yet re-measured) |
+| 5.G | 3.3.3-error-suggestion | 3.3.3 | [1.2.0](docs/rules/5g-error-suggestion.md) | ⚠️ Undecided on every page, as 5.F (fixed as 5.F, not yet re-measured) |
 | 5.H | 3.3.4-error-prevention | 3.3.4 | [1.1.0](docs/rules/5h-error-prevention.md) | 🟢 Sure and accurate once the agent answers its question |
 | 9.A | 2.4.1-bypass-function | 2.4.1 | [1.0.0](docs/rules/9a-bypass.md) | 🟢 Sure and accurate: found the failure on 8 of 9 pages and left the ninth for a person |
 | 9.B | 3.2.3-consistent-navigation | 3.2.3 | [1.0.0](docs/rules/9b-consistent-navigation.md) | 🟢 Sure and accurate |
 | 9.C | 3.2.4-consistent-identification | 3.2.4 | [1.1.0](docs/rules/9c-consistent-identification.md) | 🟢 Sure and accurate once the agent answers its questions |
-| 19.A | 2.4.5-multiple-ways | 2.4.5 | [1.1.0](docs/rules/19a-multiple-ways.md) | ⚠️ Undecided on every page: needs more pages of the site (being fixed) |
+| 19.A | 2.4.5-multiple-ways | 2.4.5 | [1.1.1](docs/rules/19a-multiple-ways.md) | ⚠️ Undecided on every page: needs more pages of the site. It now tells the agent to add the pages it suggests itself (fixed after round 1, not yet re-measured) |
 
 ## Tools
 
@@ -67,6 +67,7 @@ Details: [round 1](evals/agent/README.md#results);
 | --- | --- | --- |
 | `a11y_run_tt_tests` | Tests one page. It records the page once, runs the chosen TT tests on the recording, and returns findings, open questions for your agent, and links to the full report and pre-SCRT file. | `url` (`.gov` and `.mil` by default); `tests` (default: all implemented); `other_pages` (1-5 pages of the same site, for 9.A-9.C and 19.A); `no_time_limit` |
 | `a11y_answer_questions` | Records answers to the open questions and decides again by the spec. A person's answer overrides the agent's. | `run_id`; `answers` (one per question) |
+| `a11y_run_status` | Waits for a run that was still going when its call returned, and gives its result. Without `job_id`: what is left across the session's runs (open questions, follow-up calls, runs still going). | `job_id` (optional) |
 | `a11y_read_report` | Reads an SCRT or pre-SCRT file: what failed and what still needs a person. With `compare_to`, it lists every test whose result differs between two files (for example, before and after a fix). | `content`; `compare_to` |
 
 **Also:**
@@ -76,26 +77,30 @@ Details: [round 1](evals/agent/README.md#results);
 
 ## How long it takes
 
-- **One call:** at most 120 s, plus 20 s for each other page, plus 45 s
+- **One run:** at most 10 min (`RUN_LIMIT_S`, 600 s), plus 20 s for each other page, plus 45 s
   when something on the page keeps changing by itself (a ticker, a
   carousel: every key press waits longer there, and Test 2 tries its
   controls). On
-  www.nasa.gov, calls with 3 other pages took 2-3 minutes. Tests not
+  www.nasa.gov, runs with 3 other pages took 2-3 minutes. Tests not
   finished in time come back NEEDS REVIEW, with the reason.
-- **Large pages:** a page too large to finish in time (more than 40 form
-  fields, or too many stops to Tab through) is refused at once. Call
-  again with `no_time_limit: true` and expect 15-20 minutes.
+- **One call:** at most 45 s (`CALL_WAIT_S`), under common MCP client
+  timeouts. A run not done by then goes on in the server: the result says
+  `"status": "running"` with a `job_id`, and `a11y_run_status` waits for it
+  again until `"status": "done"`. So you no longer need to raise your
+  client's tool timeout (Claude Code's is 60 s, `MCP_TOOL_TIMEOUT`), and
+  Claude Code's move of calls longer than 120 s to the background
+  (`CLAUDE_CODE_MCP_AUTO_BACKGROUND_MS`) no longer applies.
+- **Large pages:** a page with too many stops to Tab through is refused at
+  once; one with more than 40 form fields is tested without 5.D, and 5.D's
+  finding gives the call that runs it. Call again with `no_time_limit:
+  true` and expect 15-20 minutes of `a11y_run_status` calls.
 - **Answering:** under a second, unless the server has to press a key in
   the recorded page to check an answer.
-- **Your client:**
-  - Raise its MCP tool timeout. Claude Code's was 60 s in our tests: set
-    `MCP_TOOL_TIMEOUT` (ms).
-  - Claude Code also moves calls longer than 120 s to the background
-    (`CLAUDE_CODE_MCP_AUTO_BACKGROUND_MS`).
-- **Batches:** test a few pages at a time. Each call gets its own browser,
-  and a second, headless one that watches the page for Test 2 (the
-  concurrency figures below were measured before it was added).
-  On a 4-CPU machine, 3 at once ran normally, and 12 at once timed out.
+- **Batches:** the server tests 2 pages at a time (`MAX_CONCURRENT_RUNS`);
+  more wait in a queue, and a run's time limit starts only when it leaves
+  the queue. Each run gets its own browser, and a second, headless one
+  that watches the page for Test 2. On a 4-CPU machine, 3 at once ran
+  normally and 12 at once timed out (measured before the second browser).
 
 ## Use it
 
@@ -181,6 +186,9 @@ Save the report in your repository: a run's files expire after 24 hours.
 
 **Settings** come from the environment or `.env` (`.env.example`):
 - `ALLOWED_DOMAINS`, `RUN_LIMIT_S` and `OTHER_PAGE_S`;
+- `CALL_WAIT_S` and `MAX_CONCURRENT_RUNS`;
+- `PAGE_CACHE_S` (default 1800): how long an other page's recording, and
+  its reads, are reused by later calls of the same server session;
 - `BROWSER_CHANNEL` and `HEADLESS`;
 - `DEV_MODE` (allows `file://` pages);
 - `UPSTREAM_PROXY`, for containers that re-sign TLS.

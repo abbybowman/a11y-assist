@@ -83,9 +83,12 @@ class Settings(BaseSettings):
     # no_time_limit, the user's choice when a file was over it).
     media_cap_mb: float | None = Field(default=50, gt=0)
     media_cap_s: float | None = Field(default=15, gt=0)
-    # Wall clock for one a11y_run_tt_tests call: short enough for HTTP proxies when
-    # hosted. Tests not finished in time are NEEDS_REVIEW with the reason.
-    run_limit_s: int = Field(default=120, ge=10)
+    # Wall clock for one run. Tests not finished in time are NEEDS_REVIEW
+    # with the reason. 600 s since long polling (Abby, 2026-11-05): a call
+    # no longer waits for the whole run (call_wait_s), so the limit no
+    # longer has to fit client and proxy timeouts; it was 120 s, and the
+    # time limit was the largest loss left after the post-round 1 fixes.
+    run_limit_s: int = Field(default=600, ge=10)
     # Seconds the run limit grows by for each other page of the same site the
     # caller names (9.A-9.C: recording it and reading it; Abby, 2026-11-02).
     other_page_s: int = Field(default=20, ge=5)
@@ -93,6 +96,19 @@ class Settings(BaseSettings):
     # ticker, a carousel), added once pass T finds it (Abby, 2026-11-04, T1
     # (a)): every key press waits longer there, and 2.A-2.C probe it.
     moving_allowance_s: int = Field(default=45, ge=0, le=300)
+    # How long one tool call waits for its run before it returns the job id
+    # and progress (post-round 1 fixes 2 and 5, option C): under the common
+    # 60 s MCP client timeout. The run goes on; a11y_run_status waits again.
+    call_wait_s: int = Field(default=45, ge=1, le=600)
+    # Browser runs one server does at once. A run waiting for a slot does not
+    # use its own time limit (round1-answers: 12 at once overloaded 4 CPUs).
+    max_concurrent_runs: int = Field(default=2, ge=1, le=32)
+    # Finished jobs kept in memory for a11y_run_status (the run folder is kept
+    # for run_ttl_hours either way).
+    job_keep_s: int = Field(default=86400, ge=60)
+    # An other page's recording, and its reads, reused for this long within
+    # one server session (pagecache.py); 0 turns the cache off.
+    page_cache_s: int = Field(default=1800, ge=0)
     runs_dir: Path = REPO_ROOT / "runs"
     # Runs are working files, not an archive: deleted after this many hours.
     # Durable results belong in the user's codebase (saved from tool output).

@@ -27,6 +27,12 @@ jobs:
       - name: Install Playwright Chromium
         run: uv run playwright install --with-deps chromium
 
+      # Playwright MCP, pinned by its lockfile, for Agent B's browser tests
+      # (test_agent_freeze, test_agent_run); without it they are skipped
+      # (post-round 1 fix 3). Node is on GitHub's runners.
+      - name: Install Playwright MCP (agent eval baseline)
+        run: npm ci --prefix evals/agent/node
+
       - name: Lint
         run: uv run ruff check .
 

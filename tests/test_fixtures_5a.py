@@ -129,6 +129,34 @@ EXPECTED: dict[str, dict] = {
         "5.A": {"outcome": "PASS", "rows": ["M4"], "answers": labeled("Search")},
         "5.C": {"outcome": "PASS", "rows": ["M5", "M5"]},
     },
+    # Post-round 1 fix 10: a header's menu button beside a placeholder-only
+    # search box does not label it (5.A 1.2.0): M3, no question. Its name
+    # comes from a hidden <label>, so screen readers announce "Search".
+    "f18-header-menu-beside-search": {
+        "5.A": {"outcome": "FAIL", "rows": ["M3"]},
+        "5.C": {"outcome": "PASS", "rows": ["M5", "M5", "M5"]},
+    },
+    # Post-round 1 (5.C 1.2.0): three filter boxes whose only gap is the
+    # set's question (a heading, not announced): one J1 for the set, its
+    # answer recorded for each box. Judge eval run 22's agent answered
+    # missing "Mission status": the heading is the set's question (TT 5.C
+    # Note 4), and since 1.3.0 a quote from the heading over an option
+    # passes M7's check (Abby, 2026-11-06).
+    "f19-filter-boxes-under-heading": {
+        "5.A": {"outcome": "PASS", "rows": ["M2", "M2", "M2"]},
+        "5.C": {
+            "outcome": "FAIL",
+            "rows": ["M7", "M7", "M7"],
+            "answers": missing("Mission status"),
+        },
+    },
+    # 5.C 1.3.0 (Abby, 2026-11-06; NASA's Missions filters): two groups of
+    # boxes under two headings share one field name and no group label, so
+    # screen readers hear one flat list: FAIL without a question (M3s).
+    "f20-filter-groups-one-name": {
+        "5.A": {"outcome": "PASS", "rows": ["M2", "M2", "M2", "M2"]},
+        "5.C": {"outcome": "FAIL", "rows": ["M3s", "M3s", "M3s", "M3s"]},
+    },
     # Each option's words are beside it but not connected: a person looks
     # (5.A J1); screen readers announce only the question (5.C).
     "f17-option-text-not-connected": {
@@ -197,3 +225,22 @@ async def test_outcome(name, settings, server, drafts):  # noqa: F811
             e[t]["outcome"],
             e[t]["rows"],
         ), (t, f.rationale, f.summary)
+
+
+async def test_options_of_one_set_are_asked_about_once(settings, server, drafts):  # noqa: F811
+    """5.C 1.2.0 (post-round 1: a NASA page asked 56 alike questions, one
+    per filter box, and the agent answered none of them)."""
+    out = await run_tt_tests(
+        settings,
+        f"{server.base}/5a/f19-filter-boxes-under-heading.html",
+        [TestId.T5C],
+    )
+    qs = [q for q in out.report.open_questions if q.test_id is TestId.T5C]
+    assert len(qs) == 1, [q.question_id for q in qs]
+    [q] = qs
+    assert len(q.also_instances) == 2
+    assert [c["visible"] for c in q.input["components"]] == [
+        ["Active"],
+        ["Future"],
+        ["Past"],
+    ]

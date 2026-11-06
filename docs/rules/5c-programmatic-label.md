@@ -1,7 +1,7 @@
 ---
 tt_test: 5.C
 tt_name: 1.3.1-programmatic-label
-spec_version: 1.1.0
+spec_version: 1.3.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -47,12 +47,13 @@ Each form component is an *instance*.
 | M1 | The component could not be read | NEEDS REVIEW | Spec rule |
 | M2 | ANDI did not analyse the component (no ANDI output) | NEEDS REVIEW | p. 26 HtT 2–3 |
 | M3 | The programmatic text is empty (no name, no description, no group label, no table header, no list context) | FAIL | p. 27 ER 1–4 (nothing describes it); F68; Baseline 10.A check 1; TC10.A-1-fail-1, TC10.E-1-fail-1 |
+| M3s | Radio buttons or checkboxes of one set (the same field name) sit under two or more different visible headings (an option's *heading*: the nearest visible heading, h1–h6 or role heading, before it in its form, or else in its section or landmark), and this option's announced text does not include its heading | FAIL: screen readers hear one list of choices and cannot tell which group, which question, each belongs to (1.3.0) | p. 27 Note 4 ("radio buttons and checkboxes should be programmatically associated with their question and response"), Note 5 (section headings "when there is significant risk of confusion"); H71; ARIA17; Abby, 2026-11-06 (NASA's Missions filters: 55 checkboxes of one name under four headings, no group label) |
 | M3o | A radio button or checkbox in a set (5.A section 3: two or more under one legend or group label) whose only programmatic text is the group label: no name, description, table header or list context of its own | FAIL: screen readers announce the question, not which choice it is (1.1.0) | p. 27 ER 1; Understanding 3.3.2 (each option needs a label); Abby, 2026-11-02 |
 | M4 | (A part of a multi-part field with no name and no description, F86: M3 covers it, FAIL) | — | F86 |
 | M5 | The programmatic text contains every word of the nearby visible text (a button: its own text), including any required cue ("*", "required"), and, for a radio button or checkbox in a set of two or more, a group label | PASS: whether the wording describes the purpose is 5.B's (p. 25 Note 3; Abby, 2026-11-01), so TC10.E-1-pass-1's "The sky is blue" passes here and is 5.B's failure | p. 27 ER 1, 3; Note 4 |
 | J1? | Otherwise, J1 not answered | NEEDS REVIEW | Open question |
 | M6 | J1 = complete | PASS | p. 27 ER 1–4 |
-| M7 | J1 = missing, its quote found in the nearby visible text and not in the programmatic text | FAIL | p. 26 Condition ("includes all relevant instructions and cues"); p. 27 ER 1 ("including when fields are required"), Note 4 (radio and checkbox question) |
+| M7 | J1 = missing, its quote found in the nearby visible text (or, for an option, in its heading, 1.3.0) and not in the programmatic text | FAIL | p. 26 Condition ("includes all relevant instructions and cues"); p. 27 ER 1 ("including when fields are required"), Note 4 (radio and checkbox question) |
 | M8 | J1 = not_purpose | FAIL | Baseline 10.A check 2; p. 26 Condition ("describes each input field") |
 | M9 | J1 = unsure, or a quote that fails its check | NEEDS REVIEW | Spec rule |
 
@@ -76,6 +77,7 @@ Each form component is an *instance*.
 | Page NEEDS REVIEW | "We could not finish this test, so a person needs to check it." |
 | A1 | "This page has no form fields or buttons, so this test does not apply." |
 | M3 | "<component> has no name for screen readers: the text people see next to it is not connected to it in the code. To see it, move to it with a screen reader." |
+| M3s | "<component> is a choice under the heading \"<heading>\", but screen readers announce only \"<programmatic text>\": the heading is not connected to the choices, and other choices with the same name sit under other headings, so a screen reader user cannot tell which group it belongs to. Group each set of choices with its heading (a fieldset and legend, or a group labelled by the heading)." |
 | M3o | "<component> is one of several choices under the same question, and screen readers announce only the question, not which choice it is. Give each choice its own label in the code." |
 | M4 | "One part of <component> has no name for screen readers, so a user cannot tell the parts apart." |
 | M7 | "<component> is announced as \"<programmatic text>\", which leaves out \"<quote>\" that sighted users see next to it." |
@@ -104,6 +106,10 @@ J1 is settled by reading (CLAUDE.md principle 8): complete leads to PASS only wh
 | Name "Official Name" as a description only (TC10.A-all-pass-6) | complete |
 
 **Use:** M6–M9.
+
+**Options of one set, one question (1.2.0).** Two or more radio buttons or checkboxes of one set (the same field name, and the same group label if any) for which J1 is asked only because the set's group label is not announced (each option's announced text already holds every word shown beside it, M5's other parts) are asked as one J1: `components` lists each option's kind, announced text and visible text, images A and B show the first and the last, and the question adds "what may be missing is the question or heading the set answers; the answer applies to every option listed." The one answer is recorded for each option; each option stays its own instance (M6–M9), and M7's quote check runs per option, so a "missing" quote that is not shown beside an option leads to M9 (NEEDS REVIEW), never PASS. A person may still answer one option alone. A tester reads a filter list once, not once per box. Found on NASA's Missions page: 53 filter checkboxes under one field name each asked J1, and the agent answered none of its 81 questions but one page's (post-round 1 development run, 2026-11-05).
+
+**The heading over an option (1.3.0; Abby, 2026-11-06).** Pass L records each radio button's and checkbox's heading (row M3s). One field name across several groups is not a failure in itself: a field's name is never announced, and a filter that sends all its boxes under one name is common. What fails is a question that does not reach the screen reader. Several groups under different headings, none of whose options announce their heading, fail without a question (M3s). The question does reach the screen reader when each group is a fieldset or `role=group` labelled by its heading (ANDI reports it as the group label) or each option's own name carries it ("Status: Active"). A single heading over a set may be the question or only a section title (Note 5): J1 decides, with `heading_over_it` (`heading_over_them` for a set) in its input and its rubric naming the case, and a "missing" quote taken from the heading passes M7's check.
 
 ## 5. Edge cases
 

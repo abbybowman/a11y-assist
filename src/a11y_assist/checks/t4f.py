@@ -50,7 +50,14 @@ ORDER_FN = """function () {
       const p = c.parentElement; const same = p ? Array.from(p.children).filter((x) => x.tagName === c.tagName) : [];
       a.unshift(c.tagName.toLowerCase() + (same.length > 1 ? `:nth-of-type(${same.indexOf(c) + 1})` : '')); }
     return a.join(' > '); };
+  // A checkbox or radio button is placed by its label, what people see
+  // (post-round 1 fix 16: NASA's filter boxes are drawn apart from their
+  // labels, and their boxes made a one-column list look out of order).
   const r = el.getBoundingClientRect();
+  const opt = el.tagName === 'INPUT' && ['checkbox', 'radio'].includes((el.type || '').toLowerCase());
+  const lab = opt && el.labels && el.labels.length ? el.labels[0].getBoundingClientRect() : null;
+  const label_box = lab && lab.width > 0 && lab.height > 0
+    ? [lab.x - r.x, lab.y - r.y, lab.width, lab.height] : null;
   const ti = el.getAttribute('tabindex');
   let container = null;
   const ctl = el.getAttribute('aria-controls');
@@ -59,7 +66,7 @@ ORDER_FN = """function () {
   return { dom_index: all.indexOf(host), tabindex: ti === null ? null : parseInt(ti, 10),
     group: g ? gpath(g) : null, group_label: legend.trim().slice(0, 80),
     form: el.form ? gpath(el.form) : null, haspopup: el.getAttribute('aria-haspopup'),
-    container, dir: getComputedStyle(el).direction,
+    container, dir: getComputedStyle(el).direction, label_box,
     page: [r.x + scrollX, r.y + scrollY, r.width, r.height] };
 }"""
 
@@ -93,8 +100,10 @@ J1_RUBRIC = (
     "jumping back and forth between "
     "unrelated areas; a menu's or dialog's content reached far from its trigger; "
     "a positive tabindex sending focus to an unrelated place first. preserves: "
-    "columns read one after another; header, navigation, main, footer; a skip "
-    "link first; independent sidebars in either order. does_not_matter: "
+    "columns read one after another; a grid of cards, or columns of footer "
+    "links, read row by row with each card's or item's parts together (its "
+    "image link, then its title link); header, navigation, main, footer; a "
+    "skip link first; independent sidebars in either order. does_not_matter: "
     "independent items whose order cannot change meaning, such as a row of "
     "social media icons. unsure: whenever the evidence does not settle it (the "
     "image does not show every numbered stop clearly; the grouping that matters "
@@ -124,6 +133,14 @@ class OrderHook:
             # top-level (frames included), so add the top page's scroll.
             scroll = await t.reader.evaluate_top("[scrollX, scrollY]") or [0, 0]
             info["page"] = [bb.x + scroll[0], bb.y + scroll[1], bb.width, bb.height]
+            lb = info.get("label_box")
+            if lb:  # a checkbox or radio button: where its label is (1.2.0)
+                info["page"] = [
+                    bb.x + lb[0] + scroll[0],
+                    bb.y + lb[1] + scroll[1],
+                    lb[2],
+                    lb[3],
+                ]
         return info
 
 
@@ -291,6 +308,17 @@ def signals(fwd: list[StopInfo], bwd: list[StopInfo] | None) -> list[dict[str, A
     return out
 
 
+def _opened_by(trig: StopInfo, inside: dict | None) -> bool:
+    """A modal dialog focus is in counts as the trigger's (spec 1.x, pass R)
+    when the trigger names no container, or focus is inside the container it
+    names (`aria-controls`). A site overlay that opens by itself is not what
+    a menu button opened (post-round 1 fix 16: NASA's Careers "Internships"
+    menu, and a Popup Maker dialog)."""
+    if not trig.info.get("container"):
+        return True
+    return bool((inside or {}).get("inside"))
+
+
 async def _reveal(
     ctx: RunContext, st: State4F, triggers: list[tuple[int, StopInfo]]
 ) -> None:
@@ -323,16 +351,16 @@ async def _reveal(
             await s.traversal.resync()
             after, _ = await s.traversal.reader.read()
             container = trig.info.get("container")
-            if after.modal:
+            c = (
+                await s.traversal.reader.call(after, CONTAINS_FN, [container])
+                if container and after.kind == "element"
+                else None
+            )
+            if after.modal and _opened_by(trig, c):
                 st.instances.append(await _dialog_check(ctx, keys, trig, n))
                 continue
             if not container:
                 continue
-            c = (
-                await s.traversal.reader.call(after, CONTAINS_FN, [container])
-                if after.kind == "element"
-                else None
-            )
             if c is None or not c.get("has_stops"):
                 continue
             moved_in = bool(c.get("inside"))
@@ -360,7 +388,7 @@ async def _reveal(
                     "next_tab_is_inside": bool((c2 or {}).get("inside")),
                 },
             )
-            if nxt.stop.modal:
+            if nxt.stop.modal and _opened_by(trig, c2):
                 st.instances.append(await _dialog_check(ctx, keys + ["Tab"], trig, n))
                 continue
             if not moved_in and not (c2 or {}).get("inside"):

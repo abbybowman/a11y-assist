@@ -98,3 +98,37 @@ def test_an_incomplete_label_pass_is_never_dna():
     )
     cut = evaluate(State5B(lp=lp), [])
     assert cut.outcome.value == "NEEDS_REVIEW"
+
+
+async def test_header_menu_buttons_are_not_a_form(settings, server, drafts):  # noqa: F811
+    """Post-round 1 fixes 10 and 14 (Abby, 2026-11-04): a site header's menu
+    buttons ("Explore") beside a search box whose only text is its
+    placeholder neither label the box (5.A M3, mechanical) nor make a form
+    for 5.B, which has no visible label to judge (DNA, A2)."""
+    got = await run_tests(
+        settings,
+        f"{server.base}/5a/f18-header-menu-beside-search.html",
+        ["5.A", "5.B"],
+        {},
+    )
+    assert (got["5.A"].outcome.value, instance_rows(got["5.A"])) == ("FAIL", ["M3"])
+    assert (got["5.B"].outcome.value, got["5.B"].rows[0]) == ("DNA", "A2")
+
+
+def test_only_buttons_that_act_on_a_form_are_judged():
+    """5.B 1.2.0: menu buttons, and buttons in a group with no labelled
+    field, are not judged; a form's own submit button is."""
+    from a11y_assist.checks.t5b import items_of
+    from a11y_assist.labels import Comp, LabelsPass
+
+    shown = [{"text": "Email", "shown": True, "group": False}]
+    comps = [
+        Comp(n=1, css="#m", button=True, own_text="Explore", menu=True),
+        Comp(n=2, css="#n", button=True, own_text="Newsroom"),
+        Comp(n=3, css="#e", type="email", form="form", label_shown=shown),
+        Comp(n=4, css="#s", button=True, own_text="Subscribe", form="form"),
+        Comp(n=5, css="#x", button=True, own_text="Open menu", form="form", menu=True),
+    ]
+    items, forms, _ = items_of(LabelsPass(components=comps))
+    assert [i.label for i in items] == ["Email", "Subscribe"]
+    assert forms == ["form"]

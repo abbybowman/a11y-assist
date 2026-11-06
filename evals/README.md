@@ -24,6 +24,17 @@ because fixture names describe the expected answer ("key-in-comment-only").
 The answer key (`/tmp/eval/state.json`) is outside the packet tree. Agents
 are told to open nothing else and to list every file they opened.
 
+**Pictures (post-round 1 fix 19).** A fourth argument picks how the
+packets give pictures: `all` (the default: copied in, as before), `none`
+(left as `run://` links the agent cannot open, as for a real agent that
+does not read them) or `retry` (as `none`, then each look-to-settle
+question answered "unsure" comes back once with its pictures). The arm is
+kept in `OUT/images.txt`. `TESTS` may be `all`:
+
+```bash
+uv run python evals/judge_eval.py prepare /tmp/eval-none all none
+```
+
 ## Judging rounds: real pages against a tester's blind SCRT files
 
 A certified tester running their own round: follow
@@ -78,6 +89,108 @@ Chrome: DevTools, Network tab, tick "Preserve log" and "Disable cache",
 reload the page, then right-click a request and "Save all as HAR with
 content". Whether a DevTools HAR replays like our own recordings is not yet
 checked.
+
+**Validated catches (Abby, 2026-11-06).** After the reveal, the tester may
+confirm that the tool was right where it differed from their key (round 1:
+Artemis III 4.D, a player button with no visible focus). They record it in
+`<round>/adjudications.json` (page, TT test, the confirmed result, who,
+when, why), never by editing a key, which is locked by its hash. The scorer
+counts a tool result that matches as a **validated catch**, weighted +1 like
+an agreement and shown apart (`evals/scoring.py`). The file sits outside
+the lock, as the keys do.
+
+## Run 23, 2026-11-06: 5.C 1.3.0 (the heading over an option), its packets only
+
+J1's input now gives an option's heading (`heading_over_it`,
+`heading_over_them`) and its rubric names a heading that is the question
+of a set (an example not on any fixture page, "Delivery speed"). 6 cases,
+one fresh Sonnet agent: **6/6 match**, no false PASS. On F19 it answered the
+set's one question `missing`, quoting the heading "Mission status", which
+now reaches M7 (FAIL), as Abby judged NASA's Missions page. It read every
+shared question through `question_texts` without trouble. It also used
+Grep once on a packet file, within the packet.
+
+## Run 22, 2026-11-06: 5.C 1.2.0 (options of one set asked once), its packets only
+
+6 cases, one fresh Sonnet agent, Read/Write/Glob only. **6/6 match** after
+one expectation was corrected: on the new F19 (three filter boxes under the
+heading "Mission status") it answered the set's one question `missing`,
+quoting the heading, where the test data had said `complete`. Its reading
+is the careful one (the rubric counts a heading whose absence could
+confuse), so F19 now expects that answer. Because pass L does not count a
+heading as text beside a field, M7's quote check cannot pass and each box
+is M9 (NEEDS REVIEW, safe). That is a spec gap for Abby: NASA's Missions
+page, which the key fails on 5.C, would stay NEEDS REVIEW this way. It
+found the grouped question clear.
+
+## Run 21, 2026-11-05: the pointer wording (5.D), its packets only
+
+After run 20, a shared question's `question` and `rubric` say where the
+text is. 15 cases; one fresh Sonnet agent, Read/Write/Glob only: **14/14
+scored match** (F10's follow-up left open), none unsure. It found the
+shared text through the pointer ("clear once I did"). It also noticed that
+5.D J1's rubric example "Choosing a state takes you to its page" is the
+very sentence on fixture F02 (and F07's page): the eval gives that answer
+away. Fixed after the run: F02 and F06 are reworded, so no fixture page repeats
+a rubric example.
+
+## Run 20, 2026-11-05: shared question texts (5.C, 5.D), their packets only
+
+Packets now carry `question_texts`, as a client gets them (post-round 1
+fix 6b): a question that shares its question and rubric with others in its
+run names a key there instead. 20 cases; one fresh Sonnet agent: **19/19
+scored match** (5.D F10's follow-up round left open), none unsure. It
+answered the shared questions correctly but said their `question` and
+`rubric` were empty and that it took the text from sibling packets: it
+had not seen `question_texts` in the same file. So a shared question's
+fields now say where its text is (`Shared with other questions: read
+question_texts["5.D-J1"].question.`). It also wrote its answers with one
+Bash call, against its instructions (it opened nothing outside the
+packets).
+
+## Run 19, 2026-11-05: fix 19's picture arms (4.A, 4.D, 4.F, 5.A-5.D)
+
+The same 71 cases prepared three ways (`all`, `none`, `retry`), each
+answered by one fresh Sonnet agent with the same prompt; `retry`'s first
+round reused `none`'s answers (identical packets), then a fresh agent
+answered its picture round (5 packets). 70 cases scored in each arm (5.D
+F10's follow-up round left open in all three).
+
+| Arm | Match | False PASS | False FAIL | Unsure | Agent tokens |
+| --- | --- | --- | --- | --- | --- |
+| `all` (pictures from the start) | 67 | 0 | 0 | 3 | about 296k |
+| `none` (`run://` links only) | 64 | 0 | 1 | 6 | about 300k |
+| `retry` (pictures for unsure answers) | 69 | 0 | 1 | 0 | about 300k + 96k |
+
+- Without pictures the agent answered 5.A F09 (a magnifier icon is the
+  search box's label) `not_labeled`, sure of itself: a false FAIL. The
+  retry arm cannot catch it, since only unsure answers come back.
+- The retry round settled all 5 of its unsure answers correctly (two 4.F
+  orders, 4.A, two 5.B forms).
+- Pictures cost little here: `all` used about as many tokens as `none`
+  (each agent's fixed start-up and the questions dominate). The retry
+  round's 96k is mostly a new agent's start-up; in real use the same
+  agent would answer it.
+- The `all` arm's three mismatches are unsure answers (NEEDS REVIEW), so
+  the arms differ by agent as much as by pictures: one run per arm.
+
+## Run 18, 2026-11-05: post-round 1 fixes (4.F, 5.A, 5.B, 5.D), their packets only
+
+`prepare OUT 4.F,5.A,5.B,5.D` (images `all`): 61 cases ask questions,
+including the new F15 (5.D: one J1 for four filter boxes) and F16 and F17
+(4.F: a site overlay; a card grid). One fresh Sonnet agent, file tools
+only, answered all 61 (about 223k tokens), then a second answered 5.D
+F10's follow-up round. **60/61 match, no false PASS.**
+- 5.D F15: `not_told` for the four boxes at once (FAIL, as expected).
+- 4.F F17: `preserves` for a card grid read row by row (the rubric's new
+  line), PASS.
+- 4.F F16: `does_not_preserve` where the test data said `preserves`:
+  after the menu opens, the next Tab lands in the overlay, which sits
+  between the button and its menu. The agent is right, and F16 now
+  expects FAIL through J1. The fix (no mechanical M2 for a dialog the
+  menu did not open) is unchanged.
+- It opened only packet files, and each 4.F order image and 5.A image a
+  question named.
 
 ## Run 17, 2026-11-04: 2.A (draft spec 0.2.0), its packets only
 

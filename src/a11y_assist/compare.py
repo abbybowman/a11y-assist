@@ -86,13 +86,16 @@ class Comparison(BaseModel):
 
 
 def page_key(url: str | None) -> str | None:
-    """Scheme-less host and path, no trailing slash, no query or fragment."""
+    """Scheme-less host and path, no trailing slash, no fragment. The query
+    is kept: "/?search=artemis" is another page than "/" (post-round 1 fix
+    13: round 1's search page scored as the home page's key)."""
     if not url or not url.strip():
         return None
     url = url.strip()
     # Testers type "www.dhs.gov/page" in SCRT; without "//" it parses as a path.
     u = urlsplit(url if "://" in url else "//" + url)
-    return (u.netloc.lower().removeprefix("www.") + u.path.rstrip("/")) or None
+    key = u.netloc.lower().removeprefix("www.") + u.path.rstrip("/")
+    return (key + (f"?{u.query}" if u.query else "")) or None
 
 
 def _side(rows: list[Row]) -> Side:

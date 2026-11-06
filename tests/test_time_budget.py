@@ -91,27 +91,34 @@ async def test_out_of_time_is_needs_review_and_no_time_limit_finishes(settings, 
     assert {f.outcome for f in out.report.findings} == {Outcome.PASS}
 
 
-async def test_more_fields_than_5d_checks_is_refused_at_the_first_load(
+async def test_more_fields_than_5d_checks_leaves_out_only_5d(
     settings,
     server,
     drafts,  # noqa: F811
     monkeypatch,
 ):
-    """5.D's cap (spec section 2, Run limits): over FIELD_MAX form fields the
-    run stops before anything is tested; no_time_limit lifts the cap."""
+    """5.D's cap (spec section 2, Run limits): over FIELD_MAX form fields 5.D
+    is left out at the first load, with the call that runs it; the other
+    tests still run (post-round 1 fix 12: a refusal cost the whole page).
+    no_time_limit lifts the cap."""
     from a11y_assist.checks import t5d
 
     monkeypatch.setattr(t5d, "FIELD_MAX", 2)
     url = f"{server.base}/5d/f03-submit-when-last-field-filled.html"  # 3 fields
-    with pytest.raises(RunRefused) as exc:
-        await run_tt_tests(settings, url, [TestId.T4C, TestId.T5D])
-    msg = str(exc.value)
-    assert "This page has 3 form fields" in msg and "at most 2 for test 5.D" in msg
-    assert "no_time_limit=true" in msg and "leave 5.D out" in msg
-    assert not settings.runs_dir.exists() or not any(settings.runs_dir.iterdir())
-    # Without 5.D the cap does not apply.
-    out = await run_tt_tests(settings, url, [TestId.T4C])
-    assert out.errors == []
+    out = await run_tt_tests(settings, url, [TestId.T4C, TestId.T5D])
+    got = {f.test_id: f for f in out.report.findings}
+    assert got[TestId.T4C].note is None  # performed
+    d = got[TestId.T5D]
+    assert d.outcome is Outcome.NEEDS_REVIEW and d.note
+    assert "this page has 3 form fields" in d.summary and "at most 2" in d.summary
+    assert 'tests ["5.D"] and no_time_limit=true' in d.summary
+    assert any(e.startswith("5.D was not run: this page") for e in out.errors)
+    assert {"url": url, "tests": ["5.D"], "no_time_limit": True} in out.follow_up_calls
+    # Only 5.D, over the cap: nothing to walk, no refusal, 5.D says why.
+    out = await run_tt_tests(settings, url, [TestId.T5D])
+    assert out.report.findings[0].note and "no_time_limit=true" in (
+        out.report.findings[0].summary
+    )
     # With the limit off, every field is filled in.
     out = await run_tt_tests(settings, url, [TestId.T5D], no_time_limit=True)
     filled = [i for i in out.report.findings[0].rows if i.startswith("f")]

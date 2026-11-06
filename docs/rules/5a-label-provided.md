@@ -1,7 +1,7 @@
 ---
 tt_test: 5.A
 tt_name: 3.3.2-label-provided
-spec_version: 1.1.0
+spec_version: 1.2.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -27,7 +27,7 @@ The tool gives each page one 5.A outcome: PASS, FAIL, DOES NOT APPLY or NEEDS RE
 
 ## 2. Evidence to collect
 
-Nothing of its own: pass L ([5c-programmatic-label.md](5c-programmatic-label.md) section 2). For each data-entry field it records, with the field focused (`el.focus()` on pass L's load, so focus-only instructions and floating labels show): its visible-label candidates and whether each is visible; its placeholder and whether the field is empty; its `aria-label` and `title` (never visible text); the visible text within the image (at most 400 characters, nearest first); the text of buttons in the image and, for an option in a set, the visible text without the legend and whether a picture is near it (1.1.0); and one image: the field's box grown by 240 px left, 120 px up and 160 px right and down, clipped to the viewport after scrolling the field into view (`traverse.screenshot()`).
+Nothing of its own: pass L ([5c-programmatic-label.md](5c-programmatic-label.md) section 2). For each data-entry field it records, with the field focused (`el.focus()` on pass L's load, so focus-only instructions and floating labels show): its visible-label candidates and whether each is visible; its placeholder and whether the field is empty; its `aria-label` and `title` (never visible text); the visible text within the image (at most 400 characters, nearest first); the text of buttons in the image that act on the field's form (in the field's form, or in no form when the field has none; not a menu or disclosure button: `aria-expanded`, or `aria-haspopup` other than false; 1.2.0) and, for an option in a set, the visible text without the legend and whether a picture is near it (1.1.0); and one image: the field's box grown by 240 px left, 120 px up and 160 px right and down, clipped to the viewport after scrolling the field into view (`traverse.screenshot()`).
 
 **Time budget:** one focus, a few DOM reads and one clipped image per data-entry field, about 0.1 s each, on pass L's load.
 
@@ -42,7 +42,7 @@ Each data-entry field is an *instance*; each radio button and checkbox is its ow
 | M1 | The field could not be focused or read, or its image is missing | NEEDS REVIEW | Spec rule |
 | M2 | A visible label with text | PASS | p. 25 ER 1; H44 |
 | M2o | A radio button or checkbox in a set with no visible label of its own, no visible text near it apart from the legend, and no picture near it | FAIL: a person cannot tell which choice it is (1.1.0) | Understanding 3.3.2 (each option needs a label); H71; Abby, 2026-11-02 |
-| M3 | No visible label; the only text shown for the field is its placeholder, and no button's text is beside it (a "Search" button labels the box beside it, G167: J1; 1.1.0) | FAIL: a placeholder is not a label; it disappears as soon as the user types, so the field is no longer labelled while it still has focus (Abby, 2026-11-01) | p. 25 Note 1 ("visible when the form field has focus"); W3C forms tutorial, [Placeholder text](https://www.w3.org/WAI/tutorials/forms/instructions/#placeholder-text) ("not a replacement for labels"); [w3c/wcag#4918](https://github.com/w3c/wcag/issues/4918) (placeholder alone "would fail 3.3.2"; it does provide an accessible name, so 5.C is not affected: TC10.A-all-pass-1) |
+| M3 | No visible label; the only text shown for the field is its placeholder, and no button's text is beside it (a "Search" button labels the box beside it, G167: J1; 1.1.0). Only buttons that act on the field's form count (section 2): a site header's menu button beside its search box does not (Abby, 2026-11-04; post-round 1 fix 10: NASA's "Explore" kept M3 from firing on 9 pages; 1.2.0) | FAIL: a placeholder is not a label; it disappears as soon as the user types, so the field is no longer labelled while it still has focus (Abby, 2026-11-01) | p. 25 Note 1 ("visible when the form field has focus"); W3C forms tutorial, [Placeholder text](https://www.w3.org/WAI/tutorials/forms/instructions/#placeholder-text) ("not a replacement for labels"); [w3c/wcag#4918](https://github.com/w3c/wcag/issues/4918) (placeholder alone "would fail 3.3.2"; it does provide an accessible name, so 5.C is not affected: TC10.A-all-pass-1) |
 | J1? | Otherwise, J1 not answered | NEEDS REVIEW | Open question |
 | M4 | J1 = labeled, its quote found in the visible text of the image (as written, or its words in one piece of text: a label's colon can be a piece of its own, 1.1.0), or J1 = graphic | PASS | p. 25 ER 1, Note 2 |
 | M5 | J1 = not_labeled | FAIL | p. 25 ER 1; Understanding 3.3.2 (`aria-label` alone); TC10.E-1-fail-1 |

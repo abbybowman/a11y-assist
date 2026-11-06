@@ -3,7 +3,8 @@
 Reads the site read (`site.py`): links to the tested page on the caller's
 other pages, by kind of way. Only when they show fewer than two kinds, it
 runs the site's own search once on the live site (CLAUDE.md, Abby
-2026-11-02) and, still short, suggests pages for the user to add. J1 asks
+2026-11-02) and, still short, suggests pages for the calling agent to add
+(Abby, 2026-11-05). J1 asks
 whether the page is a step in a process, only when hinted. Only evaluate()
 and the rules decide outcomes.
 """
@@ -400,10 +401,13 @@ def evaluate(st: State19A, evidence_refs: list[str]) -> Finding:
     }.get(st.search.status, "")
     if st.suggestions or st.search.status == "cannot_run":
         more = (
-            " To check further, ask the user whether to run again with these pages too: "
+            " To check further, run this test again (tests: 19.A) with these pages"
+            " of the site added to other_pages: "
             + ", ".join(st.suggestions)
-            + ". Run only this test (tests: 19.A) with the pages added, and replace"
-            " this result in the saved report; the other tests need not run again."
+            + ". Other pages of the site that show another way to reach pages (a"
+            " site map, an A-Z index, the home page) count too. You need not ask"
+            " the user first. Replace this result in the saved report; the other"
+            " tests need not run again."
             if st.suggestions
             else ""
         )
@@ -475,6 +479,18 @@ class Check19A:
     async def resume(self, ctx: RunContext, state: State19A, report) -> list[str]:
         apply_answers(state, report)
         return []
+
+    def follow_up(self, state: State19A, report) -> dict | None:
+        """The call that adds the suggested pages (fix 18): 19.A alone, the
+        pages given before plus the suggested ones (at most 5 without
+        no_time_limit). None when there is nothing to suggest."""
+        if not state.suggestions:
+            return None
+        given = [p.url for p in report.other_pages]
+        pages = list(dict.fromkeys(given + list(state.suggestions)))[:5]
+        if pages == given:
+            return None
+        return {"url": report.target, "tests": ["19.A"], "other_pages": pages}
 
 
 __all__ = ["Check19A", "page_label"]

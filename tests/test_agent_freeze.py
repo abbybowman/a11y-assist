@@ -153,3 +153,38 @@ async def test_one_failed_copy_does_not_hide_a_good_one(settings, tmp_path):
             )
         )
     assert '"0.' in got, got[:1500]  # the nonce from /dyn's own recording
+
+
+def test_the_freeze_flags_a_404_page_and_a_page_without_its_assets(tmp_path):
+    """Post-round 1 fix 7: a typo froze NASA's 404 page, and a page frozen in
+    the container had its HTML but no CSS or scripts. Both are suspect."""
+    import zipfile
+
+    from evals.agent.freeze import check_recording
+
+    def har(name, doc_status, asset_status):
+        def entry(url, status, mime, text=""):
+            return {
+                "request": {"url": url},
+                "response": {
+                    "status": status,
+                    "content": {"mimeType": mime, "text": text},
+                },
+            }
+
+        page = "<title>Page Not Found</title><h1>Oops</h1>"
+        entries = [entry("https://x.gov/p", doc_status, "text/html", page)] + [
+            entry(f"https://x.gov/{n}.css", asset_status, "text/css") for n in range(3)
+        ]
+        p = tmp_path / f"{name}.har.zip"
+        with zipfile.ZipFile(p, "w") as z:
+            z.writestr("har.har", json.dumps({"log": {"entries": entries}}))
+        return p
+
+    typo = check_recording(har("typo", 404, 200), "https://x.gov/p")
+    assert typo["suspect"] == "the page itself answered 404"
+    assert typo["title"] == "Page Not Found" and typo["heading"] == "Oops"
+    bare = check_recording(har("bare", 200, -1), "https://x.gov/p")
+    assert bare["suspect"] == "3 of 3 CSS, font and script requests failed"
+    ok = check_recording(har("ok", 200, 200), "https://x.gov/p")
+    assert "suspect" not in ok and ok["assets"] == 3

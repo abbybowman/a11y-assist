@@ -45,6 +45,10 @@ EXPECTED: dict[str, dict] = {
     "f05-outline-transition": {"outcome": "PASS"},
     "f06-slideshow-behind-links": {"outcome": "FAIL", "choice": "no"},
     "f07-sticky-header-covers": {"outcome": "FAIL"},
+    # Post-round 1 fix 11 (1.2.0): the title's focus outline is drawn but
+    # clipped, and the card marks focus elsewhere; 0 px where the title is
+    # is no clear view (M4), not a FAIL.
+    "f15-card-title-outline-clipped": {"outcome": "NEEDS_REVIEW", "rows": ["M4"]},
     "f08-focusable-iframe": {"outcome": "PASS"},
     "f09-faint-outline": {"outcome": "NEEDS_REVIEW", "choice": "unsure"},
     # ~59-62 s alone on the 2026-11-01 container (was ~55 s when the guard was
@@ -81,3 +85,32 @@ async def test_fixture(name, settings, server):
         assert set(e["rows"]) <= set(instance_rows(f)), f.rows
     if "max_s" in e:
         assert took < e["max_s"], took
+
+
+def test_a_link_moved_by_the_page_while_pictured_is_not_failed():
+    """Post-round 1 fix 11 (4.D 1.2.0): on NASA's Artemis III page a layout
+    shift moved links between their measure and the pictures, so the region
+    compared was empty and they failed at 0 px. Moved with almost no change
+    is no clear view (M4); moved with a clear change still counts (a skip
+    link that slides in)."""
+    from a11y_assist.checks.t4d import Attempt, Inst4D, _best
+
+    def inst(px: float) -> Inst4D:
+        e = {"moved": True, "changed": [], "on": "on.png", "off": "off.png"}
+        a = Attempt(
+            pass_name="P1",
+            step=1,
+            keys=["Tab"],
+            unreliable=False,
+            extras=e,
+            changed_px=px,
+            strong_px=px,
+            mask_fraction=0.0,
+        )
+        return Inst4D(id="d1", subject="#a", label={}, attempts=[a])
+
+    stuck = inst(0.0)
+    assert _best(stuck) is None
+    assert "moved on the page" in stuck.attempts[0].extras["incomplete"]
+    slid_in = inst(3600.0)
+    assert _best(slid_in) is slid_in.attempts[0]

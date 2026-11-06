@@ -149,3 +149,27 @@ def test_links_to_the_requested_url_count_after_a_redirect():
     assert [x.kind for x in links_to((final, requested), [other], set())] == [
         "navigation"
     ]
+
+
+async def test_the_result_names_the_call_that_adds_the_suggested_pages(
+    settings,
+    server,
+    drafts,  # noqa: F811
+):
+    """Post-round 1 fix 18: an agent named the suggestion but never made the
+    call. next_step now spells it out: 19.A alone, the pages given before
+    plus the suggested ones, made without asking the user."""
+    from a11y_assist.models import TestId
+    from a11y_assist.pipeline import run_tt_tests
+
+    page, others = EXPECTED["search-finds-nothing"][:2]
+    given = [f"{server.base}/19a/{o}.html" for o in others]
+    out = await run_tt_tests(
+        settings, f"{server.base}/19a/{page}.html", [TestId.T19A], other_pages=given
+    )
+    assert "follow_up_calls" in out.next_step
+    assert "without asking the user" in out.next_step
+    [call] = out.follow_up_calls
+    assert call["tests"] == ["19.A"] and call["url"].endswith(f"/{page}.html")
+    assert any(p.endswith("sitemap.html") for p in call["other_pages"])
+    assert all(g in call["other_pages"] for g in given)  # kept

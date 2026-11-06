@@ -9,6 +9,7 @@ from fastmcp.exceptions import ToolError
 from pydantic import Field
 
 from a11y_assist import config
+from a11y_assist.inline import with_pictures
 from a11y_assist.models import Answer, AnswerResult
 from a11y_assist.pipeline import RunRefused
 from a11y_assist.pipeline import answer_questions as answer_pipeline
@@ -78,7 +79,9 @@ def register(mcp: FastMCP) -> None:
         Results are agent-assisted and NOT a certified Trusted Tester result.
         """
         try:
-            return await answer_pipeline(config.settings, run_id, answers)
+            return with_pictures(
+                await answer_pipeline(config.settings, run_id, answers), wrap=False
+            )
         except RunRefused as exc:
             raise ToolError(str(exc)) from None
         except Exception as exc:

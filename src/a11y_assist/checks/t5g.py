@@ -278,6 +278,9 @@ def evaluate(st: State5G, evidence_refs: list[str]) -> Finding:
         incomplete.append(
             "A question about which button sends the form is still open (asked under 5.F)."
         )
+    if not results and not incomplete and t5f.sent_searches(ps):
+        trace += ["A1", "G1"]  # 5.F's A3s
+        return finding(Outcome.DNA, t5f.SEARCH_DNA, trace)
     if not results and not incomplete:
         trace += ["A1", "G1"]
         return finding(

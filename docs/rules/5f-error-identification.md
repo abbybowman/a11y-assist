@@ -1,7 +1,7 @@
 ---
 tt_test: 5.F
 tt_name: 3.3.1-error-identification
-spec_version: 1.1.0
+spec_version: 1.2.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -23,6 +23,7 @@ The tool gives each page one 5.F outcome: PASS, FAIL, DOES NOT APPLY or NEEDS RE
 | A1 | No P1 stop is a field, and the DOM inventory counts no form fields | DOES NOT APPLY | p. 25 Identify Content (5.A–5.H) |
 | A2 | No stop is a field, but the inventory counts form fields | NEEDS REVIEW | Spec rule (as 5.D A2) |
 | A3 | Pass E ran in full, no attempt sent a form to a server, and no field is an instance (section 3: no error indicator, or J1 and J2 found none) | DOES NOT APPLY ("no automatic error detection") | p. 28 Identify Content, Applicability; TC10.D-ic-dna-1 |
+| A3s | As A3, except that an attempt sent a form and that form is a *site search*: its only field is one text or search box (attempt 2 types into it); nothing limits its input (no `required` or `aria-required="true"`, no `pattern`, no `minlength`, an `input` of type text or search, or a `textarea`); and the page marks it as a search (a `role=search` landmark or `<search>` element holds it, "search" in the form's `action`, `type=search`, or "search" in the field's name, id, `aria-label`, placeholder or label). No error indicator appeared on the page (else it is an instance) (1.2.0) | DOES NOT APPLY: a site search accepts any input, so there is nothing to get wrong. Any other form that was sent stays A4: a field with no stated limit can still have one a server checks ("ZIP code", F02) | p. 28 Identify Content ("no automatic error detection"); TC10.D-ic-dna-1 (a form with no detection is DNA); Abby, 2026-11-05 (post-round 1 fix 17: NASA's header search was NEEDS REVIEW on 9 pages that the tester marked DNA) |
 | A4 | An attempt sent a form (a `submit` event not cancelled, or a form submission request) and no error indicator appeared on the page before it left | NEEDS REVIEW: the recording cannot answer a submission, so errors a server would return cannot be seen. Never DOES NOT APPLY: the server may well detect errors | Spec rule (principle 3); 5.D spec section 5 (submission in a recorded page) |
 | A5 | Otherwise | Applies; go to section 3 | |
 
@@ -90,6 +91,7 @@ An attempt's *notice* is how the user learns of its errors (Baseline 10.D "made 
 | Page FAIL | "Some form errors are not named or explained in text, so a person may not know which field is wrong or why." |
 | Page NEEDS REVIEW | "We could not finish this test, so a person needs to check it." |
 | A3 | "We left required fields empty and typed letters into fields that expect a format and dates outside the allowed range into date fields, then tried to send the form, and the page did not check for errors, so this test does not apply." |
+| A3s | "The page's only form that was sent is a site search: it accepts anything typed into it and showed no error on the page, so there is nothing to get wrong and this test does not apply." |
 | A4 | "The form was sent to its server, and our copy of the page cannot show what the server answers. Please submit it with mistakes on the live site and check the error messages." |
 | M2 (note) | "The browser's own message points to <field> and explains the error; that is fine." |
 | M3 | "When <field> was wrong, the page only marked it (<how>), with no text saying what is wrong. To see it, load the page and press <keys>. If you disagree, tell your assistant." |

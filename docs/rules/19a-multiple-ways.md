@@ -1,7 +1,7 @@
 ---
 tt_test: 19.A
 tt_name: 2.4.5-multiple-ways
-spec_version: 1.1.0
+spec_version: 1.1.1
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -25,7 +25,7 @@ The tool gives each page one 19.A outcome: PASS, FAIL, DOES NOT APPLY or NEEDS R
   - *search*: the site search leads to T (below).
 - *Search form*: a form with role search, a search field, or a field named `q`, `query`, `search`, `s`, `k`, `keyword`, `keywords`, `searchterm` or `term` (the last three 1.1.0), on T or on another page.
 - *Live search* (Abby, 2026-11-02: exhaust the pages first, then run the search on the live site): only when the caller's pages show fewer than two kinds and a search form exists. One search per run: the form must submit by GET; its action URL must pass the allowlist and be on T's host (the allowlist is checked on every redirect hop, the host at the end); the term is T's first `h1`, else its title; the request carries the form's own hidden fields and the term, nothing else. The results page is recorded as its own HAR and read like another page. Search counts as a way when the results page links to T (HtT 2.b; G161 step 5).
-- *Suggested pages*: same-host URLs the pages link to that could show more ways and were not given: links named "site map", "sitemap" or "A-Z index"; the home page (a link to the site's root, or named "home"); breadcrumb links. At most 5. They are proposed for the calling agent to ask the user about, never visited by the tool (Abby, 2026-11-02).
+- *Suggested pages*: same-host URLs the pages link to that could show more ways and were not given: links named "site map", "sitemap" or "A-Z index"; the home page (a link to the site's root, or named "home"); breadcrumb links. At most 5. They are proposed to the calling agent, which may call again with them, or with other pages of the site it finds that show more ways, as `other_pages` without asking the user first (Abby, 2026-11-05; post-round 1 fix 18: no agent asked a user, and 19.A was undecided on every round 1 page). The tool never visits them by itself (Abby, 2026-11-02); pages passed back are checked like any other page (allowlist, same host) (1.1.1).
 - *Process hint*: T's text has "step N of M", "review your", "confirm", "confirmation", "order summary" or "thank you for", and T has a form with a submit button.
 
 ## 1. Applicability
@@ -73,7 +73,7 @@ The instance is the page: the kinds of way found.
 | Row | Sentence |
 | --- | --- |
 | G2 | "This page can be found in more than one way: <kinds>." |
-| G3 | "We found <n> way(s) to reach this page in the pages you gave (<kinds>). To check further, ask the user whether to run again with these pages too: <urls>." |
+| G3 | "We found <n> way(s) to reach this page in the pages you gave (<kinds>). To check further, run this test again (tests: 19.A) with these pages of the site added to other_pages: <urls>. Other pages of the site that show another way to reach pages (a site map, an A-Z index, the home page) count too. You need not ask the user first. Replace this result in the saved report; the other tests need not run again." (1.1.1) |
 | G4 | "We found only <kinds or 'no way'> to reach this page, and nothing else to check: add a second way, such as a link in the site navigation, a site map or a site search that finds it." |
 | A1 | "This test could not be performed: it needs other pages of the same site. Run it again with other_pages (the home page and, if there is one, the site map)." |
 | A3 | "This page is a step in a process (or its result), so this test does not apply." |

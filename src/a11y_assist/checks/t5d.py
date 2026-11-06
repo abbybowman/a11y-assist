@@ -20,6 +20,7 @@ from a11y_assist.checks.base import RunContext
 from a11y_assist.engine import Row, first_match
 from a11y_assist.forms import (
     ARRIVE_SLACK,
+    BEFORE_CHARS,
     FIELD_FN,
     SIG_FN,
     Field5D,
@@ -77,6 +78,15 @@ J1_QUESTION = (
     "comes before the field on the page, tell the user that this will happen "
     "when they change the field? Answer told, not_told or unsure. If told, "
     "put the exact words that say so in quote."
+)
+J1_GROUP_QUESTION = (
+    "Filling in each field listed in input.fields and tabbing away caused the "
+    "change described in input.change. input.before is the page text before "
+    "the first of them; between the fields there is only their own labels. "
+    "Does the text in input.before tell the user that this will happen when "
+    "they change these fields? Answer told, not_told or unsure; the answer "
+    "applies to every field listed. If told, put the exact words that say so "
+    "in quote."
 )
 J1_RUBRIC = (
     'told: the text says what will happen when this field changes ("Choosing a '
@@ -575,6 +585,86 @@ def _field_input(inst: Inst5D) -> dict[str, Any]:
     }
 
 
+def _j1_change(inst: Inst5D) -> str | None:
+    """The change J1 asks about, in plain words; None when J1 is not asked."""
+    if not inst.arrived or inst.unreliable or _unreliable(inst):
+        return None
+    ch = change_of(inst)
+    if ch is None:
+        return None
+    a = inst.last
+    change = CHANGE_WORDS[ch]
+    moved = a.focus_moved_on_complete or (
+        a.focus_after_leave if a.leave_expected is False else None
+    )
+    if ch == "focus" and moved:
+        change += f" (to {_label(moved)})"
+    return change
+
+
+def _follows(prev: Inst5D, cur: Inst5D) -> bool:
+    """cur's text before is prev's text before plus prev's own label: nothing
+    but the field itself stands between them (a list of filter checkboxes)."""
+    whole = _norm(f"{prev.info.get('before', '')} {prev.info.get('label', '')}")
+    before = cur.info.get("before", "")
+    if _norm(before) == whole:
+        return True
+    # The text before is cut to its last BEFORE_CHARS characters.
+    return len(before) >= BEFORE_CHARS and whole.endswith(_norm(before))
+
+
+def j1_groups(st: State5D) -> list[list[Inst5D]]:
+    """Fields J1 asks about, in walk order, in groups asked as one question
+    (spec section 4, J1): consecutive fields of the same kind whose change is
+    the same and whose text before differs only by the earlier fields' labels.
+    A single field is a group of one."""
+    groups: list[list[Inst5D]] = []
+    last_change = None
+    for inst in st.instances:
+        change = _j1_change(inst)
+        if change is None:
+            last_change = None
+            continue
+        prev = groups[-1][-1] if groups and last_change is not None else None
+        if (
+            prev is not None
+            and change == last_change
+            and prev.field.control == inst.field.control
+            and _follows(prev, inst)
+        ):
+            groups[-1].append(inst)
+        else:
+            groups.append([inst])
+        last_change = change
+    return groups
+
+
+def _j1_question(group: list[Inst5D], evidence_refs: list[str]) -> OpenQuestion:
+    head = group[0]
+    one = len(group) == 1
+    fields = (
+        {"field": _field_input(head)}
+        if one
+        else {"fields": [_field_input(m) for m in group]}
+    )
+    return OpenQuestion(
+        question_id=f"5.D-{head.id}-J1",
+        test_id=TestId.T5D,
+        kind="choice",
+        choices=J1_CHOICES,
+        instance=head.id,
+        also_instances=[m.id for m in group[1:]],
+        question=J1_QUESTION if one else J1_GROUP_QUESTION,
+        rubric=J1_RUBRIC,
+        input={
+            **fields,
+            "change": _j1_change(head),
+            "before": head.info.get("before", ""),
+        },
+        evidence_paths=evidence_refs,
+    )
+
+
 def _needs_j3(inst: Inst5D) -> bool:
     a = inst.last
     return bool(a and a.rejected and not inst.retried and change_of(inst) is None)
@@ -583,6 +673,7 @@ def _needs_j3(inst: Inst5D) -> bool:
 def questions_for(st: State5D, evidence_refs: list[str]) -> list[OpenQuestion]:
     out: list[OpenQuestion] = []
     base = evidence_refs[0].rsplit("/evidence/", 1)[0] if evidence_refs else ""
+    groups = {g[0].id: g for g in j1_groups(st)}
     for inst in st.instances:
         if not inst.arrived or inst.unreliable or _unreliable(inst):
             continue
@@ -607,30 +698,9 @@ def questions_for(st: State5D, evidence_refs: list[str]) -> list[OpenQuestion]:
                     evidence_paths=evidence_refs + images,
                 )
             )
-        if ch is not None and inst.j1 is None:
-            change = CHANGE_WORDS[ch]
-            moved = a.focus_moved_on_complete or (
-                a.focus_after_leave if a.leave_expected is False else None
-            )
-            if ch == "focus" and moved:
-                change += f" (to {_label(moved)})"
-            out.append(
-                OpenQuestion(
-                    question_id=f"5.D-{inst.id}-J1",
-                    test_id=TestId.T5D,
-                    kind="choice",
-                    choices=J1_CHOICES,
-                    instance=inst.id,
-                    question=J1_QUESTION,
-                    rubric=J1_RUBRIC,
-                    input={
-                        "field": _field_input(inst),
-                        "change": change,
-                        "before": inst.info.get("before", ""),
-                    },
-                    evidence_paths=evidence_refs,
-                )
-            )
+        group = groups.get(inst.id)
+        if group and all(m.j1 is None for m in group):
+            out.append(_j1_question(group, evidence_refs))
         if _needs_j3(inst) and inst.j3 is None:
             out.append(
                 OpenQuestion(
@@ -659,9 +729,14 @@ def questions_for(st: State5D, evidence_refs: list[str]) -> list[OpenQuestion]:
 def apply_answers(st: State5D, report) -> None:
     from a11y_assist.judgment import current_answer
 
+    first = {m.id: g[0] for g in j1_groups(st) for m in g}
     for inst in st.instances:
         for q in ("J1", "J2", "J3"):
             a = current_answer(report, f"5.D-{inst.id}-{q}")
+            head = first.get(inst.id) if q == "J1" else None
+            if a is None and head is not None and head is not inst:
+                # One answer for a group of fields (J1 group): recorded for each.
+                a = current_answer(report, f"5.D-{head.id}-J1")
             if a is None or a.choice is None:
                 continue
             got = {
@@ -671,6 +746,8 @@ def apply_answers(st: State5D, report) -> None:
             }
             if q == "J1":
                 got["quote"] = a.choice.quote or ""
+                if head is not None:
+                    got["before"] = head.info.get("before", "")
             if q == "J3":
                 got["value"] = a.choice.value or ""
             setattr(inst, q.lower(), got)
@@ -682,8 +759,9 @@ def _norm(t: str) -> str:
 
 def quote_found(inst: Inst5D) -> bool:
     """J1's mechanical check: a told answer's quote is in the text before."""
-    q = _norm((inst.j1 or {}).get("quote", ""))
-    return bool(q) and q in _norm(inst.info.get("before", ""))
+    j1 = inst.j1 or {}
+    q = _norm(j1.get("quote", ""))
+    return bool(q) and q in _norm(j1.get("before") or inst.info.get("before", ""))
 
 
 # ── Rules ────────────────────────────────────────────────────────────────────

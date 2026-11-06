@@ -30,6 +30,7 @@ from evals.judging import _pages, _verify, read_keys
 from evals.scoring import (
     SEVERITY,
     Verdict,
+    adjudications,
     rates,
     rollup,
     totals,
@@ -80,18 +81,74 @@ def _counts(verdicts: list[Verdict]) -> dict[str, int]:
 
 
 def tool_files(arm_dir: Path) -> dict[str, scrt.PreScrt]:
-    """Agent A's tool runs: the latest finished run of each page."""
-    best: dict[str, tuple[str, Path]] = {}
+    """Agent A's tool runs, one file per page: each TT test from the latest
+    finished run of that page whose `tests` included it (post-round 1 fix
+    13: an agent that splits a page over several calls keeps every test's
+    latest result, not only the last call's tests)."""
+    runs: dict[str, list[tuple[str, list[str], scrt.PreScrt]]] = {}
     for rep in (arm_dir / "runs").glob("*/report.json"):
         r = json.loads(rep.read_text("utf-8"))
         pre = rep.parent / "pre-scrt.json"
         k = page_key(r.get("target"))
         if not pre.is_file() or k is None:
             continue
-        when = r.get("finished_at") or ""
-        if k not in best or when > best[k][0]:
-            best[k] = (when, pre)
-    return {k: scrt.parse(p.read_text("utf-8")) for k, (_, p) in best.items()}
+        runs.setdefault(k, []).append(
+            (
+                r.get("finished_at") or "",
+                list(r.get("tests") or []),
+                scrt.parse(pre.read_text("utf-8")),
+            )
+        )
+    out: dict[str, scrt.PreScrt] = {}
+    for k, rs in runs.items():
+        rs.sort(key=lambda x: x[0])
+        base = rs[-1][2].model_copy(deep=True)
+        chosen: dict[str, list] = {}
+        for _, tests, pre in rs:  # oldest first: later runs replace
+            rows = pre.results()
+            for t in tests:
+                if t in rows:
+                    chosen[t] = rows[t]
+        merged = []
+        for t, rows in base.results().items():
+            merged += chosen.get(t, rows)
+        base.Criteria = merged
+        out[k] = base
+    return out
+
+
+def _window_change(w: dict | None) -> dict[str, float] | None:
+    """How much of each subscription usage window a run used (last minus
+    first utilization; post-round 1 fix 8: on a subscription the limit is
+    the usage meter, not dollars). None when the route reports none."""
+
+    def util(snaps) -> dict[str, float]:
+        for snap in snaps or []:
+            win = (snap or {}).get("unifiedWindows") or {}
+            return {k: v.get("utilization") for k, v in win.items() if v}
+        return {}
+
+    if not w:
+        return None
+    a, b = util(w.get("first")), util(w.get("last"))
+    out = {
+        k: round(b[k] - a[k], 3)
+        for k in a
+        if isinstance(a.get(k), (int, float)) and isinstance(b.get(k), (int, float))
+    }
+    return out or None
+
+
+def review_reason(comment: str | None) -> str:
+    """Why the tool left a test for review, from its plain-language comment
+    (post-round 1 fix 13: every NEEDS_REVIEW carries the "could not be
+    performed" note, so the note alone cannot tell these apart)."""
+    c = (comment or "").lower()
+    if "not finished yet" in c and "question" in c:
+        return "open question"
+    if "time limit" in c:
+        return "time limit"
+    return "could not be performed"
 
 
 def score(rd: Path) -> dict:
@@ -175,8 +232,10 @@ def score(rd: Path) -> dict:
                     "models_reported",
                     "route",
                     "model_requested",
+                    "cost_usd_list_price",
                 )
-            },
+            }
+            | {"usage_window_change": _window_change(s.get("usage_windows"))},
         }
         if arm_dir.name.startswith("arm-a"):
             arm["server"] = _server(
@@ -194,14 +253,20 @@ def score(rd: Path) -> dict:
 
 def _server(rd, arm_dir, keys, key_tt, cs) -> dict:
     tools = tool_files(arm_dir)
+    adjudicated = adjudications(rd)
     per_tt, crit, untested = [], [], []
+    reasons: dict[str, int] = {}
     for url, (_, ref) in keys.items():
         mine = tools.get(page_key(url))
         if mine is None:
             untested.append(url)
             continue
-        sc = score_page(compare(ref, mine))
+        sc = score_page(compare(ref, mine), adjudicated.get(page_key(url)))
         per_tt.append(sc)
+        for t in sc.comparison.tests:
+            if t.second.rows and t.second.result is None:
+                r = review_reason(t.second.comment)
+                reasons[r] = reasons.get(r, 0) + 1
         side = {t.test_id: t.second for t in sc.comparison.tests}
         for c in cs:
             kv = rollup([key_tt[url].get(t) for t in c["tests"]])
@@ -214,6 +279,7 @@ def _server(rd, arm_dir, keys, key_tt, cs) -> dict:
     return {
         "pages_tested_by_the_tool": len(per_tt),
         "pages_not_tested": untested,
+        "needs_review_reasons": reasons,
         "per_tt": {
             "counts": tt_counts,
             "weighted": weighted(tt_counts),
@@ -225,6 +291,28 @@ def _server(rd, arm_dir, keys, key_tt, cs) -> dict:
             "rates": rates(c_counts),
         },
     }
+
+
+def _tokens(t: dict | None) -> str:
+    if not t:
+        return "not reported"
+    names = {
+        "input_tokens": "input",
+        "cache_creation_input_tokens": "cache writes",
+        "cache_read_input_tokens": "cache reads",
+        "output_tokens": "output",
+    }
+    return ", ".join(f"{names.get(k, k)} {v:,}" for k, v in t.items())
+
+
+def _usd(v) -> str:
+    return f"${v:.2f}" if isinstance(v, (int, float)) else "not reported"
+
+
+def _windows(w: dict | None) -> str:
+    if not w:
+        return "not reported"
+    return ", ".join(f"{k.replace('_', ' ')} +{v * 100:.0f}%" for k, v in w.items())
 
 
 def _markdown(out: dict) -> str:
@@ -244,8 +332,13 @@ def _markdown(out: dict) -> str:
             f"## {name}",
             "",
             f"RESULT line: {a['result_line']}. Ended: {eff['ended']}. Wall time: "
-            f"{eff['wall_s']} s. Tokens: {eff['tokens']}. Model calls: "
+            f"{eff['wall_s']} s (the efficiency figure: call durations include "
+            "waits). Model calls: "
             f"{eff['model_calls']}. Tool calls: {eff['tool_calls']}.",
+            "",
+            f"Tokens by type: {_tokens(eff.get('tokens'))}. Cost at list price: "
+            f"{_usd(eff.get('cost_usd_list_price'))}. Usage window change: "
+            f"{_windows(eff.get('usage_window_change'))}.",
             "",
             f"Per WCAG 2.0 criterion (what the agent reported): weighted "
             f"{a['per_criterion']['weighted']}",
@@ -259,6 +352,15 @@ def _markdown(out: dict) -> str:
                 f"Tool's own results, per TT test: weighted {sv['per_tt']['weighted']}",
                 "",
                 *[f"- {k}: {v}" for k, v in sv["per_tt"]["rates"].items()],
+                "",
+                "Why the tool left tests for review: "
+                + (
+                    ", ".join(
+                        f"{k} {v}"
+                        for k, v in sorted(sv.get("needs_review_reasons", {}).items())
+                    )
+                    or "none"
+                ),
                 "",
                 "Tool's own results rolled up per criterion: weighted "
                 f"{sv['per_criterion']['weighted']}",

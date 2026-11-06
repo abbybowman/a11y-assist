@@ -24,13 +24,14 @@ import shutil
 import time
 from collections.abc import Awaitable, Callable
 from dataclasses import asdict
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
 
 from playwright.async_api import Browser, async_playwright
 
-from a11y_assist import motion, scrt
+from a11y_assist import motion, pagecache, scrt
 from a11y_assist.browser import (
     MOTION_BROWSER,
     NavigationBlocked,
@@ -39,7 +40,7 @@ from a11y_assist.browser import (
     replay_browser_name,
     replay_in_full_chromium,
 )
-from a11y_assist.capture import replay_context
+from a11y_assist.capture import Capture, replay_context
 from a11y_assist.checks import REGISTRY, RunContext
 from a11y_assist.checks.base import PageRef
 from a11y_assist.config import Settings
@@ -52,8 +53,11 @@ from a11y_assist.models import (
     AnswerResult,
     Finding,
     FindingView,
+    OpenQuestion,
     OtherPage,
     Outcome,
+    Outstanding,
+    OutstandingRun,
     Report,
     RunResult,
     TestId,
@@ -343,6 +347,9 @@ def _page_refs(get_browser, settings: Settings, run, report: Report) -> list[Pag
             n=p.n,
             url=p.url,
             final_url=p.final_url or p.url,
+            har_sha=pagecache.sha256(run.dir / p.har)
+            if (run.dir / p.har).is_file()
+            else None,
             new_page=_opener(
                 get_browser,
                 settings,
@@ -365,6 +372,18 @@ async def _bounded(aw, hard: float):
         aw.close()
         raise TimeoutError
     return await asyncio.wait_for(aw, left)
+
+
+def _cap_skipped(exc: TooManyItems) -> str:
+    c = exc.cap
+    minutes = max(1, round(exc.estimate_s / 60))
+    return (
+        f"this page has {exc.count} {c.noun}, and one call checks at "
+        f"most {c.limit}. The other tests ran. To run this one too, call again "
+        f'with tests ["{c.test}"] and no_time_limit=true (about {minutes} min '
+        "or more; follow it with a11y_run_status), and replace its result in "
+        "the saved report."
+    )
 
 
 def _too_long(exc: WalkTooLong, limit: int) -> str:
@@ -435,9 +454,44 @@ def _walk_summary(walk: KeyboardWalk) -> dict[str, Any]:
 
 
 def _evidence_uris(run: RunRecorder) -> list[str]:
+    """The report and the evidence files. Pictures are not listed: the
+    questions and the report name the ones that matter (post-round 1 fix 6b:
+    a large page's list of pictures was 13k characters)."""
     files = [run.report_path] + sorted(run.evidence_dir.glob("*.json"))
-    files += sorted((run.evidence_dir / "shots").glob("*.png"))
     return [run_uri(run.run_id, run.rel(f)) for f in files if f.exists()]
+
+
+def _question_view(
+    qs: list[OpenQuestion],
+) -> tuple[list[OpenQuestion], dict[str, dict[str, str]]]:
+    """Open questions for a result, with each question and rubric that
+    several share given once in question_texts (post-round 1 fix 6b: 56 of
+    a page's questions repeated one text). The report keeps them whole."""
+    counts: dict[tuple[str, str], int] = {}
+    for q in qs:
+        counts[(q.question, q.rubric)] = counts.get((q.question, q.rubric), 0) + 1
+    keys: dict[tuple[str, str], str] = {}
+    texts: dict[str, dict[str, str]] = {}
+    out = []
+    for q in qs:
+        pair = (q.question, q.rubric)
+        if counts[pair] < 2:
+            out.append(q)
+            continue
+        if pair not in keys:
+            base = f"{q.test_id.value}-{q.question_id.rsplit('-', 1)[-1]}"
+            key, n = base, 2
+            while key in texts:
+                key, n = f"{base}-{n}", n + 1
+            keys[pair] = key
+            texts[key] = {"question": pair[0], "rubric": pair[1]}
+        k = keys[pair]
+        # A pointer, not an empty field: judge eval run 20's agent missed
+        # question_texts when the fields were blank.
+        see = f'Shared with other questions: read question_texts["{k}"]'
+        view = {"question": f"{see}.question.", "rubric": f"{see}.rubric.", "texts": k}
+        out.append(q.model_copy(update=view))
+    return out, texts
 
 
 def _shared_inputs(report: Report, states: dict[TestId, Any]) -> dict[str, Any]:
@@ -473,8 +527,14 @@ def _load_states(run: RunRecorder) -> dict[TestId, Any]:
     return states
 
 
-def _evaluate(run: RunRecorder, report: Report, states: dict[TestId, Any]) -> None:
-    """Findings and questions for every selected test, from the checks' rules."""
+def _evaluate(
+    run: RunRecorder,
+    report: Report,
+    states: dict[TestId, Any],
+    skipped: dict[TestId, str] | None = None,
+) -> None:
+    """Findings and questions for every selected test, from the checks' rules.
+    `skipped`: tests the run left out on purpose, with the reason."""
     tests = report_tests(report)
     asked = {q.question_id for q in report.questions}
     findings: list[Finding] = []
@@ -482,6 +542,9 @@ def _evaluate(run: RunRecorder, report: Report, states: dict[TestId, Any]) -> No
         check = REGISTRY.get(t)
         if check is None:
             findings.append(Finding.not_performed(t, NO_SPEC_REASON))
+            continue
+        if t not in states and skipped and t in skipped:
+            findings.append(Finding.not_performed(t, skipped[t]))
             continue
         if t not in states:
             why = "; ".join(report.errors) or "unknown error"
@@ -580,6 +643,7 @@ async def run_tt_tests(
     # replays that may reveal fields for them. Findings keep the report's order.
     checks.sort(key=lambda c: -getattr(c, "shares", 0))
     states: dict[TestId, Any] = {}
+    skipped: dict[TestId, str] = {}  # tests left out, and why (fix 12)
     walk: KeyboardWalk | None = None
     motion_task: asyncio.Task | None = None
     allowance = [0]  # T1 (a): seconds added once pass T finds moving content
@@ -641,22 +705,42 @@ async def run_tt_tests(
                 rel = f"evidence/pages/p{i}.har.zip"
                 t1 = time.monotonic()
                 (run.dir / rel).parent.mkdir(parents=True, exist_ok=True)
+                hit = pagecache.reused(settings, other, run.dir / rel)
                 try:
                     # Each other page records within its own share of the
                     # limit, so a slow one cannot eat the other tests' time.
                     share = hard if no_time_limit else t1 + settings.other_page_s
-                    oc = await _bounded(
-                        obtain(
-                            browser,
+                    oc = (
+                        Capture(
+                            target_url=other,
+                            final_url=hit.final_url,
+                            har_path=run.dir / rel,
+                            cross_site_frames=list(hit.cross_site_frames),
+                            frozen=hit.frozen,
+                        )
+                        if hit
+                        else await _bounded(
+                            obtain(
+                                browser,
+                                settings,
+                                other,
+                                run.dir / rel,
+                                run.log,
+                                proxy,
+                                tested=False,
+                            ),
+                            min(hard, share),
+                        )
+                    )
+                    if hit is None:
+                        pagecache.keep(
                             settings,
                             other,
                             run.dir / rel,
-                            run.log,
-                            proxy,
-                            tested=False,
-                        ),
-                        min(hard, share),
-                    )
+                            oc.final_url,
+                            oc.cross_site_frames,
+                            oc.frozen,
+                        )
                 except TimeoutError:
                     # The single-page tests still run; the tests that compare
                     # pages are not performed rather than run on fewer pages.
@@ -691,6 +775,13 @@ async def run_tt_tests(
                         har=rel,
                         cross_site_frames=oc.cross_site_frames,
                         frozen=oc.frozen if settings.frozen_pages_dir else None,
+                        reused_from=(
+                            datetime.fromtimestamp(
+                                hit.recorded_at, timezone.utc
+                            ).isoformat(timespec="seconds")
+                            if hit
+                            else None
+                        ),
                         replay_browser=replay_browser_name(
                             settings, oc.cross_site_frames
                         ),
@@ -699,6 +790,7 @@ async def run_tt_tests(
                 run.log(
                     "captured_other",
                     n=i,
+                    reused=bool(hit),
                     final_url=oc.final_url,
                     seconds=round(time.monotonic() - t1, 2),
                 )
@@ -744,7 +836,7 @@ async def run_tt_tests(
                     )
                 )
                 ctx.cache["motion_task"] = motion_task
-            if any(needs_walk(c, ctx) for c in checks):
+            while any(needs_walk(c, ctx) for c in checks):
                 await say(1, "Walking the page with Tab and Shift+Tab")
                 caps = [c.cap for c in checks if getattr(c, "cap", None)]
                 pace = None if no_time_limit else Pace(soft, caps=caps)
@@ -762,6 +854,16 @@ async def run_tt_tests(
                             ),
                             hard,
                         )
+                except TooManyItems as exc:
+                    # Over one check's cap (5.D's form fields), found at the
+                    # first load: leave that test out, say how to run it, and
+                    # test the rest (post-round 1 fix 12).
+                    t = TestId(exc.cap.test)
+                    checks = [c for c in checks if c.test_id is not t]
+                    skipped[t] = _cap_skipped(exc)
+                    report.errors.append(f"{t.value} was not run: {skipped[t]}")
+                    run.log("cap_skipped", test=t.value, count=exc.count)
+                    continue
                 except WalkTooLong as exc:
                     # Stop and say so instead of running out of time: the
                     # caller chooses no_time_limit or another page.
@@ -772,6 +874,13 @@ async def run_tt_tests(
                         "The keyboard walk did not finish within the time limit."
                     )
                     run.log("walk", "error", error="time limit", cost=asdict(cost))
+                except Exception as exc:
+                    # E.g. an embed that detached mid-read (post-round 1 fix 1):
+                    # the checks that need the walk are left for review, the
+                    # rest still run.
+                    err = safe_error(exc)
+                    report.errors.append(f"The keyboard walk failed: {err}")
+                    run.log("walk", "error", error=err, cost=asdict(cost))
                 if walk is not None:
                     ctx.plan = ReplayPlan.of(walk.p1, walk.p2)
                     # 2.C A2's walk cross-check: steps that never settled.
@@ -780,6 +889,7 @@ async def run_tt_tests(
                     )
                     run.write_json(run.evidence_dir / "walk.json", walk)
                     run.log("walk", **_walk_summary(walk), cost=asdict(cost))
+                break
             for c in checks:
                 if pages_cut and uses_pages(c):
                     continue  # NEEDS REVIEW, not performed: pages_cut says why
@@ -812,6 +922,12 @@ async def run_tt_tests(
                 report.errors.append(
                     TIME_NOTE.format(limit=_limit(settings, len(others)) + allowance[0])
                 )
+        except RunRefused:
+            raise  # its folder is already removed
+        except BaseException:
+            # A tool error leaves no run folder (CLAUDE.md).
+            shutil.rmtree(run.dir, ignore_errors=True)
+            raise
         finally:
             if motion_task is not None and not motion_task.done():
                 motion_task.cancel()
@@ -820,20 +936,24 @@ async def run_tt_tests(
 
     await say(3, "Evaluating")
     report.findings = []
-    _evaluate(run, report, states)
+    _evaluate(run, report, states, skipped)
     result = await get_judge(settings.judge_backend).judge(report.open_questions)
     report.open_questions = result.pending
     report.finished_at = utcnow()
+    report.follow_up_calls = follow_ups(report, states, skipped)
     run.write_json(run.report_path, report)
     pre_scrt = scrt.write_for_run(run.dir, run.report_path, report)
     run.log("run_end", status="error" if report.errors else "ok")
+    qview = _question_view(report.open_questions)
+    calls = report.follow_up_calls
     return RunResult(
         run_id=run.run_id,
         target=url,
         final_url=report.final_url,
         tests=report.tests,
-        findings=[FindingView.of(f) for f in report.findings],
-        open_questions=report.open_questions,
+        findings=[FindingView.of(f, report) for f in report.findings],
+        open_questions=qview[0],
+        question_texts=qview[1],
         page_text=_page_text(report, states),
         shared_inputs=_shared_inputs(report, states),
         walk=_walk_summary(walk) if walk else {},
@@ -843,6 +963,92 @@ async def run_tt_tests(
         report_uri=run_uri(run.run_id, run.rel(run.report_path)),
         pre_scrt_uri=run_uri(run.run_id, run.rel(pre_scrt)),
         errors=report.errors,
+        next_step=next_step(report, calls),
+        follow_up_calls=calls,
+    )
+
+
+def _has_image(value: Any) -> bool:
+    if isinstance(value, str):
+        return value.startswith("run://") and value.endswith(".png")
+    if isinstance(value, dict):
+        return any(_has_image(v) for v in value.values())
+    if isinstance(value, list):
+        return any(_has_image(v) for v in value)
+    return False
+
+
+def follow_ups(
+    report: Report, states: dict[TestId, Any], skipped: dict[TestId, str] | None
+) -> list[dict]:
+    """Tool calls that would let a NEEDS_REVIEW test decide: a check's own
+    `follow_up` (19.A's suggested pages) and a test left out over a cap
+    (5.D, with no_time_limit). For next_step; never made by the server."""
+    review = {f.test_id for f in report.findings if f.outcome is Outcome.NEEDS_REVIEW}
+    out: list[dict] = []
+    for t in [t for t in TestId if t in review]:
+        fn = getattr(REGISTRY.get(t), "follow_up", None)
+        call = fn(states[t], report) if fn and t in states else None
+        if call:
+            out.append(call)
+    for t in skipped or {}:
+        out.append({"url": report.target, "tests": [t.value], "no_time_limit": True})
+    return out
+
+
+def _calls_text(calls: list[dict] | None) -> str:
+    if not calls:
+        return ""
+    n = len(calls)
+    return (
+        f" Then make the {n} call{'s' if n != 1 else ''} in follow_up_calls "
+        "yourself, as they are, without asking the user: they let tests left "
+        "for review decide (the 2026-11-05 development run named them here in "
+        "prose and the agent made none). Replace those tests' results in the "
+        "saved report with the new ones."
+    )
+
+
+FINISH = (
+    " Your work is finished only when a11y_run_status with no job_id lists "
+    "nothing left (the fourth development run's agent ended with questions "
+    "and follow-up calls open). In a FAIL finding, `confirmed` names what the "
+    "spec decided and `unconfirmed` the instances still waiting for answers: "
+    "report them apart."
+)
+
+
+def next_step(report: Report, calls: list[dict] | None = None) -> str:
+    """What the calling agent does next, in one place in every result
+    (post-round 1 fixes 4, 12 and 19: agents left every question unanswered,
+    decided NEEDS_REVIEW findings themselves, and opened few images)."""
+    qs = report.open_questions
+    review = (
+        "a NEEDS_REVIEW finding is reported as needs review (a person checks "
+        "it), never as a pass or a fail"
+    )
+    if not qs:
+        return (
+            f"No open questions. Relay each finding's summary; {review}."
+            + _calls_text(calls)
+            + " Then save the report (save_hint)."
+            + FINISH
+        )
+    asked = {q.test_id for q in qs}
+    tests = [t.value for t in TestId if t in asked]
+    looks = (
+        " Some questions ask what an image shows: open each run:// image they "
+        "name with your MCP client's resource reader (read resource; a file "
+        "reader cannot open run:// links) and look before answering."
+        if any(_has_image(q.input) for q in qs)
+        else ""
+    )
+    return (
+        f"Not finished: {', '.join(tests)} stay NEEDS_REVIEW until you answer "
+        f"the {len(qs)} open question(s) in open_questions. Answer them now, "
+        "yourself, all in one a11y_answer_questions call, each by its rubric; "
+        "answer unsure only when the evidence does not settle it (only those go "
+        f"to a person).{looks} Until then, {review}." + _calls_text(calls) + FINISH
     )
 
 
@@ -884,6 +1090,9 @@ async def answer_questions(
     finally:
         await browser.close()
     _evaluate(run, report, states)
+    # A test left out over a cap (no_time_limit) stays to do after answers.
+    kept = [c for c in report.follow_up_calls if c.get("no_time_limit")]
+    report.follow_up_calls = follow_ups(report, states, None) + kept
     run.write_json(run.report_path, report)
     pre_scrt = scrt.write_for_run(run.dir, run.report_path, report)
     run.log(
@@ -893,16 +1102,77 @@ async def answer_questions(
         rejected=rejected,
         errors=errors,
     )
+    qview = _question_view(report.open_questions)
+    calls = report.follow_up_calls
     return AnswerResult(
         run_id=run_id,
         accepted=accepted,
         rejected=rejected,
-        findings=[FindingView.of(f) for f in report.findings],
-        open_questions=report.open_questions,
+        findings=[FindingView.of(f, report) for f in report.findings],
+        open_questions=qview[0],
+        question_texts=qview[1],
         page_text=_page_text(report, states),
         shared_inputs=_shared_inputs(report, states),
         report=report,
         report_uri=run_uri(run.run_id, run.rel(run.report_path)),
         pre_scrt_uri=run_uri(run.run_id, run.rel(pre_scrt)),
         errors=errors,
+        next_step=next_step(report, calls),
+        follow_up_calls=calls,
     )
+
+
+def outstanding(settings: Settings, jobs: list) -> Outstanding:
+    """Open questions and follow-up calls left in this session's runs, read
+    from each run's report as it is now (answers since the run included)."""
+    runs, running, done = [], [], 0
+    for j in jobs:
+        if j.task is None or not j.task.done():
+            running.append(
+                {
+                    "job_id": j.id,
+                    "target": j.url,
+                    "status": "queued" if j.started is None else "running",
+                }
+            )
+            continue
+        if j.task.cancelled() or j.task.exception() is not None:
+            continue
+        res = j.task.result()
+        try:
+            run = RunRecorder.open(settings.runs_dir, res.run_id)
+            report = Report.model_validate_json(run.report_path.read_text("utf-8"))
+        except Exception:
+            continue  # expired or removed
+        if not report.open_questions and not report.follow_up_calls:
+            done += 1
+            continue
+        waiting = {q.test_id for q in report.open_questions}
+        runs.append(
+            OutstandingRun(
+                run_id=report.run_id,
+                target=report.target,
+                open_questions=len(report.open_questions),
+                tests_waiting=[t.value for t in TestId if t in waiting],
+                follow_up_calls=report.follow_up_calls,
+                report_uri=run_uri(run.run_id, run.rel(run.report_path)),
+            )
+        )
+    q = sum(r.open_questions for r in runs)
+    c = sum(len(r.follow_up_calls) for r in runs)
+    if runs or running:
+        step = (
+            f"Left: {q} open question(s) in {len(runs)} run(s) and {c} follow-up "
+            f"call(s); {len(running)} run(s) still going. For each run, answer "
+            "its open questions with a11y_answer_questions (its report_uri has "
+            "them, or call a11y_run_status with the job_id of a run still "
+            "going), then make its follow_up_calls as given, without asking "
+            "the user. Call this again until nothing is left, before you "
+            "report to the user."
+        )
+    else:
+        step = (
+            "Nothing is left: every run of this session is finished, with no "
+            "open question or follow-up call."
+        )
+    return Outstanding(runs=runs, running=running, done=done, next_step=step)

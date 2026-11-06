@@ -47,6 +47,15 @@ def settings(tmp_path: Path) -> Settings:
         # The fixture servers listen on 127.0.0.1 only (any port). 127.0.0.2
         # stays refused: tests use it as a sentinel for leaks.
         dev_allowed_addresses=["127.0.0.1/32"],
+        # Tool tests read a finished result from one call, even on a loaded
+        # machine; the job tests in test_tools.py lower it on purpose.
+        call_wait_s=600,
+        # The rule tests were built on the 120 s limit (a page refused early,
+        # a walk cut short): keep it for them; the server's default is 600 s.
+        run_limit_s=120,
+        # Each test records its pages afresh; test_pagecache.py turns the
+        # cache on for itself.
+        page_cache_s=0,
     )
 
 
