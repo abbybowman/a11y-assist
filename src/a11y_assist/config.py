@@ -11,7 +11,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Literal
 
-from pydantic import Field
+from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -34,6 +34,37 @@ class Settings(BaseSettings):
     mcp_transport: str = "stdio"
     mcp_host: str = "127.0.0.1"
     mcp_port: int = 8000
+
+    # ── Sign-in (HTTP only) ───────────────────────────────────────────────────
+    # "none": HTTP listens on loopback only. "oidc": every MCP request needs a
+    # token from the OIDC provider (VAST's Keycloak app realm), through
+    # FastMCP's OIDC proxy; only then may MCP_HOST be a public interface.
+    # docs/plans/2026-11-06-hosted-auth.md.
+    auth: Literal["none", "oidc"] = "none"
+    # This server's public URL (https), e.g. https://508-tobi.vast.ndc.nasa.gov.
+    # Keycloak's redirect URI is {PUBLIC_BASE_URL}/auth/callback, and only
+    # this host passes the Host check.
+    public_base_url: str | None = None
+    # .../realms/<realm>/.well-known/openid-configuration
+    oidc_config_url: str | None = None
+    oidc_client_id: str | None = None
+    oidc_client_secret: SecretStr | None = None
+    # Expected `aud` of upstream access tokens (Keycloak needs an audience
+    # mapper for this); unset skips the audience check.
+    oidc_audience: str | None = None
+    # Signs the tokens this server gives MCP clients, and encrypts its stored
+    # client registrations. Keep it stable, or every client signs in again.
+    oidc_jwt_signing_key: SecretStr | None = None
+    # Where MCP clients may ask to be sent back after sign-in. Claude Code
+    # uses a localhost port; add e.g. a web client's callback here.
+    oidc_client_redirect_uris: list[str] = Field(
+        default_factory=lambda: ["http://localhost:*", "http://127.0.0.1:*"]
+    )
+    # Optional gate: a caller needs one of these values in the token claim
+    # `group_claim` (VAMS groups such as VAST--<client>--<slug>, or NAMS
+    # groups). Empty: any signed-in NASA user who passes NAMS.
+    required_groups: list[str] = Field(default_factory=list)
+    group_claim: str = "claim_groups"
 
     # ── Navigation policy ─────────────────────────────────────────────────────
     # Entries starting with "." match that suffix (".gov" matches "www.nasa.gov"

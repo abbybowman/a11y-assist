@@ -3,7 +3,8 @@
 Keep this file THIN. It only:
   1. creates the FastMCP instance,
   2. registers tools / prompts / resources / routes from the submodules, and
-  3. decides which transport to run (stdio, or HTTP on loopback only).
+  3. decides which transport to run (stdio, or HTTP: loopback only unless
+     signed in, see access.py).
 
 All real logic lives in the submodules:
   - tools/      one file per tool (each exposes `register(mcp)`)
@@ -75,39 +76,55 @@ register_routes(mcp)
 
 # Host and Origin headers are checked on every HTTP request (FastMCP's guard,
 # which is off by default). This blocks DNS rebinding from a web page in the
-# user's browser: only localhost names and same-origin or loopback origins pass.
+# user's browser: only localhost names (and, signed in, PUBLIC_BASE_URL's
+# host) and same-origin or loopback origins pass.
 HTTP_SECURITY = {"host_origin_protection": True}
 
 LOOPBACK_HOSTS = ("127.0.0.1", "::1")
 
 
-def main() -> None:
-    """Start the server: stdio by default, or HTTP on loopback only.
+def http_options(s=None) -> dict:
+    """mcp.run's HTTP arguments. Without sign-in, loopback only. With
+    AUTH=oidc, sign-in on every MCP request (access.py), an audit line per
+    call, and the public host added to the Host check; only then may MCP_HOST
+    be a public interface (0.0.0.0 in a container behind the platform's
+    HTTPS). Raises SystemExit on any setting that would serve without it."""
+    s = s or settings
+    opts: dict = {"host": s.mcp_host, "port": s.mcp_port, **HTTP_SECURITY}
+    if s.auth == "none":
+        if s.mcp_host not in LOOPBACK_HOSTS:
+            raise SystemExit(
+                f"MCP_HOST must be one of {', '.join(LOOPBACK_HOSTS)} without "
+                "sign-in: set AUTH=oidc to listen beyond loopback."
+            )
+        return opts
+    from urllib.parse import urlsplit
 
-    There is no authentication yet, and this server drives a real browser, so
-    it never listens on a public interface. The template's platform branch
-    (`PORT` / `DATABRICKS_APP_PORT` -> HTTP on 0.0.0.0) is removed until
-    authentication exists; those variables are ignored.
+    from a11y_assist.access import AuditMiddleware, build_auth
+
+    mcp.auth = build_auth(s)
+    mcp.add_middleware(AuditMiddleware())
+    opts["allowed_hosts"] = [urlsplit(s.public_base_url).netloc]
+    return opts
+
+
+def main() -> None:
+    """Start the server: stdio by default, or HTTP.
+
+    This server drives a real browser, so HTTP without sign-in never listens
+    on a public interface. The template's platform branch (`PORT` /
+    `DATABRICKS_APP_PORT` -> HTTP on 0.0.0.0) is removed; those variables are
+    ignored.
 
       * `MCP_TRANSPORT=stdio` (default): how local clients (Claude Code,
-        Claude Desktop) launch the server as a subprocess.
-      * `MCP_TRANSPORT=streamable-http`: HTTP on `MCP_HOST`:`MCP_PORT`, where
-        `MCP_HOST` must be 127.0.0.1 or ::1, with Host/Origin checks.
+        Claude Desktop) launch the server as a subprocess. AUTH is ignored.
+      * `MCP_TRANSPORT=streamable-http`: HTTP on `MCP_HOST`:`MCP_PORT` with
+        Host/Origin checks. Loopback only, unless `AUTH=oidc` (http_options).
     """
     if settings.mcp_transport == "stdio":
         mcp.run(transport="stdio")
     elif settings.mcp_transport == "streamable-http":
-        if settings.mcp_host not in LOOPBACK_HOSTS:
-            raise SystemExit(
-                f"MCP_HOST must be one of {', '.join(LOOPBACK_HOSTS)}: the HTTP "
-                "transport has no authentication, so it listens on loopback only."
-            )
-        mcp.run(
-            transport="streamable-http",
-            host=settings.mcp_host,
-            port=settings.mcp_port,
-            **HTTP_SECURITY,
-        )
+        mcp.run(transport="streamable-http", **http_options())
     else:
         raise SystemExit(
             f"Unknown MCP_TRANSPORT {settings.mcp_transport!r}: "

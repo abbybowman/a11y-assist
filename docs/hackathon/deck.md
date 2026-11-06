@@ -197,10 +197,11 @@ flowchart LR
 - Evidence kept 24 h, then deleted; results go to the user's repository
 - No secrets in errors or logs: query strings, headers and page text are redacted
 - Every result says "not a certified Trusted Tester result"
+- Hosted only behind NASA sign-in (Launchpad through VAST's Keycloak, NAMS enforced); each person sees only their own runs; every call is audited with who and what **[PENDING: end-to-end sign-in on VAST]**
 
 **Notes:**
 
-- The template's default of opening an unauthenticated HTTP port on all interfaces is gone: stdio by default, HTTP only on loopback with Host and Origin checks. **[PENDING]** Authentication before any hosted demo.
+- The template's default of opening an unauthenticated HTTP port on all interfaces is gone: stdio by default, HTTP only on loopback with Host and Origin checks unless sign-in is on. With sign-in, every MCP request needs a NASA token, an optional VAMS or NAMS group gate applies, runs are private to their maker, and each call writes an audit line (no answers or page text).
 - Errors and logs carry no query strings, headers, stack traces or page text; a test seeds secrets and checks they don't leak.
 
 ---

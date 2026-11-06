@@ -200,6 +200,7 @@ src/a11y_assist/
   judgment.py   Judge interface: ClientJudge, ApiJudge (stub); answer recording
   pipeline.py   run_tt_tests / answer_questions orchestration (generic)
   runlog.py     runs/<run_id>/ folder, steps.jsonl
+  access.py     hosted sign-in (AUTH=oidc): OIDC proxy, group gate, run owners, audit lines
   versions.py   version collection
   catalog.py    the TT 5.1.3 test catalog (from docs/sources/tt-5.1.3/tt.json)
   rules.py      loads docs/rules/ specs and their front matter versions
