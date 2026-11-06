@@ -39,6 +39,23 @@ that; the tool has to make the complete path the cheap one.
   - **Sampling:** the server sends its own prompt, with the picture, to
     the client's model.
   - **Elicitation:** the server asks the user directly.
+- **Client support (second search, 2026-11-06).** These come from
+  third-party snapshots; check them against modelcontextprotocol.io/clients
+  before building:
+  - **Sampling:** deprecated in the 2026-07-28 spec (SEP-2577); about 2 of
+    24 surveyed clients support it. Claude Code is listed without it; VS
+    Code has it. Dropped.
+  - **Elicitation:** the one active client feature; Claude Code is listed
+    with it.
+    - Form mode takes simple fields only (text, number, yes/no, a choice);
+      nothing found about images.
+    - URL mode (2025-11-25) sends the person to a web page after the
+      client asks their consent.
+  - **MCP Apps:** the server ships an HTML view that the client renders in
+    the conversation. Hosts named: Claude, Claude Desktop, VS Code Copilot.
+    A terminal cannot render it.
+  - **MCP Tasks:** experimental. The core spec and an extension (SEP-2663)
+    describe it differently, and no Claude Code support was found.
 
 ## Changes, in order
 
@@ -91,17 +108,63 @@ that; the tool has to make the complete path the cheap one.
 - Questions to change: 4.D, 4.F, 2.B and the others with `image_*` inputs.
   The rubrics change, so run the judge eval (CLAUDE.md principle 6).
 
-### 4. Elicitation for the user's choices (where the client supports it)
+### 4. Reconsider which choices stay with the agent or the user (Abby, 2026-11-06)
 
-- `no_time_limit` and suggested pages: ask the user through MCP
-  elicitation when the client declares it, else list them as in 1.
+- **`no_time_limit` by default.** Abby leans toward it, provided the user
+  running the agent sees frequent progress, so a long run never looks
+  stuck.
+  - **Needed first:** progress the user sees, not only the agent.
+    Progress notifications per phase and page exist; check what Claude
+    Code and other clients show of them.
+  - **Each `a11y_run_status` return carries a one-line human status**
+    (phase, page, stops walked of the estimate, elapsed, a rough ETA) for
+    the agent to relay.
+  - **Shorter waits per call** so updates come more often.
+  - **Decision:** if users can see the run moving, make `no_time_limit`
+    the default. Keep `RUN_LIMIT_S` as a safety cap far above any page
+    seen so far (NACA took 309-428 s), and update CLAUDE.md's time rule.
+- **19.A's suggested pages.** Today the server suggests pages and only the
+  agent may pass them back (CLAUDE.md, Abby 2026-11-05).
+  - **Question for Abby:** may the server visit them itself, under the
+    same rules as 19.A's site search? Those rules are allowlisted, on the
+    tested page's host with every redirect hop checked, and recorded as
+    their own HAR.
+  - **If yes,** change 1 makes those calls too, and CLAUDE.md principle 5
+    gains a third approved exception.
+- **Elicitation form mode for what remains a user choice** (simple fields,
+  where the client declares elicitation); otherwise list it as in 1.
 
-### 5. Later: protocol features, once client support is checked
+### 5. Show NEEDS_REVIEW items to a person, with the screenshot
 
-- **MCP Tasks** in place of our polling.
-- **Sampling, or the planned `ApiJudge`,** for visual questions.
+- **Chat clients: an MCP Apps review view.** One card per question,
+  showing:
+  - the screenshot;
+  - the plain-language question (no spec codes);
+  - the answer buttons.
 
-Check which target clients support each first.
+  The person's answer goes back to the server and overrides the agent's
+  (principle 8).
+- **Terminals and other clients:** a plain question plus `run://` image
+  links, and elicitation form mode for the answer where supported.
+- **Maybe later: elicitation URL mode.** It would open a review page the
+  server serves. That needs authentication and a security review first;
+  hosted deployment only.
+
+### 6. Visual questions answered by the server's own model (`ApiJudge`)
+
+- Build the planned `ApiJudge` (`judgment.py` stub; the hosted model
+  named in `config.py`) for questions that need a picture. This works
+  whatever the client and whatever the prompt.
+  - **Costs:** the server needs a key and pays for the model calls.
+  - **Recording:** every report records the judging model, as now.
+  - **Checking:** the judge eval measures it before it is turned on.
+  - **Fallback:** the client agent answers the rest.
+
+### 7. Watch: MCP Tasks
+
+- Replace our polling with MCP Tasks once the spec settles and target
+  clients support it. Until then, change 1's single finish call keeps
+  polling cheap.
 
 ## Evaluating prompt independence
 
