@@ -167,8 +167,9 @@ async def test_the_result_names_the_call_that_adds_the_suggested_pages(
     out = await run_tt_tests(
         settings, f"{server.base}/19a/{page}.html", [TestId.T19A], other_pages=given
     )
-    step = out.next_step
-    assert "without asking the user" in step
-    assert '"tests": ["19.A"]' in step and "sitemap.html" in step
-    for g in given:
-        assert g in step  # the pages given before are kept
+    assert "follow_up_calls" in out.next_step
+    assert "without asking the user" in out.next_step
+    [call] = out.follow_up_calls
+    assert call["tests"] == ["19.A"] and call["url"].endswith(f"/{page}.html")
+    assert any(p.endswith("sitemap.html") for p in call["other_pages"])
+    assert all(g in call["other_pages"] for g in given)  # kept

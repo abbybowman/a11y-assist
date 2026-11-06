@@ -56,6 +56,10 @@ Development runs, never scored as a round (Agent A, CLI route):
   to the round's task. For example, `answers-v1` tells the agent to
   answer every open question and to rerun cut-short calls with
   `no_time_limit`.
+- `--debrief` asks the agent, after its final answer, why it left open
+  questions or follow-up calls undone: one resumed turn in the same
+  session with no tools and no MCP servers, saved to `debrief.md` and
+  never scored.
 - `--no-subagents` removes the CLI's subagent tool. Without it, one run
   started 9 subagents at once and overloaded the container.
 

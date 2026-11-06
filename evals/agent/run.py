@@ -64,6 +64,16 @@ HELPER = {
     },
 }
 
+DEBRIEF = (
+    "This is a follow-up for the people building the tools you used, not "
+    "part of the task, and it changes no result. Answer briefly and "
+    "honestly: did you leave any of the tools' open questions unanswered, or "
+    "skip any call the results asked you to make (follow_up_calls, "
+    "no_time_limit, other pages)? For each, why: for example time, cost, the "
+    "number of questions, unclear instructions, not believing it would help, "
+    "or not noticing. What would have made you do it?"
+)
+
 LEAK_QUESTION = (
     "Before the task: answer from your context only, not general knowledge, "
     "as one line of JSON with these keys: "
@@ -459,6 +469,8 @@ async def _run_arm(
             agent.totals, agent.models = res["tokens"], set(res["models"])
             agent.tool_calls = res["tool_calls"]
             agent.transcripts = res["transcript"]
+            if res.get("debrief") is not None:
+                (out / "debrief.md").write_text(res["debrief"] + "\n", "utf-8")
             for k in (
                 "init",
                 "model_usage",
@@ -526,10 +538,21 @@ def main(argv: list[str]) -> None:
         action="store_true",
         help="cli route only: deny the CLI's own subagent tool",
     )
+    ap.add_argument(
+        "--debrief",
+        action="store_true",
+        help="development runs only: after the final answer, ask the agent "
+        "(tools off) why it left questions or follow-up calls undone; saved "
+        "to debrief.md, never scored",
+    )
     ap.add_argument("round", type=Path)
     a = ap.parse_args(argv)
     provider = (
-        ClaudeCodeCLI(a.model, no_subagents=a.no_subagents)
+        ClaudeCodeCLI(
+            a.model,
+            no_subagents=a.no_subagents,
+            debrief=DEBRIEF if a.debrief else None,
+        )
         if a.route == "cli"
         else AnthropicMessages.from_env()
     )

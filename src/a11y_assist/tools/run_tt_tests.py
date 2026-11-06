@@ -41,17 +41,21 @@ keyboard way to do this? is this tooltip essential? does this dialog take over
 the page?). The findings that need them stay NEEDS_REVIEW until they are
 answered, and the process expects you to answer them: `next_step` in the
 result says how many there are and what to do. Answer each with
-a11y_answer_questions using its rubric and evidence;
-answer "unsure" when the evidence does not settle it, and only then ask the
-user. Images a question names (image_a, ...) are run:// resources: open them
-with your MCP client's resource reader, not a file reader, and look before
-answering. Report a NEEDS_REVIEW finding as needs review, never as a pass or
-a fail of your own. To save your context, hand all of a run's open questions together to
-one subagent (with question, rubric, input and evidence_paths, which are
-run:// resources) and keep only the answer objects it returns; a subagent per
-question costs far more in total. For one or two short questions, answering
-directly is cheapest. Answering can raise a follow-up question (4.B
-asks about alternatives after confirming key timing): repeat until none are open.
+a11y_answer_questions using its rubric and evidence; answer "unsure" when the
+evidence does not settle it, and only then ask the user. Images a question
+names (image_a, ...) are attached after the result, each with its question (up
+to a cap); the rest are run:// resources: open them with your MCP client's
+resource reader, not a file reader. Look before answering. Report a
+NEEDS_REVIEW finding as needs review, never as a pass or a fail of your own.
+When `follow_up_calls` is not empty, make each of those a11y_run_tt_tests
+calls as given, without asking the user, after answering: they let tests left
+for review decide. To save your context, hand all of a run's open questions
+together to one subagent (with question, rubric, input and evidence_paths,
+which are run:// resources) and keep only the answer objects it returns; a
+subagent per question costs far more in total. For one or two short questions,
+answering directly is cheapest. Answering can raise a follow-up question (4.B
+asks about alternatives after confirming key timing): repeat until none are
+open.
 
 Relay each finding's plain-language `summary` in its own words; the explain
 prompt and tt://5.1.3/tests/{{id}} give the TT text. Evidence several questions

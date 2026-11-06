@@ -83,6 +83,7 @@ class ClaudeCodeCLI:
         model: str = "claude-sonnet-5-5",
         binary: str = "claude",
         no_subagents: bool = False,
+        debrief: str | None = None,
     ):
         self.model = model
         self.binary = shutil.which(binary) or binary
@@ -91,6 +92,10 @@ class ClaudeCodeCLI:
         # (2026-11-04) launched 9 at once, each running the a11y tool, and
         # overloaded the container; round 1's arms never used it.
         self.no_subagents = no_subagents
+        # A development question asked after the arm's final answer, in the
+        # same session with every tool off (run.py --debrief). It never
+        # changes the arm's results: they are recorded first.
+        self.debrief = debrief
 
     # ── process ───────────────────────────────────────────────────────────
     def _env(self, home: Path) -> dict[str, str]:
@@ -119,7 +124,14 @@ class ClaudeCodeCLI:
         return env
 
     def _args(
-        self, prompt: str, mcp: Path, tools: list[str], servers, hosts=(), home=None
+        self,
+        prompt: str,
+        mcp: Path,
+        tools: list[str],
+        servers,
+        hosts=(),
+        home=None,
+        resume: str | None = None,
     ) -> list[str]:
         if self.no_subagents:
             tools = [t for t in tools if t not in SUBAGENT_TOOLS]
@@ -158,13 +170,19 @@ class ClaudeCodeCLI:
             "--allowedTools",
             ",".join(allowed),
             *(["--disallowedTools", ",".join(denied)] if denied else []),
-            "--no-session-persistence",
+            # Kept only for a debrief, inside the arm's temporary home.
+            *([] if self.debrief else ["--no-session-persistence"]),
+            *(["--resume", resume] if resume else []),
             "--system-prompt",
             task_prompt.SYSTEM,
         ]
 
-    async def _stream(self, prompt, servers, tools, on_event, hosts=()) -> int:
-        """Run one isolated `claude -p` and call on_event(event, t) per line."""
+    async def _stream(
+        self, prompt, servers, tools, on_event, hosts=(), after=None
+    ) -> int:
+        """Run one isolated `claude -p` and call on_event(event, t) per line.
+        `after(session_id) -> (prompt, on_event)`: a second, tool-less turn
+        resumed in the same session and home (the debrief), or None."""
         with tempfile.TemporaryDirectory(prefix="arm-") as tmp:
             tmp = Path(tmp)
             (tmp / "home").mkdir()
@@ -180,28 +198,47 @@ class ClaudeCodeCLI:
                     }
                 )
             )
-            proc = await asyncio.create_subprocess_exec(
-                *self._args(prompt, mcp, tools, servers, hosts, tmp / "home"),
-                cwd=tmp / "work",
-                env=self._env(tmp / "home"),
-                stdin=asyncio.subprocess.DEVNULL,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE,
-                limit=64 * 1024 * 1024,
+            session: dict[str, str] = {}
+
+            async def one(args, handler) -> int:
+                proc = await asyncio.create_subprocess_exec(
+                    *args,
+                    cwd=tmp / "work",
+                    env=self._env(tmp / "home"),
+                    stdin=asyncio.subprocess.DEVNULL,
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE,
+                    limit=64 * 1024 * 1024,
+                )
+                async for raw in proc.stdout:
+                    t = time.monotonic()
+                    try:
+                        ev = json.loads(raw)
+                    except ValueError:
+                        continue
+                    if ev.get("session_id"):
+                        session["id"] = ev["session_id"]
+                    if handler(ev, t) is False:
+                        proc.kill()
+                        break
+                err = (await proc.stderr.read()).decode("utf-8", "replace")
+                code = await proc.wait()
+                if code not in (0, -9) and err.strip():
+                    self.stderr = err[-2000:]
+                return code
+
+            code = await one(
+                self._args(prompt, mcp, tools, servers, hosts, tmp / "home"), on_event
             )
-            async for raw in proc.stdout:
-                t = time.monotonic()
-                try:
-                    ev = json.loads(raw)
-                except ValueError:
-                    continue
-                if on_event(ev, t) is False:
-                    proc.kill()
-                    break
-            err = (await proc.stderr.read()).decode("utf-8", "replace")
-            code = await proc.wait()
-            if code not in (0, -9) and err.strip():
-                self.stderr = err[-2000:]
+            if after is not None and session.get("id"):
+                q, handler = after(session["id"])
+                # No tools and no MCP servers: it can only answer.
+                none = tmp / "mcp-none.json"
+                none.write_text(json.dumps({"mcpServers": {}}))
+                await one(
+                    self._args(q, none, [], [], (), None, resume=session["id"]),
+                    handler,
+                )
             return code
 
     # ── leak check ────────────────────────────────────────────────────────
@@ -333,7 +370,22 @@ class ClaudeCodeCLI:
                 out["cost_usd_list_price"] = ev.get("total_cost_usd")
             return True
 
-        out["exit_code"] = await self._stream(task, servers, ARM_TOOLS[arm], on, hosts)
+        def debrief(_sid):
+            def got(ev, t):
+                if ev.get("type") == "result":
+                    out["debrief"] = ev.get("result") or ""
+                return True
+
+            return self.debrief, got
+
+        out["exit_code"] = await self._stream(
+            task,
+            servers,
+            ARM_TOOLS[arm],
+            on,
+            hosts,
+            after=debrief if self.debrief else None,
+        )
         if failed_servers:
             out["ended"] = "error: MCP server not connected"
             out["error"] = f"MCP servers not connected: {failed_servers}"

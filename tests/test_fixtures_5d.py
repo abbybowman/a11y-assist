@@ -33,7 +33,8 @@ EXPECTED: dict[str, dict] = {
         "answers": {
             "J1": {
                 "choice": "told",
-                "quote": "Pick a state from the list and its office page opens right away.",
+                "quote": "Pick a state from the list and its office page opens "
+                "right away.",
             }
         },
     },

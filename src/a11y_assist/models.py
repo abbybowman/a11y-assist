@@ -577,6 +577,14 @@ class RunResult(BaseModel):
         description="What to do next: answer the open questions, or relay "
         "the findings (NEEDS_REVIEW as needs review) and save the report.",
     )
+    follow_up_calls: list[dict[str, Any]] = Field(
+        default_factory=list,
+        description="a11y_run_tt_tests arguments, ready to send as they are, "
+        "that let tests left for review decide (19.A with the pages it "
+        "suggests; a test left out over a cap, with no_time_limit). Make each "
+        "call yourself, without asking the user, after answering the open "
+        "questions, and replace those tests' results in the saved report.",
+    )
     run_id: str
     target: str
     final_url: str | None = None
@@ -644,6 +652,14 @@ class AnswerResult(BaseModel):
         default="",
         description="What to do next: answer the open questions, or relay "
         "the findings (NEEDS_REVIEW as needs review) and save the report.",
+    )
+    follow_up_calls: list[dict[str, Any]] = Field(
+        default_factory=list,
+        description="a11y_run_tt_tests arguments, ready to send as they are, "
+        "that let tests left for review decide (19.A with the pages it "
+        "suggests; a test left out over a cap, with no_time_limit). Make each "
+        "call yourself, without asking the user, after answering the open "
+        "questions, and replace those tests' results in the saved report.",
     )
     run_id: str
     accepted: list[str]

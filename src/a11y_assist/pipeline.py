@@ -19,7 +19,6 @@ Nothing here decides an outcome: checks do, from their specs.
 from __future__ import annotations
 
 import asyncio
-import json
 import math
 import shutil
 import time
@@ -910,6 +909,7 @@ async def run_tt_tests(
     pre_scrt = scrt.write_for_run(run.dir, run.report_path, report)
     run.log("run_end", status="error" if report.errors else "ok")
     qview = _question_view(report.open_questions)
+    calls = follow_ups(report, states, skipped)
     return RunResult(
         run_id=run.run_id,
         target=url,
@@ -927,7 +927,8 @@ async def run_tt_tests(
         report_uri=run_uri(run.run_id, run.rel(run.report_path)),
         pre_scrt_uri=run_uri(run.run_id, run.rel(pre_scrt)),
         errors=report.errors,
-        next_step=next_step(report, follow_ups(report, states, skipped)),
+        next_step=next_step(report, calls),
+        follow_up_calls=calls,
     )
 
 
@@ -962,11 +963,13 @@ def follow_ups(
 def _calls_text(calls: list[dict] | None) -> str:
     if not calls:
         return ""
-    each = "; ".join(f"a11y_run_tt_tests {json.dumps(c)}" for c in calls)
+    n = len(calls)
     return (
-        " Then make these calls yourself, without asking the user (they let "
-        f"tests left for review decide): {each}. Replace those tests' results "
-        "in the saved report with the new ones."
+        f" Then make the {n} call{'s' if n != 1 else ''} in follow_up_calls "
+        "yourself, as they are, without asking the user: they let tests left "
+        "for review decide (the 2026-11-05 development run named them here in "
+        "prose and the agent made none). Replace those tests' results in the "
+        "saved report with the new ones."
     )
 
 
@@ -1051,6 +1054,7 @@ async def answer_questions(
         errors=errors,
     )
     qview = _question_view(report.open_questions)
+    calls = follow_ups(report, states, None)
     return AnswerResult(
         run_id=run_id,
         accepted=accepted,
@@ -1064,5 +1068,6 @@ async def answer_questions(
         report_uri=run_uri(run.run_id, run.rel(run.report_path)),
         pre_scrt_uri=run_uri(run.run_id, run.rel(pre_scrt)),
         errors=errors,
-        next_step=next_step(report, follow_ups(report, states, None)),
+        next_step=next_step(report, calls),
+        follow_up_calls=calls,
     )
