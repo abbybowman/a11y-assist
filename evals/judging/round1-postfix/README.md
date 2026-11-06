@@ -62,3 +62,30 @@ and `next_step` began naming follow-up calls (commit 582426c).
   it listed were only ones it couldn't see"); the key fails NACA 4.D.
 
 Cost: $0.61 at list price; wall time 760 s.
+
+## Third run: grouped 5.C, follow_up_calls, the page cache, a debrief (`results/arm-a-3/`)
+
+At commit e136924 plus the page cache, `--debrief`.
+
+| Run | Weighted | Agree | False FAIL | Questions answered | Follow-up calls made |
+| --- | --- | --- | --- | --- | --- |
+| Third | 44 | 45 | 1 | 13 of 30 | 1 of 6 |
+| Second | 53 | 54 | 1 | 8 of 81 | 0 |
+
+- **Fewer questions:** 30 asked (81 before): 5.C's set grouping took
+  Missions from 58 to 6.
+- **A follow-up call made:** 19.A on Careers with the suggested pages (one
+  of five pages); not 5.D's `no_time_limit` call on Missions.
+- **The cache:** later calls reused 3-4 of their 4 other pages each.
+- **The score fell from 53 to 44** with fewer tests finished on some pages;
+  one run per setting, so part of this is noise.
+- **Why (its debrief, `debrief.md`):** "two large outputs were cut off";
+  it did not track what was still open across five pages; it started
+  wrapping up for time and volume; it doubted answering would help. It
+  asked for a compact list of open questions and follow-ups, one "what is
+  outstanding" call, and a way to answer all pages' questions at once.
+- **The cut-off outputs were ours:** results with pictures attached were
+  150-545k characters (12 pictures each) and went over Claude Code's MCP
+  result limit (about 25k tokens), so the agent lost part of their text,
+  questions included. Fixed after the run: pictures now get only the token
+  budget the text leaves (20k in all), at 768 px, at most 8.

@@ -775,6 +775,13 @@ Then (Abby, 2026-11-05):
   recorded), and its page read and ANDI read are kept by the recording's
   SHA-256. Each run keeps its own copy. Test: `test_pagecache.py` (the
   second call does not request the page again).
+- **Third development run (`--debrief`):** 13 of 30 questions answered, one
+  follow-up call made (19.A on Careers), weighted 44. Its debrief named
+  results cut off by the client: ours, since pictures pushed results with
+  12 pictures to 150-545k characters. Fixed: pictures get the token budget
+  the text leaves (`inline.TOKEN_BUDGET`, 20k), 768 px, at most 8. It also
+  asked for one place that lists all outstanding work across a session's
+  runs (open questions and follow-up calls): a proposal for Abby.
 
 ## Observations to decide after scoring
 

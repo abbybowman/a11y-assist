@@ -24,9 +24,16 @@ from PIL import Image
 from a11y_assist.models import OpenQuestion
 from a11y_assist.resources.runs import SCHEME, run_file
 
-MAX_PICTURES = 12  # per result
-MAX_SIDE = 1024  # px, the longer side after downscaling
+MAX_PICTURES = 8  # per result
+MAX_SIDE = 768  # px, the longer side after downscaling
 MAX_BYTES = 1_500_000  # all pictures of one result, encoded
+# What one result may cost the client, text and pictures together: Claude
+# Code cuts an MCP result off at about 25k tokens, and a picture counts
+# about width x height / 750 tokens. The 2026-11-06 development run got
+# results of 150-545k characters with 12 pictures, lost part of their text,
+# and so missed open questions (its debrief: "two large outputs were cut
+# off"). Pictures get what the text leaves.
+TOKEN_BUDGET = 20_000
 
 
 def _links(value: Any, key: str = "") -> list[tuple[str, str]]:
@@ -41,7 +48,11 @@ def _links(value: Any, key: str = "") -> list[tuple[str, str]]:
     return []
 
 
-def _encode(path) -> tuple[bytes, str]:
+def _tokens(size: tuple[int, int]) -> int:
+    return size[0] * size[1] // 750 + 1
+
+
+def _encode(path) -> tuple[bytes, str, tuple[int, int]]:
     img = Image.open(path)
     img.load()
     if max(img.size) > MAX_SIDE:
@@ -54,13 +65,16 @@ def _encode(path) -> tuple[bytes, str]:
     if len(data) > 300_000:  # a photo-like screenshot: JPEG is far smaller
         buf = io.BytesIO()
         img.save(buf, format="JPEG", quality=80)
-        return buf.getvalue(), "image/jpeg"
-    return data, "image/png"
+        return buf.getvalue(), "image/jpeg", img.size
+    return data, "image/png", img.size
 
 
-def pictures(questions: list[OpenQuestion]) -> tuple[list, int]:
+def pictures(
+    questions: list[OpenQuestion], budget: int = TOKEN_BUDGET
+) -> tuple[list, int]:
     """Content blocks (a caption, then the picture) for the questions'
-    pictures in order, within the caps; and how many pictures were left out."""
+    pictures in order, within the caps and `budget` tokens; and how many
+    pictures were left out."""
     blocks: list = []
     used = sent = left = 0
     seen: set[str] = set()
@@ -74,14 +88,16 @@ def pictures(questions: list[OpenQuestion]) -> tuple[list, int]:
                 continue
             run_id, _, rel = link[len(SCHEME) :].partition("/")
             try:
-                data, mime = _encode(run_file(run_id, rel))
+                data, mime, size = _encode(run_file(run_id, rel))
             except Exception:
                 left += 1
                 continue
-            if used + len(data) > MAX_BYTES:
+            cost = _tokens(size) + 40  # the picture and its caption
+            if used + len(data) > MAX_BYTES or cost > budget:
                 left += 1
                 continue
             used += len(data)
+            budget -= cost
             sent += 1
             blocks.append(
                 TextContent(
@@ -107,7 +123,8 @@ def with_pictures(result: Any, wrap: bool) -> Any:
     from fastmcp.tools.base import ToolResult
 
     qs = getattr(result, "open_questions", None) or []
-    blocks, left = pictures(qs)
+    text_tokens = len(result.model_dump_json(exclude={"report"})) // 3
+    blocks, left = pictures(qs, TOKEN_BUDGET - text_tokens - 300)
     if not blocks:
         return result
     n = len(blocks) // 2
