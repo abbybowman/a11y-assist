@@ -19,6 +19,7 @@ Nothing here decides an outcome: checks do, from their specs.
 from __future__ import annotations
 
 import asyncio
+import json
 import math
 import shutil
 import time
@@ -481,6 +482,11 @@ def _question_view(
     texts: dict[str, dict[str, str]] = {}
     out = []
     for q in qs:
+        # A picture already in the input is not listed again (change 2b).
+        named = json.dumps(q.input)
+        paths = [p for p in q.evidence_paths if f'"{p}"' not in named]
+        if paths != q.evidence_paths:
+            q = q.model_copy(update={"evidence_paths": paths})
         pair = (q.question, q.rubric)
         if counts[pair] < 2:
             out.append(q)
@@ -1021,9 +1027,10 @@ FINISH = (
     ' `work` stays "incomplete" while anything is left (`remaining`); '
     "your work is finished only when a11y_run_status with no job_id lists "
     "nothing left (the fourth development run's agent ended with questions "
-    "and follow-up calls open). In a FAIL finding, `confirmed` names what the "
-    "spec decided and `unconfirmed` the instances still waiting for answers: "
-    "report them apart."
+    "and follow-up calls open). In a FAIL finding, `confirmed` (true) means "
+    "the rules decided it and `unconfirmed` counts instances still waiting for "
+    "answers: report them apart. Each finding is one line here: a11y_explain "
+    "with the run_id gives the full summaries, reasons and fixes."
 )
 
 
@@ -1132,6 +1139,7 @@ async def answer_questions(
     except FileNotFoundError as exc:
         raise RunRefused(str(exc)) from exc
     report = Report.model_validate_json(run.report_path.read_text("utf-8"))
+    before = {f.test_id: (f.outcome, f.summary, f.note) for f in report.findings}
     accepted, rejected = record_answers(report, answers)
     states = _load_states(run)
     errors: list[str] = []
@@ -1179,11 +1187,20 @@ async def answer_questions(
     )
     qview = _question_view(report.open_questions[:QUESTION_PAGE])
     calls = report.follow_up_calls
+    # Only the findings this answer changed (agent follow-through plan,
+    # change 2b): the rest were in earlier results and are in the report.
+    changed = [
+        f
+        for f in report.findings
+        if before.get(f.test_id) != (f.outcome, f.summary, f.note)
+        or any(q.test_id == f.test_id for q in report.open_questions)
+    ]
     return AnswerResult(
         run_id=run_id,
         accepted=accepted,
         rejected=rejected,
-        findings=[FindingView.of(f, report) for f in report.findings],
+        findings=[FindingView.of(f, report) for f in changed],
+        unchanged=[f.test_id.value for f in report.findings if f not in changed],
         open_questions=qview[0],
         question_texts=qview[1],
         page_text=_page_text(report, states),

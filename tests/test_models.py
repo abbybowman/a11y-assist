@@ -54,12 +54,12 @@ def test_report_cannot_claim_certification() -> None:
         Report(**kwargs, certified=True)
 
 
-def test_a_long_summary_and_many_rows_are_shortened_in_tool_output():
-    """Post-round 1 fix 6b: a page with 96 failing fields gave a 21k
-    character summary. Tool output keeps the first sentences and says how
-    many more the report has; the finding itself keeps everything."""
+def test_a_finding_is_one_line_in_tool_output():
+    """Post-round 1 fix 6b, then agent follow-through change 2b: a page
+    with 96 failing fields gave a 21k character summary. Tool output keeps
+    the first sentence, says a11y_explain has more, and leaves out rows and
+    links; the finding itself keeps everything."""
     from a11y_assist.models import (
-        ROWS_VIEW_MAX,
         SUMMARY_VIEW_MAX,
         Finding,
         FindingView,
@@ -76,12 +76,12 @@ def test_a_long_summary_and_many_rows_are_shortened_in_tool_output():
         rows=["A3"] + [f"f{n}:M9" for n in range(96)] + ["G2"],
     )
     v = FindingView.of(f)
-    assert len(v.summary) < SUMMARY_VIEW_MAX + 200
-    assert v.summary.startswith("Some fields change the page.")
-    assert "more sentences like these: the full summary is in the report" in v.summary
-    assert len(v.rows) == ROWS_VIEW_MAX and v.rows[-1].endswith(
-        "more rows in the report"
-    )
+    assert v.summary == "Some fields change the page. (More: a11y_explain.)"
+    assert v.confirmed is True and "rows" not in v.model_dump()
+    long = FindingView.of(f.model_copy(update={"summary": "word " * 200}))
+    assert len(long.summary) < SUMMARY_VIEW_MAX + 40 and "..." in long.summary
+    short = FindingView.of(f.model_copy(update={"summary": "All good."}))
+    assert short.summary == "All good."
     assert len(f.summary) > 5000 and len(f.rows) == 98  # the report keeps them
 
 
