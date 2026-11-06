@@ -225,10 +225,91 @@ J1_RUBRIC = (
 J1_CHOICES = ["complete", "missing", "not_purpose", "unsure"]
 
 
+J1_SET_QUESTION = (
+    "Each component in input.components is an option in one set (the same "
+    "field name or group), and each one's announced text already says "
+    "everything shown beside it; what may be missing is the question or "
+    "heading the set answers. Does input.announced of each say what it is "
+    "for and include every instruction or cue that belongs to it, including "
+    "the question the set answers? Answer complete, missing (copy the "
+    "left-out words, as shown on the page, into quote), not_purpose or "
+    "unsure; the answer applies to every option listed."
+)
+
+
+def _set_key(c: Comp) -> tuple | None:
+    """Options asked about together: one set, by field name and legend."""
+    if not (c.option and c.group):
+        return None
+    return (c.group, tuple(c.group_labels))
+
+
+def _only_set_label(c: Comp) -> bool:
+    """J1 is asked only because the set's group label is not announced: the
+    option's own announced text holds every word shown beside it (M5's other
+    parts)."""
+    prog = words(programmatic(c))
+    if c.required:
+        prog |= {"*", "required"}
+    return bool(c.nearby) and words(" ".join(c.nearby)) <= prog
+
+
+def j1_sets(st: State5C) -> list[list[Comp]]:
+    """J1's components in page order, in groups asked as one question (spec
+    J1, 1.2.0): two or more options of one set whose only gap is the set's
+    group label. Any other component is a group of one."""
+    keyed: dict[tuple, list[Comp]] = {}
+    out: list[list[Comp]] = []
+    for c in st.lp.components:
+        if not needs_j1(st, c):
+            continue
+        key = _set_key(c) if _only_set_label(c) else None
+        if key is None:
+            out.append([c])
+        elif key in keyed:
+            keyed[key].append(c)
+        else:
+            keyed[key] = [c]
+            out.append(keyed[key])
+    return out
+
+
 def questions_for(st: State5C, evidence_refs: list[str]) -> list[OpenQuestion]:
     out = []
-    for c in st.lp.components:
-        if f"c{c.n}-J1" in st.j or not needs_j1(st, c):
+    for group in j1_sets(st):
+        if len(group) > 1:
+            if any(f"c{c.n}-J1" in st.j for c in group):
+                continue
+            head, last = group[0], group[-1]
+            images = rel_images(evidence_refs, [head.image, last.image])
+            out.append(
+                OpenQuestion(
+                    question_id=f"5.C-c{head.n}-J1",
+                    test_id=TestId.T5C,
+                    kind="choice",
+                    choices=J1_CHOICES,
+                    instance=f"c{head.n}",
+                    also_instances=[f"c{c.n}" for c in group[1:]],
+                    question=J1_SET_QUESTION,
+                    rubric=J1_RUBRIC,
+                    input={
+                        "components": [
+                            {
+                                "kind": c.kind,
+                                "announced": announced(c),
+                                "visible": c.nearby,
+                            }
+                            for c in group
+                        ],
+                        "image_a": images[0] if images else None,
+                        "image_b": images[1] if len(images) > 1 else None,
+                    },
+                    evidence_paths=evidence_refs + images,
+                )
+            )
+            continue
+        c = group[0]
+        if f"c{c.n}-J1" in st.j:
             continue
         images = rel_images(evidence_refs, [c.image])
         out.append(
@@ -255,8 +336,12 @@ def questions_for(st: State5C, evidence_refs: list[str]) -> list[OpenQuestion]:
 def apply_answers(st: State5C, report) -> None:
     from a11y_assist.judgment import current_answer
 
+    head = {c.n: g[0].n for g in j1_sets(st) for c in g}
     for c in st.lp.components:
         a = current_answer(report, f"5.C-c{c.n}-J1")
+        if a is None and head.get(c.n, c.n) != c.n:
+            # One answer for a set of options (J1, 1.2.0): recorded for each.
+            a = current_answer(report, f"5.C-c{head[c.n]}-J1")
         if a is not None and a.choice is not None:
             st.j[f"c{c.n}-J1"] = {
                 "choice": a.choice.choice,

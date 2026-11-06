@@ -90,6 +90,19 @@ reload the page, then right-click a request and "Save all as HAR with
 content". Whether a DevTools HAR replays like our own recordings is not yet
 checked.
 
+## Run 22, 2026-11-06: 5.C 1.2.0 (options of one set asked once), its packets only
+
+6 cases, one fresh Sonnet agent, Read/Write/Glob only. **6/6 match** after
+one expectation was corrected: on the new F19 (three filter boxes under the
+heading "Mission status") it answered the set's one question `missing`,
+quoting the heading, where the test data had said `complete`. Its reading
+is the careful one (the rubric counts a heading whose absence could
+confuse), so F19 now expects that answer. Because pass L does not count a
+heading as text beside a field, M7's quote check cannot pass and each box
+is M9 (NEEDS REVIEW, safe). That is a spec gap for Abby: NASA's Missions
+page, which the key fails on 5.C, would stay NEEDS REVIEW this way. It
+found the grouped question clear.
+
 ## Run 21, 2026-11-05: the pointer wording (5.D), its packets only
 
 After run 20, a shared question's `question` and `rubric` say where the

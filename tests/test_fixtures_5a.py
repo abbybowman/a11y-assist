@@ -136,6 +136,19 @@ EXPECTED: dict[str, dict] = {
         "5.A": {"outcome": "FAIL", "rows": ["M3"]},
         "5.C": {"outcome": "PASS", "rows": ["M5", "M5", "M5"]},
     },
+    # Post-round 1 (5.C 1.2.0): three filter boxes whose only gap is the
+    # set's question (a heading, not announced): one J1 for the set, its
+    # answer recorded for each box. Judge eval run 22's agent answered
+    # missing "Mission status"; a heading is not text beside the field
+    # (pass L), so M7's quote check cannot pass and each box is M9.
+    "f19-filter-boxes-under-heading": {
+        "5.A": {"outcome": "PASS", "rows": ["M2", "M2", "M2"]},
+        "5.C": {
+            "outcome": "NEEDS_REVIEW",
+            "rows": ["M9", "M9", "M9"],
+            "answers": missing("Mission status"),
+        },
+    },
     # Each option's words are beside it but not connected: a person looks
     # (5.A J1); screen readers announce only the question (5.C).
     "f17-option-text-not-connected": {
@@ -204,3 +217,22 @@ async def test_outcome(name, settings, server, drafts):  # noqa: F811
             e[t]["outcome"],
             e[t]["rows"],
         ), (t, f.rationale, f.summary)
+
+
+async def test_options_of_one_set_are_asked_about_once(settings, server, drafts):  # noqa: F811
+    """5.C 1.2.0 (post-round 1: a NASA page asked 56 alike questions, one
+    per filter box, and the agent answered none of them)."""
+    out = await run_tt_tests(
+        settings,
+        f"{server.base}/5a/f19-filter-boxes-under-heading.html",
+        [TestId.T5C],
+    )
+    qs = [q for q in out.report.open_questions if q.test_id is TestId.T5C]
+    assert len(qs) == 1, [q.question_id for q in qs]
+    [q] = qs
+    assert len(q.also_instances) == 2
+    assert [c["visible"] for c in q.input["components"]] == [
+        ["Active"],
+        ["Future"],
+        ["Past"],
+    ]

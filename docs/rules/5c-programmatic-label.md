@@ -1,7 +1,7 @@
 ---
 tt_test: 5.C
 tt_name: 1.3.1-programmatic-label
-spec_version: 1.1.0
+spec_version: 1.2.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -104,6 +104,8 @@ J1 is settled by reading (CLAUDE.md principle 8): complete leads to PASS only wh
 | Name "Official Name" as a description only (TC10.A-all-pass-6) | complete |
 
 **Use:** M6–M9.
+
+**Options of one set, one question (1.2.0).** Two or more radio buttons or checkboxes of one set (the same field name, and the same group label if any) for which J1 is asked only because the set's group label is not announced (each option's announced text already holds every word shown beside it, M5's other parts) are asked as one J1: `components` lists each option's kind, announced text and visible text, images A and B show the first and the last, and the question adds "what may be missing is the question or heading the set answers; the answer applies to every option listed." The one answer is recorded for each option; each option stays its own instance (M6–M9), and M7's quote check runs per option, so a "missing" quote that is not shown beside an option leads to M9 (NEEDS REVIEW), never PASS. A person may still answer one option alone. A tester reads a filter list once, not once per box. Found on NASA's Missions page: 53 filter checkboxes under one field name each asked J1, and the agent answered none of its 81 questions but one page's (post-round 1 development run, 2026-11-05).
 
 ## 5. Edge cases
 

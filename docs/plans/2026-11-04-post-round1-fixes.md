@@ -752,6 +752,24 @@ Then (Abby, 2026-11-05):
   many questions cheaper to answer (5.C's 56 label questions on one page)
   and the follow-up calls harder to skip.
 
+## After the second development run (2026-11-06; Abby agreed)
+
+- **5.C 1.2.0:** options of one set whose only gap is the set's group
+  label are asked one J1 (`t5c.j1_sets`); on Missions' saved evidence 56
+  questions become 4. Fixture F19; judge eval run 22 (6/6).
+  **Open for Abby:** when the missing words are the set's heading (a
+  heading, not text beside a field), M7's quote check cannot pass, so the
+  options stay NEEDS REVIEW (M9). The key fails Missions on 5.C, probably
+  for this. Should M7 also accept a quote found in the set's heading or
+  legend, for an option in a set?
+- **`follow_up_calls`** on every result (structured, ready to send).
+- **`--debrief`** for development agent runs (why work was left undone).
+- **NACA's time:** its step logs show 309 s (round1-answers) and 428 s
+  (the 600 s run, which finished it); the plan's 1190 s was the CLI's call
+  duration, which included waiting behind the agent's other runs. Largest
+  phases: the walk 147 s (204 presses), 9.A 83 s (8 loads, 38 replays),
+  2.B 42 s, 4.F 36 s.
+
 ## Observations to decide after scoring
 
 These describe how Agent A used the tool. They are not bugs. Whether to act
