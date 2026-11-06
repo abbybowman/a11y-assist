@@ -546,10 +546,35 @@ class FindingView(BaseModel):
     understanding: list[str] = Field(
         default_factory=list, description="W3C Understanding pages for the WCAG SCs."
     )
+    confirmed: str | None = Field(
+        default=None,
+        description=(
+            "FAIL only: the outcome stands on the instances the rules decided "
+            "(the rows); report it as a confirmed failure."
+        ),
+    )
+    unconfirmed: int = Field(
+        default=0,
+        description=(
+            "Open questions on this test not answered yet. In a FAIL they are "
+            "further instances that may or may not fail: report them apart "
+            "from the confirmed failure, never as failures."
+        ),
+    )
 
     @classmethod
-    def of(cls, f: Finding) -> FindingView:
+    def of(cls, f: Finding, report: Report | None = None) -> FindingView:
+        waiting = (
+            sum(1 for q in report.open_questions if q.test_id == f.test_id)
+            if report is not None
+            else 0
+        )
+        failed = f.outcome == Outcome.FAIL
         return cls(
+            confirmed=(
+                "Decided by the rules on the instances in rows." if failed else None
+            ),
+            unconfirmed=waiting,
             test_id=f.test_id.value,
             test_name=f.test_name,
             wcag_sc=f.test_id.wcag_sc,

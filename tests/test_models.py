@@ -83,3 +83,34 @@ def test_a_long_summary_and_many_rows_are_shortened_in_tool_output():
         "more rows in the report"
     )
     assert len(f.summary) > 5000 and len(f.rows) == 98  # the report keeps them
+
+
+def test_a_fail_names_confirmed_and_unconfirmed_instances_apart():
+    """Fourth development run debrief: the agent asked which failures were
+    confirmed and which still waited for answers. Tool output says both."""
+    from a11y_assist.models import Finding, FindingView, OpenQuestion
+
+    report = Report(
+        run_id="r",
+        target="https://nasa.gov",
+        started_at=datetime.now(timezone.utc),
+        versions=_versions(),
+        evidence_dir="x",
+        open_questions=[
+            OpenQuestion(
+                question_id=f"q{n}",
+                test_id=TestId.T4D,
+                kind="choice",
+                instance=f"stop {n}",
+                question="?",
+                rubric="?",
+                input={},
+            )
+            for n in range(2)
+        ],
+    )
+    fail = Finding(test_id=TestId.T4D, test_name="x", outcome=Outcome.FAIL)
+    v = FindingView.of(fail, report)
+    assert v.confirmed and v.unconfirmed == 2
+    other = FindingView.of(Finding(test_id=TestId.T4A, test_name="x"), report)
+    assert other.confirmed is None and other.unconfirmed == 0

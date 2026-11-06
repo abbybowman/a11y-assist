@@ -950,7 +950,7 @@ async def run_tt_tests(
         target=url,
         final_url=report.final_url,
         tests=report.tests,
-        findings=[FindingView.of(f) for f in report.findings],
+        findings=[FindingView.of(f, report) for f in report.findings],
         open_questions=qview[0],
         question_texts=qview[1],
         page_text=_page_text(report, states),
@@ -1008,6 +1008,15 @@ def _calls_text(calls: list[dict] | None) -> str:
     )
 
 
+FINISH = (
+    " Your work is finished only when a11y_run_status with no job_id lists "
+    "nothing left (the fourth development run's agent ended with questions "
+    "and follow-up calls open). In a FAIL finding, `confirmed` names what the "
+    "spec decided and `unconfirmed` the instances still waiting for answers: "
+    "report them apart."
+)
+
+
 def next_step(report: Report, calls: list[dict] | None = None) -> str:
     """What the calling agent does next, in one place in every result
     (post-round 1 fixes 4, 12 and 19: agents left every question unanswered,
@@ -1022,6 +1031,7 @@ def next_step(report: Report, calls: list[dict] | None = None) -> str:
             f"No open questions. Relay each finding's summary; {review}."
             + _calls_text(calls)
             + " Then save the report (save_hint)."
+            + FINISH
         )
     asked = {q.test_id for q in qs}
     tests = [t.value for t in TestId if t in asked]
@@ -1037,7 +1047,7 @@ def next_step(report: Report, calls: list[dict] | None = None) -> str:
         f"the {len(qs)} open question(s) in open_questions. Answer them now, "
         "yourself, all in one a11y_answer_questions call, each by its rubric; "
         "answer unsure only when the evidence does not settle it (only those go "
-        f"to a person).{looks} Until then, {review}." + _calls_text(calls)
+        f"to a person).{looks} Until then, {review}." + _calls_text(calls) + FINISH
     )
 
 
@@ -1097,7 +1107,7 @@ async def answer_questions(
         run_id=run_id,
         accepted=accepted,
         rejected=rejected,
-        findings=[FindingView.of(f) for f in report.findings],
+        findings=[FindingView.of(f, report) for f in report.findings],
         open_questions=qview[0],
         question_texts=qview[1],
         page_text=_page_text(report, states),
