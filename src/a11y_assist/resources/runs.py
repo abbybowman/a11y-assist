@@ -20,6 +20,7 @@ from fastmcp.exceptions import ResourceError
 from fastmcp.resources import ResourceContent, ResourceResult
 
 from a11y_assist import config
+from a11y_assist.access import may_open
 
 RUN_ID = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
 SCHEME = "run://"
@@ -36,7 +37,8 @@ def run_file(run_id: str, path: str) -> Path:
         raise ValueError("Invalid run id")
     base = (config.settings.runs_dir / run_id).resolve()
     target = (base / path).resolve()
-    if not target.is_relative_to(base) or not target.is_file():
+    missing = not target.is_relative_to(base) or not target.is_file()
+    if missing or not may_open(base):  # another person's run reads as missing
         raise ValueError(f"No file {path!r} in run {run_id} (it may have expired)")
     return target
 

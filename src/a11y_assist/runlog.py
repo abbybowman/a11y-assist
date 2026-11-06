@@ -11,6 +11,7 @@ from typing import Any
 
 from pydantic import BaseModel
 
+from a11y_assist.access import claim_run, may_open
 from a11y_assist.models import StepLog, utcnow
 from a11y_assist.redact import safe_detail
 
@@ -22,10 +23,13 @@ def new_run_id() -> str:
 
 class RunRecorder:
     def __init__(self, runs_dir: Path, run_id: str | None = None):
+        new = run_id is None
         self.run_id = run_id or new_run_id()
         self.dir = (runs_dir / self.run_id).resolve()
         self.evidence_dir = self.dir / "evidence"
         self.evidence_dir.mkdir(parents=True, exist_ok=True)
+        if new:
+            claim_run(self.dir)  # signed-in caller owns it (access.py)
         self.steps_path = self.dir / "steps.jsonl"
         self.report_path = self.dir / "report.json"
 
@@ -34,7 +38,8 @@ class RunRecorder:
         """Reopen an existing run. Rejects ids that could escape runs_dir."""
         root = runs_dir.resolve()
         path = (root / run_id).resolve()
-        if path.parent != root or not path.is_dir():
+        # Another person's run reads as missing, so its id reveals nothing.
+        if path.parent != root or not path.is_dir() or not may_open(path):
             # No server path in the message: it goes back to the client.
             raise FileNotFoundError(f"No run named {run_id!r} (it may have expired)")
         return cls(runs_dir, run_id)

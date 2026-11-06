@@ -206,16 +206,21 @@ The server reads public web pages, by default only on `.gov` and `.mil`. It need
 
 ### Secrets and configuration
 
-Settings load from a `.env` file that is never committed. No API key is needed today, because the calling agent answers open questions. A direct model connection (NASA's hosted models) will add a key through the same mechanism.
+Settings load from a `.env` file or environment variables (a Kubernetes Secret when hosted) and are never committed. The sign-in client secret and token-signing key are secret-typed settings, never printed or logged. No API key is needed today, because the calling agent answers open questions. A direct model connection (NASA's hosted models) will add a key through the same mechanism.
 
 ### Transport and isolation
 
-- **Local only.** stdio is the default transport. HTTP is opt-in, binds only to a loopback address (127.0.0.1 or ::1), and checks the Host and Origin headers of every request, so a web page can't reach it through DNS rebinding (`tests/test_transport.py`). There is no authentication yet, so the server can't be hosted.
+- **Local by default; hosted only with NASA sign-in.** stdio is the default transport. HTTP is opt-in and checks the Host and Origin headers of every request, so a web page can't reach it through DNS rebinding (`tests/test_transport.py`). Without sign-in it binds only to a loopback address (127.0.0.1 or ::1). It listens beyond loopback only with `AUTH=oidc`, which needs every setting below or the server refuses to start (`tests/test_access.py`):
+  - **Sign-in on every MCP request.** FastMCP's OIDC proxy signs MCP clients in through VAST's Keycloak, which brokers to NASA Launchpad with NAMS access enforced. A request without a valid token gets 401 and a link to the sign-in metadata (standard MCP authorization, so any compliant client works). Only the server's public host passes the Host check.
+  - **Optional group gate.** `REQUIRED_GROUPS` admits only members of the listed VAMS or NAMS groups.
+  - **Runs belong to their maker.** A run, its answers, its `run://` evidence and its reports are visible only to the person who started it. To anyone else it reads as expired, so a run ID reveals nothing.
+  - **Audit trail.** One JSON line per tool call, resource read and prompt: who (Keycloak subject and NASA email), what (tool, URL without its query string, run ID, test IDs, how many answers), outcome and duration. It never includes answers, page text or report content. Lines go to stderr, where the platform collects them.
+  - **[PENDING]** An end-to-end sign-in against VAST's Keycloak with a real MCP client; tested so far with a full sign-in against a local stand-in provider (`tests/test_access_signin.py`).
 - **Fresh state for every load.** Each page load gets a fresh browser context, so cookies and storage can't carry state between probes.
 - **No CSP bypass.** No content security policy bypass is enabled.
 - **Pinned third-party code.** ANDI and jQuery are bundled with hashes, and requests to ssa.gov are blocked so ANDI is never loaded live.
 
-The template's entry point started an unauthenticated HTTP server on all interfaces whenever a `PORT` or `DATABRICKS_APP_PORT` environment variable was set. That branch is removed and those variables are ignored. **[PENDING]** Authentication, before any hosted demo.
+The template's entry point started an unauthenticated HTTP server on all interfaces whenever a `PORT` or `DATABRICKS_APP_PORT` environment variable was set. That branch is removed and those variables are ignored; HTTP beyond loopback now requires sign-in (above).
 
 ### Misuse: findings mistaken for certification
 

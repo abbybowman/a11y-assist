@@ -218,6 +218,7 @@ src/a11y_assist/
   inline.py     the pictures attached to a result for its open questions (capped)
   pagecache.py  other pages recorded and read once per server session (PAGE_CACHE_S)
   runlog.py     runs/<run_id>/ folder, steps.jsonl
+  access.py     hosted sign-in (AUTH=oidc): OIDC proxy, group gate, run owners, audit lines
   versions.py   version collection
   catalog.py    the TT 5.1.3 test catalog (from docs/sources/tt-5.1.3/tt.json)
   rules.py      loads docs/rules/ specs and their front matter versions

@@ -133,9 +133,10 @@ test's leftovers are under "Per-test leftovers" below.
   matters for real sites: resumable runs (walk in one call, checks in the
   next), or walking P1 and P2 in parallel (headed Chrome focus in a
   background window needs checking on Windows first).
-- **Authentication before any hosted deployment.** HTTP is loopback-only
-  with Host/Origin checks today (the starter template's 0.0.0.0 branch is
-  gone).
+- **Hosted sign-in on VAST** (`docs/plans/2026-11-06-hosted-auth.md`).
+  Built and tested against a local stand-in provider (AUTH=oidc, group gate,
+  runs private to their maker, audit lines); next, deploy to
+  508-tobi.vast.ndc.nasa.gov and sign in from Claude Code.
 - **Tidy the checks** (from the PR #3 review, a 2026-11-02 cleanup draft
   that was never approved, and the unbuilt half of the 2026-11-01
   spring-cleaning plan, removed 2026-11-05 and in git history; recheck each
