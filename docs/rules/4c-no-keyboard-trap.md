@@ -155,7 +155,7 @@ Modal status is not a model question. The spec labels a loop "modal" from markup
 
 ## 5. Edge cases
 
-Only cases that need a rule of their own; everything else follows sections 2–3. V-numbers are browser checks in [4c-build-tasks.md](4c-build-tasks.md).
+Only cases that need a rule of their own; everything else follows sections 2–3. V-numbers are browser checks in [_browser-checks.md](_browser-checks.md#4c).
 
 | Case | Rule | Verify |
 | --- | --- | --- |

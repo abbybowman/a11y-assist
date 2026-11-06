@@ -142,7 +142,7 @@ The calling agent answers each once, by the rubric; a person's answer overrides 
 
 ## 5. Edge cases
 
-V-numbers are browser checks in [4a-build-tasks.md](4a-build-tasks.md).
+V-numbers are browser checks in [_browser-checks.md](_browser-checks.md#4a).
 
 | Case | Rule | Verify |
 | --- | --- | --- |

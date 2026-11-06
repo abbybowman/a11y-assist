@@ -102,7 +102,7 @@ J1 is settled by looking (CLAUDE.md principle 8): the agent compares two names a
 | Two links to the same address on one page ("Home" logo and "Home" menu item) | Same-name pairs first, then the rest in order, within the same region role | Spec rule |
 | A description added on one page only | Not agreeing: J1 | Spec rule |
 | Components only on the tested page | Not compared (p. 44 Note) | Spec rule |
-| A page whose Content-Security-Policy blocks ANDI | A2 NEEDS REVIEW for that page | V-check in build tasks |
+| A page whose Content-Security-Policy blocks ANDI | A2 NEEDS REVIEW for that page | V3 in [_browser-checks.md](_browser-checks.md#9a) |
 
 ## 6. What a FAIL records
 

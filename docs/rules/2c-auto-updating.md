@@ -15,7 +15,7 @@ can apply to it is built (G4 and section 3c). This spec also defines what
 2.A, 2.B and 2.D share: pass T, regions, elements and the mechanism probe.
 
 1.0.0 (Abby, 2026-11-05): approved and built, from draft 0.3.0. 0.2.0 (2026-11-04) defines regions over the whole watch and adds polling seen during the watch (Terms, section 2), from building pass T. 0.3.0 (2026-11-04): the mechanism probe as built (section 2: what is pressed, how "slowed" is judged, the caps), K2 and K3 on the focus-only probe, O1 decided. Order of work and research:
-[plans/2026-11-03-auto-updating-2a-2d.md](../plans/2026-11-03-auto-updating-2a-2d.md)
+[research/2026-11-03-auto-updating-2a-2d.md](../research/2026-11-03-auto-updating-2a-2d.md)
 ("plan" below; "item N" means its numbered "Verified" items).
 
 **Citations.** Printed pages of TT 5.1.3 (text also in `tt://5.1.3/tests/2.C`). Identify Content, p. 15: content that "Automatically updates (the content changes without user activation) AND Is not the only content on the page"; it "includes timers, stock tickers, news carousels, and counters"; none: DNA for 2.C and 2.D. Note, p. 15: "the tester is not tasked with determining whether auto-updating is essential and should include all content that meets the Identify Content description"; when content moves without changing, only 2.B applies; when it changes (a carousel, tickers, scores), 2.C applies; both when both. Applicability, p. 15: DNA "if there is no auto-updating content or the auto-updating content is the only content on the page". HtT 1 ("an evident mechanism ... to pause, stop, or hide the content or to control the frequency of the update within the first three elements that the user would encounter OR within three elements before/after the auto-updating content"), HtT 2 (activate it), HtT 3 (test the mechanism for all applicable Test Conditions), p. 15. ER 1 (an evident mechanism that pauses, stops, hides or controls the frequency), ER 2 (where it is), ER 3 (it "passes all applicable Test Conditions"), p. 16.
@@ -308,7 +308,7 @@ Asked only for text candidates whose text mentions pausing, stopping, hiding, a 
 
 ## 5. Edge cases
 
-V-numbers are in [2c-build-tasks.md](2c-build-tasks.md).
+V-numbers are in [_browser-checks.md](_browser-checks.md#2c).
 
 | Case | Rule | Verify |
 | --- | --- | --- |

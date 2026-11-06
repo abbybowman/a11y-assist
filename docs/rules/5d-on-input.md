@@ -181,7 +181,7 @@ J1 and J2 are questions a careful tester settles by reading and looking (CLAUDE.
 
 ## 5. Edge cases
 
-Only cases that need a rule of their own; everything else follows sections 2–3. V-numbers are browser checks in [5d-build-tasks.md](5d-build-tasks.md).
+Only cases that need a rule of their own; everything else follows sections 2–3. V-numbers are browser checks in [_browser-checks.md](_browser-checks.md#5d).
 
 | Case | Rule | Verify |
 | --- | --- | --- |

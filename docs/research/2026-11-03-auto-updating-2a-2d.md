@@ -1,15 +1,17 @@
-# Plan: 2.A–2.D Auto-playing and auto-updating content (2026-11-03, approved; specs at 0.1.0)
+# 2.A–2.D Auto-playing and auto-updating content: research and plan (2026-11-03; built 2026-11-05)
 
-Approved by Abby on 2026-11-03. The draft specs are
+**Built.** 2.A–2.D are at spec 1.0.0 and registered (2026-11-05). This was
+the build plan; it moved from `docs/plans/` to `docs/research/` once built,
+because the specs cite its research, measurements and numbered "Verified"
+items. The specs hold the rules:
 [2c-auto-updating.md](../rules/2c-auto-updating.md), which defines pass T,
 elements and the mechanism probe for the batch;
 [2d-change-notify-auto.md](../rules/2d-change-notify-auto.md);
 [2b-blinking-moving-scrolling.md](../rules/2b-blinking-moving-scrolling.md);
-and [2a-audio-control.md](../rules/2a-audio-control.md). All are at
-0.1.0, and the build checklist is
-[2c-build-tasks.md](../rules/2c-build-tasks.md). Nothing is built yet.
-The specs now hold the rules; this plan keeps the research, the
-measurements and the order of work.
+and [2a-audio-control.md](../rules/2a-audio-control.md). What is left is in the
+ROADMAP ("Per-test leftovers") and
+[_browser-checks.md](../rules/_browser-checks.md#2c). The text below is as
+approved and built; it is not updated.
 
 **Decided (Abby, 2026-11-03):**
 
@@ -44,7 +46,7 @@ measurements and the order of work.
   Pass T and the 2.x probes always use full Chromium.
 
 **Building (2026-11-04).** Pass T (`motion.py`) is built and tested; status
-and what waits for Q11 are in [2c-build-tasks.md](../rules/2c-build-tasks.md).
+and what waits for Q11 were in `2c-build-tasks.md` (removed at 1.0.0; in git history).
 Q11 (the replay-browser choice, `Capture.cross_site_frames`, the
 full-Chromium launch) came from the eval branch through `main`; pass T now
 runs in its own autoplay browser beside the walk (Q1, Q2).

@@ -35,7 +35,7 @@ async def test_act_case(case_id, settings, act_server):
     assert f.outcome.value == c["expected"], (f.rationale, f.summary, instance_rows(f))
 
 
-# Custom fixtures (docs/rules/4d-build-tasks.md). "choice" is the scripted J1
+# Custom fixtures (docs/rules/4d-focus-visible.md). "choice" is the scripted J1
 # answer where J1 is asked.
 EXPECTED: dict[str, dict] = {
     "f01-background-change": {"outcome": "PASS"},

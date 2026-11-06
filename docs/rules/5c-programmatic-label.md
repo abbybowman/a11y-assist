@@ -113,7 +113,7 @@ J1 is settled by reading (CLAUDE.md principle 8): complete leads to PASS only wh
 
 ## 5. Edge cases
 
-V-numbers are browser checks in [5a-build-tasks.md](5a-build-tasks.md).
+V-numbers are browser checks in [_browser-checks.md](_browser-checks.md#5a).
 
 | Case | Rule | Verify |
 | --- | --- | --- |

@@ -2,13 +2,13 @@
 
 **2026-11-05: the 2.A–2.D scripts and pages were removed** once 2.A–2.D
 were built at spec 1.0.0: their checks are tests in `tests/` now (see the
-V-checks in [2c-build-tasks.md](../../rules/2c-build-tasks.md)). They are in
+V-checks in [_browser-checks.md](../../rules/_browser-checks.md#2c)). They are in
 git history at commit 9efe907. The 3.A scripts (`flash_*.py`,
 `make_flash_media.py`) and `pages/flash` stay until 3.A is built. The
 results tables below are kept as the record of what was measured.
 
 These scratch scripts back the "Verified" items in
-[plans/2026-11-03-auto-updating-2a-2d.md](../../plans/2026-11-03-auto-updating-2a-2d.md).
+[2026-11-03-auto-updating-2a-2d.md](../2026-11-03-auto-updating-2a-2d.md).
 They are research evidence, not tests. They start their own local HTTP
 servers, use plain Playwright (not the tool's pipeline), and some load
 pages from the network. The build turns each one into a V-check in

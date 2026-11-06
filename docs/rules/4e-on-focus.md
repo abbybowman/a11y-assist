@@ -119,7 +119,7 @@ One question, asked only for M8. It is a look-and-decide question (CLAUDE.md pri
 
 ## 5. Edge cases
 
-Only cases that need a rule of their own; everything else follows sections 2–3. V-numbers are browser checks in [4e-build-tasks.md](4e-build-tasks.md).
+Only cases that need a rule of their own; everything else follows sections 2–3. V-numbers are browser checks in [_browser-checks.md](_browser-checks.md#4e).
 
 | Case | Rule | Verify |
 | --- | --- | --- |
