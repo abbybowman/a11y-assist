@@ -115,3 +115,30 @@ At commit 5adc37e, `--debrief`.
 - Its own report overreached on NACA (it called 2.4.7 and 2.2.2 FAIL partly
   on its own guesses); it asked for confirmed and unconfirmed failures to be
   told apart more clearly.
+
+## Fifth run: a finishing condition and confirmed failures apart (`results/arm-a-5/`)
+
+At commit 1f8de03 (`next_step`: "finished only
+when a11y_run_status with no job_id lists nothing left"; FAIL findings
+carry `confirmed` and `unconfirmed`), `--debrief`. Scored with Abby's
+adjudication of Artemis III's player button (a validated catch, +1), so
+earlier runs are rescored the same way:
+
+| Run | Weighted | Agree | Validated catch | False FAIL | Questions left open | Follow-up calls collected |
+| --- | --- | --- | --- | --- | --- | --- |
+| Fifth | 58 | 57 | 1 | 0 | 0 | 1 of about 6 |
+| Fourth | 57 | 56 | 1 | 0 | 1 | 0 of 7 |
+| Third | 46 | 45 | 1 | 0 | 6 | 1 of 6 |
+| Second | 55 | 54 | 1 | 0 | 8 | 0 |
+
+- 9 `a11y_run_tt_tests`, 19 `a11y_run_status`, 5 `a11y_answer_questions`
+  calls; 1,106 s.
+- **Answering:** every question answered, but the debrief says many only
+  in form: it never opened a picture (4.D, 2.B and 4.F got "unsure",
+  "not viewed"), and answered 9.C and 5.B/5.C from names alone.
+- **Follow-up calls:** still mostly skipped (only NACA's 19.A collected),
+  and it never made the no-job_id `a11y_run_status` check the new
+  `next_step` asks for. Its debrief: "mostly effort and time ... each skip
+  felt small. Nothing was unclear." It asked for one call that runs all
+  follow-ups together, image review marked required, and a hard "not done"
+  status until questions are answered.
