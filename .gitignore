@@ -45,3 +45,9 @@ tests/.act_scores/
 temp/
 # Agent eval: Playwright MCP (npm install in evals/agent/node)
 node_modules/
+
+# Development rounds (never locked or scored as a round): keep each arm's
+# summary, final message, debrief and step log; their tool runs and
+# transcripts (megabytes of inline screenshots) stay local (Abby, 2026-11-06).
+evals/judging/round1-postfix/results/*/runs/
+evals/judging/round1-postfix/results/*/transcript.json

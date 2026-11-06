@@ -1,6 +1,10 @@
 # round1-postfix: Agent A after the post-round 1 fixes (development run)
 
-Not a judging round: never locked or scored as one. Five of round 1's
+Not a judging round: never locked or scored as one. Git keeps each arm's
+`summary.json`, `final.md`, `debrief.md` and `steps.jsonl`; its tool runs
+(reports, pre-SCRT files with screenshots inline) and transcript stay on
+the machine that ran it (`.gitignore`), and the figures below come from
+them. Five of round 1's
 pages, from round 1's frozen recordings (Careers, Missions, Artemis III,
 NACA, KSC history; `frozen/`, recordings git-ignored), Agent A on the CLI
 route (Sonnet 5.5), the round 1 task prompt with **no special prompt**,
