@@ -21,7 +21,8 @@ took more than an hour to understand; update it when the answer changes.
 | [browser-specific-results.md](browser-specific-results.md) | Chrome tabs to scrollers (ACT 0ssw9k); a Baseline test page broken by its SRI hash; results are per browser |
 | [judge-eval.md](judge-eval.md) | Scripted answers test rules, not questions; how the judge eval stays unbiased; what agents need in a question; packets hand images over as files, real agents rarely open `run://` links |
 | [subagent-token-cost.md](subagent-token-cost.md) | One subagent per question costs ~55k tokens each; batch all questions in one |
-| [parallel-tests.md](parallel-tests.md) | pytest-xdist; per-worker files for anything tests write in common |
+| [parallel-tests.md](parallel-tests.md) | pytest-xdist; per-worker files for anything tests write in common; `auto` in a container counts the CPU limit |
+| [linux-container.md](linux-container.md) | The Linux image (built in GitHub Actions, run on VAST): FIPS hosts, `.dockerignore`, running the suite with progress |
 | [small-tool-output.md](small-tool-output.md) | Report as a `run://` link; shared evidence once per result |
 | [andi-output.md](andi-output.md) | Reading ANDI's per-element output; its wrapper changes CSS paths; viewport clips; scoping nearby text |
 | [form-fields.md](form-fields.md) | Read vendored cases first; one control kind per stop; Chrome's date-input parts; changes outside a field's own widget; submission log; draft checks; before-reads on the fresh load; alerts, native validation and live regions; read every listed technique before a rubric (5.H) |
