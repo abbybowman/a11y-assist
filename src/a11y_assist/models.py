@@ -763,6 +763,12 @@ class RunResult(BaseModel):
     errors: list[str] = Field(default_factory=list)
     save_hint: str = SAVE_HINT
     untrusted_content_notice: str = UNTRUSTED_NOTICE
+    more_questions: int = Field(
+        default=0,
+        description="Open questions not in open_questions yet: at most 10 are "
+        "shown at once, and each a11y_answer_questions result brings the next "
+        "ones. Answer until none are left.",
+    )
     todo: list[str] = Field(
         default_factory=list,
         description="What is left to do, last so it is read last (agent "
@@ -871,6 +877,12 @@ class AnswerResult(BaseModel):
     errors: list[str] = Field(default_factory=list)
     save_hint: str = SAVE_HINT
     untrusted_content_notice: str = UNTRUSTED_NOTICE
+    more_questions: int = Field(
+        default=0,
+        description="Open questions not in open_questions yet: at most 10 are "
+        "shown at once, and each a11y_answer_questions result brings the next "
+        "ones. Answer until none are left.",
+    )
     todo: list[str] = Field(
         default_factory=list,
         description="What is left to do, last so it is read last (agent "

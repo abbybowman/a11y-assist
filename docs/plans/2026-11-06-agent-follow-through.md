@@ -126,9 +126,13 @@ that admits nobody looked), and build these, the to-do list first.
    - reporting NEEDS_REVIEW findings as needs review.
 
    **Status:** built (`pipeline.todo`; `tests/test_tools.py::test_every_result_ends_with_its_to_do_list`).
-2. **Paged open questions.** About 10 per result, each with its pictures,
-   and the rest fetched with a page argument, so a result stays small and
-   looking at each picture is cheap.
+2. **Paged open questions.** At most 10 per result (`QUESTION_PAGE`), each
+   with its pictures. Each a11y_answer_questions result brings the next 10,
+   so no page argument is needed. `more_questions`, the to-do list and
+   `next_step` say how many are left. The report and the outstanding list
+   keep them all.
+
+   **Status:** built (`tests/test_models.py::test_open_questions_come_ten_at_a_time`).
 3. **Answers for several runs in one a11y_answer_questions call.**
 
 ### 3. Answers that show the picture was seen

@@ -209,3 +209,35 @@ def test_an_answer_to_a_picture_question_must_say_what_it_shows():
     assert [q.question_id for q in report.open_questions] == ["a", "c", "f"]
     by = {r.answer.question_id: r.answer for r in report.answers}
     assert by["e"].not_viewed and not by["b"].not_viewed and not by["d"].not_viewed
+
+
+def test_open_questions_come_ten_at_a_time():
+    """Agent follow-through plan, change 2b (2): a result shows at most 10
+    open questions; its to-do list and next_step say the rest follow."""
+    from a11y_assist.models import OpenQuestion
+    from a11y_assist.pipeline import QUESTION_PAGE, next_step, todo
+
+    report = Report(
+        run_id="r",
+        target="https://nasa.gov",
+        started_at=datetime.now(timezone.utc),
+        versions=_versions(),
+        evidence_dir="x",
+        open_questions=[
+            OpenQuestion(
+                question_id=f"q{n}",
+                test_id=TestId.T4D,
+                kind="choice",
+                instance="x",
+                question="?",
+                rubric="?",
+                input={"image_a": "run://r/a.png"} if n < 3 else {},
+            )
+            for n in range(12)
+        ],
+    )
+    assert QUESTION_PAGE == 10
+    [first, *_] = todo(report)
+    assert first.startswith("[ ] Answer the 10 open question(s)")
+    assert "3 name a picture" in first and "2 more come with the answer result" in first
+    assert "10 are in open_questions now" in next_step(report)

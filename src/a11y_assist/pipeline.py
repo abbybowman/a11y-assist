@@ -462,6 +462,12 @@ def _evidence_uris(run: RunRecorder) -> list[str]:
     return [run_uri(run.run_id, run.rel(f)) for f in files if f.exists()]
 
 
+# Open questions shown per result (agent follow-through plan, change 2b:
+# development run 7's agent skipped the pictures of results 25-70k
+# characters long). The rest come with each a11y_answer_questions result.
+QUESTION_PAGE = 10
+
+
 def _question_view(
     qs: list[OpenQuestion],
 ) -> tuple[list[OpenQuestion], dict[str, dict[str, str]]]:
@@ -945,7 +951,7 @@ async def run_tt_tests(
     run.write_json(run.report_path, report)
     pre_scrt = scrt.write_for_run(run.dir, run.report_path, report)
     run.log("run_end", status="error" if report.errors else "ok")
-    qview = _question_view(report.open_questions)
+    qview = _question_view(report.open_questions[:QUESTION_PAGE])
     calls = report.follow_up_calls
     return RunResult(
         run_id=run.run_id,
@@ -969,6 +975,7 @@ async def run_tt_tests(
         work=Remaining.of(report).work,
         remaining=Remaining.of(report),
         todo=todo(report, calls),
+        more_questions=max(0, len(report.open_questions) - QUESTION_PAGE),
     )
 
 
@@ -1051,8 +1058,15 @@ def next_step(report: Report, calls: list[dict] | None = None) -> str:
     )
     return (
         f"Not finished: {', '.join(tests)} stay NEEDS_REVIEW until you answer "
-        f"the {len(qs)} open question(s) in open_questions. Answer them now, "
-        "yourself, all in one a11y_answer_questions call, each by its rubric; "
+        f"the {len(qs)} open question(s)"
+        + (
+            f" ({QUESTION_PAGE} are in open_questions now; each answer result "
+            "brings the next ones)"
+            if len(qs) > QUESTION_PAGE
+            else " in open_questions"
+        )
+        + ". Answer them now, "
+        "yourself, in one a11y_answer_questions call per batch, each by its rubric; "
         "answer unsure only when the evidence does not settle it (only those go "
         f"to a person).{looks} Until then, {review}." + _calls_text(calls) + FINISH
     )
@@ -1065,16 +1079,23 @@ def todo(report: Report, calls: list[dict] | None = None) -> list[str]:
     out: list[str] = []
     qs = report.open_questions
     if qs:
-        pics = sum(1 for q in qs if has_image(q.input))
+        shown = qs[:QUESTION_PAGE]
+        pics = sum(1 for q in shown if has_image(q.input))
         pic = (
             f"; {pics} name a picture: look and give `seen`, or "
             "`picture_error` with unsure"
             if pics
             else ""
         )
+        more = (
+            f" {len(qs) - len(shown)} more come with the answer result: "
+            "answer those too, the same way, until none are left."
+            if len(qs) > len(shown)
+            else ""
+        )
         out.append(
-            f"[ ] Answer {len(qs)} open question(s) in one a11y_answer_questions "
-            f"call (run_id {report.run_id}){pic}."
+            f"[ ] Answer the {len(shown)} open question(s) in open_questions in "
+            f"one a11y_answer_questions call (run_id {report.run_id}){pic}.{more}"
         )
     calls = calls or []
     mine = [c for c in calls if server_may_make(c)]
@@ -1156,7 +1177,7 @@ async def answer_questions(
         rejected=rejected,
         errors=errors,
     )
-    qview = _question_view(report.open_questions)
+    qview = _question_view(report.open_questions[:QUESTION_PAGE])
     calls = report.follow_up_calls
     return AnswerResult(
         run_id=run_id,
@@ -1176,6 +1197,7 @@ async def answer_questions(
         work=Remaining.of(report).work,
         remaining=Remaining.of(report),
         todo=todo(report, calls),
+        more_questions=max(0, len(report.open_questions) - QUESTION_PAGE),
     )
 
 
