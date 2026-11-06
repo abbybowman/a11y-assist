@@ -144,7 +144,7 @@ One question, asked only for M7. The calling agent answers it once, by the rubri
 
 ## 5. Edge cases
 
-Only cases that need a rule of their own; everything else follows sections 2–3. V-numbers are browser checks in [4d-build-tasks.md](4d-build-tasks.md).
+Only cases that need a rule of their own; everything else follows sections 2–3. V-numbers are browser checks in [_browser-checks.md](_browser-checks.md#4d).
 
 | Case | Rule | Verify |
 | --- | --- | --- |

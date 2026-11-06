@@ -88,7 +88,27 @@ settle rule and no replay prefix was quick: the agency page with a ticker and
 a carousel went from 102 s to over 120 s for the existing tests alone. The
 settle rule now ignores DOM changes inside content pass T found still
 changing (pushed to every open page when pass T ends), and the run gets 45 s
-more (T1, Abby 2026-11-04). See the build tasks' Timing section.
+more (T1, Abby 2026-11-04).
+
+Measured 2026-11-04 with `evals/time_budget.py`, one run each
+(`budget/agency-home-motion.html` is the agency page plus a sliding
+carousel with a pause button and a ticker with no control):
+
+| Phase | agency-home | agency-home-motion |
+| --- | --- | --- |
+| Walk | 46.0 s | 62.3 s |
+| 4.D | 7.5 s | 14.3 s |
+| 4.A | 14.6 s | 21.1 s |
+| 2.x probe (shared) | — | 13.6 s |
+| Total, existing tests only | 102.1 s | over 120 s: 4.C, 5.D, 5.F cut short |
+| Total, with the drafts, no limit | — | 166.7 s |
+
+After the fix: the motion page's existing tests finish in 129.5 s (walk
+54.0 s, 4.D 10.6 s), the agency page alone is unchanged at 103.7 s. Focusing
+a top-page control directly in the probe (the walk proved Tab reaches it;
+media controls and frames still replay Tab) took the 2.x probes from 42.5 s
+to 25.9 s; with every test the motion page needs 155 s, hence the 165 s
+limit (120 + 45).
 
 ## Questions
 

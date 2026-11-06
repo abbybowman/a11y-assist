@@ -1,4 +1,4 @@
-"""4.C fixtures (docs/rules/4c-build-tasks.md): expected outcomes and behavior.
+"""4.C fixtures (docs/rules/4c-no-keyboard-trap.md): expected outcomes and behavior.
 
 Two kinds of test per fixture:
 

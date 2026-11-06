@@ -13,7 +13,7 @@ load a stop is `(frame ID, backend node ID)`; across loads (probes, the two
 passes) stops match by frame chain plus CSS path (`Stop.path_key`).
 
 **Browser facts that shaped rules** (Linux Chromium; Windows Chrome not yet
-checked, see `docs/rules/4c-build-tasks.md`):
+checked, see `docs/rules/_browser-checks.md`, 4.C):
 
 - Script `focus()` pulls keyboard focus back even from the browser toolbar
   (V15), so a refocus-on-blur pair cycles in both directions.

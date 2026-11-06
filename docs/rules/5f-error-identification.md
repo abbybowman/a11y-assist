@@ -148,7 +148,7 @@ One question per candidate field (section 3).
 
 ## 5. Edge cases
 
-V-numbers are browser checks in [5f-build-tasks.md](5f-build-tasks.md).
+V-numbers are browser checks in [_browser-checks.md](_browser-checks.md#5f).
 
 | Case | Rule | Verify |
 | --- | --- | --- |

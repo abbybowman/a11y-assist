@@ -1,8 +1,11 @@
 # Plan: agent-level evaluation
 
-Status: **round 1's harness is built and tested on fixtures with a scripted
-model; it has not run on a real model or real pages yet.** Runbook:
-`evals/agent/README.md`. Section 12 lists what is built and what is not.
+Status: **round 1 ran on 9 nasa.gov pages (CLI route, Sonnet 5.5) and was
+scored on 2026-11-04** ([results](../../evals/agent/README.md#results)).
+Next is round 2, on a new site, after the fixes in
+[2026-11-04-post-round1-fixes.md](2026-11-04-post-round1-fixes.md).
+Runbook: `evals/agent/README.md`. Section 12 lists what is built and what
+is not; sections 4.2, 9, 10 and 14 are the work for later rounds.
 
 ## 1. What it measures
 
@@ -438,7 +441,7 @@ The server itself needs no key: open questions go back to the calling agent
 
 ## 12. Build order
 
-Built and tested on the 19.A fixture site with a scripted model
+Built and tested (1-5 on the 19.A fixture site with a scripted model):
 (`tests/test_frozen.py`, `test_agent_freeze.py`, `test_agent_run.py`,
 `test_agent_score.py`, `test_agent_cli.py`, `test_full_chromium.py`):
 
@@ -458,11 +461,11 @@ Built and tested on the 19.A fixture site with a scripted model
    $0.12 at list price), Agent B on one page (27 s, $0.07). Both leak
    checks were clean and both result lines parsed. It checks the plumbing,
    not accuracy.
+7. **Real pages**: round 1 (2026-11-04), the first run with live pages
+   during the arms.
 
 Not built or not checked:
 
-7. **Real pages**: round 1 is the first run on them, and the first with live
-   pages during the arms.
 8. **The Ask Sage route** with a real model, and **Tavily MCP**, needed only
    there (its models have no web search). Agent B never gets Playwright
    MCP's `browser_run_code_unsafe`: it runs any code in Playwright's

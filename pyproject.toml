@@ -1,7 +1,7 @@
 [project]
 name = "a11y-assist"
 version = "0.1.0"
-description = "Starter MCP server for the GSA MCP hackathon"
+description = "MCP server that runs parts of the DHS Trusted Tester 5.1.3 web test process in Chrome and reports agent-assisted findings"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [

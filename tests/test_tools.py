@@ -89,6 +89,17 @@ async def test_run_tt_tests_on_http_page(settings, server):
         "other_page_s": settings.other_page_s,
         "no_time_limit": False,
     }
+    # The window the page was tested in, as configured and as a page saw it.
+    d = report.versions.display
+    assert (d["viewport_width"], d["viewport_height"]) == (
+        settings.viewport_width,
+        settings.viewport_height,
+    )
+    assert (d["inner_width"], d["inner_height"]) == (
+        settings.viewport_width,
+        settings.viewport_height,
+    )
+    assert d["device_pixel_ratio"] == 1.0
 
     steps = [json.loads(line) for line in (run_dir / "steps.jsonl").open()]
     names = [s["step"] for s in steps]
@@ -152,7 +163,7 @@ async def test_no_test_is_reported_not_tested(settings):
         "5.C": "NEEDS_REVIEW",
         "5.B": "NEEDS_REVIEW",  # its J1 is open, and the framed button
         # 5.H's consequence hint matches "order" in "Not in tab order": J1
-        # is asked (docs/rules/5b-build-tasks.md, Left).
+        # is asked (docs/ROADMAP.md, Per-test leftovers).
         "5.H": "NEEDS_REVIEW",
         # No other pages given: not performed (9.A-9.C specs, A1).
         "9.A": "NEEDS_REVIEW",
