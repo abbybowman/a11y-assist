@@ -133,7 +133,11 @@ that admits nobody looked), and build these, the to-do list first.
    keep them all.
 
    **Status:** built (`tests/test_models.py::test_open_questions_come_ten_at_a_time`).
-3. **Answers for several runs in one a11y_answer_questions call.**
+3. **Answers for several runs in one a11y_answer_questions call: deferred
+   (2026-11-06).** Each run's answer result carries that run's findings,
+   its next questions and their pictures. One call across five runs would
+   bring the large results back, which works against item 2. Revisit if
+   the paged runs still show the agent dropping a run's questions.
 
 ### 3. Answers that show the picture was seen
 
