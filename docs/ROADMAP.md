@@ -59,7 +59,12 @@ Next (Abby, 2026-11-05):
    - time and concurrency;
    - 4.D row M8;
    - the 5.F/5.G, 5.A/5.B, 19.A and 4.F fixes.
-3. **Then the visual-versus-code cluster.** Choose with the coverage map
+3. **The agent finishes the work, whatever prompt started it**
+   ([plans/2026-11-06-agent-follow-through.md](plans/2026-11-06-agent-follow-through.md);
+   Abby, 2026-11-06): one call finishes outstanding work, an "incomplete"
+   status in the data, answers that show the picture was seen, and
+   development rounds with several prompts to measure consistency.
+4. **Then the visual-versus-code cluster.** Choose with the coverage map
    and CLAUDE.md's research rule.
 
 Per-test leftovers live in each `docs/rules/<id>-build-tasks.md` (mostly
