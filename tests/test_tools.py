@@ -584,3 +584,40 @@ async def test_shared_question_texts_are_sent_once(settings, server):
     assert all('question_texts["5.D-J1"].rubric' in q["rubric"] for q in qs)
     t = out["question_texts"]["5.D-J1"]
     assert t["question"].startswith("Filling in") and t["rubric"].startswith("told:")
+
+
+async def test_run_status_without_a_job_lists_the_work_left(settings, server):
+    """The 2026-11-06 development run's debrief asked for one place that
+    lists what is left across a session's runs: a11y_run_status with no
+    job_id. A run's open questions show until they are answered."""
+    from a11y_assist import jobs
+
+    jobs._JOBS.clear()
+    empty = await _call("a11y_run_status", {})
+    assert empty["status"] == "outstanding" and empty["runs"] == []
+    url = f"{server.base}/4a/f01-click-only-text.html"
+    out = await _call("a11y_run_tt_tests", {"url": url, "tests": ["4.A"]})
+    left = await _call("a11y_run_status", {})
+    [r] = left["runs"]
+    assert r["run_id"] == out["run_id"] and r["open_questions"] == 1
+    assert r["tests_waiting"] == ["4.A"] and r["report_uri"] == out["report_uri"]
+    assert "before you report to the user" in left["next_step"]
+    [q] = out["open_questions"]
+    await _call(
+        "a11y_answer_questions",
+        {
+            "run_id": out["run_id"],
+            "answers": [
+                {
+                    "question_id": q["question_id"],
+                    "decided_by": "model",
+                    "rationale": "test",
+                    "choice": {"choice": "unsure", "reasons": "test"},
+                }
+            ],
+        },
+    )
+    after = await _call("a11y_run_status", {})
+    assert after["runs"] == [] and after["done"] == 1
+    assert after["next_step"].startswith("Nothing is left")
+    jobs._JOBS.clear()

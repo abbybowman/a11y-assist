@@ -105,7 +105,7 @@ class Settings(BaseSettings):
     max_concurrent_runs: int = Field(default=2, ge=1, le=32)
     # Finished jobs kept in memory for a11y_run_status (the run folder is kept
     # for run_ttl_hours either way).
-    job_keep_s: int = Field(default=3600, ge=60)
+    job_keep_s: int = Field(default=86400, ge=60)
     # An other page's recording, and its reads, reused for this long within
     # one server session (pagecache.py); 0 turns the cache off.
     page_cache_s: int = Field(default=1800, ge=0)

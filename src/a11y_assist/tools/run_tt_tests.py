@@ -49,7 +49,9 @@ resource reader, not a file reader. Look before answering. Report a
 NEEDS_REVIEW finding as needs review, never as a pass or a fail of your own.
 When `follow_up_calls` is not empty, make each of those a11y_run_tt_tests
 calls as given, without asking the user, after answering: they let tests left
-for review decide. To save your context, hand all of a run's open questions
+for review decide. When testing several pages, call a11y_run_status with no
+job_id before reporting: it lists every run's open questions and follow-up
+calls still left. To save your context, hand all of a run's open questions
 together to one subagent (with question, rubric, input and evidence_paths,
 which are run:// resources) and keep only the answer objects it returns; a
 subagent per question costs far more in total. For one or two short questions,

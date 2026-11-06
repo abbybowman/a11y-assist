@@ -43,6 +43,9 @@ TOOL SELECTION GUIDE:
 - A run's result says status "queued" or "running" (it was not done when
   the call stopped waiting) -> a11y_run_status (job_id) until status is
   "done"; never start the run again
+- Before reporting to the user, or when testing several pages: what is left
+  across this session's runs (open questions, follow-up calls, runs still
+  going) -> a11y_run_status with no job_id
 - A run returned open questions, or a person wants to override an answer
   -> a11y_answer_questions (run_id and one answer per question); repeat until
   none are open

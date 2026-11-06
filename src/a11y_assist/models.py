@@ -457,6 +457,12 @@ class Report(BaseModel):
     other_pages: list[OtherPage] = Field(
         default_factory=list, description="Other pages of the same site compared."
     )
+    follow_up_calls: list[dict[str, Any]] = Field(
+        default_factory=list,
+        description="a11y_run_tt_tests calls that would let tests left for "
+        "review decide, as of the latest evaluation (kept for "
+        "a11y_run_status's list of outstanding work).",
+    )
     live_pages: list[OtherPage] = Field(
         default_factory=list,
         description="Pages the tool loaded live itself: 19.A's site search only.",
@@ -649,6 +655,34 @@ class RunPending(BaseModel):
     seconds_waiting: float = Field(description="Seconds it waited for a slot.")
     seconds_running: float = Field(description="Seconds since its run started.")
     progress: str = Field(description="The phase it is in.")
+    next_step: str
+
+
+class OutstandingRun(BaseModel):
+    run_id: str
+    target: str
+    open_questions: int = Field(description="Questions still unanswered.")
+    tests_waiting: list[str] = Field(
+        default_factory=list, description="Tests those questions keep in review."
+    )
+    follow_up_calls: list[dict[str, Any]] = Field(default_factory=list)
+    report_uri: str
+
+
+class Outstanding(BaseModel):
+    """What is left across this server session's runs (a11y_run_status with
+    no job_id; the 2026-11-06 development run's debrief asked for it)."""
+
+    disclaimer: str = NOT_CERTIFIED_DISCLAIMER
+    status: Literal["outstanding"] = "outstanding"
+    runs: list[OutstandingRun] = Field(
+        default_factory=list,
+        description="Finished runs with open questions or follow-up calls left.",
+    )
+    running: list[dict[str, Any]] = Field(
+        default_factory=list, description="Runs still going: job_id, target, status."
+    )
+    done: int = Field(description="Finished runs with nothing left to do.")
     next_step: str
 
 

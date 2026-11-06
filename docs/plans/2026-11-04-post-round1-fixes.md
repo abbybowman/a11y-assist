@@ -781,7 +781,12 @@ Then (Abby, 2026-11-05):
   12 pictures to 150-545k characters. Fixed: pictures get the token budget
   the text leaves (`inline.TOKEN_BUDGET`, 20k), 768 px, at most 8. It also
   asked for one place that lists all outstanding work across a session's
-  runs (open questions and follow-up calls): a proposal for Abby.
+  runs. Built (Abby, 2026-11-06): `a11y_run_status` with no `job_id`
+  returns, for each finished run of the session, its open questions, the
+  tests waiting for them and its follow-up calls (read from its report, so
+  answers since count), and the runs still going. The report now keeps
+  `follow_up_calls`, so a capped test's call survives answering. Jobs are
+  kept as long as runs (24 h). Test: `test_tools.py`.
 
 ## Observations to decide after scoring
 

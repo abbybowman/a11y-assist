@@ -56,6 +56,8 @@ from a11y_assist.models import (
     OpenQuestion,
     OtherPage,
     Outcome,
+    Outstanding,
+    OutstandingRun,
     Report,
     RunResult,
     TestId,
@@ -937,11 +939,12 @@ async def run_tt_tests(
     result = await get_judge(settings.judge_backend).judge(report.open_questions)
     report.open_questions = result.pending
     report.finished_at = utcnow()
+    report.follow_up_calls = follow_ups(report, states, skipped)
     run.write_json(run.report_path, report)
     pre_scrt = scrt.write_for_run(run.dir, run.report_path, report)
     run.log("run_end", status="error" if report.errors else "ok")
     qview = _question_view(report.open_questions)
-    calls = follow_ups(report, states, skipped)
+    calls = report.follow_up_calls
     return RunResult(
         run_id=run.run_id,
         target=url,
@@ -1076,6 +1079,9 @@ async def answer_questions(
     finally:
         await browser.close()
     _evaluate(run, report, states)
+    # A test left out over a cap (no_time_limit) stays to do after answers.
+    kept = [c for c in report.follow_up_calls if c.get("no_time_limit")]
+    report.follow_up_calls = follow_ups(report, states, None) + kept
     run.write_json(run.report_path, report)
     pre_scrt = scrt.write_for_run(run.dir, run.report_path, report)
     run.log(
@@ -1086,7 +1092,7 @@ async def answer_questions(
         errors=errors,
     )
     qview = _question_view(report.open_questions)
-    calls = follow_ups(report, states, None)
+    calls = report.follow_up_calls
     return AnswerResult(
         run_id=run_id,
         accepted=accepted,
@@ -1103,3 +1109,59 @@ async def answer_questions(
         next_step=next_step(report, calls),
         follow_up_calls=calls,
     )
+
+
+def outstanding(settings: Settings, jobs: list) -> Outstanding:
+    """Open questions and follow-up calls left in this session's runs, read
+    from each run's report as it is now (answers since the run included)."""
+    runs, running, done = [], [], 0
+    for j in jobs:
+        if j.task is None or not j.task.done():
+            running.append(
+                {
+                    "job_id": j.id,
+                    "target": j.url,
+                    "status": "queued" if j.started is None else "running",
+                }
+            )
+            continue
+        if j.task.cancelled() or j.task.exception() is not None:
+            continue
+        res = j.task.result()
+        try:
+            run = RunRecorder.open(settings.runs_dir, res.run_id)
+            report = Report.model_validate_json(run.report_path.read_text("utf-8"))
+        except Exception:
+            continue  # expired or removed
+        if not report.open_questions and not report.follow_up_calls:
+            done += 1
+            continue
+        waiting = {q.test_id for q in report.open_questions}
+        runs.append(
+            OutstandingRun(
+                run_id=report.run_id,
+                target=report.target,
+                open_questions=len(report.open_questions),
+                tests_waiting=[t.value for t in TestId if t in waiting],
+                follow_up_calls=report.follow_up_calls,
+                report_uri=run_uri(run.run_id, run.rel(run.report_path)),
+            )
+        )
+    q = sum(r.open_questions for r in runs)
+    c = sum(len(r.follow_up_calls) for r in runs)
+    if runs or running:
+        step = (
+            f"Left: {q} open question(s) in {len(runs)} run(s) and {c} follow-up "
+            f"call(s); {len(running)} run(s) still going. For each run, answer "
+            "its open questions with a11y_answer_questions (its report_uri has "
+            "them, or call a11y_run_status with the job_id of a run still "
+            "going), then make its follow_up_calls as given, without asking "
+            "the user. Call this again until nothing is left, before you "
+            "report to the user."
+        )
+    else:
+        step = (
+            "Nothing is left: every run of this session is finished, with no "
+            "open question or follow-up call."
+        )
+    return Outstanding(runs=runs, running=running, done=done, next_step=step)

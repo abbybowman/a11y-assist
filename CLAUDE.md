@@ -79,7 +79,8 @@ by TT test ID. Package: `a11y_assist` (name is provisional).
   `a11y_run_tt_tests`, `a11y_run_status`, `a11y_answer_questions` and
   `a11y_read_report` now (files `run_tt_tests.py`, `run_status.py`,
   `answer_questions.py`, `read_report.py`; `a11y_run_status` waits for a
-  run its call left running; the last reads an SCRT or pre-SCRT file and
+  run its call left running, or, with no job_id, lists the work left across
+  the session's runs; the last reads an SCRT or pre-SCRT file and
   lists what changed against another);
   `verify_fix` (an option on a11y_run_tt_tests that takes a saved report),
   merging a partial SCRT file, TT review and export, and fix advice for a

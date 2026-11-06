@@ -141,6 +141,12 @@ def pending(job: Job, wait_s: float) -> RunPending:
     )
 
 
+def all_jobs(settings: Settings) -> list[Job]:
+    """This session's jobs still kept, oldest first."""
+    _prune(settings)
+    return sorted(_JOBS.values(), key=lambda j: j.created)
+
+
 def running() -> list[dict[str, Any]]:
     """Jobs not finished yet (for tests and diagnostics)."""
     return [{"id": j.id, "url": j.url} for j in _JOBS.values() if j.finished is None]
