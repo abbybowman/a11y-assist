@@ -167,3 +167,31 @@ At commit 89325d1 (`a11y_run_status` `finish=true`; results carry `work`,
 - **9.C:** answered from element names alone ("a guess"), giving PASS on
   those pages; its own report should call them weakly supported.
 - It asked again for "a single 'you are not done' list I had to clear".
+
+## Seventh run: the picture rule (`results/arm-a-7/`)
+
+At commit 8db7481 (answers to picture questions need `seen`, or
+`picture_error` with unsure), `--debrief`, from a separate worktree.
+
+| Run | Weighted | Agree | False PASS / FAIL | Questions left open | Calls |
+| --- | --- | --- | --- | --- | --- |
+| Seventh | 57 | 56 | 0 / 0 | 1 (KSC 4.F) | 5 run, 10 status (0 finish), 6 answer |
+| Sixth | 59 | 58 | 0 / 0 | 0 | 5 run, 22 status (2 finish), 5 answer |
+
+- **The picture rule was met, but on paper.** 6 answers were refused for
+  lacking `seen`. The agent then gave `picture_error` with unsure instead
+  of looking: "images not examined" ×14, "order image not examined in
+  detail" ×4. These are recorded as not viewed for a person: honest, and
+  safe (no false PASS), but nothing was looked at. One `picture_error` was
+  a real reading ("a tiny dark crop showing no clear focus indicator"). It
+  opened 2 resources in the whole run.
+- **Follow-through fell back.** It never called `finish=true` or
+  `a11y_run_status` without a job_id. It made no 19.A follow-ups and
+  never asked about Missions' 5.D `no_time_limit`. It missed KSC's 4.F
+  question.
+- **Debrief:** "many questions and the outputs were huge, so I took the
+  cheap answer". It asked for a short to-do list at the end of each result
+  instead of buried in 25-70k characters, smaller or paged outputs, and
+  answers batched across runs.
+- Runs 6 and 7 show how much one prompt varies from run to run (59 vs 57,
+  finish used vs not); the plan's repeated runs per prompt will measure it.
