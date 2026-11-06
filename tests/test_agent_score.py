@@ -6,6 +6,7 @@ from __future__ import annotations
 import hashlib
 import json
 import shutil
+from pathlib import Path
 
 import pytest
 
@@ -177,3 +178,29 @@ def test_review_reasons_are_told_apart():
         review_reason("This test could not be performed: no spec yet")
         == "could not be performed"
     )
+
+
+def test_a_result_the_tester_later_confirmed_is_a_validated_catch(tmp_path):
+    """Abby, 2026-11-06: where the tool differed from the key and the tester
+    then confirmed the tool (Artemis III 4.D), the verdict is a validated
+    catch, weighted as an agreement, not a false FAIL."""
+    from a11y_assist.compare import compare, page_key
+    from evals.agent.score import tool_files
+    from evals.scoring import Verdict, adjudications, weighted
+    from evals.scoring import score as score_page
+
+    rd = Path(__file__).parents[1] / "evals/judging/round1"
+    adj = adjudications(rd)
+    url = "https://www.nasa.gov/mission/artemis-iii/"
+    assert adj[page_key(url)]["4.D"] is R.FAIL
+    from evals.judging import _pages, read_keys
+
+    keys = read_keys(rd, _pages(rd))
+    ref = keys[url][1]
+    mine = tool_files(rd / "results" / "arm-a-1")[page_key(url)]
+    plain = score_page(compare(ref, mine))
+    judged = score_page(compare(ref, mine), adj[page_key(url)])
+    [t] = [x for x in judged.tests if x.test.test_id == "4.D"]
+    assert t.verdict is Verdict.VALIDATED_CATCH
+    assert judged.counts["false_fail"] == plain.counts["false_fail"] - 1
+    assert weighted(judged.counts) == weighted(plain.counts) + 2

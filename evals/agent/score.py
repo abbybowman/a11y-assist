@@ -30,6 +30,7 @@ from evals.judging import _pages, _verify, read_keys
 from evals.scoring import (
     SEVERITY,
     Verdict,
+    adjudications,
     rates,
     rollup,
     totals,
@@ -252,6 +253,7 @@ def score(rd: Path) -> dict:
 
 def _server(rd, arm_dir, keys, key_tt, cs) -> dict:
     tools = tool_files(arm_dir)
+    adjudicated = adjudications(rd)
     per_tt, crit, untested = [], [], []
     reasons: dict[str, int] = {}
     for url, (_, ref) in keys.items():
@@ -259,7 +261,7 @@ def _server(rd, arm_dir, keys, key_tt, cs) -> dict:
         if mine is None:
             untested.append(url)
             continue
-        sc = score_page(compare(ref, mine))
+        sc = score_page(compare(ref, mine), adjudicated.get(page_key(url)))
         per_tt.append(sc)
         for t in sc.comparison.tests:
             if t.second.rows and t.second.result is None:

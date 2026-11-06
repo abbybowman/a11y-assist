@@ -90,6 +90,15 @@ reload the page, then right-click a request and "Save all as HAR with
 content". Whether a DevTools HAR replays like our own recordings is not yet
 checked.
 
+**Validated catches (Abby, 2026-11-06).** After the reveal, the tester may
+confirm that the tool was right where it differed from their key (round 1:
+Artemis III 4.D, a player button with no visible focus). They record it in
+`<round>/adjudications.json` (page, TT test, the confirmed result, who,
+when, why), never by editing a key, which is locked by its hash. The scorer
+counts a tool result that matches as a **validated catch**, weighted +1 like
+an agreement and shown apart (`evals/scoring.py`). The file sits outside
+the lock, as the keys do.
+
 ## Run 22, 2026-11-06: 5.C 1.2.0 (options of one set asked once), its packets only
 
 6 cases, one fresh Sonnet agent, Read/Write/Glob only. **6/6 match** after

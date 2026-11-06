@@ -43,7 +43,14 @@ sys.path.insert(0, str(REPO))
 
 from a11y_assist import scrt  # noqa: E402
 from a11y_assist.compare import compare, page_key  # noqa: E402
-from evals.scoring import SEVERITY, Score, ScoredTest, rates, totals  # noqa: E402
+from evals.scoring import (  # noqa: E402
+    SEVERITY,
+    Score,
+    ScoredTest,
+    adjudications,
+    rates,
+    totals,
+)
 from evals.scoring import score as score_page  # noqa: E402
 
 MAX_ROUNDS = 3
@@ -416,7 +423,10 @@ def score(rd: Path) -> dict:
             )
             comparisons.append((pid, url, None, why))
             continue
-        c = score_page(compare(ref, scrt.parse(cand.read_text("utf-8"))))
+        c = score_page(
+            compare(ref, scrt.parse(cand.read_text("utf-8"))),
+            adjudications(rd).get(page_key(url)),
+        )
         comparisons.append((pid, url, c, ""))
     done = [c for _, _, c, _ in comparisons if c]
     tot = totals(done)

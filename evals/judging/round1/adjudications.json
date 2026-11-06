@@ -1,0 +1,13 @@
+{
+ "about": "Results the tester confirmed after the reveal where the tool and the answer key differed. Written by the tester, never by the tool; the key files themselves never change. A tool result that matches is scored as a validated catch (evals/scoring.py).",
+ "pages": {
+  "https://www.nasa.gov/mission/artemis-iii/": {
+   "4.D": {
+    "result": "Fail",
+    "by": "Abby Bowman",
+    "date": "2026-11-06",
+    "note": "The embedded YouTube player's 'Hide player controls' button, next in focus order after Play, shows no visible focus indicator. Missed in the tester's evaluation; a fail, though not fixable by a NASA developer."
+   }
+  }
+ }
+}

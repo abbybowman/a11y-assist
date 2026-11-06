@@ -19,6 +19,11 @@ from a11y_assist.scrt import ScrtResult
 
 class Verdict(str, Enum):
     AGREE = "agree"
+    # The tool differed from the key, and the tester later confirmed the
+    # tool was right (the round's adjudications.json; Abby, 2026-11-06:
+    # Artemis III 4.D, a player button with no visible focus). Counted as
+    # a positive, apart from agreement.
+    VALIDATED_CATCH = "validated_catch"
     FALSE_PASS = "false_pass"  # tool Pass, key Fail
     MISSED_FAIL = "missed_fail"  # tool Does Not Apply, key Fail
     FALSE_FAIL = "false_fail"  # tool Fail, key Pass
@@ -46,6 +51,7 @@ SEVERITY = [
 # scores as wrong.
 WEIGHTS = {
     Verdict.AGREE: 1,
+    Verdict.VALIDATED_CATCH: 1,
     Verdict.NEEDS_REVIEW: 0,
     Verdict.FALSE_FAIL: -1,
     Verdict.FAIL_NOT_APPLICABLE: -1,
@@ -116,13 +122,22 @@ class Score(BaseModel):
         return sorted(bad, key=lambda t: (rank[t.verdict], t.test.test_id))
 
 
-def score(c: Comparison) -> Score:
-    tests = [
-        ScoredTest(
-            test=t, verdict=verdict(t.first.result, t.second.result, t.second.performed)
-        )
-        for t in c.tests
-    ]
+def score(c: Comparison, adjudicated: dict[str, ScrtResult] | None = None) -> Score:
+    """`adjudicated`: TT test ID -> the result the tester confirmed after the
+    reveal where the tool and the key differed. A tool result that matches it
+    is a validated catch; the key file itself never changes."""
+    adjudicated = adjudicated or {}
+
+    def one(t):
+        v = verdict(t.first.result, t.second.result, t.second.performed)
+        a = adjudicated.get(t.test_id)
+        if v not in (Verdict.AGREE, Verdict.NOT_SCORED, Verdict.NOT_PERFORMED) and (
+            a is not None and t.second.result == a
+        ):
+            return Verdict.VALIDATED_CATCH
+        return v
+
+    tests = [ScoredTest(test=t, verdict=one(t)) for t in c.tests]
     counts = {v.value: 0 for v in Verdict}
     for t in tests:
         counts[t.verdict.value] += 1
@@ -147,9 +162,11 @@ def rates(counts: dict[str, int]) -> dict[str, str]:
     )
     decided = scored - counts[Verdict.NEEDS_REVIEW.value]
     agree = counts[Verdict.AGREE.value]
+    caught = counts.get(Verdict.VALIDATED_CATCH.value, 0)
     return {
         "scored": str(scored),
         "agreement (of decided)": f"{agree}/{decided}",
+        "validated catches (the tester confirmed the tool)": str(caught),
         "needs review (of scored)": f"{counts[Verdict.NEEDS_REVIEW.value]}/{scored}",
         "false PASS": str(counts[Verdict.FALSE_PASS.value]),
         "missed fail (Does Not Apply)": str(counts[Verdict.MISSED_FAIL.value]),
@@ -160,3 +177,24 @@ def rates(counts: dict[str, int]) -> dict[str, str]:
         "not performed by the tool": str(counts[Verdict.NOT_PERFORMED.value]),
         "no reference answer": str(counts[Verdict.NOT_SCORED.value]),
     }
+
+
+def adjudications(round_dir) -> dict[str, dict[str, ScrtResult]]:
+    """The round's `adjudications.json`, by page key: what the tester
+    confirmed after the reveal where the tool and the key differed. Written
+    by the tester, never by the tool; outside the lock, like the keys."""
+    import json
+    from pathlib import Path
+
+    from a11y_assist.compare import page_key
+
+    f = Path(round_dir) / "adjudications.json"
+    if not f.is_file():
+        return {}
+    words = {r.value.lower(): r for r in ScrtResult}
+    out: dict[str, dict[str, ScrtResult]] = {}
+    for page, tests in json.loads(f.read_text("utf-8")).get("pages", {}).items():
+        out[page_key(page)] = {
+            t: words[str(v.get("result", "")).lower()] for t, v in tests.items()
+        }
+    return out
