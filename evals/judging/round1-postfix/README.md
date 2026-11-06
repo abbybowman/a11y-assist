@@ -142,3 +142,28 @@ earlier runs are rescored the same way:
   felt small. Nothing was unclear." It asked for one call that runs all
   follow-ups together, image review marked required, and a hard "not done"
   status until questions are answered.
+
+## Sixth run: the finish call and `work` (`results/arm-a-6/`)
+
+At commit 89325d1 (`a11y_run_status` `finish=true`; results carry `work`,
+`remaining` and `waiting_on`), `--debrief`, from a separate worktree.
+
+| Run | Weighted | Agree | Validated catch | False PASS / FAIL | Questions left open | Calls |
+| --- | --- | --- | --- | --- | --- | --- |
+| Sixth | 59 | 58 | 1 | 0 / 0 | 0 | 5 run, 22 status (2 with finish), 5 answer |
+| Fifth | 58 | 57 | 1 | 0 / 0 | 0 | 9 run, 19 status, 5 answer |
+
+- **Finish:** the agent called `finish=true` twice, and the server made
+  the 19.A follow-ups for all five pages: it no longer started them by hand
+  (9 run calls in run 5, 5 here). It read only two of their results, and
+  those suggested further pages (the site map, search), which it did not
+  pass on: "I ran out of steam". It never asked the user about Missions'
+  5.D `no_time_limit` call.
+- **Pictures:** still none opened. It answered "unsure" with "not viewed"
+  on 4.D (Careers), 4.F (all pages), one 5.C and one 2.B question, though
+  the transcript holds 34 attached images; it says "a step-by-step prompt
+  to open each image, or a smaller image per question, would have helped".
+  Change 3 (`seen`) is built after this run.
+- **9.C:** answered from element names alone ("a guess"), giving PASS on
+  those pages; its own report should call them weakly supported.
+- It asked again for "a single 'you are not done' list I had to clear".
