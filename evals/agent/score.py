@@ -22,9 +22,6 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-from a11y_assist import scrt
-from a11y_assist.compare import compare, page_key, summary
-from a11y_assist.scrt import ScrtResult
 from evals.agent.prompt import criteria
 from evals.judging import _pages, _verify, read_keys
 from evals.scoring import (
@@ -37,6 +34,9 @@ from evals.scoring import (
     weighted,
 )
 from evals.scoring import score as score_page
+from tobi508 import scrt
+from tobi508.compare import compare, page_key, summary
+from tobi508.scrt import ScrtResult
 
 WORDS = {
     "PASS": ScrtResult.PASS,

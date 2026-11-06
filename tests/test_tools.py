@@ -11,15 +11,15 @@ from pathlib import Path
 import pytest
 from fastmcp import Client
 
-from a11y_assist import config
-from a11y_assist.app import mcp
-from a11y_assist.models import (
+from tobi508 import config
+from tobi508.app import mcp
+from tobi508.models import (
     OpenQuestion,
     Outcome,
     Report,
     TestId,
 )
-from a11y_assist.runlog import RunRecorder
+from tobi508.runlog import RunRecorder
 
 from .conftest import FIXTURES
 
@@ -38,7 +38,7 @@ async def _call(name: str, args: dict) -> dict:
 async def test_tools_are_listed():
     async with Client(mcp) as client:
         names = {t.name for t in await client.list_tools()}
-    assert {"a11y_run_tt_tests", "a11y_answer_questions"} <= names
+    assert {"tobi_run_tt_tests", "tobi_answer_questions"} <= names
     # Old names are gone (renamed with the service prefix, 2026-11-01).
     assert not {"run_tt_tests", "answer_questions"} & names
     assert not {"collect_keyboard_evidence", "submit_judgments"} & names
@@ -46,7 +46,7 @@ async def test_tools_are_listed():
 
 async def test_no_time_limit_is_an_opt_in_input():
     async with Client(mcp) as client:
-        [tool] = [t for t in await client.list_tools() if t.name == "a11y_run_tt_tests"]
+        [tool] = [t for t in await client.list_tools() if t.name == "tobi_run_tt_tests"]
     prop = tool.inputSchema["properties"]["no_time_limit"]
     assert prop["type"] == "boolean" and prop["default"] is False
     assert "no_time_limit=true" in tool.description
@@ -54,7 +54,7 @@ async def test_no_time_limit_is_an_opt_in_input():
 
 async def test_run_tt_tests_on_http_page(settings, server):
     out = await _call(
-        "a11y_run_tt_tests", {"url": f"{server.base}/no_trap.html", "tests": ["4.C"]}
+        "tobi_run_tt_tests", {"url": f"{server.base}/no_trap.html", "tests": ["4.C"]}
     )
     assert out["errors"] == []
     assert "NOT a certified" in out["disclaimer"]
@@ -124,7 +124,7 @@ async def test_run_tt_tests_on_http_page(settings, server):
 
 async def test_collect_on_file_fixture_in_dev_mode(settings):
     url = (FIXTURES / "4c/f04-field-swallows-tab.html").as_uri()
-    out = await _call("a11y_run_tt_tests", {"url": url, "tests": ["4.C"]})
+    out = await _call("tobi_run_tt_tests", {"url": url, "tests": ["4.C"]})
     assert out["errors"] == []
     # The field swallows Tab: P1 ends as soon as it is stuck for 3 presses.
     assert out["walk"]["P1"]["end"] == "stuck"
@@ -135,7 +135,7 @@ async def test_collect_on_file_fixture_in_dev_mode(settings):
 
 async def test_selected_tests_are_deduplicated_and_ordered(settings):
     url = (FIXTURES / "no_trap.html").as_uri()
-    out = await _call("a11y_run_tt_tests", {"url": url, "tests": ["4.E", "4.A", "4.E"]})
+    out = await _call("tobi_run_tt_tests", {"url": url, "tests": ["4.E", "4.A", "4.E"]})
     assert out["errors"] == []
     assert out["tests"] == ["4.A", "4.E"]
     assert [f["test_id"] for f in out["findings"]] == ["4.A", "4.E"]
@@ -144,12 +144,12 @@ async def test_selected_tests_are_deduplicated_and_ordered(settings):
 async def test_no_test_is_reported_not_tested(settings):
     url = (FIXTURES / "no_trap.html").as_uri()
     out = await _call(
-        "a11y_run_tt_tests", {"url": url, "tests": [t.value for t in TestId]}
+        "tobi_run_tt_tests", {"url": url, "tests": [t.value for t in TestId]}
     )
     assert out["errors"] == []
     by_id = {f["test_id"]: f for f in out["findings"]}
     assert set(by_id) == {t.value for t in TestId}
-    from a11y_assist.checks import REGISTRY
+    from tobi508.checks import REGISTRY
 
     built = {t.value for t in REGISTRY}
     # The page's one email field is not checked by anything (no form, no
@@ -198,7 +198,7 @@ async def test_no_test_is_reported_not_tested(settings):
 async def test_invalid_test_selection_is_rejected_by_schema(settings, tests):
     async with Client(mcp) as client:
         result = await client.call_tool(
-            "a11y_run_tt_tests",
+            "tobi_run_tt_tests",
             {"url": "https://x.gov", "tests": tests},
             raise_on_error=False,
         )
@@ -214,7 +214,7 @@ async def _call_error(name: str, args: dict) -> str:
 
 async def test_disallowed_url_is_a_tool_error_without_browsing(settings, server):
     msg = await _call_error(
-        "a11y_run_tt_tests", {"url": f"http://localhost:{server.port}/dyn"}
+        "tobi_run_tt_tests", {"url": f"http://localhost:{server.port}/dyn"}
     )
     assert "not allowed" in msg
     assert server.hits[("localhost", "/dyn")] == 0
@@ -222,7 +222,7 @@ async def test_disallowed_url_is_a_tool_error_without_browsing(settings, server)
 
 
 async def test_redirect_out_of_allowlist_is_a_tool_error(settings, server):
-    msg = await _call_error("a11y_run_tt_tests", {"url": f"{server.base}/redir-bad"})
+    msg = await _call_error("tobi_run_tt_tests", {"url": f"{server.base}/redir-bad"})
     assert "blocked" in msg.lower()
     assert server.hits[("localhost", "/landed")] == 0
     assert not any(settings.runs_dir.iterdir())  # nothing kept for an untested page
@@ -230,8 +230,8 @@ async def test_redirect_out_of_allowlist_is_a_tool_error(settings, server):
 
 def _seed_run_with_question(settings) -> tuple[str, str]:
     run = RunRecorder(settings.runs_dir)
-    from a11y_assist.models import utcnow
-    from a11y_assist.versions import collect_versions
+    from tobi508.models import utcnow
+    from tobi508.versions import collect_versions
 
     q = OpenQuestion(
         question_id="q1",
@@ -259,7 +259,7 @@ async def test_answer_questions_records_and_rejects_invalid(settings):
     run_id, report_path = _seed_run_with_question(settings)
     j1 = {"documented": "no"}
     out = await _call(
-        "a11y_answer_questions",
+        "tobi_answer_questions",
         {
             "run_id": run_id,
             "answers": [
@@ -275,7 +275,7 @@ async def test_answer_questions_records_and_rejects_invalid(settings):
     # A person's answer overrides the model's.
     yes = {"documented": "yes", "keys": ["Escape"], "quote": "Press Esc"}
     out = await _call(
-        "a11y_answer_questions",
+        "tobi_answer_questions",
         {
             "run_id": run_id,
             "answers": [
@@ -304,7 +304,7 @@ _ANSWER = {
 async def test_answer_questions_rejects_path_like_run_id_by_schema(settings):
     async with Client(mcp) as client:
         result = await client.call_tool(
-            "a11y_answer_questions",
+            "tobi_answer_questions",
             {"run_id": "../etc", "answers": [_ANSWER]},
             raise_on_error=False,
         )
@@ -313,14 +313,14 @@ async def test_answer_questions_rejects_path_like_run_id_by_schema(settings):
 
 async def test_answer_questions_unknown_run_id_is_a_tool_error(settings):
     msg = await _call_error(
-        "a11y_answer_questions", {"run_id": "missing-run", "answers": [_ANSWER]}
+        "tobi_answer_questions", {"run_id": "missing-run", "answers": [_ANSWER]}
     )
     assert "No run named" in msg
 
 
 async def test_evidence_is_readable_as_resources_and_confined(settings, server):
     out = await _call(
-        "a11y_run_tt_tests", {"url": f"{server.base}/no_trap.html", "tests": ["4.C"]}
+        "tobi_run_tt_tests", {"url": f"{server.base}/no_trap.html", "tests": ["4.C"]}
     )
     async with Client(mcp) as client:
         [content] = await client.read_resource(f"run://{out['run_id']}/report.json")
@@ -337,17 +337,17 @@ async def test_old_runs_expire(settings, server):
     import os
     import time
 
-    from a11y_assist.runlog import prune_runs
+    from tobi508.runlog import prune_runs
 
     out = await _call(
-        "a11y_run_tt_tests", {"url": f"{server.base}/no_trap.html", "tests": ["4.C"]}
+        "tobi_run_tt_tests", {"url": f"{server.base}/no_trap.html", "tests": ["4.C"]}
     )
     run_dir = settings.runs_dir / out["run_id"]
     old = time.time() - 25 * 3600
     os.utime(run_dir / "report.json", (old, old))
     assert prune_runs(settings.runs_dir, 24) == 1 and not run_dir.exists()
     msg = await _call_error(
-        "a11y_answer_questions", {"run_id": out["run_id"], "answers": [_ANSWER]}
+        "tobi_answer_questions", {"run_id": out["run_id"], "answers": [_ANSWER]}
     )
     assert "may have expired" in msg and "/" not in msg.split("(")[0]
 
@@ -395,7 +395,7 @@ async def test_explain_finds_tests_by_words_criterion_or_name(settings):
 
 async def test_explain_after_a_run(settings, server):
     out = await _call(
-        "a11y_run_tt_tests", {"url": f"{server.base}/no_trap.html", "tests": ["4.C"]}
+        "tobi_run_tt_tests", {"url": f"{server.base}/no_trap.html", "tests": ["4.C"]}
     )
     [f] = out["findings"]
     assert f["reference"] == "tt://5.1.3/tests/4.C"
@@ -411,17 +411,17 @@ async def test_explain_after_a_run(settings, server):
 async def test_tool_descriptions_follow_the_registry():
     # The implemented-test list and the default come from checks.REGISTRY, so
     # they cannot go stale when a check is added.
-    from a11y_assist.checks import REGISTRY
+    from tobi508.checks import REGISTRY
 
     async with Client(mcp) as client:
         tools = {t.name: t for t in await client.list_tools()}
-    run = tools["a11y_run_tt_tests"]
+    run = tools["tobi_run_tt_tests"]
     built = [t.value for t in TestId if t in REGISTRY]
     assert run.inputSchema["properties"]["tests"]["default"] == built
     for t in REGISTRY:
         assert f"{t.value} ({t.tt_name})" in run.description
     assert "subagent" in run.description and "certified" in run.description
-    answer = tools["a11y_answer_questions"].inputSchema
+    answer = tools["tobi_answer_questions"].inputSchema
     assert "duration_ms" in str(answer)
 
 
@@ -429,7 +429,7 @@ async def test_open_questions_are_named_in_the_summary(settings, server):
     # While a question is open the summary says so, instead of "a person needs
     # to check it" (the agent answers it next). Wording only.
     url = f"{server.base}/4a/f01-click-only-text.html"
-    out = await _call("a11y_run_tt_tests", {"url": url, "tests": ["4.A"]})
+    out = await _call("tobi_run_tt_tests", {"url": url, "tests": ["4.A"]})
     [f] = out["findings"]
     assert f["outcome"] == "NEEDS_REVIEW"
     assert f["summary"].startswith("This test is not finished yet: 1 question about")
@@ -441,7 +441,7 @@ async def test_shared_evidence_is_sent_once(settings, server):
     # Judge eval 2026-10-31: every 4.A question repeated the whole stop list.
     # It now goes once per result, and questions name it.
     url = f"{server.base}/4a/f04-hover-only-menu.html"
-    out = await _call("a11y_run_tt_tests", {"url": url, "tests": ["4.A"]})
+    out = await _call("tobi_run_tt_tests", {"url": url, "tests": ["4.A"]})
     assert len(out["open_questions"]) == 2
     for q in out["open_questions"]:
         assert q["shared"] == ["stops"] and "stops" not in q["input"]

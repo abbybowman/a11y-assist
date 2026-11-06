@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 import re
 
-from a11y_assist.config import REPO_ROOT
+from tobi508.config import REPO_ROOT
 
 SOURCES = REPO_ROOT / "docs" / "sources"
 

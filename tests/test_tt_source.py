@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import re
 
-from a11y_assist.config import REPO_ROOT
+from tobi508.config import REPO_ROOT
 
 TT = REPO_ROOT / "docs" / "sources" / "tt-5.1.3"
 DATA = json.loads((TT / "tt.json").read_text("utf-8"))

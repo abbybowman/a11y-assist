@@ -9,16 +9,16 @@ import math
 
 import pytest
 
-from a11y_assist.models import Outcome, TestId
-from a11y_assist.pipeline import TIME_NOTE, RunRefused, _bounded, run_tt_tests
-from a11y_assist.traverse import PACE_WARM, Pace, WalkTooLong
+from tobi508.models import Outcome, TestId
+from tobi508.pipeline import TIME_NOTE, RunRefused, _bounded, run_tt_tests
+from tobi508.traverse import PACE_WARM, Pace, WalkTooLong
 
 from .drafts import drafts  # noqa: F401 (a fixture)
 
 
 def test_pace_waits_for_warm_up_then_estimates(monkeypatch):
     now = [100.0]
-    monkeypatch.setattr("a11y_assist.traverse.time.monotonic", lambda: now[0])
+    monkeypatch.setattr("tobi508.traverse.time.monotonic", lambda: now[0])
     pace = Pace(deadline=160.0)
     pace.check(0, 600)  # starts the clock
     now[0] = 110.0
@@ -32,7 +32,7 @@ def test_pace_waits_for_warm_up_then_estimates(monkeypatch):
 
 def test_pace_lets_a_walk_that_fits_continue(monkeypatch):
     now = [100.0]
-    monkeypatch.setattr("a11y_assist.traverse.time.monotonic", lambda: now[0])
+    monkeypatch.setattr("tobi508.traverse.time.monotonic", lambda: now[0])
     pace = Pace(deadline=200.0)
     pace.check(0, 60)
     now[0] = 104.0
@@ -99,7 +99,7 @@ async def test_more_fields_than_5d_checks_is_refused_at_the_first_load(
 ):
     """5.D's cap (spec section 2, Run limits): over FIELD_MAX form fields the
     run stops before anything is tested; no_time_limit lifts the cap."""
-    from a11y_assist.checks import t5d
+    from tobi508.checks import t5d
 
     monkeypatch.setattr(t5d, "FIELD_MAX", 2)
     url = f"{server.base}/5d/f03-submit-when-last-field-filled.html"  # 3 fields

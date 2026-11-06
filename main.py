@@ -4,10 +4,10 @@ Run locally:
     uv run python main.py
 
 Or via the installed script:
-    uv run a11y-assist
+    uv run tobi508
 """
 
-from a11y_assist.app import main
+from tobi508.app import main
 
 if __name__ == "__main__":
     main()

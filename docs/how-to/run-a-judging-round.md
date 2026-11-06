@@ -1,6 +1,6 @@
 # How to run a judging round
 
-For certified Trusted Testers who want to check a11y-assist against their
+For certified Trusted Testers who want to check tobi508 against their
 own work and contribute the results. You test some pages in SCRT as usual.
 The tool tests the same pages, and a script scores the tool against your
 files test by test.

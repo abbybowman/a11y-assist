@@ -7,8 +7,8 @@ from __future__ import annotations
 
 import pytest
 
-from a11y_assist.browser import new_context
-from a11y_assist.traverse import (
+from tobi508.browser import new_context
+from tobi508.traverse import (
     INIT_JS,
     ReplayPlan,
     Traversal,
@@ -156,7 +156,7 @@ async def test_late_refocus_is_caught_by_the_rerun(browser, settings, tmp_path):
 
 
 def test_detect_p1_end_needs_two_full_cycles_without_out():
-    from a11y_assist.models import Step, Stop
+    from tobi508.models import Step, Stop
 
     def steps(keys):
         return [

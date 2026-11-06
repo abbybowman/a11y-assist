@@ -28,13 +28,13 @@ from pathlib import Path
 
 from playwright.async_api import async_playwright
 
-from a11y_assist.browser import launch_browser
-from a11y_assist.config import Settings
-from a11y_assist.egress import EgressProxy
-from a11y_assist.frozen import load, obtain
-from a11y_assist.policy import check_url
-from a11y_assist.redact import safe_error
 from evals.judging import JudgingError, _pages
+from tobi508.browser import launch_browser
+from tobi508.config import Settings
+from tobi508.egress import EgressProxy
+from tobi508.frozen import load, obtain
+from tobi508.policy import check_url
+from tobi508.redact import safe_error
 
 FROZEN = "frozen"
 

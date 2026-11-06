@@ -9,10 +9,10 @@ import subprocess
 import sys
 from pathlib import Path
 
-from a11y_assist.config import ENV_FILE, REPO_ROOT
+from tobi508.config import ENV_FILE, REPO_ROOT
 
 PROBE = (
-    "import json; from a11y_assist.config import ENV_FILE, Settings; "
+    "import json; from tobi508.config import ENV_FILE, Settings; "
     "s = Settings(); "
     "print(json.dumps({'env_file': str(ENV_FILE), 'port': s.mcp_port, "
     "'dev': s.dev_mode}))"
@@ -64,7 +64,7 @@ def test_an_unbuilt_judge_backend_is_refused_at_startup():
     import pytest
     from pydantic import ValidationError
 
-    from a11y_assist.config import Settings
+    from tobi508.config import Settings
 
     for bad in ("api", "clinet"):
         with pytest.raises(ValidationError):

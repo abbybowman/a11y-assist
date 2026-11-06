@@ -73,7 +73,7 @@ Evidence:
 ### 1. A detached frame crashes a run
 
 - **Found:** round 1, Agent A, Spot the Station (`www.nasa.gov`, 4
-  cross-site iframes). `a11y_run_tt_tests` failed after 44 s with
+  cross-site iframes). `tobi_run_tt_tests` failed after 44 s with
   `Frame.frame_element: Frame has been detached.`, a tool error with no
   findings. The same page with fewer other pages, called again, finished.
   It is intermittent: it depends on whether an embed reloads at that
@@ -134,7 +134,7 @@ Evidence:
   prompt (a real user's agent gets no special prompt): for example, the
   result says plainly that the findings are incomplete until the questions
   are answered, how many there are, and that answering takes one call;
-  check the `a11y_run_tt_tests` and `a11y_answer_questions` descriptions.
+  check the `tobi_run_tt_tests` and `tobi_answer_questions` descriptions.
   Then the judge eval on the new wording.
 - **Measured (round1-answers):** told plainly to answer (prompt
   `answers-v1`), the agent answered 59 of 59 questions on 6 pages, and 57
@@ -145,7 +145,7 @@ Evidence:
     that run;
   - one answer was wrong (fix 16).
 - **Status:** not started. `arm-a-2` and `arm-a-3`, unchanged repeats,
-  made no `a11y_answer_questions` call either: 3 of 3 runs.
+  made no `tobi_answer_questions` call either: 3 of 3 runs.
 
 ### 5. Pages that need more than the time limit
 
@@ -204,7 +204,7 @@ Evidence:
   without that page's results, and `arm-a-3` stopped mid-task with no
   result line. A Claude Code user's agent can read the file, but every
   client has some limit, and CLAUDE.md asks for small tool output.
-- **Fix (the tool):** keep `a11y_run_tt_tests`' result under common client
+- **Fix (the tool):** keep `tobi_run_tt_tests`' result under common client
   limits on a busy page (large evidence in `shared_inputs` and `run://`
   resources, not inline); measure the round 1 search page's result. The
   harness now gives both arms `Read`, allowed only in the CLI's folder of
@@ -244,7 +244,7 @@ Evidence:
   the answering half of the process. The three runs' reports keep all 119
   open questions with their evidence (`results/arm-a-*/runs/*/report.json`).
 - **Plan:** a development run, never scored: an agent answers those saved
-  questions with `a11y_answer_questions` on copies of the run folders, and
+  questions with `tobi_answer_questions` on copies of the run folders, and
   the answers are compared with the revealed keys, so we learn which
   questions the agent gets right before fix 4 changes how they are asked.
   The run folders' frozen recordings are pointer files; copy each named
@@ -384,7 +384,7 @@ Evidence:
   152 questions also led the agent to rerun the page six times.
 - **Fix:** ask once for a set of fields whose change and text before them
   are the same, with the set as instances, and apply the answer to each;
-  keep `a11y_run_tt_tests`' result small (fix 6b). Then the judge eval.
+  keep `tobi_run_tt_tests`' result small (fix 6b). Then the judge eval.
 - **Status:** not started.
 
 ### 16. 4.F: a card grid, a filter list's boxes, and a dropdown taken for a dialog
@@ -488,7 +488,7 @@ asked for the details; checked on the frozen recordings, 2026-11-05.
   alongside the second round. Options, cheapest first:
   1. **Wording:** each visual question says "open `image_a` with your MCP
      client's read-resource tool (not a file reader)".
-  2. **A round with the images:** when `a11y_answer_questions` gets
+  2. **A round with the images:** when `tobi_answer_questions` gets
      "unsure" on a question a careful tester settles by looking (principle
      8's list), it returns that question again with its image inline (MCP
      image content, downscaled), once.

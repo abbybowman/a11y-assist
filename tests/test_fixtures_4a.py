@@ -11,9 +11,9 @@ import re
 
 import pytest
 
-from a11y_assist.checks import t4a
-from a11y_assist.models import Outcome, TestId
-from a11y_assist.observe import Effect
+from tobi508.checks import t4a
+from tobi508.models import Outcome, TestId
+from tobi508.observe import Effect
 
 from .conftest import ACT_ROOT, FIXTURES
 from .harness import instance_rows, run_check

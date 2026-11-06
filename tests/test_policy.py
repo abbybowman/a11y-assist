@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from a11y_assist.policy import check_url
+from tobi508.policy import check_url
 
 DEFAULT = [".gov", ".mil"]
 

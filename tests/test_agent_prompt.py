@@ -49,4 +49,4 @@ def test_dev_prompt_adds_one_paragraph_before_the_result_line():
     extra = prompt_dev.EXTRA["answers-v1"]
     assert t.replace(extra + "\n\n", "") == task(urls)
     assert t.index(extra) < t.index("RESULT:")
-    assert "a11y_answer_questions" in extra and "no_time_limit" in extra
+    assert "tobi_answer_questions" in extra and "no_time_limit" in extra

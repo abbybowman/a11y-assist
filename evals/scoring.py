@@ -1,7 +1,7 @@
 """Score the tool's file against a person's answer key, test by test.
 
 Evaluation methodology, layered on the neutral comparison in
-src/a11y_assist/compare.py: compare(key, tool_file) gives what each file says;
+src/tobi508/compare.py: compare(key, tool_file) gives what each file says;
 this decides which disagreements are errors and how bad. A false PASS (the
 worst error, principle 3) is counted on its own. Shared by the judging rounds
 (evals/judging.py) and, later, the agent eval, so both score one way.
@@ -13,8 +13,8 @@ from enum import Enum
 
 from pydantic import BaseModel
 
-from a11y_assist.compare import Comparison, TestComparison
-from a11y_assist.scrt import ScrtResult
+from tobi508.compare import Comparison, TestComparison
+from tobi508.scrt import ScrtResult
 
 
 class Verdict(str, Enum):

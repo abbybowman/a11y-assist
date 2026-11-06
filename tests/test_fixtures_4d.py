@@ -8,7 +8,7 @@ import json
 
 import pytest
 
-from a11y_assist.models import TestId
+from tobi508.models import TestId
 
 from .conftest import ACT_ROOT
 from .harness import instance_rows, run_check

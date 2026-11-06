@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import pytest
 
-from a11y_assist.models import TestId
+from tobi508.models import TestId
 
 from .conftest import FIXTURES
 from .harness import instance_rows, run_check
@@ -100,7 +100,7 @@ async def test_unsure_goes_to_a_person(settings, server):
 async def test_backward_order_is_in_the_question(settings, server):
     # Judge eval 2026-10-31: without the Shift+Tab order the agent judged only
     # the forward order on f14 and answered "preserves" (a false PASS).
-    from a11y_assist.pipeline import run_tt_tests
+    from tobi508.pipeline import run_tt_tests
 
     out = await run_tt_tests(
         settings, f"{server.base}/4f/f14-backward-order-differs.html", [TestId.T4F]

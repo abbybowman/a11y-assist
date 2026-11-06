@@ -83,7 +83,7 @@ frozen round. Plan: `docs/plans/2026-10-31-agent-eval.md`. Runbook:
   console errors per page). The init-page now routes cleaned copies of the
   recordings without their failed entries.
 - **The CLI cuts an MCP tool call off at 60 s by default.** Round 1's first
-  Agent A attempt (2026-11-04) timed out on every `a11y_run_tt_tests` call
+  Agent A attempt (2026-11-04) timed out on every `tobi_run_tt_tests` call
   with other pages, which takes minutes. `cli.py` sets `MCP_TOOL_TIMEOUT` to
   one hour (checked with a 70 s tool). The CLI's MCP log (in its `HOME`,
   under `.cache/claude-cli-nodejs/*/mcp-logs-<server>/`) shows timeouts the
@@ -121,7 +121,7 @@ frozen round. Plan: `docs/plans/2026-10-31-agent-eval.md`. Runbook:
   - Development runs can also drop the helper (`--no-subagents`).
   - Watch a long run's load (a Monitor on `/proc/loadavg`), and stop it
     by hand if it climbs.
-  - Kill the CLI process, then the `a11y_assist.app` servers, by PID: a
+  - Kill the CLI process, then the `tobi508.app` servers, by PID: a
     `pkill -f` whose pattern appears in the shell's own command line kills
     that shell too.
   - Record a stopped run under `attempts/` with a README.

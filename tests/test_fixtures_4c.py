@@ -18,9 +18,9 @@ import re
 
 import pytest
 
-from a11y_assist.models import TestId
-from a11y_assist.pipeline import RunRefused, run_tt_tests
-from a11y_assist.traverse import dom_inventory
+from tobi508.models import TestId
+from tobi508.pipeline import RunRefused, run_tt_tests
+from tobi508.traverse import dom_inventory
 
 from .conftest import FIXTURES
 from .focus import active, deep_active
@@ -509,8 +509,8 @@ async def test_f33_tab_skips_the_iframe_and_its_loop(open_fixture):
 async def test_question_screenshots_are_run_resources(settings, server):
     # Judge eval 2026-10-31: screenshots went out as run-folder paths
     # ("evidence/shots/P1-0004.png") that no client can open.
-    from a11y_assist.models import TestId
-    from a11y_assist.pipeline import run_tt_tests
+    from tobi508.models import TestId
+    from tobi508.pipeline import run_tt_tests
 
     out = await run_tt_tests(
         settings, f"{server.base}/4c/f14-zip-gate.html", [TestId.T4C]

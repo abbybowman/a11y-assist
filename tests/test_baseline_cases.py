@@ -10,8 +10,8 @@ import json
 
 import pytest
 
-from a11y_assist.checks import REGISTRY
-from a11y_assist.models import TestId
+from tobi508.checks import REGISTRY
+from tobi508.models import TestId
 
 from .conftest import BASELINE_ROOT
 from .drafts import DRAFTS

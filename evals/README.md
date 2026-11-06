@@ -18,7 +18,7 @@ uv run python evals/judge_eval.py apply /tmp/eval     # follow-ups -> round2; sc
 
 **Isolation.** Each packet holds only the tool's own output: questions,
 rubrics, inputs, page text, shared inputs, the evidence files they point to (copied from
-`run://`), and the `a11y_answer_questions` description. Local URLs are mapped to
+`run://`), and the `tobi_answer_questions` description. Local URLs are mapped to
 `https://example.gov/site/pageN.html` and folders are shuffled `qNN` IDs,
 because fixture names describe the expected answer ("key-in-comment-only").
 The answer key (`/tmp/eval/state.json`) is outside the packet tree. Agents
@@ -59,7 +59,7 @@ its developers see the pages or the answers first.
    names: they are matched to pages by hash) and commits.
 6. **Score.** `uv run python evals/judging.py score evals/judging/<round>`
    writes `score.md` and `score.json` (scoring: `evals/scoring.py`, on the
-   neutral comparison in `src/a11y_assist/compare.py`). It stops if a key
+   neutral comparison in `src/tobi508/compare.py`). It stops if a key
    matches no page, if a key's page (`P_Location`) names a different page
    than its line in `pages.txt`, or if `pages.txt`, a result or the scoring
    code changed after the lock (to score with older code, check out the lock

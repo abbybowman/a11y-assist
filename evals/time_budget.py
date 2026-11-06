@@ -1,4 +1,4 @@
-"""Where a run's time goes: run a11y_run_tt_tests (every implemented test, as
+"""Where a run's time goes: run tobi_run_tt_tests (every implemented test, as
 the tool's default) on local fixture pages and print each phase's cost from
 the run's steps.jsonl (record, walk, each check's collect: seconds, page loads,
 key presses). Measurement only; it decides nothing.
@@ -33,10 +33,10 @@ import threading
 import time
 from pathlib import Path
 
-from a11y_assist import egress
-from a11y_assist.checks import REGISTRY
-from a11y_assist.config import Settings
-from a11y_assist.pipeline import RunRefused, run_tt_tests
+from tobi508 import egress
+from tobi508.checks import REGISTRY
+from tobi508.config import Settings
+from tobi508.pipeline import RunRefused, run_tt_tests
 
 FIXTURES = Path(__file__).resolve().parent.parent / "tests" / "fixtures"
 

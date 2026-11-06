@@ -62,7 +62,7 @@ def tool_arm(frozen: Path, model: str, runs_dir: Path) -> list[Server]:
     }
     if os.environ.get("UPSTREAM_PROXY"):  # a cloud container (egress.py)
         env["UPSTREAM_PROXY"] = os.environ["UPSTREAM_PROXY"]
-    return [Server("a11y", sys.executable, ["-m", "a11y_assist.app"], env)]
+    return [Server("a11y", sys.executable, ["-m", "tobi508.app"], env)]
 
 
 def browser_arm(

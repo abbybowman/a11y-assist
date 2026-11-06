@@ -9,7 +9,7 @@ GSA MCP and AI Agent Hackathon
 
 | | |
 | --- | --- |
-| Server under test | A11y Assist (working name), [github.com/abbybowman/a11y-assist](https://github.com/abbybowman/a11y-assist) |
+| Server under test | Section 508 TOBI (Tester-Oriented Browser Inspector), package `tobi508`, [github.com/abbybowman/a11y-assist](https://github.com/abbybowman/a11y-assist) |
 | What it does | Runs parts of the DHS Trusted Tester (TT) 5.1.3 Section 508 web test process in a real Chrome browser and reports agent-assisted findings by TT test ID. **Not a certified Trusted Tester result.** |
 | Tests implemented | **[FILL: TT test IDs and spec versions at the submission commit]** |
 | Evaluation framework | pytest with a scoring module (`tests/scoring.py`) that compares outcomes to DHS's published Trusted Tester verdicts and W3C's expected results. Exact match; no LLM judge |
@@ -102,7 +102,7 @@ Outcomes are categories (PASS, FAIL, DNA, NEEDS_REVIEW), so we score by **exact 
 
 **[PENDING] Small two-tester check** on our held-out pages, framed as a sanity check against the published figures, not as the baseline.
 
-**[PENDING] Submit to W3C's ACT implementations list.** Publish an ACT implementation report for A11y Assist so W3C lists its consistency per rule, alongside Trusted Tester's own entry. That's third-party, public and comparable.
+**[PENDING] Submit to W3C's ACT implementations list.** Publish an ACT implementation report for TOBI so W3C lists its consistency per rule, alongside Trusted Tester's own entry. That's third-party, public and comparable.
 
 **[PENDING] Model dependence.** Every run reports how many outcomes the rules decided alone, how many needed an answer to an open question, and accuracy on that second group when Claude answers instead of a script.
 
@@ -123,7 +123,7 @@ DHS verdicts make "agrees with a certified tester" measurable instead of a claim
 
 Experienced manual reviewers already know scanners miss most WCAG failures. Adrian Roselli's comparison of a manual review with four free tools on one real page is a widely cited example ([Roselli](https://adrianroselli.com/2023/01/comparing-manual-and-free-automated-wcag-reviews.html)). An agent-assisted tool should expect the same scrutiny and more, so we hold ourselves to these standards:
 
-- **[PENDING] Replicate a manual-review comparison on real pages and publish everything.** Archive several live .gov pages (Wayback Machine plus our recording). Certified testers do Test 4 by hand. Run A11y Assist beside axe, WAVE, ARC Toolkit, Equal Access and pa11y. Publish a per-instance side-by-side table with the archived pages and every tool's raw output.
+- **[PENDING] Replicate a manual-review comparison on real pages and publish everything.** Archive several live .gov pages (Wayback Machine plus our recording). Certified testers do Test 4 by hand. Run TOBI beside axe, WAVE, ARC Toolkit, Equal Access and pa11y. Publish a per-instance side-by-side table with the archived pages and every tool's raw output.
 - **Keep development and test results apart** (section 2.2), and report each test set separately.
 - **[PENDING] More than one viewport and state.** The keyboard walk currently runs at a fixed 1280 × 900 window. TT 5.1.3 doesn't set a window size for Test 4, but real focus failures often appear only at narrow widths or with menus open. Run at least desktop and a narrow width, with menus opened, and say "not tested at this width" for anything not run.
 - **Scope before results.** Every report should open with which TT tests were performed and which were not. At submission the tool performs **[FILL: n]** of 61 active tests. **[PENDING: the report's first section lists the tests not performed.]**

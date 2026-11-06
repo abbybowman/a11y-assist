@@ -7,12 +7,12 @@ from datetime import datetime, timezone
 import pytest
 from pydantic import ValidationError
 
-from a11y_assist.models import Finding, Outcome, Report, TestId, Versions
+from tobi508.models import Finding, Outcome, Report, TestId, Versions
 
 
 def _versions() -> Versions:
     return Versions(
-        a11y_assist="0",
+        tobi508="0",
         andi="29.2.2",
         jquery="3.7.1",
         playwright="1.63.0",

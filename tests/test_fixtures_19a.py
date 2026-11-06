@@ -81,8 +81,8 @@ def test_template_links_are_navigation_only():
     """19.A 1.1.0 (Abby, 2026-11-02): on a results page or a site map page,
     the shared menus, header and footer link to T whatever the search found
     or the site map lists. Built evidence: no fixture page has that template."""
-    from a11y_assist.checks.t19a import _kind, results_link_to
-    from a11y_assist.site import PageRead, Unit
+    from tobi508.checks.t19a import _kind, results_link_to
+    from tobi508.site import PageRead, Unit
 
     t = "https://example.gov/apply.html"
 
@@ -113,7 +113,7 @@ def test_template_links_are_navigation_only():
 
 def test_live_search_url_drops_the_action_query():
     """A GET submission replaces the action's own query (spec Terms)."""
-    from a11y_assist.checks.t19a import search_url
+    from tobi508.checks.t19a import search_url
 
     form = {
         "method": "get",
@@ -127,8 +127,8 @@ def test_live_search_url_drops_the_action_query():
 def test_links_to_the_requested_url_count_after_a_redirect():
     """Spec edge case: menus link to /benefits, which redirects to
     /benefits/apply; those links reach T too (review #6)."""
-    from a11y_assist.checks.t19a import links_to
-    from a11y_assist.site import PageRead, Unit
+    from tobi508.checks.t19a import links_to
+    from tobi508.site import PageRead, Unit
 
     menu = Unit(
         i=0,

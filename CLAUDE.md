@@ -2,7 +2,7 @@
 
 MCP server that runs parts of the DHS Trusted Tester (TT) 5.1.3 Section 508
 web test process in a real Chrome browser and reports agent-assisted findings
-by TT test ID. Package: `a11y_assist` (name is provisional).
+by TT test ID. Package: `tobi508`.
 
 ## Principles (non-negotiable)
 
@@ -75,19 +75,19 @@ by TT test ID. Package: `a11y_assist` (name is provisional).
 - Read TT text (names, conditions, how to test, requirements, WCAG links)
   from `catalog.py` / `tt.json`, never retype it. Specs still cite the PDF's
   printed pages.
-- One tool per file in `src/a11y_assist/tools/`, registered in
+- One tool per file in `src/tobi508/tools/`, registered in
   `tools/__init__.py`. Tools are broad and outcome-based, not one per step:
-  `a11y_run_tt_tests`, `a11y_answer_questions` and `a11y_read_report` now
+  `tobi_run_tt_tests`, `tobi_answer_questions` and `tobi_read_report` now
   (files `run_tt_tests.py`, `answer_questions.py`, `read_report.py`; the
   last reads an SCRT or pre-SCRT file and lists what changed against another);
-  `verify_fix` (an option on a11y_run_tt_tests that takes a saved report),
+  `verify_fix` (an option on tobi_run_tt_tests that takes a saved report),
   merging a partial SCRT file, TT review and export, and fix advice for a
   read report (its own optional tool) planned
   (`docs/plans/2026-11-02-scrt-io.md`); guidance goes in resources or a
   prompt, not a tool. Never put "trusted_tester" in a tool name (it could
   read as certification). Every tool name starts with the service prefix
-  `a11y_` (GSA template: names stay unique beside other MCP servers). Say "open questions" to users, not "judgments". Tool inputs are Pydantic-validated with precise
-  descriptions. The implemented-test list in `a11y_run_tt_tests`' description and
+  `tobi_` (GSA template: names stay unique beside other MCP servers). Say "open questions" to users, not "judgments". Tool inputs are Pydantic-validated with precise
+  descriptions. The implemented-test list in `tobi_run_tt_tests`' description and
   its default come from `checks.REGISTRY`; never hardcode them.
 - Keep tool output small: the full report is a `run://` resource
   (`report_uri`), never inline; evidence several questions share goes once in
@@ -133,7 +133,7 @@ by TT test ID. Package: `a11y_assist` (name is provisional).
 - What to build next is in `docs/ROADMAP.md` (a living list); the plan for
   the current step is in `docs/plans/`; lessons that save the next test time
   go in `docs/solutions/` (read its README before building). Adding a TT
-  test: follow the steps at the top of `src/a11y_assist/checks/base.py`.
+  test: follow the steps at the top of `src/tobi508/checks/base.py`.
 - Research before drafting a plan or spec, not after: read the TT text,
   the W3C Understanding page and its sufficient and failure techniques, the
   ACT rules and DHS's verdicts on their cases (act-tt data), and the ICT
@@ -151,7 +151,7 @@ by TT test ID. Package: `a11y_assist` (name is provisional).
 ## Layout
 
 ```
-src/a11y_assist/
+src/tobi508/
   app.py        FastMCP server (stdio by default)
   config.py     Settings (env / .env)
   policy.py     URL allowlist decision (pure)
@@ -271,17 +271,14 @@ uv run python evals/judging.py scan evals/judging/<round>   # then apply, lock, 
 uv run python -m evals.agent.freeze evals/judging/<round>   # agent eval: then run --arm a|b, lock, score
 TEST_BROWSER_CHANNEL=chrome TEST_HEADED=1 uv run pytest   # installed Chrome, visible
 uv run ruff check . && uv run ruff format --check .
-uv run a11y-assist               # stdio MCP server
+uv run tobi508               # stdio MCP server
 ```
 
-## Renaming the package
+## Names
 
-The name `a11y_assist` is provisional. Modules import via `a11y_assist.*`, so
-a rename is mechanical:
-
-```bash
-git mv src/a11y_assist src/NEW_NAME
-grep -rl 'a11y_assist\|a11y-assist' --exclude-dir=.git --exclude-dir=.venv . \
-  | xargs sed -i 's/a11y_assist/NEW_NAME/g; s/a11y-assist/NEW-NAME/g'
-uv lock && uv run pytest
-```
+Package and command `tobi508` (renamed from `a11y_assist` on 2026-11-06);
+MCP tools start with `tobi_`. Never rewrite `evals/judging/`: its runs,
+transcripts and `lock.json` hashes are records of what ran under the old
+name, and a locked round is scored with the code at its lock commit. The
+GitHub repository and its image (`ghcr.io/abbybowman/a11y-assist`) keep the
+old name until the repository itself is renamed.

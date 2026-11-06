@@ -268,7 +268,7 @@ None blocks an outcome: each is NEEDS REVIEW-safe today.
   a second, hosted MCP server that keeps results inside NASA, with a
   dashboard for site owners, Trusted Testers and web governance. Its MVP
   was cut for the GSA hackathon demo (Nov 20).
-- **`compare_to` on `a11y_run_tt_tests`** (verify a fix) taking a saved report, not
+- **`compare_to` on `tobi_run_tt_tests`** (verify a fix) taking a saved report, not
   a server-side run ID (runs expire after `RUN_TTL_HOURS`).
 - **OpenACR export**, as a draft labelled agent-assisted; NEEDS_REVIEW maps
   to "not evaluated". TT tests map to WCAG criteria through `tt.json`

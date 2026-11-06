@@ -10,10 +10,10 @@ import re
 
 import pytest
 
-from a11y_assist.checks import t5d
-from a11y_assist.engine import first_match
-from a11y_assist.models import TestId
-from a11y_assist.observe import Effect
+from tobi508.checks import t5d
+from tobi508.engine import first_match
+from tobi508.models import TestId
+from tobi508.observe import Effect
 
 from .conftest import FIXTURES
 from .drafts import drafts  # noqa: F401 (a fixture)

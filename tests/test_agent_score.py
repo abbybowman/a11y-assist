@@ -9,7 +9,6 @@ import shutil
 
 import pytest
 
-from a11y_assist.scrt import ScrtResult as R
 from evals.agent import run as agent_run
 from evals.agent.arms import tool_arm
 from evals.agent.freeze import freeze
@@ -17,6 +16,7 @@ from evals.agent.providers import Reply, Scripted
 from evals.agent.score import parse_result, score
 from evals.judging import JudgingError, lock
 from evals.scoring import rollup
+from tobi508.scrt import ScrtResult as R
 
 from .conftest import FIXTURES, LocalServer
 from .test_agent_run import FIXTURE_ENV, _text, _usage, _use
@@ -68,7 +68,7 @@ async def test_a_whole_round(settings, tmp_path):
         if len(messages) == 1:
             args = {"url": urls[0], "tests": ["19.A"], "other_pages": [urls[1]]}
             return Reply(
-                [_use("a1", "a11y_run_tt_tests", args)], "tool_use", "m", _usage()
+                [_use("a1", "tobi_run_tt_tests", args)], "tool_use", "m", _usage()
             )
         line = {
             urls[0]: {
@@ -123,7 +123,7 @@ async def test_a_whole_round(settings, tmp_path):
     sv = a["server"]
     assert sv["pages_not_tested"] == []  # page 2 not scored for this run
     assert sv["per_tt"]["counts"]["not_performed"] >= 1  # 4.C was not run
-    assert a["efficiency"]["tool_calls"] == {"a11y_run_tt_tests": 1}
+    assert a["efficiency"]["tool_calls"] == {"tobi_run_tt_tests": 1}
     assert "Not a certified" in (rd / "agent-score.md").read_text()
 
     # A result changed after the lock stops the score.
