@@ -700,3 +700,22 @@ async def test_explain_holds_every_detail_a_result_leaves_out(settings, server):
     assert "Not final: 1 open question(s)" in text  # 4.A waits on its question
     assert "=== 4.A ===" in one and "=== 4.D ===" in one and "=== 4.C ===" not in one
     assert "4.C" in general and "NOT a certified" in general
+
+
+def test_a_tall_picture_is_sent_in_readable_parts(tmp_path):
+    """Development run 9: a full-page 4.F order picture shrunk to 768 px on
+    its longer side was too small to read. A tall picture keeps a readable
+    width and is cut into parts, the first MAX_TILES sent."""
+    from PIL import Image
+
+    from tobi508.inline import MAX_SIDE, MAX_TILES, TILE_HEIGHT, _encode
+
+    tall = tmp_path / "tall.png"
+    Image.new("RGB", (1280, 9000), "white").save(tall)
+    parts, total = _encode(tall)
+    assert len(parts) == MAX_TILES and total > MAX_TILES
+    assert all(size[0] == MAX_SIDE and size[1] <= TILE_HEIGHT for _, _, size in parts)
+    wide = tmp_path / "wide.png"
+    Image.new("RGB", (1280, 900), "white").save(wide)
+    [(_, _, size)], total = _encode(wide)
+    assert total == 1 and max(size) == MAX_SIDE
