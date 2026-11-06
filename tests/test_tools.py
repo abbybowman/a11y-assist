@@ -661,3 +661,44 @@ async def test_every_result_ends_with_its_to_do_list(settings, server):
         left = await client.call_tool("a11y_run_status", {})
         assert "[ ] Answer 1 open question(s) left in 1 run(s)" in left.content[-1].text
     jobs._JOBS.clear()
+
+
+async def test_explain_holds_every_detail_a_result_leaves_out(settings, server):
+    """Agent follow-through plan, change 2b: results get shorter, so every
+    finding's full summary, rule trail and W3C links must be one a11y_explain
+    call away (the prompt's builder, now a tool the agent can call)."""
+    from a11y_assist import catalog
+    from a11y_assist.models import Report
+    from a11y_assist.runlog import RunRecorder
+
+    url = f"{server.base}/4a/f01-click-only-text.html"
+    out = await _call(
+        "a11y_run_tt_tests", {"url": url, "tests": ["4.A", "4.C", "4.D", "4.E"]}
+    )
+    run = RunRecorder.open(settings.runs_dir, out["run_id"])
+    report = Report.model_validate_json(run.report_path.read_text("utf-8"))
+    async with Client(mcp) as client:
+        res = await client.call_tool("a11y_explain", {"run_id": out["run_id"]})
+        text = res.content[0].text
+        one = (
+            (
+                await client.call_tool(
+                    "a11y_explain", {"about": "4.A, 4.D", "run_id": out["run_id"]}
+                )
+            )
+            .content[0]
+            .text
+        )
+        general = (
+            (await client.call_tool("a11y_explain", {"about": "keyboard trap"}))
+            .content[0]
+            .text
+        )
+    assert "NOT a certified" in text
+    for f in report.findings:
+        assert f.summary in text and f"Result for {f.test_id.value}" in text
+        assert all(r in text for r in f.rows)
+        assert all(u in text for u in catalog.understanding_urls(f.test_id.value))
+    assert "Not final: 1 open question(s)" in text  # 4.A waits on its question
+    assert "=== 4.A ===" in one and "=== 4.D ===" in one and "=== 4.C ===" not in one
+    assert "4.C" in general and "NOT a certified" in general

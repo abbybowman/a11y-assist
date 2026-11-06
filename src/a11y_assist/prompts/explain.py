@@ -18,24 +18,10 @@ from fastmcp import FastMCP
 from pydantic import Field
 
 from a11y_assist import config, explain
-from a11y_assist.models import Report
-from a11y_assist.runlog import RunRecorder
 
 
 def build(about: str | None = None, run_id: str | None = None) -> str:
-    if not run_id:
-        return explain.build(about)
-    try:
-        run = RunRecorder.open(config.settings.runs_dir, run_id)
-        report = Report.model_validate_json(run.report_path.read_text("utf-8"))
-    except (FileNotFoundError, ValueError):
-        return (
-            f"Run {run_id!r} is no longer on the server (runs expire). If the user "
-            "saved its report (report.json), read that file and explain its "
-            "findings using the material below; otherwise explain the test in "
-            "general.\n\n" + explain.build(about)
-        )
-    return explain.build(about, report)
+    return explain.build_for_run(config.settings, about, run_id)
 
 
 def register(mcp: FastMCP) -> None:

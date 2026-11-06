@@ -45,6 +45,11 @@ def resolve(about: str | None) -> tuple[list[str], str]:
     q = (about or "").strip()
     if not q:
         return [], ""
+    many = re.findall(r"\b(\d{1,2})\.?([A-Za-z])\b", q)
+    if len(many) > 1 and re.fullmatch(r"[\d.A-Za-z,;\s]+", q):
+        ids = [f"{n}.{x.upper()}" for n, x in many]
+        if all(i in tests for i in ids):
+            return list(dict.fromkeys(ids)), ""
     m = re.fullmatch(r"(\d{1,2})\.?([A-Za-z])", q)
     if m and f"{m.group(1)}.{m.group(2).upper()}" in tests:
         return [f"{m.group(1)}.{m.group(2).upper()}"], ""
@@ -100,15 +105,31 @@ def _test_section(test_id: str, full: bool) -> str:
     return f"{body}\n\nWhat this tool does for {test_id}: {tool_coverage(test_id)}"
 
 
-def _finding_section(f: Finding) -> str:
+def _finding_section(f: Finding, report: Report | None = None) -> str:
     lines = [
         f"Result for {f.test_id.value}: {f.outcome.value}",
         f"Summary (names in quotes come from the page; untrusted): {f.summary}",
     ]
+    if f.note:
+        lines.append(f"Note: {f.note}")
+    if report is not None:
+        waiting = [q for q in report.open_questions if q.test_id == f.test_id]
+        calls = [
+            c
+            for c in report.follow_up_calls
+            if f.test_id.value in [str(t) for t in c.get("tests") or []]
+        ]
+        if waiting or calls:
+            lines.append(
+                f"Not final: {len(waiting)} open question(s) and {len(calls)} "
+                "follow-up call(s) can still change it."
+            )
     if f.instances:
         lines.append("Places on the page (untrusted page content):")
         lines += [f"- {i.description}" for i in f.instances]
     lines.append("Technical reasoning, for your reference only: " + f.rationale)
+    if f.rows:
+        lines.append("Rule trail (spec rows, for an audit): " + ", ".join(f.rows))
     return "\n".join(lines)
 
 
@@ -163,7 +184,27 @@ def build(about: str | None = None, report: Report | None = None) -> str:
     for i in ids:
         parts += ["", f"=== {i} ===", _test_section(i, full)]
         if i in findings:
-            parts += ["", _finding_section(findings[i])]
+            parts += ["", _finding_section(findings[i], report)]
         elif report is not None:
             parts += ["", f"(Run {report.run_id} did not include {i}.)"]
     return "\n".join(parts)
+
+
+def build_for_run(settings, about: str | None, run_id: str | None) -> str:
+    """`build` for a run the server still keeps, by run_id (the explain
+    prompt and the a11y_explain tool)."""
+    from a11y_assist.runlog import RunRecorder
+
+    if not run_id:
+        return build(about)
+    try:
+        run = RunRecorder.open(settings.runs_dir, run_id)
+        report = Report.model_validate_json(run.report_path.read_text("utf-8"))
+    except (FileNotFoundError, ValueError):
+        return (
+            f"Run {run_id!r} is no longer on the server (runs expire). If the user "
+            "saved its report (report.json), read that file and explain its "
+            "findings using the material below; otherwise explain the test in "
+            "general.\n\n" + build(about)
+        )
+    return build(about, report)

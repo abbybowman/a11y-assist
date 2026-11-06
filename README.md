@@ -67,13 +67,15 @@ Details: [round 1](evals/agent/README.md#results);
 | --- | --- | --- |
 | `a11y_run_tt_tests` | Tests one page. It records the page once, runs the chosen TT tests on the recording, and returns findings, open questions for your agent, and links to the full report and pre-SCRT file. | `url` (`.gov` and `.mil` by default); `tests` (default: all implemented); `other_pages` (1-5 pages of the same site, for 9.A-9.C and 19.A); `no_time_limit` |
 | `a11y_answer_questions` | Records answers to the open questions and decides again by the spec. A person's answer overrides the agent's. | `run_id`; `answers` (one per question) |
-| `a11y_run_status` | Waits for a run that was still going when its call returned, and gives its result. Without `job_id`: what is left across the session's runs (open questions, follow-up calls, runs still going). | `job_id` (optional) |
+| `a11y_run_status` | Waits for a run that was still going when its call returned, and gives its result. Without `job_id`: what is left across the session's runs (open questions, follow-up calls, runs still going); with `finish=true` it also makes the follow-up calls the server may make itself. | `job_id` (optional); `finish` |
+| `a11y_explain` | Explains tests in plain language: what a test checks, or, with a `run_id`, what that run found and why (full summaries, the reasoning, the places on the page, what can still change a result, and the W3C links for fixing it). Results carry one line per finding; this holds the detail. | `about` (test IDs, a WCAG criterion or words); `run_id` |
 | `a11y_read_report` | Reads an SCRT or pre-SCRT file: what failed and what still needs a person. With `compare_to`, it lists every test whose result differs between two files (for example, before and after a fix). | `content`; `compare_to` |
 
 **Also:**
 - **Resources:** `run://{run_id}/...` (a run's files, kept 24 hours) and
   `tt://5.1.3/...` (the TT text).
-- **Prompt:** `explain` (a test or a result in plain language).
+- **Prompt:** `explain` (a test or a result in plain language; the same
+  material as `a11y_explain`, as a command for the user).
 
 ## How long it takes
 

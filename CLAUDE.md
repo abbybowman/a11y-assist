@@ -77,9 +77,13 @@ by TT test ID. Package: `a11y_assist` (name is provisional).
   printed pages.
 - One tool per file in `src/a11y_assist/tools/`, registered in
   `tools/__init__.py`. Tools are broad and outcome-based, not one per step:
-  `a11y_run_tt_tests`, `a11y_run_status`, `a11y_answer_questions` and
-  `a11y_read_report` now (files `run_tt_tests.py`, `run_status.py`,
-  `answer_questions.py`, `read_report.py`; `a11y_run_status` waits for a
+  `a11y_run_tt_tests`, `a11y_run_status`, `a11y_answer_questions`,
+  `a11y_read_report` and `a11y_explain` now (files `run_tt_tests.py`,
+  `run_status.py`, `answer_questions.py`, `read_report.py`, `explain.py`;
+  `a11y_explain` gives a test's explanation, or a run's full findings, from
+  `explain.py`, which the `explain` prompt shares (Abby, 2026-11-06: agents
+  cannot call prompts and seldom read resources, and results keep one line
+  per finding); `a11y_run_status` waits for a
   run its call left running, or, with no job_id, lists the work left across
   the session's runs (with `finish=true` it also makes the follow-up calls
   the server may make itself); the last reads an SCRT or pre-SCRT file and
@@ -87,8 +91,8 @@ by TT test ID. Package: `a11y_assist` (name is provisional).
   `verify_fix` (an option on a11y_run_tt_tests that takes a saved report),
   merging a partial SCRT file, TT review and export, and fix advice for a
   read report (its own optional tool) planned
-  (`docs/plans/2026-11-02-scrt-io.md`); guidance goes in resources or a
-  prompt, not a tool. Never put "trusted_tester" in a tool name (it could
+  (`docs/plans/2026-11-02-scrt-io.md`); other guidance goes in resources or
+  a prompt, not a tool. Never put "trusted_tester" in a tool name (it could
   read as certification). Every tool name starts with the service prefix
   `a11y_` (GSA template: names stay unique beside other MCP servers). Say "open questions" to users, not "judgments". Tool inputs are Pydantic-validated with precise
   descriptions. The implemented-test list in `a11y_run_tt_tests`' description and
