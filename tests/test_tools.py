@@ -62,7 +62,7 @@ async def test_run_tt_tests_on_http_page(settings, server):
     assert out["walk"]["P2"]["end"] == "wrap"
     [finding] = out["findings"]
     assert (finding["test_id"], finding["outcome"]) == ("4.C", "PASS")
-    assert finding["rows"] == ["A3", "G4"]
+    assert "rows" not in finding  # in the report and tobi_explain (change 2b)
     assert "never got trapped" in finding["summary"]
     assert out["open_questions"] == []
     # The full report is a resource, not inline (it was ~60% of the result).
@@ -493,12 +493,10 @@ async def test_explain_after_a_run(settings, server):
         "tobi_run_tt_tests", {"url": f"{server.base}/no_trap.html", "tests": ["4.C"]}
     )
     [f] = out["findings"]
-    assert f["reference"] == "tt://5.1.3/tests/4.C"
-    assert f["understanding"] == [
-        "https://www.w3.org/WAI/WCAG22/Understanding/no-keyboard-trap.html"
-    ]
+    assert "reference" not in f and "understanding" not in f  # tobi_explain has them
     text = await _prompt({"run_id": out["run_id"]})  # every result of the run
     assert "Explain these results" in text and "Result for 4.C: PASS" in text
+    assert "https://www.w3.org/WAI/WCAG22/Understanding/no-keyboard-trap.html" in text
     gone = await _prompt({"about": "4.C", "run_id": "20000101T000000Z-000000"})
     assert "no longer on the server" in gone and "saved its report" in gone
 
@@ -529,7 +527,7 @@ async def test_open_questions_are_named_in_the_summary(settings, server):
     assert f["outcome"] == "NEEDS_REVIEW"
     assert f["summary"].startswith("This test is not finished yet: 1 question about")
     assert "a person needs to check it" not in f["summary"]
-    assert '"Show delivery times"' in f["summary"]
+    assert '"Show delivery times"' in f["summary"] or "tobi_explain" in f["summary"]
     # Post-round 1 fix 4: the result says plainly what to do next.
     step = out["next_step"]
     assert step.startswith("Not finished: 4.A stay NEEDS_REVIEW until you answer")

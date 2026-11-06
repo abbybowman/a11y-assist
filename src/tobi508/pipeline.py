@@ -469,6 +469,23 @@ def _evidence_uris(run: RunRecorder) -> list[str]:
 QUESTION_PAGE = 10
 
 
+def _compact(v: Any) -> Any:
+    """A question input as sent: floats to one decimal, None and empty
+    values left out of objects. Text is never changed."""
+    if isinstance(v, float):
+        r = round(v, 1)
+        return int(r) if r == int(r) else r
+    if isinstance(v, dict):
+        return {
+            k: _compact(x)
+            for k, x in v.items()
+            if x is not None and x != [] and x != {}
+        }
+    if isinstance(v, list):
+        return [_compact(x) for x in v]
+    return v
+
+
 def _question_view(
     qs: list[OpenQuestion],
 ) -> tuple[list[OpenQuestion], dict[str, dict[str, str]]]:
@@ -482,11 +499,12 @@ def _question_view(
     texts: dict[str, dict[str, str]] = {}
     out = []
     for q in qs:
-        # A picture already in the input is not listed again (change 2b).
+        # A picture already in the input is not listed again, coordinates
+        # are rounded and empty fields dropped (change 2b; the report keeps
+        # the input as recorded).
         named = json.dumps(q.input)
         paths = [p for p in q.evidence_paths if f'"{p}"' not in named]
-        if paths != q.evidence_paths:
-            q = q.model_copy(update={"evidence_paths": paths})
+        q = q.model_copy(update={"evidence_paths": paths, "input": _compact(q.input)})
         pair = (q.question, q.rubric)
         if counts[pair] < 2:
             out.append(q)

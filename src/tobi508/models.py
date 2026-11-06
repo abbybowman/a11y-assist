@@ -538,11 +538,16 @@ class Report(BaseModel):
 # about 51k tokens, over Claude Code's limit for one MCP result). The report
 # at report_uri keeps every sentence and row; a result shortens only these.
 SUMMARY_VIEW_MAX = 240
+# A summary this short is kept whole: it is often the action needed ("run
+# it again with other_pages").
+SUMMARY_WHOLE_MAX = 400
 
 
 def _first_sentence(text: str) -> str:
     """The first sentence of a summary, at most SUMMARY_VIEW_MAX characters,
-    saying when there is more."""
+    saying when there is more. A short summary is kept whole."""
+    if len(text) <= SUMMARY_WHOLE_MAX:
+        return text
     end = text.find(". ")
     first = text if end < 0 else text[: end + 1]
     if len(first) > SUMMARY_VIEW_MAX:

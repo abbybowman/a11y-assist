@@ -1,0 +1,225 @@
+{
+ "arm": "a",
+ "route": "claude-code-cli",
+ "model_requested": "claude-sonnet-5-5",
+ "prompt_version": "round1-v1",
+ "task_sha256": "cb85d8f8c4ee3dd12c9f62cb3d2ab9130589a026b08a8f9817f231c2d4cffd70",
+ "code_commit": "14fef46b343c34f446dda5c8b4a466eaa8086489",
+ "pages": [
+  "https://www.nasa.gov/careers/",
+  "https://www.nasa.gov/missions/",
+  "https://www.nasa.gov/mission/artemis-iii/",
+  "https://www.nasa.gov/feature/naca-at-110-special-feature/",
+  "https://www.nasa.gov/gallery/ksc-history/"
+ ],
+ "servers": [
+  {
+   "name": "a11y",
+   "command": "/tmp/claude-0/-home-user-a11y-assist/58adcee5-6d56-5593-94c0-a63229ffc468/scratchpad/wt8/.venv/bin/python3",
+   "args": [
+    "-m",
+    "a11y_assist.app"
+   ]
+  }
+ ],
+ "started_at": "2026-11-06T22:37:35.317736+00:00",
+ "leak_check": {
+  "answer": {
+   "user": null,
+   "project": null,
+   "instructions": []
+  },
+  "leaked": [],
+  "usage": {
+   "claude-sonnet-5-5": {
+    "inputTokens": 2,
+    "outputTokens": 21,
+    "cacheReadInputTokens": 0,
+    "cacheCreationInputTokens": 8132,
+    "webSearchRequests": 0,
+    "costUSD": 0.032742,
+    "contextWindow": 1000000,
+    "maxOutputTokens": 128000,
+    "thinkingTokens": 0,
+    "cacheCreationEphemeral5mInputTokens": 0,
+    "cacheCreationEphemeral1hInputTokens": 8132,
+    "canonicalModel": "claude-sonnet-5-5",
+    "provider": "firstParty",
+    "costBasis": "list"
+   }
+  },
+  "model": "claude-sonnet-5-5",
+  "init": {
+   "tools": [
+    "mcp__a11y__a11y_answer_questions",
+    "mcp__a11y__a11y_read_report",
+    "mcp__a11y__a11y_run_status",
+    "mcp__a11y__a11y_run_tt_tests"
+   ],
+   "mcp_servers": [
+    {
+     "name": "a11y",
+     "status": "connected",
+     "source": "dynamic"
+    }
+   ],
+   "skills": []
+  }
+ },
+ "init": {
+  "tools": [
+   "ListMcpResourcesTool",
+   "Read",
+   "ReadMcpResourceTool",
+   "mcp__a11y__a11y_answer_questions",
+   "mcp__a11y__a11y_read_report",
+   "mcp__a11y__a11y_run_status",
+   "mcp__a11y__a11y_run_tt_tests"
+  ],
+  "mcp_servers": [
+   {
+    "name": "a11y",
+    "status": "connected",
+    "source": "dynamic"
+   }
+  ],
+  "model": "claude-sonnet-5-5",
+  "agents": [
+   "claude",
+   "claude-code-guide",
+   "Explore",
+   "general-purpose",
+   "Plan",
+   "statusline-setup"
+  ],
+  "skills": []
+ },
+ "model_usage": {
+  "claude-sonnet-5-5": {
+   "inputTokens": 32,
+   "outputTokens": 9805,
+   "cacheReadInputTokens": 1300693,
+   "cacheCreationInputTokens": 176178,
+   "webSearchRequests": 0,
+   "costUSD": 0.9328953,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 1808,
+   "cacheCreationEphemeral5mInputTokens": 0,
+   "cacheCreationEphemeral1hInputTokens": 176178,
+   "canonicalModel": "claude-sonnet-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "cli_usage": {
+  "input_tokens": 32,
+  "cache_creation_input_tokens": 176178,
+  "cache_read_input_tokens": 1300693,
+  "output_tokens": 9805,
+  "output_tokens_details": {
+   "thinking_tokens": 1808
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 176178,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 5848,
+    "cache_read_input_tokens": 169062,
+    "cache_creation_input_tokens": 7116,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 7116
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "cli_duration_ms": 667099,
+ "num_turns": 27,
+ "cost_usd_list_price": 0.9328953,
+ "exit_code": 0,
+ "is_error": false,
+ "usage_windows": {
+  "first": [
+   {
+    "status": "allowed_warning",
+    "resetsAt": 1794366000,
+    "rateLimitType": "seven_day",
+    "utilization": 0.79,
+    "overageStatus": "rejected",
+    "overageDisabledReason": "org_level_disabled",
+    "isUsingOverage": false,
+    "surpassedThreshold": 0.75,
+    "unifiedWindows": {
+     "five_hour": {
+      "utilization": 0.06,
+      "resetsAt": 1794021600,
+      "status": "allowed"
+     },
+     "seven_day": {
+      "utilization": 0.79,
+      "resetsAt": 1794366000,
+      "status": "allowed_warning",
+      "surpassedThreshold": 0.75
+     }
+    }
+   }
+  ],
+  "last": [
+   {
+    "status": "allowed_warning",
+    "resetsAt": 1794366000,
+    "rateLimitType": "seven_day",
+    "utilization": 0.8,
+    "overageStatus": "rejected",
+    "overageDisabledReason": "org_level_disabled",
+    "isUsingOverage": false,
+    "surpassedThreshold": 0.75,
+    "unifiedWindows": {
+     "five_hour": {
+      "utilization": 0.1,
+      "resetsAt": 1794021600,
+      "status": "allowed"
+     },
+     "seven_day": {
+      "utilization": 0.8,
+      "resetsAt": 1794366000,
+      "status": "allowed_warning",
+      "surpassedThreshold": 0.75
+     }
+    }
+   }
+  ]
+ },
+ "ended": "completed",
+ "finished_at": "2026-11-06T22:49:08.972788+00:00",
+ "wall_s": 693.7,
+ "tokens": {
+  "input_tokens": 32,
+  "cache_creation_input_tokens": 176178,
+  "cache_read_input_tokens": 1300693,
+  "output_tokens": 9805
+ },
+ "models_reported": [
+  "claude-sonnet-5-5"
+ ],
+ "tool_calls": {
+  "mcp__a11y__a11y_run_tt_tests": 5,
+  "mcp__a11y__a11y_run_status": 17,
+  "mcp__a11y__a11y_answer_questions": 3,
+  "Read": 1
+ },
+ "model_calls": 16
+}

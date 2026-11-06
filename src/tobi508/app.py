@@ -50,9 +50,11 @@ TOOL SELECTION GUIDE:
 - A run returned open questions, or a person wants to override an answer
   -> tobi_answer_questions (run_id and one answer per question); repeat until
   none are open
-- Explain what a TT test checks, or explain a run's results and fixes in
-  plain language -> the explain prompt (about = test ID, WCAG criterion or
-  words; run_id = a run to explain)
+- Explain what a TT test checks, or a run's results in full (whole
+  summaries, why each was decided, places on the page, links for fixing;
+  results give one line per finding) -> tobi_explain (about = test IDs, a
+  WCAG criterion or words; run_id = a run to explain). The explain prompt
+  gives users the same material as a command.
 - Read an SCRT report file (from DHS's SCRT or this server's pre-SCRT
   file), or see what changed between two reports of a page (before and after
   a fix, or a person's report and the tool's) -> tobi_read_report

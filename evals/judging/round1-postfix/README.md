@@ -195,3 +195,35 @@ At commit 8db7481 (answers to picture questions need `seen`, or
   answers batched across runs.
 - Runs 6 and 7 show how much one prompt varies from run to run (59 vs 57,
   finish used vs not); the plan's repeated runs per prompt will measure it.
+
+## Eighth and ninth runs: baseline before the result refactor (`results/arm-a-8/`, `arm-a-9/`)
+
+At commit 14fef46 (to-do list last in every result, questions 10 at a
+time), `--debrief`, one after the other, from a worktree. These are the
+"before" pair for the result refactor (plan change 2b: one line per
+finding, `tobi_explain`).
+
+| Run | Weighted | False PASS / FAIL | Questions left open | `finish` calls | Answers with `seen` / `picture_error` / neither |
+| --- | --- | --- | --- | --- | --- |
+| Ninth | 58 | 0 / 0 | 0 | 2 | 8 / 6 / 10 |
+| Eighth | 58 | 0 / 0 | 6 (refused, not resent) | 2 | 0 / 1 / 10 |
+| Seventh | 57 | 0 / 0 | 1 | 0 | 2 / 13 / 11 |
+
+"Neither" counts answers to questions with no picture, which need
+neither field.
+
+- **Finish:** both runs called `finish=true` twice; run 7 never did. The
+  to-do list is the likely cause, not proven. Both read only some of the
+  follow-up results.
+- **Refused answers:** run 8 left 6 questions open after their answers
+  were refused for lacking `seen`, and never sent them again.
+- **Pictures, a tool problem:** run 9 says the 4.F order picture,
+  attached at 768 px, is "a tiny full-page thumbnail; numbers too small"
+  to read. A full-page picture is unreadable when shrunk that far. This
+  needs a fix: crop to the stops in question, or attach that one larger.
+- **`seen` that was not seen:** run 9's debrief admits its `seen` text for
+  NACA's 2.B questions m3-m7 ("faint SCROLL TO CONTINUE cue") was an
+  inference, and a FAIL rests on it. The field can be filled without
+  looking; the judge eval and a person's review remain the check.
+- **Unchanged:** 9.C answered from names alone (both runs); Missions'
+  5.D `no_time_limit` call was never put to the user.
