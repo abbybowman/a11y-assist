@@ -654,7 +654,7 @@ async def test_every_result_ends_with_its_to_do_list(settings, server):
         )
         last = res.content[-1].text
         assert last.startswith("TO DO, before you report:")
-        assert "[ ] Answer 1 open question(s)" in last
+        assert "[ ] Answer the 1 open question(s)" in last
         assert "a11y_run_status with no job_id" in last
         out = json.loads(res.content[0].text)
         assert out["todo"] == last.splitlines()[1:]
