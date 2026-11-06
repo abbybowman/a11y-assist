@@ -562,6 +562,14 @@ class FindingView(BaseModel):
         ),
     )
 
+    waiting_on: list[str] = Field(
+        default_factory=list,
+        description=(
+            "Work left that can still change this result (open questions, a "
+            "follow-up call). Not empty: report the result as not final."
+        ),
+    )
+
     @classmethod
     def of(cls, f: Finding, report: Report | None = None) -> FindingView:
         waiting = (
@@ -575,6 +583,7 @@ class FindingView(BaseModel):
                 "Decided by the rules on the instances in rows." if failed else None
             ),
             unconfirmed=waiting,
+            waiting_on=_waiting_on(f, report, waiting),
             test_id=f.test_id.value,
             test_name=f.test_name,
             wcag_sc=f.test_id.wcag_sc,
@@ -585,6 +594,20 @@ class FindingView(BaseModel):
             reference=f"tt://{_catalog.TT_VERSION}/tests/{f.test_id.value}",
             understanding=_catalog.understanding_urls(f.test_id.value),
         )
+
+
+def _waiting_on(f: Finding, report: Report | None, questions: int) -> list[str]:
+    if report is None:
+        return []
+    out = [f"{questions} open question(s)"] if questions else []
+    calls = sum(
+        1
+        for c in report.follow_up_calls
+        if f.test_id.value in [str(t) for t in c.get("tests") or []]
+    )
+    if calls:
+        out.append(f"{calls} follow-up call(s) in follow_up_calls")
+    return out
 
 
 UNTRUSTED_NOTICE = (
@@ -606,9 +629,49 @@ SHARED_DESC = (
 )
 
 
+class Remaining(BaseModel):
+    """What is left before a run's results are complete (agent follow-through
+    plan, change 2: the agent ended with work left when only prose said so)."""
+
+    open_questions: int = 0
+    follow_up_calls: int = 0
+    tests_waiting: list[str] = Field(
+        default_factory=list,
+        description="TT tests whose result can still change.",
+    )
+
+    @classmethod
+    def of(cls, report: Report) -> Remaining:
+        waiting = {q.test_id.value for q in report.open_questions}
+        for c in report.follow_up_calls:
+            waiting.update(str(t) for t in c.get("tests") or [])
+        return cls(
+            open_questions=len(report.open_questions),
+            follow_up_calls=len(report.follow_up_calls),
+            tests_waiting=[t.value for t in TestId if t.value in waiting],
+        )
+
+    @property
+    def work(self) -> Literal["complete", "incomplete"]:
+        return (
+            "incomplete" if self.open_questions or self.follow_up_calls else "complete"
+        )
+
+
+WORK_DESCRIPTION = (
+    '"incomplete" while open questions or follow-up calls are left (see '
+    "`remaining`): the results are not finished, and a report written now "
+    'must say so. "complete" when nothing is left.'
+)
+
+
 class RunResult(BaseModel):
     disclaimer: str = NOT_CERTIFIED_DISCLAIMER
     status: Literal["done"] = "done"
+    work: Literal["complete", "incomplete"] = Field(
+        default="incomplete", description=WORK_DESCRIPTION
+    )
+    remaining: Remaining = Field(default_factory=Remaining)
     next_step: str = Field(
         default="",
         description="What to do next: answer the open questions, or relay "
@@ -713,6 +776,10 @@ class Outstanding(BaseModel):
 
 class AnswerResult(BaseModel):
     disclaimer: str = NOT_CERTIFIED_DISCLAIMER
+    work: Literal["complete", "incomplete"] = Field(
+        default="incomplete", description=WORK_DESCRIPTION
+    )
+    remaining: Remaining = Field(default_factory=Remaining)
     next_step: str = Field(
         default="",
         description="What to do next: answer the open questions, or relay "

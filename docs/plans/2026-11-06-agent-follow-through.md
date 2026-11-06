@@ -65,14 +65,18 @@ that; the tool has to make the complete path the cheap one.
 
 ### 2. Status in the data, not in prose
 
-- `RunResult.status` becomes `"incomplete"` while the run has open
-  questions or follow-up calls, with `remaining` (questions, calls, what
-  each would decide). It is `"done"` only when nothing is left.
+- Results carry `work`: `"incomplete"` while the run has open questions or
+  follow-up calls, with `remaining` (questions, calls, the tests that can
+  still change). It is `"complete"` only when nothing is left. `status`
+  stays the job's state ("done" means the run ended), so pollers do not
+  change.
 - Every FindingView whose outcome depends on remaining work says so in a
   field (`waiting_on`), so a careless relay still reads as incomplete.
 - `a11y_answer_questions`' result carries the same status.
 - **Check:** model and tool tests; no outcome logic changes (outcomes still
   come only from the specs).
+- **Status:** built (`models.Remaining`, `FindingView.waiting_on`;
+  `tests/test_models.py`).
 
 ### 3. Answers that show the picture was seen
 

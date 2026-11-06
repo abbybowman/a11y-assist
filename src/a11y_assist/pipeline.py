@@ -58,6 +58,7 @@ from a11y_assist.models import (
     Outcome,
     Outstanding,
     OutstandingRun,
+    Remaining,
     Report,
     RunResult,
     TestId,
@@ -964,6 +965,8 @@ async def run_tt_tests(
         errors=report.errors,
         next_step=next_step(report, calls),
         follow_up_calls=calls,
+        work=Remaining.of(report).work,
+        remaining=Remaining.of(report),
     )
 
 
@@ -1009,7 +1012,8 @@ def _calls_text(calls: list[dict] | None) -> str:
 
 
 FINISH = (
-    " Your work is finished only when a11y_run_status with no job_id lists "
+    ' `work` stays "incomplete" while anything is left (`remaining`); '
+    "your work is finished only when a11y_run_status with no job_id lists "
     "nothing left (the fourth development run's agent ended with questions "
     "and follow-up calls open). In a FAIL finding, `confirmed` names what the "
     "spec decided and `unconfirmed` the instances still waiting for answers: "
@@ -1118,6 +1122,8 @@ async def answer_questions(
         errors=errors,
         next_step=next_step(report, calls),
         follow_up_calls=calls,
+        work=Remaining.of(report).work,
+        remaining=Remaining.of(report),
     )
 
 

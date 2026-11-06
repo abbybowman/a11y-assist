@@ -114,3 +114,36 @@ def test_a_fail_names_confirmed_and_unconfirmed_instances_apart():
     assert v.confirmed and v.unconfirmed == 2
     other = FindingView.of(Finding(test_id=TestId.T4A, test_name="x"), report)
     assert other.confirmed is None and other.unconfirmed == 0
+
+
+def test_results_say_incomplete_while_work_is_left():
+    """Agent follow-through plan, change 2: whether work is left is in the
+    data (work, remaining, waiting_on), not only in next_step's prose."""
+    from a11y_assist.models import Finding, FindingView, OpenQuestion, Remaining
+
+    report = Report(
+        run_id="r",
+        target="https://nasa.gov",
+        started_at=datetime.now(timezone.utc),
+        versions=_versions(),
+        evidence_dir="x",
+    )
+    assert Remaining.of(report).work == "complete"
+    report.follow_up_calls = [{"url": "https://nasa.gov", "tests": ["19.A"]}]
+    report.open_questions = [
+        OpenQuestion(
+            question_id="q",
+            test_id=TestId.T4D,
+            kind="choice",
+            instance="x",
+            question="?",
+            rubric="?",
+            input={},
+        )
+    ]
+    r = Remaining.of(report)
+    assert r.work == "incomplete" and r.tests_waiting == ["4.D", "19.A"]
+    v = FindingView.of(Finding(test_id=TestId.T19A, test_name="x"), report)
+    assert v.waiting_on == ["1 follow-up call(s) in follow_up_calls"]
+    v = FindingView.of(Finding(test_id=TestId.T5A, test_name="x"), report)
+    assert v.waiting_on == []
