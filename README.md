@@ -39,27 +39,27 @@ Details: [round 1](evals/agent/README.md#results);
 
 | ID | TT test name | WCAG 2.0 | Spec | Results from real-page tests |
 | --- | --- | --- | --- | --- |
-| 2.A | 1.4.2-audio-control | 1.4.2 | [1.0.0](docs/rules/2a-audio-control.md) | Not yet tested in a judging round: checked on W3C ACT and custom pages only |
-| 2.B | 2.2.2-blinking-moving-scrolling | 2.2.2 | [1.0.0](docs/rules/2b-blinking-moving-scrolling.md) | Not yet tested in a judging round: checked on W3C ACT and custom pages only |
-| 2.C | 2.2.2-auto-updating | 2.2.2 | [1.0.0](docs/rules/2c-auto-updating.md) | Not yet tested in a judging round: checked on W3C ACT and custom pages only |
-| 2.D | 4.1.2-change-notify-auto | 4.1.2 | [1.0.0](docs/rules/2d-change-notify-auto.md) | Not yet tested in a judging round: checked on custom pages only |
-| 4.A | 2.1.1-keyboard-access | 2.1.1 | [1.2.1](docs/rules/4a-keyboard-access.md) | Mostly undecided: embedded frames and time limits. Agrees where decided |
-| 4.B | 2.1.1-no-keystroke-timing | 2.1.1 | [1.2.0](docs/rules/4b-no-keystroke-timing.md) | Sure and accurate |
-| 4.C | 2.1.2-no-keyboard-trap | 2.1.2 | [1.8.0](docs/rules/4c-no-keyboard-trap.md) | Sure and accurate |
-| 4.D | 2.4.7-focus-visible | 2.4.7 | [1.1.1](docs/rules/4d-focus-visible.md) | Finds real failures, but some false FAILs on elements whose screenshots differ by 0 px (being fixed) |
-| 4.E | 3.2.1-on-focus | 3.2.1 | [1.1.0](docs/rules/4e-on-focus.md) | Sure and accurate |
-| 4.F | 2.4.3-focus-order-meaning | 2.4.3 | [1.1.3](docs/rules/4f-focus-order-meaning.md) | Mostly undecided ("unsure" answers); two false FAILs from a card grid and a dropdown (being fixed) |
-| 5.A | 3.3.2-label-provided | 3.3.2 | [1.1.0](docs/rules/5a-label-provided.md) | Sure and accurate once the agent answers its question |
-| 5.B | 2.4.6-label-descriptive | 2.4.6 | [1.1.0](docs/rules/5b-label-descriptive.md) | Passes where a placeholder-only field should make it Does Not Apply (being fixed) |
-| 5.C | 1.3.1-programmatic-label | 1.3.1, 4.1.2 | [1.1.0](docs/rules/5c-programmatic-label.md) | About half decided; agrees where decided |
-| 5.D | 3.2.2-on-input | 3.2.2 | [1.0.0](docs/rules/5d-on-input.md) | Mostly sure and accurate. Missed a fail when 96 identical questions went unanswered (being fixed) |
-| 5.F | 3.3.1-error-identification | 3.3.1 | [1.1.0](docs/rules/5f-error-identification.md) | Undecided on every page: a site search has no errors to check (being fixed) |
-| 5.G | 3.3.3-error-suggestion | 3.3.3 | [1.1.0](docs/rules/5g-error-suggestion.md) | Undecided on every page, as 5.F (being fixed) |
-| 5.H | 3.3.4-error-prevention | 3.3.4 | [1.1.0](docs/rules/5h-error-prevention.md) | Sure and accurate once the agent answers its question |
-| 9.A | 2.4.1-bypass-function | 2.4.1 | [1.0.0](docs/rules/9a-bypass.md) | Sure and accurate: found the failure on 8 of 9 pages and left the ninth for a person |
-| 9.B | 3.2.3-consistent-navigation | 3.2.3 | [1.0.0](docs/rules/9b-consistent-navigation.md) | Sure and accurate |
-| 9.C | 3.2.4-consistent-identification | 3.2.4 | [1.1.0](docs/rules/9c-consistent-identification.md) | Sure and accurate once the agent answers its questions |
-| 19.A | 2.4.5-multiple-ways | 2.4.5 | [1.1.0](docs/rules/19a-multiple-ways.md) | Undecided on every page: needs more pages of the site (being fixed) |
+| 2.A | 1.4.2-audio-control | 1.4.2 | [1.0.0](docs/rules/2a-audio-control.md) | ❓ Not yet tested in a judging round: checked on W3C ACT and custom pages only |
+| 2.B | 2.2.2-blinking-moving-scrolling | 2.2.2 | [1.0.0](docs/rules/2b-blinking-moving-scrolling.md) | ❓ Not yet tested in a judging round: checked on W3C ACT and custom pages only |
+| 2.C | 2.2.2-auto-updating | 2.2.2 | [1.0.0](docs/rules/2c-auto-updating.md) | ❓ Not yet tested in a judging round: checked on W3C ACT and custom pages only |
+| 2.D | 4.1.2-change-notify-auto | 4.1.2 | [1.0.0](docs/rules/2d-change-notify-auto.md) | ❓ Not yet tested in a judging round: checked on custom pages only |
+| 4.A | 2.1.1-keyboard-access | 2.1.1 | [1.2.1](docs/rules/4a-keyboard-access.md) | ⚠️ Mostly undecided: embedded frames and time limits. Agrees where decided |
+| 4.B | 2.1.1-no-keystroke-timing | 2.1.1 | [1.2.0](docs/rules/4b-no-keystroke-timing.md) | 🟢 Sure and accurate |
+| 4.C | 2.1.2-no-keyboard-trap | 2.1.2 | [1.8.0](docs/rules/4c-no-keyboard-trap.md) | 🟢 Sure and accurate |
+| 4.D | 2.4.7-focus-visible | 2.4.7 | [1.1.1](docs/rules/4d-focus-visible.md) | ⚠️ Finds real failures, but some false FAILs on elements whose screenshots differ by 0 px (being fixed) |
+| 4.E | 3.2.1-on-focus | 3.2.1 | [1.1.0](docs/rules/4e-on-focus.md) | 🟢 Sure and accurate |
+| 4.F | 2.4.3-focus-order-meaning | 2.4.3 | [1.1.3](docs/rules/4f-focus-order-meaning.md) | ⚠️ Mostly undecided ("unsure" answers); two false FAILs from a card grid and a dropdown (being fixed) |
+| 5.A | 3.3.2-label-provided | 3.3.2 | [1.1.0](docs/rules/5a-label-provided.md) | 🟢 Sure and accurate once the agent answers its question |
+| 5.B | 2.4.6-label-descriptive | 2.4.6 | [1.1.0](docs/rules/5b-label-descriptive.md) | ⚠️ Passes where a placeholder-only field should make it Does Not Apply (being fixed) |
+| 5.C | 1.3.1-programmatic-label | 1.3.1, 4.1.2 | [1.1.0](docs/rules/5c-programmatic-label.md) | ⚠️ About half decided; agrees where decided |
+| 5.D | 3.2.2-on-input | 3.2.2 | [1.0.0](docs/rules/5d-on-input.md) | 🟢 Mostly sure and accurate. Missed a fail when 96 identical questions went unanswered (being fixed) |
+| 5.F | 3.3.1-error-identification | 3.3.1 | [1.1.0](docs/rules/5f-error-identification.md) | ⚠️ Undecided on every page: a site search has no errors to check (being fixed) |
+| 5.G | 3.3.3-error-suggestion | 3.3.3 | [1.1.0](docs/rules/5g-error-suggestion.md) | ⚠️ Undecided on every page, as 5.F (being fixed) |
+| 5.H | 3.3.4-error-prevention | 3.3.4 | [1.1.0](docs/rules/5h-error-prevention.md) | 🟢 Sure and accurate once the agent answers its question |
+| 9.A | 2.4.1-bypass-function | 2.4.1 | [1.0.0](docs/rules/9a-bypass.md) | 🟢 Sure and accurate: found the failure on 8 of 9 pages and left the ninth for a person |
+| 9.B | 3.2.3-consistent-navigation | 3.2.3 | [1.0.0](docs/rules/9b-consistent-navigation.md) | 🟢 Sure and accurate |
+| 9.C | 3.2.4-consistent-identification | 3.2.4 | [1.1.0](docs/rules/9c-consistent-identification.md) | 🟢 Sure and accurate once the agent answers its questions |
+| 19.A | 2.4.5-multiple-ways | 2.4.5 | [1.1.0](docs/rules/19a-multiple-ways.md) | ⚠️ Undecided on every page: needs more pages of the site (being fixed) |
 
 ## Tools
 
