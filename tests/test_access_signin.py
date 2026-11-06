@@ -70,9 +70,7 @@ class _Keycloak(http.server.BaseHTTPRequestHandler):
             back = (
                 redirect_uri
                 + "?"
-                + urlencode(
-                    {"code": "up-" + _Keycloak.login_as, "state": state}
-                )
+                + urlencode({"code": "up-" + _Keycloak.login_as, "state": state})
             )
             self.send_response(302)
             self.send_header("location", back)
