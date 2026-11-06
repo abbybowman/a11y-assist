@@ -1,7 +1,7 @@
 # Hosted sign-in (VAST)
 
 **Goal.** Serve the MCP server over HTTP from VAST (NASA's prototype
-cluster, `508-tobi.vast.ndc.nasa.gov` requested in VAMS) so that only
+cluster; the app's host is requested in VAMS) so that only
 signed-in NASA users can run it, each sees only their own runs, and every
 call is audited. GSA requires a hosted server; the loopback-only rule stays
 for HTTP without sign-in.
@@ -11,7 +11,7 @@ for HTTP without sign-in.
 From VAST's documentation and its app boilerplate (`py_auth_boilerplate`):
 
 - An app-level Keycloak realm brokered to the `vast` realm, then to NASA
-  Launchpad; NAMS access (AM 34763) is enforced at that layer. The realm is
+  Launchpad; NAMS access is enforced at that layer. The realm is
   provisioned by VAST, not by the app.
 - A **confidential** OIDC client, Authorization Code flow, redirect URI
   `{BASE_URL}/auth/callback`, scopes `openid email profile`, Launchpad claim
@@ -67,7 +67,7 @@ Anthropic's cloud and need a server reachable from the public internet
 (Anthropic, "Getting started with custom connectors", 2026-11-06), so they
 cannot reach VAST unless NASA admits Anthropic's IP ranges. Claude Code runs
 on the user's machine and connects from there:
-`claude mcp add --transport http tobi508 https://508-tobi.vast.ndc.nasa.gov/mcp`.
+`claude mcp add --transport http tobi508 https://<app host>/mcp`.
 NASA-internal tools (Ask Sage, ChatGSFC) take only MCP servers their admins
 add; whether they support remote HTTP and per-user OAuth is for their
 admins.
@@ -93,8 +93,11 @@ admins.
 
 ## Open questions for the VAST admin
 
-1. Is there a persistent volume (the boilerplate's `/data`)? Runs and the
-   proxy's client registrations (`FASTMCP_HOME`) should survive restarts.
+1. ~~Is there a persistent volume?~~ Answered (2026-11-06): the dev
+   container and the app's environment keep their storage across restarts
+   unless `vastdev down` is run. The image keeps runs and the proxy's client
+   registrations under `/data` (`RUNS_DIR`, `FASTMCP_HOME`); point them at
+   the persistent path if `/data` is not on it.
 2. Can the build pipeline pull `ghcr.io/abbybowman/tobi508`, so the
    Containerfile is one `FROM` line (no apt under FIPS)?
 3. Is a service that drives Chromium acceptable in the namespace (4 CPU,

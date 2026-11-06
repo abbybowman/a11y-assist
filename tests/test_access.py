@@ -27,10 +27,9 @@ OIDC = dict(
     auth="oidc",
     mcp_transport="streamable-http",
     mcp_host="0.0.0.0",
-    public_base_url="https://508-tobi.vast.ndc.nasa.gov",
+    public_base_url="https://tobi.example.gov",
     oidc_config_url=(
-        "https://keycloak.vast.ndc.nasa.gov/realms/tobi/.well-known/"
-        "openid-configuration"
+        "https://sso.example.gov/realms/tobi/.well-known/openid-configuration"
     ),
     oidc_client_id="tobi",
     oidc_client_secret="s3cret-value",
@@ -73,7 +72,7 @@ def test_sign_in_serves_publicly_with_audit_and_public_host(monkeypatch):
     assert [type(m) for m in added] == [access.AuditMiddleware]
     assert opts["host"] == "0.0.0.0"
     assert opts["host_origin_protection"] is True
-    assert opts["allowed_hosts"] == ["508-tobi.vast.ndc.nasa.gov"]
+    assert opts["allowed_hosts"] == ["tobi.example.gov"]
 
 
 def test_secrets_never_print():

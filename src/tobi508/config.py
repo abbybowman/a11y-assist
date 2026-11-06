@@ -41,7 +41,7 @@ class Settings(BaseSettings):
     # FastMCP's OIDC proxy; only then may MCP_HOST be a public interface.
     # docs/plans/2026-11-06-hosted-auth.md.
     auth: Literal["none", "oidc"] = "none"
-    # This server's public URL (https), e.g. https://508-tobi.vast.ndc.nasa.gov.
+    # This server's public URL (https), e.g. https://tobi.example.gov.
     # Keycloak's redirect URI is {PUBLIC_BASE_URL}/auth/callback, and only
     # this host passes the Host check.
     public_base_url: str | None = None
