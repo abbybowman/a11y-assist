@@ -136,7 +136,7 @@ test's leftovers are under "Per-test leftovers" below.
 - **Hosted sign-in on VAST** (`docs/plans/2026-11-06-hosted-auth.md`).
   Built and tested against a local stand-in provider (AUTH=oidc, group gate,
   runs private to their maker, audit lines); next, deploy to
-  508-tobi.vast.ndc.nasa.gov and sign in from Claude Code.
+  the VAST prototype (host in VAMS) and sign in from Claude Code.
 - **Tidy the checks** (from the PR #3 review, a 2026-11-02 cleanup draft
   that was never approved, and the unbuilt half of the 2026-11-01
   spring-cleaning plan, removed 2026-11-05 and in git history; recheck each

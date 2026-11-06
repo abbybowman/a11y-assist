@@ -14,6 +14,17 @@ on:
       - pyproject.toml
       - uv.lock
       - src/**
+      - tests/container_smoke.py
+      - .github/workflows/container.yml
+  # Pull requests build and smoke-test the image but never publish it.
+  pull_request:
+    paths:
+      - Dockerfile
+      - .dockerignore
+      - pyproject.toml
+      - uv.lock
+      - src/**
+      - tests/container_smoke.py
       - .github/workflows/container.yml
 
 permissions:
@@ -26,16 +37,47 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: docker/login-action@v3
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          tags: tobi508:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # The image's own command serves HTTP (here on the container's loopback,
+      # without sign-in), and tests/container_smoke.py finishes one run on a
+      # local page through it: HTTP, Chromium, headless and run storage.
+      - name: Smoke test
+        run: |
+          docker run -d --name tobi -e MCP_HOST=127.0.0.1 -e DEV_MODE=true tobi508:test
+          docker exec tobi uv run --no-sync python tests/container_smoke.py \
+            || { docker logs tobi; exit 1; }
+          docker rm -f tobi
+
+      - name: The server refuses to listen publicly without sign-in
+        run: |
+          out=$(docker run --rm tobi508:test 2>&1 || true)
+          echo "$out"
+          echo "$out" | grep -q "set AUTH=oidc"
+
+      - if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: docker/build-push-action@v6
+      - if: github.event_name != 'pull_request'
+        name: Publish
+        uses: docker/build-push-action@v6
         with:
           context: .
           push: true
+          cache-from: type=gha
           tags: |
             ghcr.io/${{ github.repository }}:latest
             ghcr.io/${{ github.repository }}:${{ github.sha }}

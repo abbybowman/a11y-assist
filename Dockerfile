@@ -27,10 +27,26 @@ RUN uv run --no-sync playwright install --with-deps chromium \
 COPY . .
 RUN uv sync --frozen --group dev
 
-RUN useradd --create-home --uid 1000 app && chown -R app /app
+# Hosted defaults (any of them can be overridden with -e or the platform's
+# environment). A container has Playwright's Chromium and no display, not
+# installed Chrome with a window (config.py's defaults, for a tester's own
+# machine). Runs and the sign-in proxy's client registrations live under
+# /data: mount persistent storage there, or point RUNS_DIR and FASTMCP_HOME
+# at it (on VAST, anything under the home volume survives restarts).
+ENV BROWSER_CHANNEL=chromium \
+    HEADLESS=true \
+    RUNS_DIR=/data/runs \
+    FASTMCP_HOME=/data/fastmcp
+
+RUN useradd --create-home --uid 1000 app \
+    && mkdir -p /data/runs /data/fastmcp \
+    && chown -R app /app /data
 USER app
 
-# stdio by default. HTTP still listens on loopback only until authentication
-# exists (see app.py), so this image is for running tests and runs, not yet
-# for serving MCP over the network.
-CMD ["uv", "run", "--no-sync", "tobi508"]
+# The server: HTTP on 0.0.0.0:8000 (VAST's port). Without AUTH=oidc and its
+# settings it refuses to start (app.http_options), so a deployment missing
+# its secrets fails closed. MCP_TRANSPORT and MCP_HOST are defaults for this
+# command only, not image-wide, so `podman run <image> uv run pytest` sees a
+# clean environment. MCP_TRANSPORT=stdio runs it for a local client instead.
+EXPOSE 8000
+CMD ["sh", "-c", "exec env MCP_TRANSPORT=\"${MCP_TRANSPORT:-streamable-http}\" MCP_HOST=\"${MCP_HOST:-0.0.0.0}\" uv run --no-sync tobi508"]

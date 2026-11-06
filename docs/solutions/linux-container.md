@@ -35,6 +35,19 @@ podman rm tt
 [parallel-tests.md](parallel-tests.md)); on an image built before that fix,
 pass `-n 4`. The suite takes about 15 minutes at 4 workers.
 
+**Serving from the image.** Its command serves HTTP on `0.0.0.0:8000` with
+Chromium, headless, and runs and sign-in registrations under `/data`
+(`RUNS_DIR`, `FASTMCP_HOME`). Without `AUTH=oidc` and its settings it
+refuses to start: set them from the platform's secrets. To try it without
+sign-in, keep it on the container's loopback and run the smoke test inside
+(what the image workflow does on every build):
+
+```bash
+podman run -d --name tobi -e MCP_HOST=127.0.0.1 -e DEV_MODE=true ghcr.io/abbybowman/tobi508:latest
+podman exec tobi uv run --no-sync python tests/container_smoke.py
+podman rm -f tobi
+```
+
 ## Working on a VAST dev environment
 
 - **Each session:** `vastdev login`, then `vastdev up`, then
