@@ -274,6 +274,35 @@ None blocks an outcome: each is NEEDS REVIEW-safe today.
   (Appendix A); 4.A and 4.B share 2.1.1.
 - **The visual-versus-code cluster** (10.x, 14.x, 15.A, 18.A; ANDI is the
   core evidence for most of it).
+- **18.A Resize text: decide before its spec (found 2026-11-06).** The TT
+  says only "use built-in browser zoom functions to resize the text to at
+  least 200%" (pp. 74-75, HtT 1) and names no window size; its environment is
+  desktop only (Test Environment, pp. 3-5: Windows "desktop mode"; About,
+  pp. 1-3: mobile platforms "must be evaluated using other testing
+  procedures"). Zoom halves the layout
+  width, so our 1280 px window at 200% lays out at 640 CSS px (often the
+  site's tablet or mobile layout), and a page can pass in a 1920 px window
+  and fail in ours. Open:
+  - **Which windows.** Proposed: the default 1280 px (a 1920x1080 laptop at
+    150% Windows scaling) and a smaller desktop window near 1024 px (512
+    CSS px at 200%).
+  - **A failure only in the smaller window:** FAIL, or NEEDS REVIEW with a
+    note, since the TT names no size.
+  - **How to zoom.** Playwright cannot press Ctrl+ in headless Chrome.
+    Assumed, not checked: half the viewport width with a device pixel ratio
+    of 2 lays a page out like 200% browser zoom. A V-check against real
+    Ctrl+ zoom in headed Chrome must show it first (principle 6).
+  - **Functionality and time.** ER 3 ("all functionality is available"):
+    compare the keyboard stops at 100% and 200% (a control gone or
+    unreachable, such as a menu behind a hamburger button). A second walk
+    costs about 46 s on the agency page, which the 120 s budget does not
+    have: an allowance like `OTHER_PAGE_S`, or a lighter walk.
+  - **Not in scope:** a phone-width check (320 CSS px) is WCAG 2.1's 1.4.10
+    Reflow, not Section 508; at most a separate, clearly labelled extra.
+  The report records the window (`Versions.display`: viewport, inner size
+  and device pixel ratio), so results at different sizes can be told apart.
+  3.A's spec should name its window too: the flash threshold is an area
+  (341 x 256 px at 1024 x 768).
 - **Firefox as an optional browser.** TT 5.1.3 validates Chrome and Firefox
   (Test Environment). Results are reported for the browser the report
   records and never claimed for others (e.g. Chrome 130+ tabs to scroll

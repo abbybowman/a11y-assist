@@ -89,6 +89,17 @@ async def test_run_tt_tests_on_http_page(settings, server):
         "other_page_s": settings.other_page_s,
         "no_time_limit": False,
     }
+    # The window the page was tested in, as configured and as a page saw it.
+    d = report.versions.display
+    assert (d["viewport_width"], d["viewport_height"]) == (
+        settings.viewport_width,
+        settings.viewport_height,
+    )
+    assert (d["inner_width"], d["inner_height"]) == (
+        settings.viewport_width,
+        settings.viewport_height,
+    )
+    assert d["device_pixel_ratio"] == 1.0
 
     steps = [json.loads(line) for line in (run_dir / "steps.jsonl").open()]
     names = [s["step"] for s in steps]

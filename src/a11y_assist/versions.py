@@ -2,13 +2,16 @@
 
 from __future__ import annotations
 
+import asyncio
 import platform
 from importlib.metadata import version
+from typing import Any
 
 from playwright.async_api import Browser
 
 from a11y_assist import __version__
 from a11y_assist.andi import provenance
+from a11y_assist.browser import new_context
 from a11y_assist.config import Settings
 from a11y_assist.models import Versions
 from a11y_assist.rules import spec_versions
@@ -30,6 +33,7 @@ def collect_versions(
         python=platform.python_version(),
         rules_spec=spec_versions(settings.rules_dir),
         judging_model=settings.judging_model,
+        display=configured_display(settings),
         run_settings={
             "settle_quiet_ms": settings.settle_quiet_ms,
             "record_scroll_passes": settings.record_scroll_passes,
@@ -39,3 +43,42 @@ def collect_versions(
             "no_time_limit": no_time_limit,
         },
     )
+
+
+def configured_display(settings: Settings) -> dict[str, int | float | None]:
+    return {
+        "viewport_width": settings.viewport_width,
+        "viewport_height": settings.viewport_height,
+        "inner_width": None,
+        "inner_height": None,
+        "device_pixel_ratio": None,
+    }
+
+
+_DISPLAY_JS = "() => [innerWidth, innerHeight, devicePixelRatio]"
+
+
+async def measure_display(
+    settings: Settings, browser: Browser, timeout_s: float = 5.0
+) -> dict[str, int | float | None]:
+    """The configured viewport plus what a blank page in a fresh context of
+    `browser` reports. No page is loaded (about:blank); on any failure the
+    measured values stay None."""
+    out = configured_display(settings)
+    ctx: Any = None
+    try:
+        async with asyncio.timeout(timeout_s):
+            ctx = await new_context(browser, settings)
+            page = await ctx.new_page()
+            w, h, dpr = await page.evaluate(_DISPLAY_JS)
+            out.update(inner_width=int(w), inner_height=int(h))
+            out["device_pixel_ratio"] = float(dpr)
+    except Exception:
+        pass
+    finally:
+        if ctx is not None:
+            try:
+                await asyncio.wait_for(ctx.close(), timeout_s)
+            except Exception:
+                pass
+    return out
