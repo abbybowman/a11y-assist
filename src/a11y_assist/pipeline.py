@@ -1042,8 +1042,9 @@ def next_step(report: Report, calls: list[dict] | None = None) -> str:
         "name with your MCP client's resource reader (read resource; a file "
         "reader cannot open run:// links; the pictures are also attached to "
         "this result) and look before answering. Their answers need `seen`: "
-        "something the picture shows; an answer without it is refused, and an "
-        "unsure without it goes to a person as not viewed."
+        "something the picture shows; or, if a picture cannot be opened or "
+        "shows nothing, `picture_error` saying what happened, with unsure. "
+        "An answer with neither is refused."
         if any(has_image(q.input) for q in qs)
         else ""
     )

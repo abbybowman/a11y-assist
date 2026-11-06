@@ -374,13 +374,19 @@ class Answer(BaseModel):
         description="For a question that names a picture (a run:// .png in its "
         "input): something only the picture shows, in a few "
         "words (the outline's colour, which item is outlined, the text in the "
-        "box). Needed for every answer but unsure: look before answering. An "
-        "unsure without it is recorded as not viewed.",
+        "box). Look before answering: an answer needs `seen` or `picture_error`.",
+    )
+    picture_error: str = Field(
+        default="",
+        max_length=300,
+        description="Only when the picture could not be opened or shows "
+        "nothing useful (blank, cut off, the wrong area): what happened, in a "
+        "few words. The answer must then be unsure, and a person checks it.",
     )
     not_viewed: bool = Field(
         default=False,
-        description="Set by the server: an unsure answer to a question that "
-        "names a picture, given without `seen`. Do not set it.",
+        description="Set by the server: an answer to a question that names a "
+        "picture, given with picture_error instead of `seen`. Do not set it.",
     )
 
 

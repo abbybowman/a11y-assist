@@ -87,6 +87,32 @@ def _unsure(answer: Answer) -> bool:
     return answer.j2 is not None and answer.j2.gate == "unsure"
 
 
+def _picture_problem(q, answer: Answer) -> str | None:
+    """Agent follow-through plan, change 3 (Abby, 2026-11-06): development
+    runs 5 and 6's agents answered every picture question without opening a
+    picture, mostly "unsure". A model's answer to a question whose input
+    names a picture says what it shows (`seen`), or, if the picture could
+    not be opened or shows nothing, what went wrong (`picture_error`, then
+    only unsure). Neither: refused."""
+    if answer.decided_by is not DecidedBy.MODEL or not has_image(q.input):
+        return None
+    if answer.seen.strip():
+        return None
+    if answer.picture_error.strip():
+        if _unsure(answer):
+            return None
+        return (
+            "with a picture_error the answer can only be unsure: a picture "
+            "that was not seen cannot settle the question"
+        )
+    return (
+        "this question names a picture. Open it (read the run:// resource, or "
+        "look at the image attached to the result) and say in `seen` something "
+        "it shows, then answer again. If it cannot be opened or shows nothing, "
+        "say what happened in `picture_error` and answer unsure"
+    )
+
+
 def record_answers(
     report: Report, answers: list[Answer]
 ) -> tuple[list[str], list[str]]:
@@ -109,29 +135,15 @@ def record_answers(
             errors.append(f"{tag}: a {q.kind} question needs a `{field}` answer")
         elif q.kind == "choice" and answer.choice.choice not in q.choices:
             errors.append(f"{tag}: choice must be one of {', '.join(q.choices)}")
-        elif (
-            # Agent follow-through plan, change 3: development run 5's agent
-            # answered visual questions without opening a picture.
-            answer.decided_by is DecidedBy.MODEL
-            and not answer.seen.strip()
-            and has_image(q.input)
-            and not _unsure(answer)
-        ):
-            errors.append(
-                f"{tag}: this question names a picture. Open it (read the run:// "
-                "resource, or look at the image attached to the result) and say "
-                "in `seen` something it shows, then answer again; answer unsure "
-                "only if the picture does not settle it"
-            )
+        elif (picture := _picture_problem(q, answer)) is not None:
+            errors.append(f"{tag}: {picture}")
         else:
-            if (
+            viewed = not (
                 answer.decided_by is DecidedBy.MODEL
-                and not answer.seen.strip()
                 and has_image(q.input)
-            ):
-                answer = answer.model_copy(update={"not_viewed": True})
-            else:
-                answer = answer.model_copy(update={"not_viewed": False})
+                and not answer.seen.strip()
+            )
+            answer = answer.model_copy(update={"not_viewed": not viewed})
             report.answers.append(
                 RecordedAnswer(question=q, answer=answer, recorded_at=utcnow())
             )

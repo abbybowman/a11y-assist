@@ -623,6 +623,7 @@ async def test_run_status_without_a_job_lists_the_work_left(settings, server):
                     "question_id": q["question_id"],
                     "decided_by": "model",
                     "rationale": "test",
+                    "picture_error": "test: not opened",
                     "choice": {"choice": "unsure", "reasons": "test"},
                 }
             ],

@@ -151,8 +151,8 @@ def test_results_say_incomplete_while_work_is_left():
 
 def test_an_answer_to_a_picture_question_must_say_what_it_shows():
     """Agent follow-through plan, change 3: development run 5's agent answered
-    visual questions without opening a picture. An answer needs `seen`; an
-    unsure without it is kept, marked not viewed, for a person."""
+    visual questions without opening a picture. An answer needs `seen`, or
+    `picture_error` with unsure (kept, marked not viewed, for a person)."""
     from a11y_assist.judgment import record_answers
     from a11y_assist.models import Answer, ChoiceAnswer, OpenQuestion
 
@@ -185,6 +185,12 @@ def test_an_answer_to_a_picture_question_must_say_what_it_shows():
             seen=seen,
         )
 
+    def err(qid, choice, error):
+        x = a(qid, choice)
+        return x.model_copy(update={"picture_error": error})
+
+    report.open_questions.append(q("e", True))
+    report.open_questions.append(q("f", True))
     ok, errors = record_answers(
         report,
         [
@@ -192,10 +198,14 @@ def test_an_answer_to_a_picture_question_must_say_what_it_shows():
             a("b", "visible", seen="a blue outline round Search"),
             a("c", "unsure"),
             a("d", "visible"),
+            err("e", "unsure", "the picture is blank"),
+            err("f", "visible", "the picture is blank"),
         ],
     )
-    assert ok == ["b", "c", "d"]
-    assert len(errors) == 1 and errors[0].startswith("a: this question names a picture")
-    assert [q.question_id for q in report.open_questions] == ["a"]
+    assert ok == ["b", "d", "e"]
+    assert [e.split(":")[0] for e in errors] == ["a", "c", "f"]
+    assert errors[0].startswith("a: this question names a picture")
+    assert "can only be unsure" in errors[2]
+    assert [q.question_id for q in report.open_questions] == ["a", "c", "f"]
     by = {r.answer.question_id: r.answer for r in report.answers}
-    assert by["c"].not_viewed and not by["b"].not_viewed and not by["d"].not_viewed
+    assert by["e"].not_viewed and not by["b"].not_viewed and not by["d"].not_viewed

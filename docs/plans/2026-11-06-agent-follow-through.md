@@ -114,17 +114,21 @@ that; the tool has to make the complete path the cheap one.
   agent looked. The judge eval checks whether such answers are right.
 - Questions to change: 4.D, 4.F, 2.B and the others with `image_*` inputs.
   The rubrics change, so run the judge eval (CLAUDE.md principle 6).
-- **Status:** built (2026-11-06; `Answer.seen`, `Answer.not_viewed`,
-  `judgment.record_answers`). The rule covers questions whose input names
-  a picture (the pictures attached to the result); a picture only in
-  `evidence_paths` does not count. An answer without `seen` is refused with
-  a message saying how to open the picture; an unsure without it is
-  accepted and marked `not_viewed`. Checked: `tests/test_models.py`,
-  README example 3, and the scripted test answers. **Not yet checked:**
-  the judge eval (the answer format changed), and a development answering
-  run. Run 6's agent answered "unsure, not viewed" on every picture
-  question, so if unsure stays the easy way out, consider refusing an
-  unsure without `seen` too (Abby to decide).
+- **Status:** built (2026-11-06; `Answer.seen`, `Answer.picture_error`,
+  `Answer.not_viewed`, `judgment._picture_problem`). The rule covers
+  questions whose input names a picture (the pictures attached to the
+  result); a picture only in `evidence_paths` does not count. Abby's middle
+  ground (2026-11-06), after run 6's agent answered "unsure, not viewed"
+  on every picture question:
+  - **`seen`** (something the picture shows): any answer.
+  - **`picture_error`** (it could not be opened, or shows nothing useful):
+    unsure only. Recorded as `not_viewed`, so a person knows.
+  - **Neither:** refused, with how to open the picture. A bare unsure is
+    refused too.
+
+  Checked: `tests/test_models.py`, README example 3, the scripted test
+  answers. **Not yet checked:** the judge eval (the answer format changed)
+  and a development answering run.
 
 ### 4. Reconsider which choices stay with the agent or the user (Abby, 2026-11-06)
 
