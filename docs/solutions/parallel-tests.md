@@ -21,8 +21,8 @@ counts the CPUs the scheduler shows (`sched_getaffinity`, the same number
 `nproc` prints), which in a Kubernetes pod is every core of the node, not
 the pod's limit. On VAST (4-CPU limit) a run under `-q` printed nothing and
 seemed to hang; the likely cause is one worker, and so one Chromium, per
-node core (with `-n 4` the suite runs there; `nproc` against the limit
-would confirm).
+node core (with `-n 4` the full suite passed there in under 10 minutes;
+`nproc` against the limit would confirm).
 `tests/conftest.py` now implements `pytest_xdist_auto_num_workers` and caps
 `auto` at the cgroup quota (v2 `cpu.max`, or v1 `cpu.cfs_quota_us`).
 `PYTEST_XDIST_AUTO_NUM_WORKERS` or an explicit `-n` still wins. Verified:

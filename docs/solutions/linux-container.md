@@ -67,6 +67,7 @@ pass `-n 4`. The suite takes about 15 minutes at 4 workers.
 host: the default 64 MB `/dev/shm` is enough (Playwright launches Chromium
 with `--disable-dev-shm-usage`), and the full suite ran with 4 workers: 930
 passed, 3 skipped, 1 xfailed, no failures, in 14 min 52 s. On VAST, the same
-day: Chromium in the image loaded https://www.nasa.gov, and the suite
-(an older `:latest` with 793 tests) runs detached with `-n 4`; its result is
-recorded below once it finishes.
+day: Chromium in the image loaded https://www.nasa.gov, and the suite (an
+older `:latest` with 793 tests) ran detached with `-n 4` on the 4-CPU dev
+container: 789 passed, 3 skipped, 1 xfailed, no failures, in 9 min 52 s. Its
+ACT agreement lines matched the Docker run's case for case.
