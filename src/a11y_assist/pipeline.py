@@ -46,7 +46,7 @@ from a11y_assist.checks.base import PageRef
 from a11y_assist.config import Settings
 from a11y_assist.egress import EgressProxy
 from a11y_assist.frozen import NotFrozen, obtain
-from a11y_assist.judgment import get_judge, record_answers
+from a11y_assist.judgment import get_judge, has_image, record_answers
 from a11y_assist.models import (
     REVIEW_HEAD,
     Answer,
@@ -971,16 +971,6 @@ async def run_tt_tests(
     )
 
 
-def _has_image(value: Any) -> bool:
-    if isinstance(value, str):
-        return value.startswith("run://") and value.endswith(".png")
-    if isinstance(value, dict):
-        return any(_has_image(v) for v in value.values())
-    if isinstance(value, list):
-        return any(_has_image(v) for v in value)
-    return False
-
-
 def follow_ups(
     report: Report, states: dict[TestId, Any], skipped: dict[TestId, str] | None
 ) -> list[dict]:
@@ -1050,8 +1040,11 @@ def next_step(report: Report, calls: list[dict] | None = None) -> str:
     looks = (
         " Some questions ask what an image shows: open each run:// image they "
         "name with your MCP client's resource reader (read resource; a file "
-        "reader cannot open run:// links) and look before answering."
-        if any(_has_image(q.input) for q in qs)
+        "reader cannot open run:// links; the pictures are also attached to "
+        "this result) and look before answering. Their answers need `seen`: "
+        "something the picture shows; an answer without it is refused, and an "
+        "unsure without it goes to a person as not viewed."
+        if any(has_image(q.input) for q in qs)
         else ""
     )
     return (

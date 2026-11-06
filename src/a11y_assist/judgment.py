@@ -16,6 +16,7 @@ spec's job, so nothing here changes a Finding.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -69,6 +70,23 @@ def get_judge(backend: str) -> Judge:
     raise ValueError(f"Unknown judge backend {backend!r}; use 'client' or 'api'.")
 
 
+def has_image(value: Any) -> bool:
+    """A run:// picture anywhere in a question's input or evidence."""
+    if isinstance(value, str):
+        return value.startswith("run://") and value.endswith(".png")
+    if isinstance(value, dict):
+        return any(has_image(v) for v in value.values())
+    if isinstance(value, list):
+        return any(has_image(v) for v in value)
+    return False
+
+
+def _unsure(answer: Answer) -> bool:
+    if answer.choice is not None:
+        return answer.choice.choice == "unsure"
+    return answer.j2 is not None and answer.j2.gate == "unsure"
+
+
 def record_answers(
     report: Report, answers: list[Answer]
 ) -> tuple[list[str], list[str]]:
@@ -91,7 +109,29 @@ def record_answers(
             errors.append(f"{tag}: a {q.kind} question needs a `{field}` answer")
         elif q.kind == "choice" and answer.choice.choice not in q.choices:
             errors.append(f"{tag}: choice must be one of {', '.join(q.choices)}")
+        elif (
+            # Agent follow-through plan, change 3: development run 5's agent
+            # answered visual questions without opening a picture.
+            answer.decided_by is DecidedBy.MODEL
+            and not answer.seen.strip()
+            and has_image(q.input)
+            and not _unsure(answer)
+        ):
+            errors.append(
+                f"{tag}: this question names a picture. Open it (read the run:// "
+                "resource, or look at the image attached to the result) and say "
+                "in `seen` something it shows, then answer again; answer unsure "
+                "only if the picture does not settle it"
+            )
         else:
+            if (
+                answer.decided_by is DecidedBy.MODEL
+                and not answer.seen.strip()
+                and has_image(q.input)
+            ):
+                answer = answer.model_copy(update={"not_viewed": True})
+            else:
+                answer = answer.model_copy(update={"not_viewed": False})
             report.answers.append(
                 RecordedAnswer(question=q, answer=answer, recorded_at=utcnow())
             )

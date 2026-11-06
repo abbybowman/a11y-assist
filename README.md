@@ -168,7 +168,7 @@ gets out. The agent answers from the page text:
 
 <!-- example -->
 ```json
-{"tool": "a11y_answer_questions", "arguments": {"run_id": "<run_id from the result>", "answers": [{"question_id": "4.C-i1-J1", "decided_by": "model", "rationale": "The page text names no key that moves focus out of the three looping links.", "j1": {"documented": "no"}}]}}
+{"tool": "a11y_answer_questions", "arguments": {"run_id": "<run_id from the result>", "answers": [{"question_id": "4.C-i1-J1", "decided_by": "model", "rationale": "The page text names no key that moves focus out of the three looping links.", "seen": "three links in a row and no instructions", "j1": {"documented": "no"}}]}}
 ```
 
 4.C is now FAIL: "Keyboard focus gets trapped on this page…".

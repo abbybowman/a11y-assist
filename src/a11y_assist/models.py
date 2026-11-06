@@ -368,6 +368,20 @@ class Answer(BaseModel):
     )
     rationale: str = Field(min_length=1)
     decided_by: DecidedBy = DecidedBy.MODEL
+    seen: str = Field(
+        default="",
+        max_length=300,
+        description="For a question that names a picture (a run:// .png in its "
+        "input): something only the picture shows, in a few "
+        "words (the outline's colour, which item is outlined, the text in the "
+        "box). Needed for every answer but unsure: look before answering. An "
+        "unsure without it is recorded as not viewed.",
+    )
+    not_viewed: bool = Field(
+        default=False,
+        description="Set by the server: an unsure answer to a question that "
+        "names a picture, given without `seen`. Do not set it.",
+    )
 
 
 class RecordedAnswer(BaseModel):

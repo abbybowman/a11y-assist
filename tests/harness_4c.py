@@ -37,6 +37,7 @@ async def run_4c(
                     j1=J1Answer(**(j1 or NO_DOCS)) if q.kind == "J1" else None,
                     j2=J2Answer(**j2) if q.kind == "J2" else None,
                     rationale="scripted test answer",
+                    seen="scripted: the picture was not opened",
                 )
             )
         res = await answer_questions(settings, out.run_id, answers)

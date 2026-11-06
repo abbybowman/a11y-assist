@@ -147,3 +147,55 @@ def test_results_say_incomplete_while_work_is_left():
     assert v.waiting_on == ["1 follow-up call(s) in follow_up_calls"]
     v = FindingView.of(Finding(test_id=TestId.T5A, test_name="x"), report)
     assert v.waiting_on == []
+
+
+def test_an_answer_to_a_picture_question_must_say_what_it_shows():
+    """Agent follow-through plan, change 3: development run 5's agent answered
+    visual questions without opening a picture. An answer needs `seen`; an
+    unsure without it is kept, marked not viewed, for a person."""
+    from a11y_assist.judgment import record_answers
+    from a11y_assist.models import Answer, ChoiceAnswer, OpenQuestion
+
+    def q(qid, image):
+        return OpenQuestion(
+            question_id=qid,
+            test_id=TestId.T4D,
+            kind="choice",
+            choices=["visible", "not_visible", "unsure"],
+            instance="x",
+            question="?",
+            rubric="?",
+            input={"image_a": "run://r/a.png"} if image else {},
+        )
+
+    report = Report(
+        run_id="r",
+        target="https://nasa.gov",
+        started_at=datetime.now(timezone.utc),
+        versions=_versions(),
+        evidence_dir="x",
+        open_questions=[q("a", True), q("b", True), q("c", True), q("d", False)],
+    )
+
+    def a(qid, choice, seen=""):
+        return Answer(
+            question_id=qid,
+            choice=ChoiceAnswer(choice=choice),
+            rationale="r",
+            seen=seen,
+        )
+
+    ok, errors = record_answers(
+        report,
+        [
+            a("a", "visible"),
+            a("b", "visible", seen="a blue outline round Search"),
+            a("c", "unsure"),
+            a("d", "visible"),
+        ],
+    )
+    assert ok == ["b", "c", "d"]
+    assert len(errors) == 1 and errors[0].startswith("a: this question names a picture")
+    assert [q.question_id for q in report.open_questions] == ["a"]
+    by = {r.answer.question_id: r.answer for r in report.answers}
+    assert by["c"].not_viewed and not by["b"].not_viewed and not by["d"].not_viewed
