@@ -13,7 +13,7 @@ NEEDS REVIEW. It never emits NOT TESTED (p. 6). It reads the changes 2.C's
 pass T found; it presses no keys.
 
 1.0.0 (Abby, 2026-11-05): approved and built, from draft 0.2.0. 0.2.0 (2026-11-04): slides shown by a class count as changes (Terms); instances are 2.C's, still changing at 5 s. Plan:
-[plans/2026-11-03-auto-updating-2a-2d.md](../plans/2026-11-03-auto-updating-2a-2d.md).
+[research/2026-11-03-auto-updating-2a-2d.md](../research/2026-11-03-auto-updating-2a-2d.md).
 
 **Citations.** Printed pages of TT 5.1.3 (text also in `tt://5.1.3/tests/2.D`). Identify Content, p. 16: "content that changes automatically on the page as part of auto-update"; none: DNA (also p. 15: no auto-updating content makes 2.C and 2.D DNA). Applicability, p. 16. HtT 1.a (dialogs that alert the user; whether they give "sufficient programmatic notification"), 1.b (focus moved to the changed content; whether that is "sufficient to notify the user ... e.g., by describing the change directly in the content to which the focus moved"), 1.c (ANDI structures, "live regions": "Determine whether the changing content is contained within the Live Region"), p. 16. ER, pp. 16–17: PASS if any is true: 1, "a keyboard-accessible dialog"; 2, focus moves to the changed content "AND the content that has changed provides sufficient description about the change"; 3, "The content that has changed is contained in an ARIA Live Region". Note, p. 17: changes caused by user interaction are tested elsewhere.
 

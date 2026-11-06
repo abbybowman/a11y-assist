@@ -5,7 +5,7 @@ Research and decisions:
 [research/2026-11-03-3a-flashing.md](../research/2026-11-03-3a-flashing.md).
 Build it after 2.B, which brings pass T, the batch browser, the media store
 and the timer hooks
-([2c-build-tasks.md](2c-build-tasks.md)).
+([solutions/watching-a-page-over-time.md](../solutions/watching-a-page-over-time.md)).
 
 ## Code changes
 

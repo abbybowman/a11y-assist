@@ -71,7 +71,7 @@ from a11y_assist.redact import safe_error
 from a11y_assist.resources.runs import run_uri
 from a11y_assist.runlog import RunRecorder, expires_at, prune_runs
 from a11y_assist.traverse import Pace, ReplayPlan, TooManyItems, WalkTooLong, metered
-from a11y_assist.versions import collect_versions
+from a11y_assist.versions import collect_versions, measure_display
 from a11y_assist.walk import KeyboardWalk, walk_page
 
 NO_SPEC_REASON = "No rules exist for this test yet, so it was not run."
@@ -676,6 +676,7 @@ async def run_tt_tests(
 
         try:
             report.versions = collect_versions(settings, browser, no_time_limit)
+            report.versions.display = await measure_display(settings, browser)
             run.log("browser_launched", version=browser.version)
             await say(0, "Recording the page")
             har = run.evidence_dir / "page.har.zip"

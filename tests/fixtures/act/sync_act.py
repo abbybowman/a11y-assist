@@ -9,7 +9,7 @@ Pages are saved byte for byte and never edited. They load assets by absolute
 path (/WAI/content-assets/...), so they are stored under that same path here
 and this folder is served as the web root.
 
-Expected outcomes are ours (from docs/rules/4c-build-tasks.md) and live only in
+Expected outcomes are ours (from the docs/rules/ specs) and live only in
 manifest.json, never in a page. If a case's testcaseId changes, the script stops
 so the change is reviewed instead of silently accepted.
 """
@@ -53,7 +53,7 @@ EXTRA_PAGES = [
     "https://www.w3.org/WAI/content-assets/wcag-act-rules/test-assets/"
     "bypass-blocks-cf77f2/chapter2.html",
 ]
-# Unapproved near-copies of approved cases (docs/rules/4d-build-tasks.md).
+# Unapproved near-copies of approved cases (4.D's ACT oj04fd set).
 SKIP = {
     "8f296b7a",
     "eb4f387b",
@@ -91,7 +91,7 @@ EXPECTED = {
         "62fd24e7": "FAIL",
         "b20beca9": "PASS",
     },
-    # docs/rules/4d-build-tasks.md
+    # docs/rules/4d-focus-visible.md
     "4.D": {
         "52be6331": "PASS",
         "95cf4fdf": "PASS",
@@ -176,7 +176,7 @@ EXPECTED = {
     },
     # docs/rules/2c-auto-updating.md (draft). PASS is gated by ER 3 (the
     # mechanism's own tests are not all built), so DHS's PASS cases are
-    # NEEDS_REVIEW here: "gated", not a disagreement (2c-build-tasks.md).
+    # NEEDS_REVIEW here: "gated", not a disagreement (2c-auto-updating.md section 3c).
     "2.C": {
         "fd32eba8": "NEEDS_REVIEW",  # "Stop changes": K3, E3 (gated)
         "18adb94c": "NEEDS_REVIEW",  # "Pause changes": K3, E3 (gated)

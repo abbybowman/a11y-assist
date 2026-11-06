@@ -46,10 +46,10 @@ in full Chromium
 ([solutions/full-chromium-iframes.md](solutions/full-chromium-iframes.md)).
 
 Next (Abby, 2026-11-05):
-1. **The 2.x tests** (2.A-2.D, specs 1.0.0) in PR #12, with pass T, the
+1. **The 2.x tests** (2.A-2.D, specs 1.0.0) are merged (PR #12), with pass T, the
    mechanism probe and the media store
    ([solutions/watching-a-page-over-time.md](solutions/watching-a-page-over-time.md));
-   their leftovers are in [2c-build-tasks.md](rules/2c-build-tasks.md).
+   their leftovers are under "Per-test leftovers" below.
    Not yet in a judging round. 3.A (flashing) has its spec at 0.1.0 and its
    research done; it can reuse pass T's frames.
 2. **The post-round 1 fixes, in the plan's order**
@@ -67,22 +67,27 @@ Next (Abby, 2026-11-05):
 4. **Then the visual-versus-code cluster.** Choose with the coverage map
    and CLAUDE.md's research rule.
 
-Per-test leftovers live in each `docs/rules/<id>-build-tasks.md` (mostly
-browser checks on Windows headed Chrome, which this Linux container cannot
-run).
+Browser checks still to run for the built tests (mostly Windows headed
+Chrome, which a Linux container cannot run) are in
+[rules/_browser-checks.md](rules/_browser-checks.md); the rest of each
+test's leftovers are under "Per-test leftovers" below.
 
 ## Soon
 
-- **Fixes found in agent eval round 1:** 18 fixes, ranked, in
-  [plans/2026-11-04-post-round1-fixes.md](plans/2026-11-04-post-round1-fixes.md).
-  Make them before the next round. Abby answered the open questions on
-  2026-11-05: fixes 17 and 18 are decided, and fix 16 is the tool's.
-- **MCP client limits (the plan's fixes 2 and 5):** built as long
-  polling (a call waits 45 s, then `a11y_run_status`; at most 2 runs at
-  once). Left: an answering round to see that a real agent polls instead
-  of ending its turn, and shared job state for a hosted, multi-worker
-  server.
-
+- **5.F row M1 is half built (found 2026-11-05).** The spec's M1 gives
+  NEEDS REVIEW when "a read was unsettled or unresolved"; `t5f.py` ignores
+  the result of `settle()` after the submit press, so an attempt read
+  before the page settled is used as if complete. A failed read and an
+  attempt that never reached the form are handled (as incomplete, page row
+  G3). 5.G's N1 reads 5.F's pass, so it shares the gap. Fix in the code
+  (the spec is right), with a fixture whose error text appears after the
+  settle window; it can move outcomes toward NEEDS REVIEW only.
+- **Fixes found in agent eval round 1:** 20 fixes, all built, in
+  [plans/2026-11-04-post-round1-fixes.md](plans/2026-11-04-post-round1-fixes.md)
+  (PR #14), including MCP clients' tool timeouts as long polling (fix 2: a
+  call waits 45 s, then `a11y_run_status`; at most 2 runs at once) and
+  pages over the time limit (fix 5). Left: shared job state for a hosted,
+  multi-worker server; the agent's follow-through is the next plan.
 - **`tt.json` steps for 7.C and 16.B.** Each repeats the previous
   test's "How to Test" (the same PDF heading trap that scrambled 9.B, fixed
   2026-11-02; `tests/test_tt_source.py`). Fix each from its printed pages
@@ -133,13 +138,20 @@ run).
   matters for real sites: resumable runs (walk in one call, checks in the
   next), or walking P1 and P2 in parallel (headed Chrome focus in a
   background window needs checking on Windows first).
-- **Starter-template leftovers.** `pyproject.toml` still says "Starter MCP
-  server for the GSA MCP hackathon". (The 0.0.0.0 HTTP branch is gone; HTTP
-  is loopback-only with Host/Origin checks. Authentication is still needed
-  before any hosted deployment.)
-- **Tidy the checks** (from the PR #3 review and a 2026-11-02 cleanup
-  draft that was never approved; recheck each item against the code first;
-  its principle gaps were fixed in PR #6). Sharing: the "could not be
+- **Authentication before any hosted deployment.** HTTP is loopback-only
+  with Host/Origin checks today (the starter template's 0.0.0.0 branch is
+  gone).
+- **Tidy the checks** (from the PR #3 review, a 2026-11-02 cleanup draft
+  that was never approved, and the unbuilt half of the 2026-11-01
+  spring-cleaning plan, removed 2026-11-05 and in git history; recheck each
+  item against the code first; the principle gaps were fixed in PR #6).
+  Large enough for its own plan. Rules from that plan: every outcome stays
+  the same (wording may change; rerun the judge eval when question text
+  does); share only what means the same thing, and keep each check's spec
+  constants and the conditions that feed its page rows in the check; a
+  `checks/common.py` for findings, plain text and questions, a
+  `checks/js.py` for snippets, `RunContext.shot` and `replay_to` for
+  screenshots and replays. Sharing: the "could not be
   performed" note is typed by hand in 19 places (use
   `models.TEST_NOT_PERFORMED_NOTE`; the harness guards it). The checks also
   put it on findings that only wait for an answer, so scoring cannot tell
@@ -148,9 +160,8 @@ run).
   could be its own module like `labels.py`; `forms.py` exports underscore
   names; `RunContext.cache` keys are bare strings (a typo silently redoes
   work); the checks repeat findings, plain-text, question and replay code,
-  and base.py's "add a check" steps say to copy a check. Last: CLAUDE.md's
-  Layout lacks `egress.py`, `redact.py` and `routes.py` and says
-  `verify_fix` where this list says `compare_to`; `_KEY_WORDS` (4.C) and
+  and base.py's "add a check" steps say to copy a check. Last: CLAUDE.md
+  says `verify_fix` where this list says `compare_to`; `_KEY_WORDS` (4.C) and
   `NO_INSTANCE` (4.E) look unused. Keep `traverse.py` and `pipeline.py`
   frozen; aim at the current tests, not future ones (Abby, 2026-11-02).
 - **"Test a page" prompt** for operators who are not Trusted Testers: run,
@@ -185,6 +196,49 @@ run).
   both browsers test the guard
   ([solutions/windows-chrome-results.md](solutions/windows-chrome-results.md)).
 
+## Per-test leftovers
+
+From the build-tasks files, removed at 1.0.0 (2026-11-05; in git history).
+None blocks an outcome: each is NEEDS REVIEW-safe today.
+
+- **Real government pages** (with the agent-eval pages): calibrate 4.A's
+  `HOVER_MAX`, `CLICK_MAX` and `EXECUTE_MAX` and 5.D's `FIELD_MAX` (40) and
+  `FIELD_SECONDS` (1.1 s); how often nearby text sends a 5.A/5.C field to
+  J1; 5.H's consequence words and the error words for "checked" (known
+  over-match: "order" in "tab order" or "in order to" asks J1; narrowing
+  is a MINOR change); 9.B's region match and 9.C's same-place pairing;
+  19.A's site search on real .gov sites (W2-W4); timing of 2.x on agency
+  pages with motion (one budget page measured: 153.6 s of 165 s).
+- **4.A:** controls inside content that opens only on click or Enter are
+  not scanned (ER Note 1 covers them); reading 4.F's pass R would add them.
+- **4.B (known limits):** timing the page does not describe in words is not
+  found (a tester finds it while operating; 4.A's Enter and Space presses
+  cover custom controls); the timing words are English only.
+- **4.C:** a late-refocus fixture (refocus 600 ms after blur, no DOM
+  change) once the xfail in `tests/test_traverse.py` is settled.
+- **4.D and 4.F:** run 4.C's f19 (cross-origin frame), f24 (open shadow
+  root) and f32 (two traps) for 4.D, and f32 for 4.F (expected NEEDS
+  REVIEW: the forward order past a trap is unknown). Shared replays
+  (4.D's pass W with 4.C's P4; 4.C reading 4.F's pass R) are under "More
+  shared replays".
+- **5.A, 5.C:** fields in frames and shadow roots are not read (frames: a
+  NEEDS REVIEW note); a field revealed by 5.D's fill pass is wired but has
+  no fixture.
+- **5.B:** icon-only buttons are left out (pass L has no picture of
+  buttons); add one if real pages show icon buttons with misleading names.
+- **5.D:** after a retry, a submission that navigates away reads as
+  navigation (both M4; only the wording differs).
+- **5.F, 5.G:** fields in frames are not checked (a NEEDS REVIEW note);
+  `time`, `datetime-local`, `month` and `week` fields are left as loaded in
+  attempt 2.
+- **2.A-2.D:** ER 3's shortlist (6.A, 7.A, 7.E, 12.D, 13.A, 13.B, 13.C,
+  18.A): until each is built, a working mechanism is NEEDS REVIEW (E3),
+  never PASS. 2.C J1's wording when the mechanism is page text naming a
+  key; 2.B J1 for content below the first screen needs a crop (judge eval
+  runs 15, 16; rerun it after either). A large media file fetched in
+  several byte ranges is not reproduced in a test; real YouTube and Vimeo
+  embeds on a normal network are NEEDS REVIEW (2.A A2).
+
 ## Later
 
 - **Section 508 Baseline Alignment cases for the next tests.** The
@@ -213,6 +267,11 @@ run).
   [plans/2026-11-02-scrt-io.md](plans/2026-11-02-scrt-io.md)). Fix advice for
   a read report is a separate, optional tool, reusing `explain.py`. ACRs and
   OpenACR are out of scope (product level, not page level).
+- **Hosted results service and dashboard** (proposed; plan:
+  [plans/2026-11-04-results-service.md](plans/2026-11-04-results-service.md)):
+  a second, hosted MCP server that keeps results inside NASA, with a
+  dashboard for site owners, Trusted Testers and web governance. Its MVP
+  was cut for the GSA hackathon demo (Nov 20).
 - **`compare_to` on `a11y_run_tt_tests`** (verify a fix) taking a saved report, not
   a server-side run ID (runs expire after `RUN_TTL_HOURS`).
 - **OpenACR export**, as a draft labelled agent-assisted; NEEDS_REVIEW maps
@@ -220,6 +279,35 @@ run).
   (Appendix A); 4.A and 4.B share 2.1.1.
 - **The visual-versus-code cluster** (10.x, 14.x, 15.A, 18.A; ANDI is the
   core evidence for most of it).
+- **18.A Resize text: decide before its spec (found 2026-11-06).** The TT
+  says only "use built-in browser zoom functions to resize the text to at
+  least 200%" (pp. 74-75, HtT 1) and names no window size; its environment is
+  desktop only (Test Environment, pp. 3-5: Windows "desktop mode"; About,
+  pp. 1-3: mobile platforms "must be evaluated using other testing
+  procedures"). Zoom halves the layout
+  width, so our 1280 px window at 200% lays out at 640 CSS px (often the
+  site's tablet or mobile layout), and a page can pass in a 1920 px window
+  and fail in ours. Open:
+  - **Which windows.** Proposed: the default 1280 px (a 1920x1080 laptop at
+    150% Windows scaling) and a smaller desktop window near 1024 px (512
+    CSS px at 200%).
+  - **A failure only in the smaller window:** FAIL, or NEEDS REVIEW with a
+    note, since the TT names no size.
+  - **How to zoom.** Playwright cannot press Ctrl+ in headless Chrome.
+    Assumed, not checked: half the viewport width with a device pixel ratio
+    of 2 lays a page out like 200% browser zoom. A V-check against real
+    Ctrl+ zoom in headed Chrome must show it first (principle 6).
+  - **Functionality and time.** ER 3 ("all functionality is available"):
+    compare the keyboard stops at 100% and 200% (a control gone or
+    unreachable, such as a menu behind a hamburger button). A second walk
+    costs about 46 s on the agency page, which the 120 s budget does not
+    have: an allowance like `OTHER_PAGE_S`, or a lighter walk.
+  - **Not in scope:** a phone-width check (320 CSS px) is WCAG 2.1's 1.4.10
+    Reflow, not Section 508; at most a separate, clearly labelled extra.
+  The report records the window (`Versions.display`: viewport, inner size
+  and device pixel ratio), so results at different sizes can be told apart.
+  3.A's spec should name its window too: the flash threshold is an area
+  (341 x 256 px at 1024 x 768).
 - **Firefox as an optional browser.** TT 5.1.3 validates Chrome and Firefox
   (Test Environment). Results are reported for the browser the report
   records and never claimed for others (e.g. Chrome 130+ tabs to scroll

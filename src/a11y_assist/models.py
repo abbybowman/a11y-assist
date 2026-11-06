@@ -416,6 +416,16 @@ class Versions(BaseModel):
             "whether the caller turned the time limit off for this run."
         ),
     )
+    display: dict[str, int | float | None] = Field(
+        default_factory=dict,
+        description=(
+            "The window the pages were tested in: the configured viewport "
+            "(viewport_width, viewport_height, CSS pixels) and what a blank "
+            "page in the run's browser measured (inner_width, inner_height, "
+            "device_pixel_ratio; None when it could not be read). Layout, "
+            "and so some results, depend on it."
+        ),
+    )
 
 
 class OtherPage(BaseModel):

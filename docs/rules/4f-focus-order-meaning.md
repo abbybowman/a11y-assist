@@ -129,7 +129,7 @@ The tool gives each page one 4.F outcome: PASS, FAIL, DOES NOT APPLY or NEEDS RE
 
 ## 5. Edge cases
 
-Only cases that need a rule of their own; everything else follows sections 2–3. V-numbers are browser checks in [4f-build-tasks.md](4f-build-tasks.md).
+Only cases that need a rule of their own; everything else follows sections 2–3. V-numbers are browser checks in [_browser-checks.md](_browser-checks.md#4f).
 
 | Case | Rule | Verify |
 | --- | --- | --- |

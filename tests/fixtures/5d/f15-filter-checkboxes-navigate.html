@@ -12,7 +12,7 @@
 <script>
 for (const box of document.querySelectorAll("input[name=status]")) {
   box.addEventListener("change", (e) => {
-    location.href = "f01-other.html?status=" + e.target.value;
+    location.href = "f01-other.html?status=" + encodeURIComponent(e.target.value);
   });
 }
 </script></body></html>

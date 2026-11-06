@@ -39,9 +39,10 @@ smallest, t5d.py for a form test, or t9b.py for a multi-page test):
      one fresh agent answers them from the tool output alone. Fix every
      mismatch in the question or its evidence before trusting the rows.
   6. When fixtures pass, make the spec match the code exactly (every row
-     the code has, the spec has), set spec_version 1.0.0, trim
-     <id>-build-tasks.md to what is left, and add any lesson that cost
-     time to docs/solutions/.
+     the code has, the spec has), set spec_version 1.0.0, move
+     <id>-build-tasks.md's V-checks to docs/rules/_browser-checks.md and
+     what is left to docs/ROADMAP.md, delete the file, and add any lesson
+     that cost time to docs/solutions/.
   7. The pipeline, tools, report, explain prompt and resume path need no
      changes; the tool description lists the new test from the registry.
 """

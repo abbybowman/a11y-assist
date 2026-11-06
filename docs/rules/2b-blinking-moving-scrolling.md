@@ -14,7 +14,7 @@ a working mechanism gives NEEDS REVIEW until every test that can apply to
 it is built ([2c-auto-updating.md](2c-auto-updating.md) section 3c).
 
 1.0.0 (Abby, 2026-11-05): approved and built, from draft 0.2.0. 0.2.0 (2026-11-04), from building it: still moving and colour-only as below; motion below the first screen; content with no element inside is placed by document order; one probe per content shared with 2.C; J1 can only lead to DNA; the text question is J3. Plan:
-[plans/2026-11-03-auto-updating-2a-2d.md](../plans/2026-11-03-auto-updating-2a-2d.md).
+[research/2026-11-03-auto-updating-2a-2d.md](../research/2026-11-03-auto-updating-2a-2d.md).
 
 **Citations.** Printed pages of TT 5.1.3 (text also in `tt://5.1.3/tests/2.B`). Identify Content, p. 14: before loading, "make sure the browser is not set to block auto-playing content"; visual content that "Starts moving, blinking, or scrolling without user activation (including videos, synchronized media, and scrolling text)", "Moves, blinks, or scrolls continuously for more than 5 seconds", and "Is not the only content on the page"; "EXCLUDE content where the movement, blinking, or scrolling of the content is essential"; none: DNA. Notes, p. 14: content that moves without changing is 2.B only; content that changes is 2.C; both when both. Applicability, p. 14. HtT 1 ("an evident mechanism ... within the first three elements that the user would encounter OR within three elements before/after the moving/blinking/scrolling content"), HtT 2–3, p. 14. ER 1 (an evident mechanism that can pause, stop or hide the content), ER 2 (where), ER 3 (it passes all applicable Test Conditions), p. 14. Appendix B: 5.1.3 made the mechanism "evident".
 
