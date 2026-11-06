@@ -139,15 +139,23 @@ EXPECTED: dict[str, dict] = {
     # Post-round 1 (5.C 1.2.0): three filter boxes whose only gap is the
     # set's question (a heading, not announced): one J1 for the set, its
     # answer recorded for each box. Judge eval run 22's agent answered
-    # missing "Mission status"; a heading is not text beside the field
-    # (pass L), so M7's quote check cannot pass and each box is M9.
+    # missing "Mission status": the heading is the set's question (TT 5.C
+    # Note 4), and since 1.3.0 a quote from the heading over an option
+    # passes M7's check (Abby, 2026-11-06).
     "f19-filter-boxes-under-heading": {
         "5.A": {"outcome": "PASS", "rows": ["M2", "M2", "M2"]},
         "5.C": {
-            "outcome": "NEEDS_REVIEW",
-            "rows": ["M9", "M9", "M9"],
+            "outcome": "FAIL",
+            "rows": ["M7", "M7", "M7"],
             "answers": missing("Mission status"),
         },
+    },
+    # 5.C 1.3.0 (Abby, 2026-11-06; NASA's Missions filters): two groups of
+    # boxes under two headings share one field name and no group label, so
+    # screen readers hear one flat list: FAIL without a question (M3s).
+    "f20-filter-groups-one-name": {
+        "5.A": {"outcome": "PASS", "rows": ["M2", "M2", "M2", "M2"]},
+        "5.C": {"outcome": "FAIL", "rows": ["M3s", "M3s", "M3s", "M3s"]},
     },
     # Each option's words are beside it but not connected: a person looks
     # (5.A J1); screen readers announce only the question (5.C).

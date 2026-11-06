@@ -99,6 +99,18 @@ COMPONENTS_JS = (
     }
     return out.filter(Boolean);
   };
+  // The visible heading over an option (5.C 1.3.0): the nearest heading
+  // before it in the page, inside its form (or its section or landmark).
+  const HEAD = 'h1,h2,h3,h4,h5,h6,[role=heading]';
+  const headingOf = (el) => {
+    const scope = el.form || el.closest('form') ||
+      el.closest('section,aside,nav,main,[role=region],[role=search],[role=complementary]') || doc.body;
+    let best = null;
+    for (const h of scope.querySelectorAll(HEAD)) {
+      if (h.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING && !h.contains(el) && vis(h)) best = h;
+    }
+    return best ? txt(best) : '';
+  };
   return els.map((el, i) => {
     const tag = el.tagName.toLowerCase(), type = (el.type || '').toLowerCase(), role = el.getAttribute('role') || '';
     const button = tag === 'button' || (tag === 'input' && ['submit', 'reset', 'button'].includes(type)) || role === 'button';
@@ -123,6 +135,7 @@ COMPONENTS_JS = (
       title: el.getAttribute('title') || '',
       own_text: button ? (txt(el) || el.value || '') : '',
       menu: button && isMenu(el),
+      heading: isOpt(el) ? headingOf(el) : '',
       table_headers: headers(el),
       list_text: Array.from((function* () { for (let li = el.closest('li'); li; li = li.parentElement && li.parentElement.closest('li')) yield li; })())
         .map(ownText).filter(Boolean),
@@ -245,6 +258,9 @@ class Comp(BaseModel):
     title: str = ""
     own_text: str = ""
     menu: bool = False  # a menu or disclosure button (aria-expanded, aria-haspopup)
+    heading: str = (
+        ""  # an option's nearest visible heading in its form or section (5.C)
+    )
     table_headers: list[str] = Field(default_factory=list)
     list_text: list[str] = Field(default_factory=list)
     # With focus (data-entry fields only)
