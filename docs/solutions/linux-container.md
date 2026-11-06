@@ -31,6 +31,7 @@ pass `-n 4`.
 
 **How we know.** 2026-11-06, the `:latest` image in Docker on a 4-CPU Linux
 host: the default 64 MB `/dev/shm` is enough (Playwright launches Chromium
-with `--disable-dev-shm-usage`), and the full suite ran with 4 workers. On VAST: pulling the image and loading
+with `--disable-dev-shm-usage`), and the full suite ran with 4 workers: 930 passed, 3 skipped,
+1 xfailed, no failures, in 14 min 52 s. On VAST: pulling the image and loading
 https://www.nasa.gov from Chromium inside it worked; the suite there is not
 yet confirmed.
