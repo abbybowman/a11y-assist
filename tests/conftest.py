@@ -21,10 +21,10 @@ import pytest
 import pytest_asyncio
 from playwright.async_api import async_playwright
 
-from a11y_assist import egress
-from a11y_assist.browser import launch_browser
-from a11y_assist.config import Settings
-from a11y_assist.egress import EgressProxy
+from tobi508 import egress
+from tobi508.browser import launch_browser
+from tobi508.config import Settings
+from tobi508.egress import EgressProxy
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -261,6 +261,32 @@ def baseline_server():
     yield f"http://127.0.0.1:{httpd.server_address[1]}"
     httpd.shutdown()
     httpd.server_close()
+
+
+@pytest.hookimpl(optionalhook=True)
+def pytest_xdist_auto_num_workers(config):
+    """-n auto: one worker per CPU this container may use, not per CPU it sees.
+
+    xdist counts the CPUs the scheduler shows (sched_getaffinity), which in a
+    Kubernetes pod is every core of the node; the pod's CPU limit lives in the
+    cgroup. On VAST (4-CPU limit) that started a Chromium per node core and the
+    run stalled with no output. PYTEST_XDIST_AUTO_NUM_WORKERS still wins."""
+    if os.environ.get("PYTEST_XDIST_AUTO_NUM_WORKERS"):
+        return None  # xdist's own hook reads it
+    seen = len(os.sched_getaffinity(0)) if hasattr(os, "sched_getaffinity") else 0
+    seen = seen or os.cpu_count() or 1
+    try:  # cgroup v2: "max 100000" or "<quota> <period>"
+        quota, period = Path("/sys/fs/cgroup/cpu.max").read_text().split()
+        limit = int(quota) // int(period) if quota != "max" else seen
+    except (OSError, ValueError):
+        try:  # cgroup v1
+            cg = Path("/sys/fs/cgroup/cpu")
+            quota = int((cg / "cpu.cfs_quota_us").read_text())
+            period = int((cg / "cpu.cfs_period_us").read_text())
+            limit = quota // period if quota > 0 else seen
+        except (OSError, ValueError):
+            limit = seen
+    return max(1, min(seen, limit))
 
 
 def pytest_sessionstart(session):

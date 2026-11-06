@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from a11y_assist.site import (
+from tobi508.site import (
     PageRead,
     SiteRead,
     before,
@@ -76,7 +76,7 @@ def test_helpers():
 def test_other_pages_are_checked_before_anything_runs(settings):
     import pytest
 
-    from a11y_assist.pipeline import RunRefused, check_other_pages
+    from tobi508.pipeline import RunRefused, check_other_pages
 
     url = "http://127.0.0.1:8000/a.html"
     same = "http://127.0.0.1:8000/b.html"

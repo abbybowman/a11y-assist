@@ -1,5 +1,5 @@
 {
-  "name": "a11y-assist-agent-eval-baseline",
+  "name": "tobi508-agent-eval-baseline",
   "private": true,
   "description": "Agent B's browser tool for the agent eval (docs/plans/2026-10-31-agent-eval.md). Pinned exactly; the lockfile records the rest.",
   "dependencies": {

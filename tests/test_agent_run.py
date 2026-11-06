@@ -57,12 +57,12 @@ def script(urls):
         if n == 1:
             assert "WCAG 2.0" in first and urls[0] in first
             names = {t["name"] for t in tools}
-            assert {"a11y_run_tt_tests", "read_mcp_resource", "ask_helper"} <= names
+            assert {"tobi_run_tt_tests", "read_mcp_resource", "ask_helper"} <= names
             return Reply(
                 [
                     _use(
                         "u1",
-                        "a11y_run_tt_tests",
+                        "tobi_run_tt_tests",
                         {
                             "url": urls[0],
                             "tests": ["19.A"],
@@ -109,7 +109,7 @@ async def test_arm_a_on_a_frozen_round(settings, tmp_path):
     s = await agent_run.run_arm(rd, "a", Scripted("m-requested", script(urls)), servers)
     assert s.get("error") is None and s["ended"] == "end_turn", s
     assert s["tool_calls"] == {
-        "a11y_run_tt_tests": 1,
+        "tobi_run_tt_tests": 1,
         "read_mcp_resource": 1,
         "ask_helper": 1,
     }
@@ -123,7 +123,7 @@ async def test_arm_a_on_a_frozen_round(settings, tmp_path):
     steps = [json.loads(x) for x in (out / "steps.jsonl").read_text().splitlines()]
     assert [r["type"] for r in steps][:2] == ["leak_check", "model"]
     assert any(r["type"] == "model" and r["depth"] == 1 for r in steps)
-    tool = next(r for r in steps if r.get("name") == "a11y_run_tt_tests")
+    tool = next(r for r in steps if r.get("name") == "tobi_run_tt_tests")
     assert tool["seconds"] > 0 and tool["result_chars"] > 0
     reports = list((out / "runs").glob("*/report.json"))
     assert len(reports) == 1  # the tool's own report, for scoring
@@ -159,7 +159,7 @@ async def test_arm_b_on_a_frozen_round(settings, tmp_path):
         n = len(messages)
         if n == 1:
             names = {t["name"] for t in tools}
-            assert "a11y_run_tt_tests" not in names
+            assert "tobi_run_tt_tests" not in names
             assert "browser_navigate" in names
             assert "browser_run_code_unsafe" not in names  # escapes the replay
             return Reply(

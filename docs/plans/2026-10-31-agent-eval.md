@@ -81,7 +81,7 @@ Words used in this plan:
 ### 3.1 Real .gov pages, labeled blind (the scored evidence)
 
 - **Abby picks the pages, not the tool.** If pages were found by running
-  A11y Assist, the set would hold only failures it already catches. Claude
+  TOBI, the set would hold only failures it already catches. Claude
   may help find *candidate* pages with features the tests exercise (menus,
   dialogs, carousels, forms) on public .gov sites, but must not run the TT
   tests on them.
@@ -336,7 +336,7 @@ The same format for both arms:
 
 One scorer serves every eval: the verdicts in `evals/scoring.py` (which
 judging rounds already use), on the neutral comparison in
-`src/a11y_assist/compare.py`. The answer keys are the round's SCRT files.
+`src/tobi508/compare.py`. The answer keys are the round's SCRT files.
 
 **Two scores:**
 
@@ -474,7 +474,7 @@ Not built or not checked:
 ## 13. Layout
 
 ```
-src/a11y_assist/frozen.py   the frozen pages setting (replay, tested_frozen, or record into the folder)
+src/tobi508/frozen.py   the frozen pages setting (replay, tested_frozen, or record into the folder)
 evals/agent/
   freeze.py      record a round's tested pages once (python -m evals.agent.freeze <round>)
   prompt.py      the task prompt, from checks.REGISTRY

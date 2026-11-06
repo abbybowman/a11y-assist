@@ -17,7 +17,7 @@ EXTRA = {
     "answers-v1": (
         "The a11y tools may return open questions with their findings. "
         "Answering them is part of the test, not optional: answer every open "
-        "question with a11y_answer_questions, following each question's "
+        "question with tobi_answer_questions, following each question's "
         'rubric, before you give your results. Answer "unsure" when the '
         "evidence does not settle a question. A finding stays NEEDS_REVIEW "
         "until its questions are answered. If answering returns more "

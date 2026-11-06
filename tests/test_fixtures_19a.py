@@ -81,8 +81,8 @@ def test_template_links_are_navigation_only():
     """19.A 1.1.0 (Abby, 2026-11-02): on a results page or a site map page,
     the shared menus, header and footer link to T whatever the search found
     or the site map lists. Built evidence: no fixture page has that template."""
-    from a11y_assist.checks.t19a import _kind, results_link_to
-    from a11y_assist.site import PageRead, Unit
+    from tobi508.checks.t19a import _kind, results_link_to
+    from tobi508.site import PageRead, Unit
 
     t = "https://example.gov/apply.html"
 
@@ -113,7 +113,7 @@ def test_template_links_are_navigation_only():
 
 def test_live_search_url_drops_the_action_query():
     """A GET submission replaces the action's own query (spec Terms)."""
-    from a11y_assist.checks.t19a import search_url
+    from tobi508.checks.t19a import search_url
 
     form = {
         "method": "get",
@@ -127,8 +127,8 @@ def test_live_search_url_drops_the_action_query():
 def test_links_to_the_requested_url_count_after_a_redirect():
     """Spec edge case: menus link to /benefits, which redirects to
     /benefits/apply; those links reach T too (review #6)."""
-    from a11y_assist.checks.t19a import links_to
-    from a11y_assist.site import PageRead, Unit
+    from tobi508.checks.t19a import links_to
+    from tobi508.site import PageRead, Unit
 
     menu = Unit(
         i=0,
@@ -159,8 +159,8 @@ async def test_the_result_names_the_call_that_adds_the_suggested_pages(
     """Post-round 1 fix 18: an agent named the suggestion but never made the
     call. next_step now spells it out: 19.A alone, the pages given before
     plus the suggested ones, made without asking the user."""
-    from a11y_assist.models import TestId
-    from a11y_assist.pipeline import run_tt_tests
+    from tobi508.models import TestId
+    from tobi508.pipeline import run_tt_tests
 
     page, others = EXPECTED["search-finds-nothing"][:2]
     given = [f"{server.base}/19a/{o}.html" for o in others]
@@ -180,15 +180,15 @@ async def test_finish_makes_the_suggested_pages_call_once(
     server,
     drafts,  # noqa: F811
 ):
-    """Agent follow-through plan, change 1: a11y_run_status finish=true makes
+    """Agent follow-through plan, change 1: tobi_run_status finish=true makes
     19.A's follow-up call itself (Abby, 2026-11-06: the server may visit
     the suggested pages), records it in the report, and never makes it
     twice."""
-    from a11y_assist import jobs
-    from a11y_assist.models import Report, TestId
-    from a11y_assist.pipeline import run_tt_tests
-    from a11y_assist.runlog import RunRecorder
-    from a11y_assist.tools.run_status import _start_follow_ups
+    from tobi508 import jobs
+    from tobi508.models import Report, TestId
+    from tobi508.pipeline import run_tt_tests
+    from tobi508.runlog import RunRecorder
+    from tobi508.tools.run_status import _start_follow_ups
 
     page, others = EXPECTED["search-finds-nothing"][:2]
     url = f"{server.base}/19a/{page}.html"

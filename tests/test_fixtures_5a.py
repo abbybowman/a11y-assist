@@ -9,8 +9,8 @@ import re
 
 import pytest
 
-from a11y_assist.models import Answer, ChoiceAnswer, TestId
-from a11y_assist.pipeline import answer_questions, run_tt_tests
+from tobi508.models import Answer, ChoiceAnswer, TestId
+from tobi508.pipeline import answer_questions, run_tt_tests
 
 from .conftest import FIXTURES
 from .drafts import drafts  # noqa: F401 (a fixture)

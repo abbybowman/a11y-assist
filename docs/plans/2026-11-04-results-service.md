@@ -1,6 +1,6 @@
 # Plan: hosted results service and dashboard (2026-11-04, proposed)
 
-A second, hosted MCP server that keeps a11y-assist results inside NASA and
+A second, hosted MCP server that keeps tobi508 results inside NASA and
 shows them in a dashboard for site owners, Trusted Testers (TTs) and web
 governance. The Playwright runner stays a local MCP server. This plan
 records the goals, user stories and decisions from Abby's 2026-11-04
@@ -17,7 +17,7 @@ review, and the cut for the GSA hackathon demo (due Nov 20).
 - Give certified TTs a path to review, correct and certify results, so
   agent-assisted results can become TT-certified ones.
 - The dashboard itself must be as accessible as possible: as little text
-  and as few keyboard stops as the task allows. It must pass a11y-assist's
+  and as few keyboard stops as the task allows. It must pass tobi508's
   own tests.
 
 ## Who uses it
@@ -52,7 +52,7 @@ demo. **Later** = end state.
 | E9 | Open a page: latest result per test, top issues and scan history. | MVP |
 | E10 | Open a result: plain-language explanation, WCAG links, screenshots and code for fails and needs review, what the test checked and what it can't. | MVP |
 | E11 | Download a page's pre-SCRT file. | MVP |
-| E12 | Publish a local a11y-assist run to the service. | MVP |
+| E12 | Publish a local tobi508 run to the service. | MVP |
 | E13 | Answer or confirm the agent's judgment calls in the dashboard; my answer is logged under my name and role. | Later |
 | E14 | Flag a result as wrong, a bug, an improvement or a question. | Later |
 | E15 | Pin sites to the top of my dashboard, from the site list. | Later |
@@ -94,9 +94,9 @@ demo. **Later** = end state.
   the runner stays local. IBM Cloud Code Engine could host the runner later,
   only if NASA has an IBM Cloud account.
 - **Same repo, separate package** (a uv workspace member), with its own
-  deploy config. It does not import `a11y_assist`, so Playwright never ships
+  deploy config. It does not import `tobi508`, so Playwright never ships
   to Databricks. A contract test feeds it a real `report.json`.
-- **Results go in server to server.** A new runner tool, `a11y_publish_run`,
+- **Results go in server to server.** A new runner tool, `tobi_publish_run`,
   sends `report.json` and `pre-scrt.json` with a SHA-256 hash. The model
   never retypes a report.
 - **Hosted MCP tools are read-only for agents**: a site summary and a find
@@ -171,11 +171,11 @@ element (same test and element on 3 or more pages).
 
 ## MVP for Nov 20
 
-Read-only for people. The only data coming in is `a11y_publish_run`.
+Read-only for people. The only data coming in is `tobi_publish_run`.
 
 **In**
 
-- Ingest (`a11y_publish_run`) into Lakebase, with the report hash
+- Ingest (`tobi_publish_run`) into Lakebase, with the report hash
 - E1 banner, E2 tiers (as data allows), E3 to E10 screens, E11 download
 - Two hosted MCP tools: site summary, find issues
 - Fix first ranking (E8)
@@ -196,10 +196,10 @@ zero, since there is no way to upload an SCRT yet.
 1. **Nov 4 to 6, spike (go/no-go)**: deploy Databricks' MCP template on the
    NASA workspace; confirm Apps and Lakebase are on and Claude Code can
    connect. If blocked, run the service locally with SQLite for the demo.
-2. **Nov 7 to 11**: schema, ingest, `a11y_publish_run`, the two MCP tools.
+2. **Nov 7 to 11**: schema, ingest, `tobi_publish_run`, the two MCP tools.
 3. **Nov 12 to 14**: the four MVP screens.
 4. **Nov 15 to 17**: load real runs (agent eval round 1 pages); run
-   a11y-assist on the dashboard itself.
+   tobi508 on the dashboard itself.
 5. **Nov 18 to 19**: record the demo; update `docs/hackathon/`.
 
 ## Open questions

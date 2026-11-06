@@ -8,7 +8,7 @@ import json
 
 import pytest
 
-from a11y_assist.models import TestId
+from tobi508.models import TestId
 
 from .conftest import ACT_ROOT
 from .harness import instance_rows, run_check
@@ -93,7 +93,7 @@ def test_a_link_moved_by_the_page_while_pictured_is_not_failed():
     compared was empty and they failed at 0 px. Moved with almost no change
     is no clear view (M4); moved with a clear change still counts (a skip
     link that slides in)."""
-    from a11y_assist.checks.t4d import Attempt, Inst4D, _best
+    from tobi508.checks.t4d import Attempt, Inst4D, _best
 
     def inst(px: float) -> Inst4D:
         e = {"moved": True, "changed": [], "on": "on.png", "off": "off.png"}

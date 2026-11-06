@@ -10,9 +10,9 @@ from __future__ import annotations
 import pytest_asyncio
 from playwright.async_api import async_playwright
 
-from a11y_assist.andi import ANDI_HOST_URL, inject_andi, install_andi_routes
-from a11y_assist.browser import NavigationGuard, new_context
-from a11y_assist.capture import record, replay_context
+from tobi508.andi import ANDI_HOST_URL, inject_andi, install_andi_routes
+from tobi508.browser import NavigationGuard, new_context
+from tobi508.capture import record, replay_context
 
 from .conftest import FIXTURES, noop_log
 

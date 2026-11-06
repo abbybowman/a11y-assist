@@ -8,8 +8,8 @@ from __future__ import annotations
 import re
 from typing import Any
 
-from a11y_assist.models import Answer, J1Answer, J2Answer, TestId
-from a11y_assist.pipeline import answer_questions, run_tt_tests
+from tobi508.models import Answer, J1Answer, J2Answer, TestId
+from tobi508.pipeline import answer_questions, run_tt_tests
 
 NO_DOCS = {"documented": "no"}
 

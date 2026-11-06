@@ -6,8 +6,8 @@ partly covered criterion has none."""
 
 from __future__ import annotations
 
-from a11y_assist import catalog
-from a11y_assist.checks import REGISTRY
+from tobi508 import catalog
+from tobi508.checks import REGISTRY
 
 PROMPT_VERSION = "round1-v1"
 

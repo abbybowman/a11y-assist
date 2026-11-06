@@ -1,6 +1,6 @@
 # Security Policy
 
-a11y-assist is an MCP server that drives a real Chrome browser to web pages
+tobi508 is an MCP server that drives a real Chrome browser to web pages
 an agent names, records them, and tests the recordings against parts of the
 DHS Trusted Tester 5.1.3 process. That makes two things its main risks: the
 pages it visits (where the browser may go, and what their content may try to

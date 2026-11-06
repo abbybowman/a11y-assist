@@ -13,11 +13,11 @@ GSA MCP and AI Agent Hackathon
 
 **On the slide**
 
-- A11y Assist (working name)
+- Section 508 TOBI: Tester-Oriented Browser Inspector
 - Agent-assisted keyboard testing that follows the DHS Trusted Tester process
 - Not a certified Trusted Tester result
 
-**Notes:** Built by a certified Trusted Tester with Claude Code. Open source at github.com/abbybowman/a11y-assist.
+**Notes:** Built by a certified Trusted Tester with Claude Code. Open source at github.com/abbybowman/tobi508.
 
 ---
 
@@ -64,8 +64,8 @@ GSA MCP and AI Agent Hackathon
 
 ```mermaid
 flowchart LR
-  A[AI agent<br/>e.g. Claude Code] -->|a11y_run_tt_tests| S[A11y Assist<br/>MCP server]
-  A -->|a11y_answer_questions| S
+  A[AI agent<br/>e.g. Claude Code] -->|tobi_run_tt_tests| S[TOBI<br/>MCP server]
+  A -->|tobi_answer_questions| S
   S --> R[Record page once<br/>replay every pass]
   R --> W[Shared keyboard walk<br/>Tab, Shift+Tab]
   W --> C[One check per TT test<br/>rows from its spec]
@@ -76,7 +76,7 @@ flowchart LR
 
 **Notes:**
 
-- **Two broad tools.** `a11y_run_tt_tests` takes a URL and test IDs. `a11y_answer_questions` takes the agent's answers to open questions.
+- **Two broad tools.** `tobi_run_tt_tests` takes a URL and test IDs. `tobi_answer_questions` takes the agent's answers to open questions.
 - **Resources.** `tt://5.1.3/...` serves the TT text; `run://` serves a run's evidence while it is kept.
 - **Prompt.** `explain` covers a test or a result in plain language.
 - **Python stack.** FastMCP, Pydantic and Playwright, from the GSA template.
@@ -198,10 +198,11 @@ flowchart LR
 - Evidence kept 24 h, then deleted; results go to the user's repository
 - No secrets in errors or logs: query strings, headers and page text are redacted
 - Every result says "not a certified Trusted Tester result"
+- Hosted only behind NASA sign-in (Launchpad through VAST's Keycloak, NAMS enforced); each person sees only their own runs; every call is audited with who and what **[PENDING: end-to-end sign-in on VAST]**
 
 **Notes:**
 
-- The template's default of opening an unauthenticated HTTP port on all interfaces is gone: stdio by default, HTTP only on loopback with Host and Origin checks. **[PENDING]** Authentication before any hosted demo.
+- The template's default of opening an unauthenticated HTTP port on all interfaces is gone: stdio by default, HTTP only on loopback with Host and Origin checks unless sign-in is on. With sign-in, every MCP request needs a NASA token, an optional VAMS or NAMS group gate applies, runs are private to their maker, and each call writes an audit line (no answers or page text).
 - Errors and logs carry no query strings, headers, stack traces or page text; a test seeds secrets and checks they don't leak.
 
 ---
@@ -229,7 +230,7 @@ flowchart LR
 
 - **[FILL: remaining Test 4 work at submission]**
 - Real-site holdout with a second certified tester
-- A published side-by-side on real .gov pages: certified testers, A11y Assist and five scanners
+- A published side-by-side on real .gov pages: certified testers, TOBI and five scanners
 - Export drafts to DHS's SCRT format so a certified tester can review and finish them
 - Test 2 (2.A Audio control, 2.B Blinking and moving, 2.C Auto-updating, 2.D Change notification; 1.0.0): a second browser watches the page with autoplay allowed, then tries the controls near changing content with the keyboard (W3C ACT efbfc7 11/11 and 80f0bf, 4c31df, aaa1bf 14/14 as expected; judge eval 18/18, no false PASS)
 - Built after Test 4: 5.D On input (forms that change context when filled in), 5.F Error identification and 5.G Error suggestion (forms whose errors are not named, explained, announced or fixable), 5.A Label provided, 5.B Label descriptive and 5.C Programmatic label (labels people can see, and what ANDI says screen readers announce); 5.H Error prevention (payments and other consequential forms can be reviewed, undone or checked), which completes Test 5

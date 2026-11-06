@@ -12,8 +12,8 @@ import time
 import pytest
 import uvicorn
 
-from a11y_assist import app
-from a11y_assist.config import Settings
+from tobi508 import app
+from tobi508.config import Settings
 
 
 @pytest.fixture

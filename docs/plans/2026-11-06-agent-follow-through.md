@@ -10,7 +10,7 @@ used round 1's plain task prompt (nothing about this tool, no time
 pressure). The agent answered every question once that was the obvious
 next step. It skipped what cost extra calls:
 - most follow-up calls (1 of about 6 collected);
-- the final no-job_id `a11y_run_status` check;
+- the final no-job_id `tobi_run_status` check;
 - every picture ("unsure, not viewed").
 
 Its debrief: "Nothing was unclear… mostly effort and time… each skip felt
@@ -61,7 +61,7 @@ that; the tool has to make the complete path the cheap one.
 
 ### 1. One call finishes the outstanding work
 
-- `a11y_run_status` with `finish=true` (no job_id) starts every
+- `tobi_run_status` with `finish=true` (no job_id) starts every
   outstanding follow-up call the server may make by itself, as one job,
   and waits like any run. Its result is the outstanding list again, with
   each run's new findings.
@@ -79,7 +79,7 @@ that; the tool has to make the complete path the cheap one.
   never as work silently dropped.
 - **Check:** a tool test with two runs that have follow-ups; the
   dev-round run shows follow-ups collected.
-- **Status:** built (2026-11-06). `a11y_run_status` with `finish=true`
+- **Status:** built (2026-11-06). `tobi_run_status` with `finish=true`
   (`pipeline.take_follow_ups`, `record_follow_up`; the report records each
   call made in `follow_ups_made`, so it is made once). Abby, 2026-11-06:
   the server may visit 19.A's suggested pages, so 19.A's call is made by
@@ -96,7 +96,7 @@ that; the tool has to make the complete path the cheap one.
   change.
 - Every FindingView whose outcome depends on remaining work says so in a
   field (`waiting_on`), so a careless relay still reads as incomplete.
-- `a11y_answer_questions`' result carries the same status.
+- `tobi_answer_questions`' result carries the same status.
 - **Check:** model and tool tests; no outcome logic changes (outcomes still
   come only from the specs).
 - **Status:** built (`models.Remaining`, `FindingView.waiting_on`;
@@ -127,13 +127,13 @@ that admits nobody looked), and build these, the to-do list first.
 
    **Status:** built (`pipeline.todo`; `tests/test_tools.py::test_every_result_ends_with_its_to_do_list`).
 2. **Paged open questions.** At most 10 per result (`QUESTION_PAGE`), each
-   with its pictures. Each a11y_answer_questions result brings the next 10,
+   with its pictures. Each tobi_answer_questions result brings the next 10,
    so no page argument is needed. `more_questions`, the to-do list and
    `next_step` say how many are left. The report and the outstanding list
    keep them all.
 
    **Status:** built (`tests/test_models.py::test_open_questions_come_ten_at_a_time`).
-3. **Answers for several runs in one a11y_answer_questions call: deferred
+3. **Answers for several runs in one tobi_answer_questions call: deferred
    (2026-11-06).** Each run's answer result carries that run's findings,
    its next questions and their pictures. One call across five runs would
    bring the large results back, which works against item 2. Revisit if
@@ -175,7 +175,7 @@ that admits nobody looked), and build these, the to-do list first.
   - **Needed first:** progress the user sees, not only the agent.
     Progress notifications per phase and page exist; check what Claude
     Code and other clients show of them.
-  - **Each `a11y_run_status` return carries a one-line human status**
+  - **Each `tobi_run_status` return carries a one-line human status**
     (phase, page, stops walked of the estimate, elapsed, a rough ETA) for
     the agent to relay.
   - **Shorter waits per call** so updates come more often.

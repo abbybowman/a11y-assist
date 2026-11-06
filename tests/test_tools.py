@@ -11,15 +11,15 @@ from pathlib import Path
 import pytest
 from fastmcp import Client
 
-from a11y_assist import config
-from a11y_assist.app import mcp
-from a11y_assist.models import (
+from tobi508 import config
+from tobi508.app import mcp
+from tobi508.models import (
     OpenQuestion,
     Outcome,
     Report,
     TestId,
 )
-from a11y_assist.runlog import RunRecorder
+from tobi508.runlog import RunRecorder
 
 from .conftest import FIXTURES
 
@@ -38,7 +38,7 @@ async def _call(name: str, args: dict) -> dict:
 async def test_tools_are_listed():
     async with Client(mcp) as client:
         names = {t.name for t in await client.list_tools()}
-    assert {"a11y_run_tt_tests", "a11y_answer_questions"} <= names
+    assert {"tobi_run_tt_tests", "tobi_answer_questions"} <= names
     # Old names are gone (renamed with the service prefix, 2026-11-01).
     assert not {"run_tt_tests", "answer_questions"} & names
     assert not {"collect_keyboard_evidence", "submit_judgments"} & names
@@ -46,7 +46,7 @@ async def test_tools_are_listed():
 
 async def test_no_time_limit_is_an_opt_in_input():
     async with Client(mcp) as client:
-        [tool] = [t for t in await client.list_tools() if t.name == "a11y_run_tt_tests"]
+        [tool] = [t for t in await client.list_tools() if t.name == "tobi_run_tt_tests"]
     prop = tool.inputSchema["properties"]["no_time_limit"]
     assert prop["type"] == "boolean" and prop["default"] is False
     assert "no_time_limit=true" in tool.description
@@ -54,7 +54,7 @@ async def test_no_time_limit_is_an_opt_in_input():
 
 async def test_run_tt_tests_on_http_page(settings, server):
     out = await _call(
-        "a11y_run_tt_tests", {"url": f"{server.base}/no_trap.html", "tests": ["4.C"]}
+        "tobi_run_tt_tests", {"url": f"{server.base}/no_trap.html", "tests": ["4.C"]}
     )
     assert out["errors"] == []
     assert "NOT a certified" in out["disclaimer"]
@@ -124,7 +124,7 @@ async def test_run_tt_tests_on_http_page(settings, server):
 
 async def test_collect_on_file_fixture_in_dev_mode(settings):
     url = (FIXTURES / "4c/f04-field-swallows-tab.html").as_uri()
-    out = await _call("a11y_run_tt_tests", {"url": url, "tests": ["4.C"]})
+    out = await _call("tobi_run_tt_tests", {"url": url, "tests": ["4.C"]})
     assert out["errors"] == []
     # The field swallows Tab: P1 ends as soon as it is stuck for 3 presses.
     assert out["walk"]["P1"]["end"] == "stuck"
@@ -135,7 +135,7 @@ async def test_collect_on_file_fixture_in_dev_mode(settings):
 
 async def test_selected_tests_are_deduplicated_and_ordered(settings):
     url = (FIXTURES / "no_trap.html").as_uri()
-    out = await _call("a11y_run_tt_tests", {"url": url, "tests": ["4.E", "4.A", "4.E"]})
+    out = await _call("tobi_run_tt_tests", {"url": url, "tests": ["4.E", "4.A", "4.E"]})
     assert out["errors"] == []
     assert out["tests"] == ["4.A", "4.E"]
     assert [f["test_id"] for f in out["findings"]] == ["4.A", "4.E"]
@@ -144,12 +144,12 @@ async def test_selected_tests_are_deduplicated_and_ordered(settings):
 async def test_no_test_is_reported_not_tested(settings):
     url = (FIXTURES / "no_trap.html").as_uri()
     out = await _call(
-        "a11y_run_tt_tests", {"url": url, "tests": [t.value for t in TestId]}
+        "tobi_run_tt_tests", {"url": url, "tests": [t.value for t in TestId]}
     )
     assert out["errors"] == []
     by_id = {f["test_id"]: f for f in out["findings"]}
     assert set(by_id) == {t.value for t in TestId}
-    from a11y_assist.checks import REGISTRY
+    from tobi508.checks import REGISTRY
 
     built = {t.value for t in REGISTRY}
     # The page's one email field is not checked by anything (no form, no
@@ -198,7 +198,7 @@ async def test_no_test_is_reported_not_tested(settings):
 async def test_invalid_test_selection_is_rejected_by_schema(settings, tests):
     async with Client(mcp) as client:
         result = await client.call_tool(
-            "a11y_run_tt_tests",
+            "tobi_run_tt_tests",
             {"url": "https://x.gov", "tests": tests},
             raise_on_error=False,
         )
@@ -214,7 +214,7 @@ async def _call_error(name: str, args: dict) -> str:
 
 async def test_disallowed_url_is_a_tool_error_without_browsing(settings, server):
     msg = await _call_error(
-        "a11y_run_tt_tests", {"url": f"http://localhost:{server.port}/dyn"}
+        "tobi_run_tt_tests", {"url": f"http://localhost:{server.port}/dyn"}
     )
     assert "not allowed" in msg
     assert server.hits[("localhost", "/dyn")] == 0
@@ -222,7 +222,7 @@ async def test_disallowed_url_is_a_tool_error_without_browsing(settings, server)
 
 
 async def test_redirect_out_of_allowlist_is_a_tool_error(settings, server):
-    msg = await _call_error("a11y_run_tt_tests", {"url": f"{server.base}/redir-bad"})
+    msg = await _call_error("tobi_run_tt_tests", {"url": f"{server.base}/redir-bad"})
     assert "blocked" in msg.lower()
     assert server.hits[("localhost", "/landed")] == 0
     assert not any(settings.runs_dir.iterdir())  # nothing kept for an untested page
@@ -232,14 +232,14 @@ async def test_a_walk_that_fails_still_gives_findings(settings, monkeypatch):
     """Post-round 1 fix 1: an unexpected error in the walk (an embed that
     detached) is an error in the result, not a tool error; tests that need
     the walk are left for review and the rest still run."""
-    from a11y_assist import pipeline
+    from tobi508 import pipeline
 
     async def broken(*a, **kw):
         raise RuntimeError("Frame.frame_element: Frame has been detached.")
 
     monkeypatch.setattr(pipeline, "walk_page", broken)
     url = (FIXTURES / "no_trap.html").as_uri()
-    out = await _call("a11y_run_tt_tests", {"url": url, "tests": ["4.C", "5.A"]})
+    out = await _call("tobi_run_tt_tests", {"url": url, "tests": ["4.C", "5.A"]})
     assert any("keyboard walk failed" in e for e in out["errors"]), out["errors"]
     assert {f["test_id"]: f["outcome"] for f in out["findings"]}["4.C"] == (
         Outcome.NEEDS_REVIEW.value
@@ -249,14 +249,14 @@ async def test_a_walk_that_fails_still_gives_findings(settings, monkeypatch):
 
 async def test_an_unexpected_error_leaves_no_run_folder(settings, monkeypatch):
     """A call that ends in a tool error leaves no run folder (CLAUDE.md)."""
-    from a11y_assist import pipeline
+    from tobi508 import pipeline
 
     def broken(*a, **kw):
         raise RuntimeError("boom")
 
     monkeypatch.setattr(pipeline, "_context", broken)
     url = (FIXTURES / "no_trap.html").as_uri()
-    await _call_error("a11y_run_tt_tests", {"url": url, "tests": ["4.C"]})
+    await _call_error("tobi_run_tt_tests", {"url": url, "tests": ["4.C"]})
     assert not any(settings.runs_dir.iterdir())
 
 
@@ -264,22 +264,22 @@ async def test_a_run_longer_than_the_call_wait_continues_in_the_background(
     settings, monkeypatch
 ):
     """Post-round 1 fixes 2 and 5 (option C): a call returns the job id and
-    progress after call_wait_s; the run goes on, and a11y_run_status returns
+    progress after call_wait_s; the run goes on, and tobi_run_status returns
     its full result. Nothing is started twice."""
-    from a11y_assist import jobs
+    from tobi508 import jobs
 
     monkeypatch.setattr(
         config, "settings", settings.model_copy(update={"call_wait_s": 1})
     )
     url = (FIXTURES / "no_trap.html").as_uri()
-    first = await _call("a11y_run_tt_tests", {"url": url, "tests": ["4.C"]})
+    first = await _call("tobi_run_tt_tests", {"url": url, "tests": ["4.C"]})
     assert first["status"] in ("queued", "running"), first
     assert (
-        first["job_id"].startswith("job-") and "a11y_run_status" in first["next_step"]
+        first["job_id"].startswith("job-") and "tobi_run_status" in first["next_step"]
     )
     got = first
     for _ in range(120):
-        got = await _call("a11y_run_status", {"job_id": first["job_id"]})
+        got = await _call("tobi_run_status", {"job_id": first["job_id"]})
         if got["status"] == "done":
             break
     assert got["status"] == "done", got
@@ -289,7 +289,7 @@ async def test_a_run_longer_than_the_call_wait_continues_in_the_background(
 
 
 async def test_run_status_of_an_unknown_job_is_a_tool_error(settings):
-    msg = await _call_error("a11y_run_status", {"job_id": "job-000000000000"})
+    msg = await _call_error("tobi_run_status", {"job_id": "job-000000000000"})
     assert "start the run again" in msg
 
 
@@ -298,7 +298,7 @@ async def test_runs_beyond_the_cap_wait_without_using_their_time(settings):
     started, so its time limit has not either."""
     import asyncio
 
-    from a11y_assist import jobs
+    from tobi508 import jobs
 
     s = settings.model_copy(update={"max_concurrent_runs": 1})
     gate = asyncio.Event()
@@ -325,8 +325,8 @@ async def test_runs_beyond_the_cap_wait_without_using_their_time(settings):
 
 def _seed_run_with_question(settings) -> tuple[str, str]:
     run = RunRecorder(settings.runs_dir)
-    from a11y_assist.models import utcnow
-    from a11y_assist.versions import collect_versions
+    from tobi508.models import utcnow
+    from tobi508.versions import collect_versions
 
     q = OpenQuestion(
         question_id="q1",
@@ -354,7 +354,7 @@ async def test_answer_questions_records_and_rejects_invalid(settings):
     run_id, report_path = _seed_run_with_question(settings)
     j1 = {"documented": "no"}
     out = await _call(
-        "a11y_answer_questions",
+        "tobi_answer_questions",
         {
             "run_id": run_id,
             "answers": [
@@ -370,7 +370,7 @@ async def test_answer_questions_records_and_rejects_invalid(settings):
     # A person's answer overrides the model's.
     yes = {"documented": "yes", "keys": ["Escape"], "quote": "Press Esc"}
     out = await _call(
-        "a11y_answer_questions",
+        "tobi_answer_questions",
         {
             "run_id": run_id,
             "answers": [
@@ -399,7 +399,7 @@ _ANSWER = {
 async def test_answer_questions_rejects_path_like_run_id_by_schema(settings):
     async with Client(mcp) as client:
         result = await client.call_tool(
-            "a11y_answer_questions",
+            "tobi_answer_questions",
             {"run_id": "../etc", "answers": [_ANSWER]},
             raise_on_error=False,
         )
@@ -408,14 +408,14 @@ async def test_answer_questions_rejects_path_like_run_id_by_schema(settings):
 
 async def test_answer_questions_unknown_run_id_is_a_tool_error(settings):
     msg = await _call_error(
-        "a11y_answer_questions", {"run_id": "missing-run", "answers": [_ANSWER]}
+        "tobi_answer_questions", {"run_id": "missing-run", "answers": [_ANSWER]}
     )
     assert "No run named" in msg
 
 
 async def test_evidence_is_readable_as_resources_and_confined(settings, server):
     out = await _call(
-        "a11y_run_tt_tests", {"url": f"{server.base}/no_trap.html", "tests": ["4.C"]}
+        "tobi_run_tt_tests", {"url": f"{server.base}/no_trap.html", "tests": ["4.C"]}
     )
     async with Client(mcp) as client:
         [content] = await client.read_resource(f"run://{out['run_id']}/report.json")
@@ -432,17 +432,17 @@ async def test_old_runs_expire(settings, server):
     import os
     import time
 
-    from a11y_assist.runlog import prune_runs
+    from tobi508.runlog import prune_runs
 
     out = await _call(
-        "a11y_run_tt_tests", {"url": f"{server.base}/no_trap.html", "tests": ["4.C"]}
+        "tobi_run_tt_tests", {"url": f"{server.base}/no_trap.html", "tests": ["4.C"]}
     )
     run_dir = settings.runs_dir / out["run_id"]
     old = time.time() - 25 * 3600
     os.utime(run_dir / "report.json", (old, old))
     assert prune_runs(settings.runs_dir, 24) == 1 and not run_dir.exists()
     msg = await _call_error(
-        "a11y_answer_questions", {"run_id": out["run_id"], "answers": [_ANSWER]}
+        "tobi_answer_questions", {"run_id": out["run_id"], "answers": [_ANSWER]}
     )
     assert "may have expired" in msg and "/" not in msg.split("(")[0]
 
@@ -490,7 +490,7 @@ async def test_explain_finds_tests_by_words_criterion_or_name(settings):
 
 async def test_explain_after_a_run(settings, server):
     out = await _call(
-        "a11y_run_tt_tests", {"url": f"{server.base}/no_trap.html", "tests": ["4.C"]}
+        "tobi_run_tt_tests", {"url": f"{server.base}/no_trap.html", "tests": ["4.C"]}
     )
     [f] = out["findings"]
     assert f["reference"] == "tt://5.1.3/tests/4.C"
@@ -506,17 +506,17 @@ async def test_explain_after_a_run(settings, server):
 async def test_tool_descriptions_follow_the_registry():
     # The implemented-test list and the default come from checks.REGISTRY, so
     # they cannot go stale when a check is added.
-    from a11y_assist.checks import REGISTRY
+    from tobi508.checks import REGISTRY
 
     async with Client(mcp) as client:
         tools = {t.name: t for t in await client.list_tools()}
-    run = tools["a11y_run_tt_tests"]
+    run = tools["tobi_run_tt_tests"]
     built = [t.value for t in TestId if t in REGISTRY]
     assert run.inputSchema["properties"]["tests"]["default"] == built
     for t in REGISTRY:
         assert f"{t.value} ({t.tt_name})" in run.description
     assert "subagent" in run.description and "certified" in run.description
-    answer = tools["a11y_answer_questions"].inputSchema
+    answer = tools["tobi_answer_questions"].inputSchema
     assert "duration_ms" in str(answer)
 
 
@@ -524,7 +524,7 @@ async def test_open_questions_are_named_in_the_summary(settings, server):
     # While a question is open the summary says so, instead of "a person needs
     # to check it" (the agent answers it next). Wording only.
     url = f"{server.base}/4a/f01-click-only-text.html"
-    out = await _call("a11y_run_tt_tests", {"url": url, "tests": ["4.A"]})
+    out = await _call("tobi_run_tt_tests", {"url": url, "tests": ["4.A"]})
     [f] = out["findings"]
     assert f["outcome"] == "NEEDS_REVIEW"
     assert f["summary"].startswith("This test is not finished yet: 1 question about")
@@ -533,7 +533,7 @@ async def test_open_questions_are_named_in_the_summary(settings, server):
     # Post-round 1 fix 4: the result says plainly what to do next.
     step = out["next_step"]
     assert step.startswith("Not finished: 4.A stay NEEDS_REVIEW until you answer")
-    assert "1 open question" in step and "one a11y_answer_questions call" in step
+    assert "1 open question" in step and "one tobi_answer_questions call" in step
     assert "never as a pass or a fail" in step
 
 
@@ -541,7 +541,7 @@ async def test_shared_evidence_is_sent_once(settings, server):
     # Judge eval 2026-10-31: every 4.A question repeated the whole stop list.
     # It now goes once per result, and questions name it.
     url = f"{server.base}/4a/f04-hover-only-menu.html"
-    out = await _call("a11y_run_tt_tests", {"url": url, "tests": ["4.A"]})
+    out = await _call("tobi_run_tt_tests", {"url": url, "tests": ["4.A"]})
     assert len(out["open_questions"]) == 2
     for q in out["open_questions"]:
         assert q["shared"] == ["stops"] and "stops" not in q["input"]
@@ -555,7 +555,7 @@ async def test_pictures_come_with_the_questions_that_name_them(settings, server)
     question, and next_step says so. The JSON result stays the first block."""
     async with Client(mcp) as client:
         res = await client.call_tool(
-            "a11y_run_tt_tests",
+            "tobi_run_tt_tests",
             {"url": f"{server.base}/5a/f09-icon-search-box.html", "tests": ["5.A"]},
             raise_on_error=False,
         )
@@ -576,8 +576,8 @@ async def test_pictures_come_with_the_questions_that_name_them(settings, server)
     assert "attached after this result" in out["next_step"]
     # Pictures get only the tokens the text leaves (2026-11-06: results with
     # 12 pictures were cut off by the client and lost questions).
-    from a11y_assist import inline
-    from a11y_assist.models import OpenQuestion
+    from tobi508 import inline
+    from tobi508.models import OpenQuestion
 
     oq = OpenQuestion.model_validate(q)
     blocks, left = inline.pictures([oq], budget=50)
@@ -591,7 +591,7 @@ async def test_shared_question_texts_are_sent_once(settings, server):
     phone boxes that each move focus on) carry a key into question_texts
     instead of the text; the report keeps the text in each question."""
     out = await _call(
-        "a11y_run_tt_tests",
+        "tobi_run_tt_tests",
         {"url": f"{server.base}/5d/f05-phone-auto-advance.html", "tests": ["5.D"]},
     )
     qs = [q for q in out["open_questions"] if q["test_id"] == "5.D"]
@@ -604,23 +604,23 @@ async def test_shared_question_texts_are_sent_once(settings, server):
 
 async def test_run_status_without_a_job_lists_the_work_left(settings, server):
     """The 2026-11-06 development run's debrief asked for one place that
-    lists what is left across a session's runs: a11y_run_status with no
+    lists what is left across a session's runs: tobi_run_status with no
     job_id. A run's open questions show until they are answered."""
-    from a11y_assist import jobs
+    from tobi508 import jobs
 
     jobs._JOBS.clear()
-    empty = await _call("a11y_run_status", {})
+    empty = await _call("tobi_run_status", {})
     assert empty["status"] == "outstanding" and empty["runs"] == []
     url = f"{server.base}/4a/f01-click-only-text.html"
-    out = await _call("a11y_run_tt_tests", {"url": url, "tests": ["4.A"]})
-    left = await _call("a11y_run_status", {})
+    out = await _call("tobi_run_tt_tests", {"url": url, "tests": ["4.A"]})
+    left = await _call("tobi_run_status", {})
     [r] = left["runs"]
     assert r["run_id"] == out["run_id"] and r["open_questions"] == 1
     assert r["tests_waiting"] == ["4.A"] and r["report_uri"] == out["report_uri"]
     assert "before you report to the user" in left["next_step"]
     [q] = out["open_questions"]
     await _call(
-        "a11y_answer_questions",
+        "tobi_answer_questions",
         {
             "run_id": out["run_id"],
             "answers": [
@@ -634,7 +634,7 @@ async def test_run_status_without_a_job_lists_the_work_left(settings, server):
             ],
         },
     )
-    after = await _call("a11y_run_status", {})
+    after = await _call("tobi_run_status", {})
     assert after["runs"] == [] and after["done"] == 1
     assert after["next_step"].startswith("Nothing is left")
     jobs._JOBS.clear()
@@ -644,53 +644,53 @@ async def test_every_result_ends_with_its_to_do_list(settings, server):
     """Agent follow-through plan, change 2b: development run 7's agent said
     the instructions were buried in large results. A short to-do list is the
     last content block of a run's result and of the outstanding list."""
-    from a11y_assist import jobs
+    from tobi508 import jobs
 
     jobs._JOBS.clear()
     url = f"{server.base}/4a/f01-click-only-text.html"
     async with Client(mcp) as client:
         res = await client.call_tool(
-            "a11y_run_tt_tests", {"url": url, "tests": ["4.A"]}
+            "tobi_run_tt_tests", {"url": url, "tests": ["4.A"]}
         )
         last = res.content[-1].text
         assert last.startswith("TO DO, before you report:")
         assert "[ ] Answer the 1 open question(s)" in last
-        assert "a11y_run_status with no job_id" in last
+        assert "tobi_run_status with no job_id" in last
         out = json.loads(res.content[0].text)
         assert out["todo"] == last.splitlines()[1:]
-        left = await client.call_tool("a11y_run_status", {})
+        left = await client.call_tool("tobi_run_status", {})
         assert "[ ] Answer 1 open question(s) left in 1 run(s)" in left.content[-1].text
     jobs._JOBS.clear()
 
 
 async def test_explain_holds_every_detail_a_result_leaves_out(settings, server):
     """Agent follow-through plan, change 2b: results get shorter, so every
-    finding's full summary, rule trail and W3C links must be one a11y_explain
+    finding's full summary, rule trail and W3C links must be one tobi_explain
     call away (the prompt's builder, now a tool the agent can call)."""
-    from a11y_assist import catalog
-    from a11y_assist.models import Report
-    from a11y_assist.runlog import RunRecorder
+    from tobi508 import catalog
+    from tobi508.models import Report
+    from tobi508.runlog import RunRecorder
 
     url = f"{server.base}/4a/f01-click-only-text.html"
     out = await _call(
-        "a11y_run_tt_tests", {"url": url, "tests": ["4.A", "4.C", "4.D", "4.E"]}
+        "tobi_run_tt_tests", {"url": url, "tests": ["4.A", "4.C", "4.D", "4.E"]}
     )
     run = RunRecorder.open(settings.runs_dir, out["run_id"])
     report = Report.model_validate_json(run.report_path.read_text("utf-8"))
     async with Client(mcp) as client:
-        res = await client.call_tool("a11y_explain", {"run_id": out["run_id"]})
+        res = await client.call_tool("tobi_explain", {"run_id": out["run_id"]})
         text = res.content[0].text
         one = (
             (
                 await client.call_tool(
-                    "a11y_explain", {"about": "4.A, 4.D", "run_id": out["run_id"]}
+                    "tobi_explain", {"about": "4.A, 4.D", "run_id": out["run_id"]}
                 )
             )
             .content[0]
             .text
         )
         general = (
-            (await client.call_tool("a11y_explain", {"about": "keyboard trap"}))
+            (await client.call_tool("tobi_explain", {"about": "keyboard trap"}))
             .content[0]
             .text
         )

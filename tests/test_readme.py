@@ -8,11 +8,11 @@ import re
 
 from fastmcp import Client
 
-from a11y_assist import config
-from a11y_assist.app import mcp
-from a11y_assist.config import REPO_ROOT, Settings
-from a11y_assist.models import TestId
-from a11y_assist.policy import check_url
+from tobi508 import config
+from tobi508.app import mcp
+from tobi508.config import REPO_ROOT, Settings
+from tobi508.models import TestId
+from tobi508.policy import check_url
 
 EXAMPLE = re.compile(r"<!-- example -->\n```json\n(.*?)\n```", re.S)
 
@@ -24,7 +24,7 @@ def _examples() -> list[dict]:
 
 async def test_examples_match_the_tool_schemas():
     examples = _examples()
-    runs = [e for e in examples if e["tool"] == "a11y_run_tt_tests"]
+    runs = [e for e in examples if e["tool"] == "tobi_run_tt_tests"]
     assert len(runs) >= 3
     async with Client(mcp) as client:
         schemas = {t.name: t.inputSchema for t in await client.list_tools()}
@@ -46,20 +46,20 @@ async def test_example_3_runs_as_described(settings, monkeypatch):
     run, answer = [
         e
         for e in _examples()
-        if "f06" in json.dumps(e) or e["tool"] == "a11y_answer_questions"
+        if "f06" in json.dumps(e) or e["tool"] == "tobi_answer_questions"
     ]
     fixture = REPO_ROOT / "tests/fixtures/4c/f06-script-loop.html"
     args = dict(run["arguments"], url=fixture.as_uri())
     assert run["arguments"]["url"].endswith("/tests/fixtures/4c/f06-script-loop.html")
     async with Client(mcp) as client:
         out = json.loads(
-            (await client.call_tool("a11y_run_tt_tests", args)).content[0].text
+            (await client.call_tool("tobi_run_tt_tests", args)).content[0].text
         )
         [finding] = out["findings"]
         assert finding["outcome"] == "NEEDS_REVIEW"
         assert [q["question_id"] for q in out["open_questions"]] == ["4.C-i1-J1"]
         a_args = dict(answer["arguments"], run_id=out["run_id"])
-        res = await client.call_tool("a11y_answer_questions", a_args)
+        res = await client.call_tool("tobi_answer_questions", a_args)
         done = json.loads(res.content[0].text)
     assert done["accepted"] == ["4.C-i1-J1"] and done["open_questions"] == []
     [finding] = done["findings"]
@@ -68,8 +68,8 @@ async def test_example_3_runs_as_described(settings, monkeypatch):
 
 
 def test_tests_in_scope_table_matches_the_registry():
-    from a11y_assist import catalog
-    from a11y_assist.checks import REGISTRY
+    from tobi508 import catalog
+    from tobi508.checks import REGISTRY
 
     text = (REPO_ROOT / "README.md").read_text("utf-8")
     section = text.split("## TT tests in scope", 1)[1].split("\n## ", 1)[0]
@@ -79,7 +79,7 @@ def test_tests_in_scope_table_matches_the_registry():
 
 
 def test_tests_in_scope_table_shows_each_spec_version_and_links_it():
-    from a11y_assist import rules
+    from tobi508 import rules
 
     text = (REPO_ROOT / "README.md").read_text("utf-8")
     section = text.split("## TT tests in scope", 1)[1].split("\n## ", 1)[0]
@@ -89,7 +89,7 @@ def test_tests_in_scope_table_shows_each_spec_version_and_links_it():
     specs = rules.load_specs(REPO_ROOT / "docs/rules")
     versions = rules.spec_versions(REPO_ROOT / "docs/rules")
     # Implemented tests only: a draft spec (0.y.z, such as 3.A) has no row.
-    from a11y_assist.checks import REGISTRY
+    from tobi508.checks import REGISTRY
 
     assert [i for i, _, _ in rows] == [
         t.value for t in TestId if t in specs and t in REGISTRY

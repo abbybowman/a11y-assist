@@ -291,7 +291,9 @@ class Agent:
 
 
 def leak_values() -> list[str]:
-    vals = ["a11y_assist", "a11y-assist", "a11y assist", "trusted tester"]
+    # Old and new names: earlier rounds ran under a11y-assist.
+    vals = ["tobi508", "508-tobi", "a11y_assist", "a11y-assist", "a11y assist"]
+    vals.append("trusted tester")
     for key in ("user.email", "user.name"):
         try:
             v = subprocess.run(
@@ -395,8 +397,8 @@ async def run_arm(
         return await _run_arm(
             rd, arm, provider, servers, check_leaks, name, prompt_version
         )
-    from a11y_assist.config import Settings
-    from a11y_assist.egress import EgressProxy
+    from tobi508.config import Settings
+    from tobi508.egress import EgressProxy
 
     out = (rd / "results" / name).resolve()
     async with EgressProxy(egress_settings or Settings()) as proxy:

@@ -2,7 +2,7 @@
 
 MCP server that runs parts of the DHS Trusted Tester (TT) 5.1.3 Section 508
 web test process in a real Chrome browser and reports agent-assisted findings
-by TT test ID. Package: `a11y_assist` (name is provisional).
+by TT test ID. Package: `tobi508`.
 
 ## Principles (non-negotiable)
 
@@ -75,27 +75,27 @@ by TT test ID. Package: `a11y_assist` (name is provisional).
 - Read TT text (names, conditions, how to test, requirements, WCAG links)
   from `catalog.py` / `tt.json`, never retype it. Specs still cite the PDF's
   printed pages.
-- One tool per file in `src/a11y_assist/tools/`, registered in
+- One tool per file in `src/tobi508/tools/`, registered in
   `tools/__init__.py`. Tools are broad and outcome-based, not one per step:
-  `a11y_run_tt_tests`, `a11y_run_status`, `a11y_answer_questions`,
-  `a11y_read_report` and `a11y_explain` now (files `run_tt_tests.py`,
+  `tobi_run_tt_tests`, `tobi_run_status`, `tobi_answer_questions`,
+  `tobi_read_report` and `tobi_explain` now (files `run_tt_tests.py`,
   `run_status.py`, `answer_questions.py`, `read_report.py`, `explain.py`;
-  `a11y_explain` gives a test's explanation, or a run's full findings, from
+  `tobi_explain` gives a test's explanation, or a run's full findings, from
   `explain.py`, which the `explain` prompt shares (Abby, 2026-11-06: agents
   cannot call prompts and seldom read resources, and results keep one line
-  per finding); `a11y_run_status` waits for a
+  per finding); `tobi_run_status` waits for a
   run its call left running, or, with no job_id, lists the work left across
   the session's runs (with `finish=true` it also makes the follow-up calls
   the server may make itself); the last reads an SCRT or pre-SCRT file and
   lists what changed against another);
-  `verify_fix` (an option on a11y_run_tt_tests that takes a saved report),
+  `verify_fix` (an option on tobi_run_tt_tests that takes a saved report),
   merging a partial SCRT file, TT review and export, and fix advice for a
   read report (its own optional tool) planned
   (`docs/plans/2026-11-02-scrt-io.md`); other guidance goes in resources or
   a prompt, not a tool. Never put "trusted_tester" in a tool name (it could
   read as certification). Every tool name starts with the service prefix
-  `a11y_` (GSA template: names stay unique beside other MCP servers). Say "open questions" to users, not "judgments". Tool inputs are Pydantic-validated with precise
-  descriptions. The implemented-test list in `a11y_run_tt_tests`' description and
+  `tobi_` (GSA template: names stay unique beside other MCP servers). Say "open questions" to users, not "judgments". Tool inputs are Pydantic-validated with precise
+  descriptions. The implemented-test list in `tobi_run_tt_tests`' description and
   its default come from `checks.REGISTRY`; never hardcode them.
 - Keep tool output small: the full report is a `run://` resource
   (`report_uri`), never inline; evidence several questions share goes once in
@@ -123,7 +123,7 @@ by TT test ID. Package: `a11y_assist` (name is provisional).
   client reads `report_uri` and saves it before `expires_at`), and one tool
   call returns within `CALL_WAIT_S` (default 45 s, under common MCP client
   timeouts and HTTP proxies): a run not done by then goes on as a job
-  (`jobs.py`) and `a11y_run_status` waits for it again (Abby, 2026-11-05,
+  (`jobs.py`) and `tobi_run_status` waits for it again (Abby, 2026-11-05,
   post-round 1 option C). One run stays within `RUN_LIMIT_S`
   (default 600 s since 2026-11-05, Abby: long polling freed it from client
   timeouts; it was 120 s), plus `OTHER_PAGE_S`
@@ -144,7 +144,7 @@ by TT test ID. Package: `a11y_assist` (name is provisional).
   19.A's suggested pages (links on the caller's pages to a site map, the
   home page or a breadcrumb, on the tested page's host; at most 5) go in a
   follow-up call, which the server makes itself when the agent calls
-  `a11y_run_status` with `finish=true` (Abby, 2026-11-06): they are other
+  `tobi_run_status` with `finish=true` (Abby, 2026-11-06): they are other
   pages like the caller's, allowlisted and on the tested page's host before
   and after redirects, each its own HAR. No other URL found on a page is
   visited.
@@ -157,7 +157,7 @@ by TT test ID. Package: `a11y_assist` (name is provisional).
 - What to build next is in `docs/ROADMAP.md` (a living list); the plan for
   the current step is in `docs/plans/`; lessons that save the next test time
   go in `docs/solutions/` (read its README before building). Adding a TT
-  test: follow the steps at the top of `src/a11y_assist/checks/base.py`.
+  test: follow the steps at the top of `src/tobi508/checks/base.py`.
 - Research before drafting a plan or spec, not after: read the TT text,
   the W3C Understanding page and its sufficient and failure techniques, the
   ACT rules and DHS's verdicts on their cases (act-tt data), and the ICT
@@ -175,7 +175,7 @@ by TT test ID. Package: `a11y_assist` (name is provisional).
 ## Layout
 
 ```
-src/a11y_assist/
+src/tobi508/
   app.py        FastMCP server (stdio by default)
   config.py     Settings (env / .env)
   policy.py     URL allowlist decision (pure)
@@ -223,10 +223,11 @@ src/a11y_assist/
     t19a.py     19.A multiple ways: links by kind, live site search, suggested pages, J1
   judgment.py   Judge interface: ClientJudge, ApiJudge (stub); answer recording
   pipeline.py   run_tt_tests / answer_questions orchestration (generic)
-  jobs.py       runs that outlive one call: the call wait, the run cap, a11y_run_status
+  jobs.py       runs that outlive one call: the call wait, the run cap, tobi_run_status
   inline.py     the pictures attached to a result for its open questions (capped)
   pagecache.py  other pages recorded and read once per server session (PAGE_CACHE_S)
   runlog.py     runs/<run_id>/ folder, steps.jsonl
+  access.py     hosted sign-in (AUTH=oidc): OIDC proxy, group gate, run owners, audit lines
   versions.py   version collection
   catalog.py    the TT 5.1.3 test catalog (from docs/sources/tt-5.1.3/tt.json)
   rules.py      loads docs/rules/ specs and their front matter versions
@@ -297,17 +298,14 @@ uv run python evals/judging.py scan evals/judging/<round>   # then apply, lock, 
 uv run python -m evals.agent.freeze evals/judging/<round>   # agent eval: then run --arm a|b, lock, score
 TEST_BROWSER_CHANNEL=chrome TEST_HEADED=1 uv run pytest   # installed Chrome, visible
 uv run ruff check . && uv run ruff format --check .
-uv run a11y-assist               # stdio MCP server
+uv run tobi508               # stdio MCP server
 ```
 
-## Renaming the package
+## Names
 
-The name `a11y_assist` is provisional. Modules import via `a11y_assist.*`, so
-a rename is mechanical:
-
-```bash
-git mv src/a11y_assist src/NEW_NAME
-grep -rl 'a11y_assist\|a11y-assist' --exclude-dir=.git --exclude-dir=.venv . \
-  | xargs sed -i 's/a11y_assist/NEW_NAME/g; s/a11y-assist/NEW-NAME/g'
-uv lock && uv run pytest
-```
+Section 508 TOBI (Tester-Oriented Browser Inspector). Repository, package,
+command and container image `tobi508` (renamed from `a11y_assist` /
+`a11y-assist` on 2026-11-06); MCP tools start with `tobi_`. Never rewrite
+`evals/judging/`: its runs, transcripts and `lock.json` hashes are records of
+what ran under the old name, and a locked round is scored with the code at
+its lock commit.

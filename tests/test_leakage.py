@@ -17,9 +17,9 @@ import threading
 import pytest
 from fastmcp import Client
 
-from a11y_assist import config
-from a11y_assist.app import mcp
-from a11y_assist.redact import safe_error, safe_url, scrub
+from tobi508 import config
+from tobi508.app import mcp
+from tobi508.redact import safe_error, safe_url, scrub
 
 QUERY_SECRET = "QSECRET-7f3a91"
 PAGE_SECRET = "PSECRET-c04e22"
@@ -103,7 +103,7 @@ async def test_secrets_stay_out_of_logs_on_a_tested_page(
 ):
     caplog.set_level(logging.DEBUG)
     url = f"{leaky}/page.html?token={QUERY_SECRET}"
-    result = await _call("a11y_run_tt_tests", {"url": url, "tests": ["4.C"]})
+    result = await _call("tobi_run_tt_tests", {"url": url, "tests": ["4.C"]})
     assert not result.is_error
     out = json.loads(result.content[0].text)
     _assert_clean("result errors", json.dumps(out["errors"]))
@@ -119,7 +119,7 @@ async def test_secrets_stay_out_of_logs_on_a_tested_page(
 async def test_secrets_stay_out_of_a_redirect_refusal(settings, leaky, capfd, caplog):
     caplog.set_level(logging.DEBUG)
     url = f"{leaky}/redir?token={QUERY_SECRET}"
-    result = await _call("a11y_run_tt_tests", {"url": url, "tests": ["4.C"]})
+    result = await _call("tobi_run_tt_tests", {"url": url, "tests": ["4.C"]})
     assert result.is_error
     msg = result.content[0].text
     assert "blocked" in msg.lower()
@@ -134,7 +134,7 @@ async def test_secrets_stay_out_of_a_load_failure(settings, capfd, caplog):
         s.bind(("127.0.0.1", 0))
         port = s.getsockname()[1]
     url = f"http://127.0.0.1:{port}/p?token={QUERY_SECRET}"
-    result = await _call("a11y_run_tt_tests", {"url": url, "tests": ["4.C"]})
+    result = await _call("tobi_run_tt_tests", {"url": url, "tests": ["4.C"]})
     assert result.is_error
     msg = result.content[0].text
     assert "could not be loaded" in msg
@@ -144,7 +144,7 @@ async def test_secrets_stay_out_of_a_load_failure(settings, capfd, caplog):
 
 
 async def test_unexpected_exception_is_one_redacted_line(settings, monkeypatch):
-    from a11y_assist.tools import run_tt_tests as tool
+    from tobi508.tools import run_tt_tests as tool
 
     async def boom(*args, **kwargs):
         raise RuntimeError(
@@ -154,7 +154,7 @@ async def test_unexpected_exception_is_one_redacted_line(settings, monkeypatch):
 
     monkeypatch.setattr(tool, "run_pipeline", boom)
     result = await _call(
-        "a11y_run_tt_tests", {"url": "https://x.gov/a", "tests": ["4.C"]}
+        "tobi_run_tt_tests", {"url": "https://x.gov/a", "tests": ["4.C"]}
     )
     assert result.is_error
     msg = result.content[0].text

@@ -7,12 +7,12 @@ from datetime import datetime, timezone
 import pytest
 from pydantic import ValidationError
 
-from a11y_assist.models import Finding, Outcome, Report, TestId, Versions
+from tobi508.models import Finding, Outcome, Report, TestId, Versions
 
 
 def _versions() -> Versions:
     return Versions(
-        a11y_assist="0",
+        tobi508="0",
         andi="29.2.2",
         jquery="3.7.1",
         playwright="1.63.0",
@@ -57,9 +57,9 @@ def test_report_cannot_claim_certification() -> None:
 def test_a_finding_is_one_line_in_tool_output():
     """Post-round 1 fix 6b, then agent follow-through change 2b: a page
     with 96 failing fields gave a 21k character summary. Tool output keeps
-    the first sentence, says a11y_explain has more, and leaves out rows and
+    the first sentence, says tobi_explain has more, and leaves out rows and
     links; the finding itself keeps everything."""
-    from a11y_assist.models import (
+    from tobi508.models import (
         SUMMARY_VIEW_MAX,
         Finding,
         FindingView,
@@ -76,7 +76,7 @@ def test_a_finding_is_one_line_in_tool_output():
         rows=["A3"] + [f"f{n}:M9" for n in range(96)] + ["G2"],
     )
     v = FindingView.of(f)
-    assert v.summary == "Some fields change the page. (More: a11y_explain.)"
+    assert v.summary == "Some fields change the page. (More: tobi_explain.)"
     assert v.confirmed is True and "rows" not in v.model_dump()
     long = FindingView.of(f.model_copy(update={"summary": "word " * 200}))
     assert len(long.summary) < SUMMARY_VIEW_MAX + 40 and "..." in long.summary
@@ -88,7 +88,7 @@ def test_a_finding_is_one_line_in_tool_output():
 def test_a_fail_names_confirmed_and_unconfirmed_instances_apart():
     """Fourth development run debrief: the agent asked which failures were
     confirmed and which still waited for answers. Tool output says both."""
-    from a11y_assist.models import Finding, FindingView, OpenQuestion
+    from tobi508.models import Finding, FindingView, OpenQuestion
 
     report = Report(
         run_id="r",
@@ -119,7 +119,7 @@ def test_a_fail_names_confirmed_and_unconfirmed_instances_apart():
 def test_results_say_incomplete_while_work_is_left():
     """Agent follow-through plan, change 2: whether work is left is in the
     data (work, remaining, waiting_on), not only in next_step's prose."""
-    from a11y_assist.models import Finding, FindingView, OpenQuestion, Remaining
+    from tobi508.models import Finding, FindingView, OpenQuestion, Remaining
 
     report = Report(
         run_id="r",
@@ -153,8 +153,8 @@ def test_an_answer_to_a_picture_question_must_say_what_it_shows():
     """Agent follow-through plan, change 3: development run 5's agent answered
     visual questions without opening a picture. An answer needs `seen`, or
     `picture_error` with unsure (kept, marked not viewed, for a person)."""
-    from a11y_assist.judgment import record_answers
-    from a11y_assist.models import Answer, ChoiceAnswer, OpenQuestion
+    from tobi508.judgment import record_answers
+    from tobi508.models import Answer, ChoiceAnswer, OpenQuestion
 
     def q(qid, image):
         return OpenQuestion(
@@ -214,8 +214,8 @@ def test_an_answer_to_a_picture_question_must_say_what_it_shows():
 def test_open_questions_come_ten_at_a_time():
     """Agent follow-through plan, change 2b (2): a result shows at most 10
     open questions; its to-do list and next_step say the rest follow."""
-    from a11y_assist.models import OpenQuestion
-    from a11y_assist.pipeline import QUESTION_PAGE, next_step, todo
+    from tobi508.models import OpenQuestion
+    from tobi508.pipeline import QUESTION_PAGE, next_step, todo
 
     report = Report(
         run_id="r",
