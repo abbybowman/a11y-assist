@@ -54,8 +54,8 @@ async def test_act_case(case_id, settings, act_server, drafts):  # noqa: F811
 def test_an_option_in_a_set_does_not_take_the_legend_as_its_label():
     """5.B 1.1.0 (5.A's rule): the legend is the option's group, never its
     label. Built evidence: no ACT or Baseline 5.B case has a radio set."""
-    from a11y_assist.checks.t5b import items_of
-    from a11y_assist.labels import Comp, LabelsPass
+    from tobi508.checks.t5b import items_of
+    from tobi508.labels import Comp, LabelsPass
 
     legend = {"text": "How should we contact you?", "shown": True, "group": True}
 
@@ -87,8 +87,8 @@ def test_an_option_in_a_set_does_not_take_the_legend_as_its_label():
 def test_an_incomplete_label_pass_is_never_dna():
     """5.B 1.1.0: when pass L stopped early, unread fields may have labels to
     judge, so no item is NEEDS REVIEW, not DNA (A2)."""
-    from a11y_assist.checks.t5b import State5B, evaluate
-    from a11y_assist.labels import Comp, LabelsPass
+    from tobi508.checks.t5b import State5B, evaluate
+    from tobi508.labels import Comp, LabelsPass
 
     field = Comp(n=1, css="#f", type="text")
     full = evaluate(State5B(lp=LabelsPass(components=[field])), [])
@@ -118,8 +118,8 @@ async def test_header_menu_buttons_are_not_a_form(settings, server, drafts):  # 
 def test_only_buttons_that_act_on_a_form_are_judged():
     """5.B 1.2.0: menu buttons, and buttons in a group with no labelled
     field, are not judged; a form's own submit button is."""
-    from a11y_assist.checks.t5b import items_of
-    from a11y_assist.labels import Comp, LabelsPass
+    from tobi508.checks.t5b import items_of
+    from tobi508.labels import Comp, LabelsPass
 
     shown = [{"text": "Email", "shown": True, "group": False}]
     comps = [

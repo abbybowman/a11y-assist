@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from a11y_assist.browser import new_context
-from a11y_assist.observe import observe
-from a11y_assist.traverse import INIT_JS, open_session
+from tobi508.browser import new_context
+from tobi508.observe import observe
+from tobi508.traverse import INIT_JS, open_session
 
 from .browser.conftest import PageServer
 

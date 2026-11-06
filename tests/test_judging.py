@@ -14,8 +14,8 @@ from pathlib import Path
 
 import pytest
 
-from a11y_assist import scrt
-from a11y_assist.models import Finding, Outcome, Report, TestId, Versions
+from tobi508 import scrt
+from tobi508.models import Finding, Outcome, Report, TestId, Versions
 
 from .conftest import FIXTURES
 
@@ -64,7 +64,7 @@ def _candidate(tmp_path: Path) -> str:
         target="https://example.gov/a",
         started_at=t,
         versions=Versions(
-            a11y_assist="0",
+            tobi508="0",
             andi="1",
             jquery="1",
             playwright="1",
@@ -139,7 +139,7 @@ def test_lock_refuses_answer_keys_or_open_pages(tmp_path):
         judging.lock(rd)
 
 
-@pytest.mark.parametrize("tamper", ["result", "pages", "stray_key", "code"])
+@pytest.mark.parametrize("tamper", ["result", "pages", "stray_key", "code", "moved"])
 def test_score_refuses_changes_after_the_lock(tmp_path, tamper, monkeypatch):
     rd = _round(tmp_path)
     judging.lock(rd)
@@ -156,10 +156,16 @@ def test_score_refuses_changes_after_the_lock(tmp_path, tamper, monkeypatch):
     elif tamper == "stray_key":
         (rd / "keys" / "other.json").write_text("[]")
         message = "match no page"
-    else:
+    elif tamper == "moved":  # a locked path that no longer exists (a rename)
         lk = rd / "results" / "lock.json"
         data = json.loads(lk.read_text())
         data["code"]["src/a11y_assist/compare.py"] = "0" * 64
+        lk.write_text(json.dumps(data))
+        message = "src/a11y_assist/compare.py"
+    else:
+        lk = rd / "results" / "lock.json"
+        data = json.loads(lk.read_text())
+        data["code"]["src/tobi508/compare.py"] = "0" * 64
         lk.write_text(json.dumps(data))
         # lock.json is outside the hashed files; the code hash is checked.
         message = "Comparison code changed"
@@ -203,7 +209,7 @@ async def test_apply_saves_each_page_and_one_bad_file_stops_only_its_page(
         return SimpleNamespace(rejected=[], open_questions=[])
 
     monkeypatch.setattr(je, "_answer_format", fmt)
-    monkeypatch.setattr("a11y_assist.pipeline.answer_questions", answered)
+    monkeypatch.setattr("tobi508.pipeline.answer_questions", answered)
     rd = tmp_path / "round"
     state = {
         pid: {"url": f"https://example.gov/{pid}", "run_id": pid, "round": 1}
@@ -223,7 +229,7 @@ async def test_apply_saves_each_page_and_one_bad_file_stops_only_its_page(
 
 
 def test_the_lock_covers_every_file_the_score_reads():
-    assert {"evals/judging.py", "src/a11y_assist/catalog.py"} <= set(judging.CODE)
+    assert {"evals/judging.py", "src/tobi508/catalog.py"} <= set(judging.CODE)
     assert all((judging.REPO / c).is_file() for c in judging.CODE)
 
 
@@ -319,10 +325,10 @@ def test_a_page_that_could_not_be_tested_shows_in_the_rates(tmp_path):
 
 # ── Scoring a tool file against an answer key (evals/scoring.py) ────────────
 
-from a11y_assist.compare import compare  # noqa: E402
-from a11y_assist.scrt import ScrtResult as R  # noqa: E402
 from evals.scoring import Verdict, rates, verdict  # noqa: E402
 from evals.scoring import score as score_page  # noqa: E402
+from tobi508.compare import compare  # noqa: E402
+from tobi508.scrt import ScrtResult as R  # noqa: E402
 
 
 @pytest.mark.parametrize(

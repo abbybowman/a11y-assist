@@ -33,4 +33,4 @@ USER app
 # stdio by default. HTTP still listens on loopback only until authentication
 # exists (see app.py), so this image is for running tests and runs, not yet
 # for serving MCP over the network.
-CMD ["uv", "run", "--no-sync", "a11y-assist"]
+CMD ["uv", "run", "--no-sync", "tobi508"]

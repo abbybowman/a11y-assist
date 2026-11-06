@@ -10,10 +10,10 @@ from pathlib import Path
 
 import pytest
 
-from a11y_assist.egress import EgressProxy
 from evals.agent.arms import PLAYWRIGHT_MCP as MCP_BIN
 from evals.agent.arms import browser_arm
 from evals.agent.freeze import freeze
+from tobi508.egress import EgressProxy
 
 from .conftest import LocalServer
 

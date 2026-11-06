@@ -9,8 +9,8 @@ from __future__ import annotations
 
 import pytest
 
-from a11y_assist.browser import NavigationBlocked, NavigationGuard, new_context
-from a11y_assist.capture import record, replay_context
+from tobi508.browser import NavigationBlocked, NavigationGuard, new_context
+from tobi508.capture import record, replay_context
 
 from .conftest import FIXTURES, noop_log
 

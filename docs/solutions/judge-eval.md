@@ -11,7 +11,7 @@ whose scripted answer was wrong (4.F f15).
 
 **What we do.** `evals/judge_eval.py` builds a packet per page from the real
 tool output, a fresh agent answers it, and `apply` sends the answers through
-`a11y_answer_questions` and scores. Run it after any change to a question, rubric
+`tobi_answer_questions` and scores. Run it after any change to a question, rubric
 or question input (CLAUDE.md principle 6).
 
 **Leaks we had to close** (each would have handed the agent the answer):

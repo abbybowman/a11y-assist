@@ -1,7 +1,7 @@
 name: Container image
 
 # Builds the Linux image and publishes it to GitHub's container registry
-# (ghcr.io/abbybowman/a11y-assist) for hosts that can't build it themselves,
+# (ghcr.io/abbybowman/tobi508) for hosts that can't build it themselves,
 # such as VAST. Run it by hand from the Actions tab, or push a change to what
 # goes into the image.
 on:

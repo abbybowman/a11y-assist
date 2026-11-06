@@ -55,7 +55,7 @@ spec), so its session code is not reused; its realm and client are.
   to a run: answers, `run://`, read_report, explain) treat another person's
   run as expired. Without sign-in nothing changes.
 - **Audit** (`access.AuditMiddleware`): one JSON line per tool call,
-  resource read and prompt, on the `a11y_assist.audit` logger (stderr):
+  resource read and prompt, on the `tobi508.audit` logger (stderr):
   `sub`, a name claim, action, tool, URL without query, run ID, test IDs,
   answer count, outcome, seconds. Never answers, page text or report
   content.
@@ -67,7 +67,7 @@ Anthropic's cloud and need a server reachable from the public internet
 (Anthropic, "Getting started with custom connectors", 2026-11-06), so they
 cannot reach VAST unless NASA admits Anthropic's IP ranges. Claude Code runs
 on the user's machine and connects from there:
-`claude mcp add --transport http a11y-assist https://508-tobi.vast.ndc.nasa.gov/mcp`.
+`claude mcp add --transport http tobi508 https://508-tobi.vast.ndc.nasa.gov/mcp`.
 NASA-internal tools (Ask Sage, ChatGSFC) take only MCP servers their admins
 add; whether they support remote HTTP and per-user OAuth is for their
 admins.
@@ -95,7 +95,7 @@ admins.
 
 1. Is there a persistent volume (the boilerplate's `/data`)? Runs and the
    proxy's client registrations (`FASTMCP_HOME`) should survive restarts.
-2. Can the build pipeline pull `ghcr.io/abbybowman/a11y-assist`, so the
+2. Can the build pipeline pull `ghcr.io/abbybowman/tobi508`, so the
    Containerfile is one `FROM` line (no apt under FIPS)?
 3. Is a service that drives Chromium acceptable in the namespace (4 CPU,
    16 GB was the dev container)?

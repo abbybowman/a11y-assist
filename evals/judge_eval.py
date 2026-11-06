@@ -31,9 +31,6 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO))
 
-from a11y_assist.config import Settings  # noqa: E402
-from a11y_assist.models import Answer, TestId  # noqa: E402
-from a11y_assist.pipeline import answer_questions, run_tt_tests  # noqa: E402
 from tests import (  # noqa: E402
     test_fixtures_2a,
     test_fixtures_2b,
@@ -59,6 +56,9 @@ from tests.conftest import (  # noqa: E402
     _BaselineHandler,
 )
 from tests.drafts import DRAFTS  # noqa: E402
+from tobi508.config import Settings  # noqa: E402
+from tobi508.models import Answer, TestId  # noqa: E402
+from tobi508.pipeline import answer_questions, run_tt_tests  # noqa: E402
 
 PARALLEL = 4
 
@@ -244,15 +244,15 @@ def _serve(handler):
 
 
 async def _answer_format() -> str:
-    """The a11y_answer_questions description and answers schema, as a client
+    """The tobi_answer_questions description and answers schema, as a client
     sees."""
     from fastmcp import Client
 
-    from a11y_assist.app import mcp
+    from tobi508.app import mcp
 
     async with Client(mcp) as c:
         tools = {t.name: t for t in await c.list_tools()}
-    a = tools["a11y_answer_questions"]
+    a = tools["tobi_answer_questions"]
     return (
         (a.description or "")
         + "\n\nanswers: "
@@ -532,7 +532,7 @@ async def apply(out: Path) -> None:
 
 if __name__ == "__main__":
     # Checks whose spec is still a draft are evaluated too (tests/drafts.py).
-    from a11y_assist.checks import REGISTRY
+    from tobi508.checks import REGISTRY
 
     REGISTRY.update(DRAFTS)
     # prepare OUT [TESTS]: TESTS (e.g. "5.F,5.G") limits the run to the

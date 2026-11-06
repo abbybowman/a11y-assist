@@ -7,9 +7,9 @@ from __future__ import annotations
 
 import pytest
 
-from a11y_assist.checks import REGISTRY
-from a11y_assist.checks.base import Check
-from a11y_assist.models import TestId
+from tobi508.checks import REGISTRY
+from tobi508.checks.base import Check
+from tobi508.models import TestId
 
 # None now: 2.A-2.D moved to the registry at 1.0.0 (2026-11-05).
 DRAFTS: dict[TestId, Check] = {}

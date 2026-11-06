@@ -8,8 +8,8 @@ from __future__ import annotations
 
 from fastmcp import FastMCP
 
-from a11y_assist.app import mcp
-from a11y_assist.config import settings
+from tobi508.app import mcp
+from tobi508.config import settings
 
 
 def test_server_is_importable():
@@ -17,7 +17,7 @@ def test_server_is_importable():
 
 
 def test_server_has_name():
-    assert mcp.name == "a11y-assist"
+    assert mcp.name == "tobi508"
 
 
 def test_default_transport_is_stdio():
@@ -26,25 +26,25 @@ def test_default_transport_is_stdio():
 
 
 def test_tools_register_without_error():
-    from a11y_assist.tools import register_tools
+    from tobi508.tools import register_tools
 
     register_tools(FastMCP("test"))  # must not raise
 
 
 def test_prompts_register_without_error():
-    from a11y_assist.prompts import register_prompts
+    from tobi508.prompts import register_prompts
 
     register_prompts(FastMCP("test"))  # must not raise
 
 
 def test_resources_register_without_error():
-    from a11y_assist.resources import register_resources
+    from tobi508.resources import register_resources
 
     register_resources(FastMCP("test"))  # must not raise
 
 
 def test_routes_register_without_error():
-    from a11y_assist.routes import register_routes
+    from tobi508.routes import register_routes
 
     register_routes(FastMCP("test"))  # must not raise
 
@@ -56,7 +56,7 @@ def test_instructions_have_a_tool_selection_guide():
 
     from fastmcp import Client
 
-    from a11y_assist.checks import REGISTRY
+    from tobi508.checks import REGISTRY
 
     async def names():
         async with Client(mcp) as client:

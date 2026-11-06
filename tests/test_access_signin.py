@@ -24,8 +24,8 @@ from fastmcp import Client, FastMCP
 from fastmcp.server.auth.providers.jwt import RSAKeyPair
 from joserfc import jwk
 
-from a11y_assist import access
-from a11y_assist.runlog import RunRecorder
+from tobi508 import access
+from tobi508.runlog import RunRecorder
 
 KEYS = RSAKeyPair.generate()
 CLIENT_CB = "http://localhost:9/cb"  # never contacted: the test reads the redirect
@@ -245,10 +245,10 @@ async def test_the_signed_in_person_is_the_caller(server, caplog):
     import logging
 
     token = _sign_in(server, "alice")
-    with caplog.at_level(logging.INFO, logger="a11y_assist.audit"):
+    with caplog.at_level(logging.INFO, logger="tobi508.audit"):
         assert await _call(server, token, "whoami") == "alice"
     [line] = [
-        json.loads(r.message) for r in caplog.records if r.name == "a11y_assist.audit"
+        json.loads(r.message) for r in caplog.records if r.name == "tobi508.audit"
     ]
     assert line["sub"] == "alice" and line["who"] == "alice@nasa.gov"
 

@@ -8,16 +8,16 @@ import json
 
 from playwright.async_api import async_playwright
 
-from a11y_assist.browser import (
+from tobi508.browser import (
     FULL_CHROMIUM,
     launch_browser,
     replay_browser_name,
     replay_in_full_chromium,
 )
-from a11y_assist.capture import cross_site_frames, record, replay_context
-from a11y_assist.egress import EgressProxy
-from a11y_assist.models import TestId
-from a11y_assist.pipeline import run_tt_tests
+from tobi508.capture import cross_site_frames, record, replay_context
+from tobi508.egress import EgressProxy
+from tobi508.models import TestId
+from tobi508.pipeline import run_tt_tests
 
 from .conftest import noop_log
 

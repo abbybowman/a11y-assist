@@ -17,12 +17,12 @@ import uvicorn
 from fastmcp import FastMCP
 from fastmcp.server.auth.providers.jwt import RSAKeyPair
 
-from a11y_assist import access, app
-from a11y_assist.config import Settings
-from a11y_assist.resources import runs
-from a11y_assist.runlog import RunRecorder
+from tobi508 import access, app
+from tobi508.config import Settings
+from tobi508.resources import runs
+from tobi508.runlog import RunRecorder
 
-AUDIT = "a11y_assist.audit"
+AUDIT = "tobi508.audit"
 OIDC = dict(
     auth="oidc",
     mcp_transport="streamable-http",
@@ -108,7 +108,7 @@ async def test_group_gate_admits_a_listed_group():
 
 async def test_group_gate_refuses_and_audits_others(caplog):
     v = _verifier(["VAST--tobi--scan"])
-    with caplog.at_level(logging.INFO, logger="a11y_assist.audit"):
+    with caplog.at_level(logging.INFO, logger="tobi508.audit"):
         assert await v.verify_token(_token(claim_groups=["VAST--x--scan"])) is None
         assert await v.verify_token(_token()) is None
     denied = [json.loads(r.message) for r in caplog.records if r.name == AUDIT]
@@ -197,7 +197,7 @@ async def test_audit_middleware_logs_each_call(caplog):
     server.add_middleware(access.AuditMiddleware())
     from fastmcp import Client
 
-    with caplog.at_level(logging.INFO, logger="a11y_assist.audit"):
+    with caplog.at_level(logging.INFO, logger="tobi508.audit"):
         async with Client(server) as c:
             await c.call_tool("echo", {"url": "https://x.gov/p?q=1"})
             await c.call_tool("boom", {}, raise_on_error=False)

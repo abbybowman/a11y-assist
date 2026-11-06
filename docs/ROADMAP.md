@@ -80,7 +80,7 @@ test's leftovers are under "Per-test leftovers" below.
 - **Fixes found in agent eval round 1:** 20 fixes, all built, in
   [plans/2026-11-04-post-round1-fixes.md](plans/2026-11-04-post-round1-fixes.md)
   (PR #14), including MCP clients' tool timeouts as long polling (fix 2: a
-  call waits 45 s, then `a11y_run_status`; at most 2 runs at once) and
+  call waits 45 s, then `tobi_run_status`; at most 2 runs at once) and
   pages over the time limit (fix 5). Left: shared job state for a hosted,
   multi-worker server; the agent's follow-through is the next plan.
 - **`tt.json` steps for 7.C and 16.B.** Each repeats the previous
@@ -268,7 +268,7 @@ None blocks an outcome: each is NEEDS REVIEW-safe today.
   a second, hosted MCP server that keeps results inside NASA, with a
   dashboard for site owners, Trusted Testers and web governance. Its MVP
   was cut for the GSA hackathon demo (Nov 20).
-- **`compare_to` on `a11y_run_tt_tests`** (verify a fix) taking a saved report, not
+- **`compare_to` on `tobi_run_tt_tests`** (verify a fix) taking a saved report, not
   a server-side run ID (runs expire after `RUN_TTL_HOURS`).
 - **OpenACR export**, as a draft labelled agent-assisted; NEEDS_REVIEW maps
   to "not evaluated". TT tests map to WCAG criteria through `tt.json`

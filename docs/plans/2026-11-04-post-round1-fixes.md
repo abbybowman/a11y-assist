@@ -75,7 +75,7 @@ Evidence:
 ### 1. A detached frame crashes a run
 
 - **Found:** round 1, Agent A, Spot the Station (`www.nasa.gov`, 4
-  cross-site iframes). `a11y_run_tt_tests` failed after 44 s with
+  cross-site iframes). `tobi_run_tt_tests` failed after 44 s with
   `Frame.frame_element: Frame has been detached.`, a tool error with no
   findings. The same page with fewer other pages, called again, finished.
   It is intermittent: it depends on whether an embed reloads at that
@@ -125,7 +125,7 @@ Evidence:
 - **Decided (Abby, 2026-11-05): option C, long polling.** A call waits up
   to `CALL_WAIT_S` (45 s); a run not done by then goes on as a job and the
   result has `status` "queued" or "running" and a `job_id`;
-  `a11y_run_status` waits again (45 s a call) until `status` is "done",
+  `tobi_run_status` waits again (45 s a call) until `status` is "done",
   which is the usual result. Small runs are unchanged. Considered: (A) one
   call, a cap and documented client settings (breaks on any client with a
   60 s timeout, and needs every user to set environment variables); (B) a
@@ -133,7 +133,7 @@ Evidence:
   may end their turn instead).
 - **Status:** built (`jobs.py`, `tools/run_status.py`; tests in
   `test_tools.py`: a run past a 1 s wait finished through
-  `a11y_run_status`, one run folder; an unknown job). The README says how
+  `tobi_run_status`, one run folder; an unknown job). The README says how
   long to expect. Not checked yet: whether a real agent polls, rather than
   ending its turn; run an answering round with the new descriptions.
   Jobs live in memory: a hosted, multi-worker server needs shared state
@@ -160,7 +160,7 @@ Evidence:
   prompt (a real user's agent gets no special prompt): for example, the
   result says plainly that the findings are incomplete until the questions
   are answered, how many there are, and that answering takes one call;
-  check the `a11y_run_tt_tests` and `a11y_answer_questions` descriptions.
+  check the `tobi_run_tt_tests` and `tobi_answer_questions` descriptions.
   Then the judge eval on the new wording.
 - **Built:** every result has `next_step` (`pipeline.next_step`): with open
   questions, which tests stay NEEDS_REVIEW until they are answered, how
@@ -246,7 +246,7 @@ Evidence:
   without that page's results, and `arm-a-3` stopped mid-task with no
   result line. A Claude Code user's agent can read the file, but every
   client has some limit, and CLAUDE.md asks for small tool output.
-- **Fix (the tool):** keep `a11y_run_tt_tests`' result under common client
+- **Fix (the tool):** keep `tobi_run_tt_tests`' result under common client
   limits on a busy page (large evidence in `shared_inputs` and `run://`
   resources, not inline); measure the round 1 search page's result. The
   harness now gives both arms `Read`, allowed only in the CLI's folder of
@@ -322,7 +322,7 @@ Evidence:
   the answering half of the process. The three runs' reports keep all 119
   open questions with their evidence (`results/arm-a-*/runs/*/report.json`).
 - **Plan:** a development run, never scored: an agent answers those saved
-  questions with `a11y_answer_questions` on copies of the run folders, and
+  questions with `tobi_answer_questions` on copies of the run folders, and
   the answers are compared with the revealed keys, so we learn which
   questions the agent gets right before fix 4 changes how they are asked.
   The run folders' frozen recordings are pointer files; copy each named
@@ -526,7 +526,7 @@ Evidence:
   152 questions also led the agent to rerun the page six times.
 - **Fix:** ask once for a set of fields whose change and text before them
   are the same, with the set as instances, and apply the answer to each;
-  keep `a11y_run_tt_tests`' result small (fix 6b). Then the judge eval.
+  keep `tobi_run_tt_tests`' result small (fix 6b). Then the judge eval.
 - **Status:** built (5.D spec 1.1.0, `t5d.j1_groups`, fixture F15). On
   Missions' saved questions the rule makes 96 into 4 (Status 4, Types 32,
   Targets 37, Program 23). Judge eval run 18: F15's group question
@@ -662,7 +662,7 @@ asked for the details; checked on the frozen recordings, 2026-11-05.
   alongside the second round. Options, cheapest first:
   1. **Wording:** each visual question says "open `image_a` with your MCP
      client's read-resource tool (not a file reader)".
-  2. **A round with the images:** when `a11y_answer_questions` gets
+  2. **A round with the images:** when `tobi_answer_questions` gets
      "unsure" on a question a careful tester settles by looking (principle
      8's list), it returns that question again with its image inline (MCP
      image content, downscaled), once.
@@ -690,7 +690,7 @@ asked for the details; checked on the frozen recordings, 2026-11-05.
   Needs Abby's approval (CLAUDE.md: screenshots in a question are run://
   links).
 - **Approved (Abby, 2026-11-05): option 3.** Built (`inline.py`, used by
-  `a11y_run_tt_tests`, `a11y_run_status` and `a11y_answer_questions`): the
+  `tobi_run_tt_tests`, `tobi_run_status` and `tobi_answer_questions`): the
   result's JSON is the first content block, then each picture an open
   question names, after a caption naming its question and input key,
   longest side 1024 px, at most 12 pictures and 1.5 MB per result; the
@@ -730,7 +730,7 @@ Agent A, no special prompt, on five of round 1's frozen pages
 (`evals/judging/round1-postfix/README.md`): weighted 36 against the keys
 (round 1's runs on the same pages: 18-20), 37 agreements, no false PASS,
 one false FAIL (Artemis III 4.D, the covered player button). It answered
-12 of 13 questions and waited for long runs with `a11y_run_status`.
+12 of 13 questions and waited for long runs with `tobi_run_status`.
 Left: it never set `no_time_limit` (38 cells cut short, the largest loss),
 and it did not add 19.A's suggested pages.
 
@@ -787,7 +787,7 @@ Then (Abby, 2026-11-05):
   12 pictures to 150-545k characters. Fixed: pictures get the token budget
   the text leaves (`inline.TOKEN_BUDGET`, 20k), 768 px, at most 8. It also
   asked for one place that lists all outstanding work across a session's
-  runs. Built (Abby, 2026-11-06): `a11y_run_status` with no `job_id`
+  runs. Built (Abby, 2026-11-06): `tobi_run_status` with no `job_id`
   returns, for each finished run of the session, its open questions, the
   tests waiting for them and its follow-up calls (read from its report, so
   answers since count), and the runs still going. The report now keeps

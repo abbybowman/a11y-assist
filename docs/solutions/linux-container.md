@@ -11,7 +11,7 @@ can't be built on VAST.
 with uv, the dev group, and `playwright install --with-deps chromium`
 (Chromium, the headless shell and ffmpeg), running as uid 1000; about
 2.2 GB unpacked. `.github/workflows/container.yml` builds it and pushes
-`ghcr.io/abbybowman/a11y-assist:latest` and `:<sha>`; VAST only pulls and
+`ghcr.io/abbybowman/tobi508:latest` and `:<sha>`; VAST only pulls and
 runs it. `.dockerignore` keeps `.env`, `.venv`, `.git` and `runs/` out. It
 was first committed as `dockerignore`, without the dot, so Docker ignored it
 and the published image held `.git` (no secret was in it: CI checks out a
@@ -25,7 +25,7 @@ Run it detached, so a dropped ssh connection doesn't end it, and read the
 progress file:
 
 ```bash
-podman run -d --name tt ghcr.io/abbybowman/a11y-assist:latest uv run --no-sync pytest -n 4 -v -p no:cacheprovider
+podman run -d --name tt ghcr.io/abbybowman/tobi508:latest uv run --no-sync pytest -n 4 -v -p no:cacheprovider
 podman exec tt cat /app/runs/test-progress.txt
 podman logs tt 2>&1 | tail -30
 podman rm tt

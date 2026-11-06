@@ -8,12 +8,12 @@ import json
 
 from playwright.async_api import async_playwright
 
-from a11y_assist.browser import MOTION_BROWSER, launch_browser, launch_for
-from a11y_assist.capture import record, replay_context
-from a11y_assist.egress import EgressProxy
-from a11y_assist.models import TestId
-from a11y_assist.motion import MOTION_INIT_JS, pass_t
-from a11y_assist.pipeline import run_tt_tests
+from tobi508.browser import MOTION_BROWSER, launch_browser, launch_for
+from tobi508.capture import record, replay_context
+from tobi508.egress import EgressProxy
+from tobi508.models import TestId
+from tobi508.motion import MOTION_INIT_JS, pass_t
+from tobi508.pipeline import run_tt_tests
 
 from .conftest import noop_log
 from .drafts import drafts  # noqa: F401 (a fixture)
