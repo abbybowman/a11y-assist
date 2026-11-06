@@ -8,6 +8,6 @@
 <p><a href="#help">Help</a></p>
 <script>
 document.getElementById("state").addEventListener("change", (e) => {
-  if (e.target.value) location.href = "f01-other.html?state=" + e.target.value;
+  if (e.target.value) location.href = "f01-other.html?state=" + encodeURIComponent(e.target.value);
 });
 </script></body></html>
