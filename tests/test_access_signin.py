@@ -65,11 +65,13 @@ class _Keycloak(http.server.BaseHTTPRequestHandler):
             return self._json({"keys": [{**key, "kid": "k1", "use": "sig"}]})
         if path.path == "/auth":  # the person signs in at Launchpad
             q = parse_qs(path.query)
+            redirect_uri = q["redirect_uri"][0].replace("\r", "").replace("\n", "")
+            state = q["state"][0].replace("\r", "").replace("\n", "")
             back = (
-                q["redirect_uri"][0]
+                redirect_uri
                 + "?"
                 + urlencode(
-                    {"code": "up-" + _Keycloak.login_as, "state": q["state"][0]}
+                    {"code": "up-" + _Keycloak.login_as, "state": state}
                 )
             )
             self.send_response(302)
