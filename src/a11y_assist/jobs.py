@@ -37,6 +37,7 @@ ProgressFn = Callable[[float, float | None, str], Awaitable[None]]
 class Job:
     id: str
     url: str
+    tests: list[str] = field(default_factory=list)
     created: float = field(default_factory=time.monotonic)
     started: float | None = None  # when it got a browser slot
     finished: float | None = None

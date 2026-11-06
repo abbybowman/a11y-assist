@@ -467,6 +467,11 @@ class Report(BaseModel):
     other_pages: list[OtherPage] = Field(
         default_factory=list, description="Other pages of the same site compared."
     )
+    follow_ups_made: list[dict[str, Any]] = Field(
+        default_factory=list,
+        description="Follow-up calls the server made itself (a11y_run_status "
+        "finish=true): each call and the job_id of the run it started.",
+    )
     follow_up_calls: list[dict[str, Any]] = Field(
         default_factory=list,
         description="a11y_run_tt_tests calls that would let tests left for "
@@ -691,9 +696,10 @@ class RunResult(BaseModel):
         default_factory=list,
         description="a11y_run_tt_tests arguments, ready to send as they are, "
         "that let tests left for review decide (19.A with the pages it "
-        "suggests; a test left out over a cap, with no_time_limit). Make each "
-        "call yourself, without asking the user, after answering the open "
-        "questions, and replace those tests' results in the saved report.",
+        "suggests; a test left out over a cap, with no_time_limit). After "
+        "answering the open questions, call a11y_run_status with finish=true: "
+        "the server makes the calls it may make itself (all but no_time_limit, "
+        "the user's choice). Replace those tests' results in the saved report.",
     )
     run_id: str
     target: str
@@ -781,6 +787,16 @@ class Outstanding(BaseModel):
         default_factory=list, description="Runs still going: job_id, target, status."
     )
     done: int = Field(description="Finished runs with nothing left to do.")
+    started: list[dict[str, Any]] = Field(
+        default_factory=list,
+        description="Follow-up calls this call started (finish=true): job_id, "
+        "target, tests. They appear under `running` until they end.",
+    )
+    for_the_user: list[dict[str, Any]] = Field(
+        default_factory=list,
+        description="Follow-up calls the server does not make by itself "
+        "(no_time_limit is the user's choice): ask the user, then make them.",
+    )
     next_step: str
 
 
@@ -799,9 +815,10 @@ class AnswerResult(BaseModel):
         default_factory=list,
         description="a11y_run_tt_tests arguments, ready to send as they are, "
         "that let tests left for review decide (19.A with the pages it "
-        "suggests; a test left out over a cap, with no_time_limit). Make each "
-        "call yourself, without asking the user, after answering the open "
-        "questions, and replace those tests' results in the saved report.",
+        "suggests; a test left out over a cap, with no_time_limit). After "
+        "answering the open questions, call a11y_run_status with finish=true: "
+        "the server makes the calls it may make itself (all but no_time_limit, "
+        "the user's choice). Replace those tests' results in the saved report.",
     )
     run_id: str
     accepted: list[str]

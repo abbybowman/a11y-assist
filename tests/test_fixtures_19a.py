@@ -168,8 +168,49 @@ async def test_the_result_names_the_call_that_adds_the_suggested_pages(
         settings, f"{server.base}/19a/{page}.html", [TestId.T19A], other_pages=given
     )
     assert "follow_up_calls" in out.next_step
-    assert "without asking the user" in out.next_step
+    assert "finish=true" in out.next_step
     [call] = out.follow_up_calls
     assert call["tests"] == ["19.A"] and call["url"].endswith(f"/{page}.html")
     assert any(p.endswith("sitemap.html") for p in call["other_pages"])
     assert all(g in call["other_pages"] for g in given)  # kept
+
+
+async def test_finish_makes_the_suggested_pages_call_once(
+    settings,
+    server,
+    drafts,  # noqa: F811
+):
+    """Agent follow-through plan, change 1: a11y_run_status finish=true makes
+    19.A's follow-up call itself (Abby, 2026-11-06: the server may visit
+    the suggested pages), records it in the report, and never makes it
+    twice."""
+    from a11y_assist import jobs
+    from a11y_assist.models import Report, TestId
+    from a11y_assist.pipeline import run_tt_tests
+    from a11y_assist.runlog import RunRecorder
+    from a11y_assist.tools.run_status import _start_follow_ups
+
+    page, others = EXPECTED["search-finds-nothing"][:2]
+    url = f"{server.base}/19a/{page}.html"
+    given = [f"{server.base}/19a/{o}.html" for o in others]
+    job = jobs.start(
+        settings,
+        url,
+        lambda p: run_tt_tests(settings, url, [TestId.T19A], p, False, given),
+    )
+    first = await jobs.wait(job, 300)
+    assert first.work == "incomplete" and first.remaining.follow_up_calls == 1
+
+    started = [j for j in _start_follow_ups(settings) if j.url == url]
+    assert len(started) == 1 and started[0].tests == ["19.A"]
+    second = await jobs.wait(started[0], 300)
+    assert second.run_id != first.run_id
+    assert any(p.url.endswith("sitemap.html") for p in second.report.other_pages)
+
+    run = RunRecorder.open(settings.runs_dir, first.run_id)
+    report = Report.model_validate_json(run.report_path.read_text("utf-8"))
+    assert report.follow_up_calls == []
+    assert report.follow_ups_made[0]["job_id"] == started[0].id
+    _start_follow_ups(settings)  # a second finish: nothing more from the first run
+    report = Report.model_validate_json(run.report_path.read_text("utf-8"))
+    assert len(report.follow_ups_made) == 1

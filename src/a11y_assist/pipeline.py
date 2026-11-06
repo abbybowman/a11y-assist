@@ -1003,12 +1003,19 @@ def _calls_text(calls: list[dict] | None) -> str:
     if not calls:
         return ""
     n = len(calls)
+    user = sum(1 for c in calls if not server_may_make(c))
+    ask = (
+        f" {user} of them need the user's choice (no_time_limit): ask the "
+        "user, then make those yourself as given."
+        if user
+        else ""
+    )
     return (
-        f" Then make the {n} call{'s' if n != 1 else ''} in follow_up_calls "
-        "yourself, as they are, without asking the user: they let tests left "
-        "for review decide (the 2026-11-05 development run named them here in "
-        "prose and the agent made none). Replace those tests' results in the "
-        "saved report with the new ones."
+        f" Then call a11y_run_status with finish=true: the server makes the "
+        f"follow-up call{'s' if n != 1 else ''} in follow_up_calls that it may "
+        "make itself, which let tests left for review decide, and waits for "
+        f"them (the development runs' agents made almost none).{ask} Replace "
+        "those tests' results in the saved report with the new ones."
     )
 
 
@@ -1096,7 +1103,12 @@ async def answer_questions(
     _evaluate(run, report, states)
     # A test left out over a cap (no_time_limit) stays to do after answers.
     kept = [c for c in report.follow_up_calls if c.get("no_time_limit")]
-    report.follow_up_calls = follow_ups(report, states, None) + kept
+    made = [
+        {k: v for k, v in c.items() if k != "job_id"} for c in report.follow_ups_made
+    ]
+    report.follow_up_calls = [
+        c for c in follow_ups(report, states, None) if c not in made
+    ] + kept
     run.write_json(run.report_path, report)
     pre_scrt = scrt.write_for_run(run.dir, run.report_path, report)
     run.log(
@@ -1126,6 +1138,51 @@ async def answer_questions(
         work=Remaining.of(report).work,
         remaining=Remaining.of(report),
     )
+
+
+def server_may_make(call: dict) -> bool:
+    """A follow-up call the server makes by itself (agent follow-through plan,
+    change 1). 19.A's suggested pages may be visited (Abby, 2026-11-06):
+    they are other pages like any caller's, checked by the allowlist and the
+    tested page's host before and after redirects. no_time_limit stays the
+    user's choice (CLAUDE.md)."""
+    return not call.get("no_time_limit")
+
+
+def take_follow_ups(settings: Settings, jobs: list) -> list[tuple[str, dict]]:
+    """The follow-up calls the server may make, removed from each finished
+    run's report (so they are made once) and recorded there as made.
+    Returns (run_id, call) pairs; the caller starts them and records each
+    job id with `record_follow_up`."""
+    out: list[tuple[str, dict]] = []
+    for j in jobs:
+        if j.task is None or not j.task.done() or j.task.cancelled():
+            continue
+        if j.task.exception() is not None:
+            continue
+        res = j.task.result()
+        try:
+            run = RunRecorder.open(settings.runs_dir, res.run_id)
+            report = Report.model_validate_json(run.report_path.read_text("utf-8"))
+        except Exception:
+            continue
+        mine = [c for c in report.follow_up_calls if server_may_make(c)]
+        if not mine:
+            continue
+        report.follow_up_calls = [
+            c for c in report.follow_up_calls if not server_may_make(c)
+        ]
+        run.write_json(run.report_path, report)
+        out.extend((report.run_id, c) for c in mine)
+    return out
+
+
+def record_follow_up(settings: Settings, run_id: str, call: dict, job_id: str) -> None:
+    run = RunRecorder.open(settings.runs_dir, run_id)
+    report = Report.model_validate_json(run.report_path.read_text("utf-8"))
+    report.follow_ups_made.append({**call, "job_id": job_id})
+    run.write_json(run.report_path, report)
+    run.log("follow_up_started", job_id=job_id, tests=call.get("tests"))
 
 
 def outstanding(settings: Settings, jobs: list) -> Outstanding:
@@ -1166,19 +1223,28 @@ def outstanding(settings: Settings, jobs: list) -> Outstanding:
         )
     q = sum(r.open_questions for r in runs)
     c = sum(len(r.follow_up_calls) for r in runs)
+    user = [
+        {"run_id": r.run_id, **call}
+        for r in runs
+        for call in r.follow_up_calls
+        if not server_may_make(call)
+    ]
     if runs or running:
         step = (
             f"Left: {q} open question(s) in {len(runs)} run(s) and {c} follow-up "
             f"call(s); {len(running)} run(s) still going. For each run, answer "
             "its open questions with a11y_answer_questions (its report_uri has "
             "them, or call a11y_run_status with the job_id of a run still "
-            "going), then make its follow_up_calls as given, without asking "
-            "the user. Call this again until nothing is left, before you "
-            "report to the user."
+            "going). Then call a11y_run_status with finish=true: the server "
+            "makes the follow-up calls it may make itself and waits for them. "
+            "Ask the user about those in for_the_user. Call this again until "
+            "nothing is left, before you report to the user."
         )
     else:
         step = (
             "Nothing is left: every run of this session is finished, with no "
             "open question or follow-up call."
         )
-    return Outstanding(runs=runs, running=running, done=done, next_step=step)
+    return Outstanding(
+        runs=runs, running=running, done=done, for_the_user=user, next_step=step
+    )

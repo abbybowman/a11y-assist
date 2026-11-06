@@ -79,6 +79,13 @@ that; the tool has to make the complete path the cheap one.
   never as work silently dropped.
 - **Check:** a tool test with two runs that have follow-ups; the
   dev-round run shows follow-ups collected.
+- **Status:** built (2026-11-06). `a11y_run_status` with `finish=true`
+  (`pipeline.take_follow_ups`, `record_follow_up`; the report records each
+  call made in `follow_ups_made`, so it is made once). Abby, 2026-11-06:
+  the server may visit 19.A's suggested pages, so 19.A's call is made by
+  the server; `no_time_limit` calls are listed in `for_the_user`. Test:
+  `tests/test_fixtures_19a.py::test_finish_makes_the_suggested_pages_call_once`.
+  Not yet checked: a development answering run.
 
 ### 2. Status in the data, not in prose
 
@@ -123,14 +130,9 @@ that; the tool has to make the complete path the cheap one.
   - **Decision:** if users can see the run moving, make `no_time_limit`
     the default. Keep `RUN_LIMIT_S` as a safety cap far above any page
     seen so far (NACA took 309-428 s), and update CLAUDE.md's time rule.
-- **19.A's suggested pages.** Today the server suggests pages and only the
-  agent may pass them back (CLAUDE.md, Abby 2026-11-05).
-  - **Question for Abby:** may the server visit them itself, under the
-    same rules as 19.A's site search? Those rules are allowlisted, on the
-    tested page's host with every redirect hop checked, and recorded as
-    their own HAR.
-  - **If yes,** change 1 makes those calls too, and CLAUDE.md principle 5
-    gains a third approved exception.
+- **19.A's suggested pages: decided (Abby, 2026-11-06).** The server may
+  visit them itself; built with change 1. CLAUDE.md principle 5 names the
+  exception.
 - **Elicitation form mode for what remains a user choice** (simple fields,
   where the client declares elicitation); otherwise list it as in 1.
 

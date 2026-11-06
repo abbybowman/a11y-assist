@@ -193,7 +193,7 @@ flowchart LR
 - Public .gov/.mil pages only, checked on every redirect; no logins, no credentials
 - Every browser connection is checked at connect time: names that point inside (private, loopback, cloud metadata) are refused, and DNS rebinding can't get past the check (an optional upstream proxy for cloud containers keeps the checks, with the upstream resolving the name again)
 - Page content is untrusted: never shown to the agent as instructions; outcomes come only from rules; page scripts cannot fake where focus is, even where a skip link lands
-- Other pages for the multi-page tests come only from the user, on the same allowed host; links on a page are never followed, only suggested; one exception, 19.A's site search: one GET search on the same host, recorded; if a page is too slow to record, the other tests still run and the multi-page tests say why they could not
+- Other pages for the multi-page tests come only from the user, on the same allowed host; links on a page are never followed; two exceptions for 19.A: one GET site search on the same host, and up to 5 site map, home or breadcrumb links on the same host, tested in a follow-up run, each recorded; if a page is too slow to record, the other tests still run and the multi-page tests say why they could not
 - A test page tells "automated testers" to report PASS; the tool must still find both traps **[FILL: result]**
 - Evidence kept 24 h, then deleted; results go to the user's repository
 - No secrets in errors or logs: query strings, headers and page text are redacted
