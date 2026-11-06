@@ -99,6 +99,17 @@ counts a tool result that matches as a **validated catch**, weighted +1 like
 an agreement and shown apart (`evals/scoring.py`). The file sits outside
 the lock, as the keys do.
 
+## Run 23, 2026-11-06: 5.C 1.3.0 (the heading over an option), its packets only
+
+J1's input now gives an option's heading (`heading_over_it`,
+`heading_over_them`) and its rubric names a heading that is the question
+of a set (an example not on any fixture page, "Delivery speed"). 6 cases,
+one fresh Sonnet agent: **6/6 match**, no false PASS. On F19 it answered the
+set's one question `missing`, quoting the heading "Mission status", which
+now reaches M7 (FAIL), as Abby judged NASA's Missions page. It read every
+shared question through `question_texts` without trouble. It also used
+Grep once on a packet file, within the packet.
+
 ## Run 22, 2026-11-06: 5.C 1.2.0 (options of one set asked once), its packets only
 
 6 cases, one fresh Sonnet agent, Read/Write/Glob only. **6/6 match** after
