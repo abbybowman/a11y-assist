@@ -41,8 +41,6 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO))
 
-from a11y_assist import scrt  # noqa: E402
-from a11y_assist.compare import compare, page_key  # noqa: E402
 from evals.scoring import (  # noqa: E402
     SEVERITY,
     Score,
@@ -52,6 +50,8 @@ from evals.scoring import (  # noqa: E402
     totals,
 )
 from evals.scoring import score as score_page  # noqa: E402
+from tobi508 import scrt  # noqa: E402
+from tobi508.compare import compare, page_key  # noqa: E402
 
 MAX_ROUNDS = 3
 # Everything score() reads to decide what counts: a change after the reveal
@@ -59,9 +59,9 @@ MAX_ROUNDS = 3
 CODE = [
     "evals/judging.py",
     "evals/scoring.py",
-    "src/a11y_assist/compare.py",
-    "src/a11y_assist/scrt.py",
-    "src/a11y_assist/catalog.py",
+    "src/tobi508/compare.py",
+    "src/tobi508/scrt.py",
+    "src/tobi508/catalog.py",
     "docs/sources/tt-5.1.3/tt.json",
     "third_party/scrt/Resources/SuccessCriteriaTT5.1.3.json",
     # The agent eval's scoring (agent rounds; plan section 8).
@@ -111,7 +111,7 @@ def other_pages(url: str, listed: list[str]) -> list[str]:
     Scans run with no time limit, so the 5-page cap does not apply (Abby,
     2026-11-03). They come from pages.txt (the caller), never from links on
     a page."""
-    from a11y_assist.pipeline import OTHER_PAGES_NO_LIMIT_MAX, _same_site
+    from tobi508.pipeline import OTHER_PAGES_NO_LIMIT_MAX, _same_site
 
     same = [u for u in listed if u != url and _same_site(u, url)]
     if len(same) > OTHER_PAGES_NO_LIMIT_MAX:
@@ -157,10 +157,10 @@ def _finish(rd: Path, settings, pid: str, run_id: str) -> None:
 
 
 async def scan(rd: Path, settings) -> None:
-    from a11y_assist.checks import REGISTRY
-    from a11y_assist.models import TestId
-    from a11y_assist.pipeline import run_tt_tests
     from evals.judge_eval import _answer_format, write_packet
+    from tobi508.checks import REGISTRY
+    from tobi508.models import TestId
+    from tobi508.pipeline import run_tt_tests
 
     if (rd / "results" / "lock.json").exists():
         raise JudgingError("This round is locked")
@@ -210,9 +210,9 @@ async def scan(rd: Path, settings) -> None:
 
 
 async def apply(rd: Path, settings) -> None:
-    from a11y_assist.models import Answer
-    from a11y_assist.pipeline import answer_questions
     from evals.judge_eval import _answer_format, write_packet
+    from tobi508.models import Answer
+    from tobi508.pipeline import answer_questions
 
     fmt = await _answer_format()
     state = _state(rd)
@@ -369,7 +369,13 @@ def _verify(rd: Path) -> dict:
                 f"Archived files that differ from the lock: {bad[:5]}"
                 + (f" and {len(bad) - 5} more" if len(bad) > 5 else "")
             )
-    changed = [c for c, h in lk["code"].items() if sha256(REPO / c) != h]
+    # A file that moved since the lock (the package rename, 2026-11-06)
+    # counts as changed: score with the code at the lock commit.
+    changed = [
+        c
+        for c, h in lk["code"].items()
+        if not (REPO / c).is_file() or sha256(REPO / c) != h
+    ]
     if changed:
         raise JudgingError(
             f"Comparison code changed since the lock ({', '.join(changed)}): "
@@ -547,7 +553,7 @@ def main(argv: list[str]) -> None:
     cmd, rd = argv[1], Path(argv[2]).resolve()
     try:
         if cmd in ("scan", "apply"):
-            from a11y_assist.config import Settings
+            from tobi508.config import Settings
 
             settings = Settings()  # .env / environment: the real allowlist
             asyncio.run((scan if cmd == "scan" else apply)(rd, settings))

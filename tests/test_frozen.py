@@ -8,8 +8,8 @@ import json
 
 import pytest
 
-from a11y_assist.models import TestId
-from a11y_assist.pipeline import RunRefused, run_tt_tests
+from tobi508.models import TestId
+from tobi508.pipeline import RunRefused, run_tt_tests
 
 from .conftest import LocalServer
 from .drafts import drafts  # noqa: F401 (a fixture)
@@ -114,7 +114,7 @@ async def test_tested_frozen_mode(settings, server, drafts, tmp_path):  # noqa: 
 
 
 async def test_tested_frozen_refuses_other_hosts(settings, tmp_path):
-    from a11y_assist.frozen import NotFrozen, obtain
+    from tobi508.frozen import NotFrozen, obtain
 
     folder = tmp_path / "f"
     folder.mkdir()

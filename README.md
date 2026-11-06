@@ -1,4 +1,9 @@
-# a11y-assist
+# Section 508 TOBI — Tester-Oriented Browser Inspector
+
+TOBI (`tobi508` in code) is an MCP server that helps people test web pages
+with the DHS Trusted Tester 5.1.3 process for Section 508. The name follows
+the tradition of ANDI, SSA's Accessible Name & Description Inspector, which
+TOBI runs inside the browser. TOBI is independent of DHS and SSA.
 
 > **Not a certified Trusted Tester result.** This tool produces agent-assisted
 > findings only. Its output is not a DHS Trusted Tester certified test result
@@ -10,7 +15,7 @@ They miss failures you only find by using the page: a keyboard trap, focus
 you can't see, a field whose only label disappears when you type, no way
 to skip the header.
 
-a11y-assist finds those failures for site owners and Trusted Testers. It
+TOBI finds those failures for site owners and Trusted Testers. It
 runs the hands-on parts of the DHS Trusted Tester 5.1.3 process in a real
 Chrome browser, does the repetitive tabbing and comparing, and asks your AI
 agent the judgment questions. Clear failures surface early, and certified
@@ -65,10 +70,10 @@ Details: [round 1](evals/agent/README.md#results);
 
 | Tool | What it does | Main inputs |
 | --- | --- | --- |
-| `a11y_run_tt_tests` | Tests one page. It records the page once, runs the chosen TT tests on the recording, and returns findings, open questions for your agent, and links to the full report and pre-SCRT file. | `url` (`.gov` and `.mil` by default); `tests` (default: all implemented); `other_pages` (1-5 pages of the same site, for 9.A-9.C and 19.A); `no_time_limit` |
-| `a11y_answer_questions` | Records answers to the open questions and decides again by the spec. A person's answer overrides the agent's. | `run_id`; `answers` (one per question) |
-| `a11y_run_status` | Waits for a run that was still going when its call returned, and gives its result. Without `job_id`: what is left across the session's runs (open questions, follow-up calls, runs still going). | `job_id` (optional) |
-| `a11y_read_report` | Reads an SCRT or pre-SCRT file: what failed and what still needs a person. With `compare_to`, it lists every test whose result differs between two files (for example, before and after a fix). | `content`; `compare_to` |
+| `tobi_run_tt_tests` | Tests one page. It records the page once, runs the chosen TT tests on the recording, and returns findings, open questions for your agent, and links to the full report and pre-SCRT file. | `url` (`.gov` and `.mil` by default); `tests` (default: all implemented); `other_pages` (1-5 pages of the same site, for 9.A-9.C and 19.A); `no_time_limit` |
+| `tobi_answer_questions` | Records answers to the open questions and decides again by the spec. A person's answer overrides the agent's. | `run_id`; `answers` (one per question) |
+| `tobi_run_status` | Waits for a run that was still going when its call returned, and gives its result. Without `job_id`: what is left across the session's runs (open questions, follow-up calls, runs still going). | `job_id` (optional) |
+| `tobi_read_report` | Reads an SCRT or pre-SCRT file: what failed and what still needs a person. With `compare_to`, it lists every test whose result differs between two files (for example, before and after a fix). | `content`; `compare_to` |
 
 **Also:**
 - **Resources:** `run://{run_id}/...` (a run's files, kept 24 hours) and
@@ -85,7 +90,7 @@ Details: [round 1](evals/agent/README.md#results);
   finished in time come back NEEDS REVIEW, with the reason.
 - **One call:** at most 45 s (`CALL_WAIT_S`), under common MCP client
   timeouts. A run not done by then goes on in the server: the result says
-  `"status": "running"` with a `job_id`, and `a11y_run_status` waits for it
+  `"status": "running"` with a `job_id`, and `tobi_run_status` waits for it
   again until `"status": "done"`. So you no longer need to raise your
   client's tool timeout (Claude Code's is 60 s, `MCP_TOOL_TIMEOUT`), and
   Claude Code's move of calls longer than 120 s to the background
@@ -93,7 +98,7 @@ Details: [round 1](evals/agent/README.md#results);
 - **Large pages:** a page with too many stops to Tab through is refused at
   once; one with more than 40 form fields is tested without 5.D, and 5.D's
   finding gives the call that runs it. Call again with `no_time_limit:
-  true` and expect 15-20 minutes of `a11y_run_status` calls.
+  true` and expect 15-20 minutes of `tobi_run_status` calls.
 - **Answering:** under a second, unless the server has to press a key in
   the recorded page to check an answer.
 - **Batches:** the server tests 2 pages at a time (`MAX_CONCURRENT_RUNS`);
@@ -122,9 +127,9 @@ windows ([what the first Windows runs found](docs/solutions/windows-chrome-resul
 ```json
 {
   "mcpServers": {
-    "a11y-assist": {
+    "tobi508": {
       "command": "uv",
-      "args": ["--directory", "C:/path/to/a11y-assist", "run", "a11y-assist"]
+      "args": ["--directory", "C:/path/to/your/clone", "run", "tobi508"]
     }
   }
 }
@@ -138,21 +143,21 @@ the last pair end to end.
 
 <!-- example -->
 ```json
-{"tool": "a11y_run_tt_tests", "arguments": {"url": "https://www.section508.gov/"}}
+{"tool": "tobi_run_tt_tests", "arguments": {"url": "https://www.section508.gov/"}}
 ```
 
 "Also compare it with two other pages of the site" (for 9.A-9.C and 19.A):
 
 <!-- example -->
 ```json
-{"tool": "a11y_run_tt_tests", "arguments": {"url": "https://www.section508.gov/", "other_pages": ["https://www.section508.gov/manage/", "https://www.section508.gov/test/"]}}
+{"tool": "tobi_run_tt_tests", "arguments": {"url": "https://www.section508.gov/", "other_pages": ["https://www.section508.gov/manage/", "https://www.section508.gov/test/"]}}
 ```
 
 "Is there a keyboard trap, and is focus visible?":
 
 <!-- example -->
 ```json
-{"tool": "a11y_run_tt_tests", "arguments": {"url": "https://www.section508.gov/", "tests": ["4.C", "4.D"]}}
+{"tool": "tobi_run_tt_tests", "arguments": {"url": "https://www.section508.gov/", "tests": ["4.C", "4.D"]}}
 ```
 
 A local page and its open question. With `DEV_MODE=true`, this fixture's
@@ -160,7 +165,7 @@ three links pass focus among themselves forever:
 
 <!-- example -->
 ```json
-{"tool": "a11y_run_tt_tests", "arguments": {"url": "file:///ABSOLUTE/PATH/a11y-assist/tests/fixtures/4c/f06-script-loop.html", "tests": ["4.C"]}}
+{"tool": "tobi_run_tt_tests", "arguments": {"url": "file:///ABSOLUTE/PATH/TO/CLONE/tests/fixtures/4c/f06-script-loop.html", "tests": ["4.C"]}}
 ```
 
 4.C comes back NEEDS REVIEW and asks whether the page names a key that
@@ -168,7 +173,7 @@ gets out. The agent answers from the page text:
 
 <!-- example -->
 ```json
-{"tool": "a11y_answer_questions", "arguments": {"run_id": "<run_id from the result>", "answers": [{"question_id": "4.C-i1-J1", "decided_by": "model", "rationale": "The page text names no key that moves focus out of the three looping links.", "j1": {"documented": "no"}}]}}
+{"tool": "tobi_answer_questions", "arguments": {"run_id": "<run_id from the result>", "answers": [{"question_id": "4.C-i1-J1", "decided_by": "model", "rationale": "The page text names no key that moves focus out of the three looping links.", "j1": {"documented": "no"}}]}}
 ```
 
 4.C is now FAIL: "Keyboard focus gets trapped on this page…".

@@ -4,7 +4,7 @@ replay. Pages and media come from the local test server (no network)."""
 
 from __future__ import annotations
 
-from a11y_assist.capture import media_body, media_index, record, replay_context
+from tobi508.capture import media_body, media_index, record, replay_context
 
 from .conftest import noop_log
 

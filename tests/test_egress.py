@@ -18,9 +18,9 @@ from collections import Counter
 import pytest
 from fastmcp import Client
 
-from a11y_assist import config, egress
-from a11y_assist.app import mcp
-from a11y_assist.egress import EgressProxy, address_problem
+from tobi508 import config, egress
+from tobi508.app import mcp
+from tobi508.egress import EgressProxy, address_problem
 
 # ── The address rules (pure) ──────────────────────────────────────────────────
 
@@ -166,7 +166,7 @@ def _dns(monkeypatch, answers):
 async def _run(url: str):
     async with Client(mcp) as client:
         return await client.call_tool(
-            "a11y_run_tt_tests", {"url": url, "tests": ["4.C"]}, raise_on_error=False
+            "tobi_run_tt_tests", {"url": url, "tests": ["4.C"]}, raise_on_error=False
         )
 
 

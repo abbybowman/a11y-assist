@@ -1,0 +1,1297 @@
+"""Keyboard traversal: press keys on a fresh page load and record every step.
+
+Records facts only. Trap *events* (stuck, loop, wrap) are detected here because
+the spec defines a pass's end by them (4.C section 2); what an event means for
+an outcome is decided only by the rules module of a test (e.g. t4c.py).
+
+Where focus is, is read through CDP in an isolated JavaScript world, so page
+script cannot spoof document.activeElement. Focus is followed into iframes
+(in-process or out-of-process) and into open and closed shadow roots (V5, V6).
+Role and name come from Chrome's accessibility tree.
+
+The settle rule (4.C spec section 2) uses a log of DOM mutations and focus
+events that an init script installs in every frame before page scripts run
+(V14). That log only decides how long to wait and when to flag a step
+unsettled; it never decides where focus is.
+"""
+
+from __future__ import annotations
+
+import time
+from collections.abc import Awaitable, Callable, Iterator
+from contextlib import contextmanager
+from contextvars import ContextVar
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any, Protocol
+
+from playwright.async_api import BrowserContext, CDPSession, Page
+
+from tobi508.models import BoundingBox, PassResult, Step, Stop
+
+# Tab press cap per pass (4.C spec section 2, P1): 3 x inventory + 50, max 3,000.
+CAP_PER_CANDIDATE = 3
+CAP_BASE = 50
+CAP_MAX = 3000
+
+
+@dataclass
+class Meter:
+    """Cost of one phase of a run (the walk, one check's collect): page loads,
+    key presses and wall time. Logged to steps.jsonl to decide where a run's
+    time goes (docs/solutions/time-budget.md); never evidence."""
+
+    loads: int = 0
+    presses: int = 0
+    quick: int = 0  # replay-prefix presses without the quiet window
+    slow_redos: int = 0  # replays redone with every press settled
+    seconds: float = 0.0
+
+
+METER: ContextVar[Meter | None] = ContextVar("a11y_meter", default=None)
+
+
+@contextmanager
+def metered() -> Iterator[Meter]:
+    m = Meter()
+    token = METER.set(m)
+    t0 = time.monotonic()
+    try:
+        yield m
+    finally:
+        m.seconds = round(time.monotonic() - t0, 2)
+        METER.reset(token)
+
+
+def _count(attr: str) -> None:
+    m = METER.get()
+    if m is not None:
+        setattr(m, attr, getattr(m, attr) + 1)
+
+
+# Settle rule (4.C spec section 2). The quiet window is settings.settle_quiet_ms.
+SETTLE_MAX_MS = 1500
+RERUN_WINDOW_MS = 1000
+POLL_MS = 50
+
+WORLD = "tobi508"
+
+# Runs in every frame before page scripts (main world, so it sees page events).
+INIT_JS = """(() => {
+  if (window.__a11yLog) return;
+  const log = { m: 0, lastM: 0, q: 0, lastQ: 0, ignore: [], f: [], lastF: 0, pause: 0, s: [] };
+  Object.defineProperty(window, "__a11yLog", { value: log });
+  // Paused while the tool takes a screenshot: Playwright adds and removes a
+  // style element for every shot, which is not the page changing.
+  // `q` and `lastQ`: the same count without changes inside content that
+  // keeps changing by itself (a ticker; regions pass T found, set later by
+  // setIgnore). The settle rule waits on these, so a ticker does not make
+  // every key press wait; `m` still counts every change (effects, 4.D).
+  const ignored = (n) => {
+    if (!log.ignore.length) return false;
+    const el = n && (n.nodeType === 1 ? n : n.parentElement);
+    if (!el || !el.closest) return false;
+    for (const sel of log.ignore) { try { if (el.closest(sel)) return true; } catch (e) {} }
+    return false;
+  };
+  const count = (r) => {
+    log.m += r.length; log.lastM = performance.now();
+    let q = 0;
+    for (const x of r) if (!ignored(x.target)) q++;
+    if (q) { log.q += q; log.lastQ = performance.now(); }
+  };
+  log.setIgnore = (sels) => { log.ignore = Array.isArray(sels) ? sels.slice(0, 40) : []; };
+  const obs = new MutationObserver((r) => { if (log.pause) return; count(r); });
+  // Records still pending when a pause starts are the page's: count them.
+  // Records taken when it ends are the shot's: drop them.
+  const count_ = count;
+  log.flush = (count) => { const r = obs.takeRecords();
+    if (count && r.length && !log.pause) count_(r); };
+  obs.observe(document, { subtree: true, childList: true, attributes: true, characterData: true });
+  const watchRoot = (root) => obs.observe(root, { subtree: true, childList: true, attributes: true, characterData: true });
+  const attach = Element.prototype.attachShadow;
+  Element.prototype.attachShadow = function (init) { const r = attach.call(this, init); watchRoot(r); return r; };
+  // A short CSS-like path, for describing elements in the log (not identity:
+  // stops are identified through CDP).
+  const path = (n) => {
+    const parts = [];
+    for (let c = n, k = 0; c && c.nodeType === 1 && k < 6; c = c.parentElement, k++) {
+      if (c.id) { parts.unshift('#' + c.id); break; }
+      const p = c.parentElement;
+      const same = p ? Array.from(p.children).filter((x) => x.tagName === c.tagName) : [];
+      parts.unshift(c.tagName.toLowerCase() + (same.length > 1 ? `:nth-of-type(${same.indexOf(c) + 1})` : ''));
+    }
+    return parts.join(' > ');
+  };
+  // Form submissions (5.D): submit events, and submit()/requestSubmit()
+  // calls, which fire no event for submit(). Evidence only; the recorded
+  // page answers no request it did not record.
+  addEventListener("submit", (e) => {
+    log.s.push({ how: "event", trusted: e.isTrusted, css: e.target && e.target.nodeType === 1 ? path(e.target) : null });
+  }, true);
+  // Whether a page handler cancelled the submission (5.F: a form the page
+  // checked and stopped vs one sent to its server). Bubble phase on window
+  // runs after the form's own handlers.
+  addEventListener("submit", (e) => {
+    const last = log.s[log.s.length - 1];
+    if (last && last.how === "event") last.prevented = e.defaultPrevented;
+  });
+  // Native validation (5.F): an invalid event per field the browser blocked.
+  log.v = [];
+  // A page that cancels it hides the browser's message (custom error UI), so
+  // record whether it was cancelled. invalid does not bubble: a listener
+  // added on the field now runs after the page's own listeners there.
+  // `prevented` stays null when that listener never ran (propagation stopped).
+  addEventListener("invalid", (e) => {
+    const el = e.target;
+    const rec = { css: el && el.nodeType === 1 ? path(el) : null, msg: el && el.validationMessage || "", prevented: null };
+    log.v.push(rec);
+    if (el && el.addEventListener)
+      el.addEventListener("invalid", (ev) => { rec.prevented = ev.defaultPrevented; }, { once: true });
+  }, true);
+  for (const name of ["submit", "requestSubmit"]) {
+    const orig = HTMLFormElement.prototype[name];
+    HTMLFormElement.prototype[name] = function (...args) {
+      log.s.push({ how: name, trusted: false, css: path(this) });
+      return orig.apply(this, args);
+    };
+  }
+  for (const type of ["focusin", "focusout"]) {
+    addEventListener(type, (e) => {
+      const el = e.composedPath()[0];
+      const rel = e.relatedTarget;
+      log.f.push({
+        type, t: Math.round(performance.now()), tag: el && el.tagName || null, id: el && el.id || null,
+        trusted: e.isTrusted, css: el && el.nodeType === 1 ? path(el) : null,
+        rel: rel && rel.nodeType === 1 ? path(rel) : null,
+        rel_inside: !!(rel && el && el.contains && el.contains(rel)),
+      });
+      log.lastF = performance.now();
+    }, true);
+  }
+})();"""
+
+_LOG_JS = """() => {
+  const l = window.__a11yLog;
+  if (!l) return null;
+  const now = performance.now();
+  return { m: l.m, q: l.q, f: l.f.length, sinceM: l.lastQ ? now - l.lastQ : 1e9, sinceF: l.lastF ? now - l.lastF : 1e9 };
+}"""
+
+_EVENTS_JS = "(from) => (window.__a11yLog ? window.__a11yLog.f.slice(from) : [])"
+
+# Element paths, shared by the walk and the scans (4.A) so their paths match.
+# Defines seg(n) and path(n); a shadow boundary is a lone space.
+PATH_JS = """
+  const seg = (n) => {
+    const root = n.getRootNode();
+    if (n.id && root.querySelectorAll('#' + CSS.escape(n.id)).length === 1) return { s: '#' + CSS.escape(n.id), unique: true };
+    const tag = n.tagName.toLowerCase();
+    const p = n.parentElement;
+    if (!p) return { s: tag, unique: false };
+    const same = Array.from(p.children).filter((c) => c.tagName === n.tagName);
+    return { s: same.length > 1 ? `${tag}:nth-of-type(${same.indexOf(n) + 1})` : tag, unique: false };
+  };
+  const path = (n) => {
+    const parts = [];
+    for (let cur = n; cur && cur.nodeType === 1; cur = cur.parentElement) {
+      const { s, unique } = seg(cur);
+      parts.unshift(s);
+      if (unique || !cur.parentElement) break;
+    }
+    const root = n.getRootNode();
+    return (root.host ? path(root.host) + ' ' : '') + parts.join(' > ');
+  };
+"""
+
+# A11y-world helpers. `this` is the element.
+_DESCRIBE_FN = (
+    "function () {"
+    + PATH_JS
+    + """
+  const r = this.getBoundingClientRect();
+  const tag = this.tagName.toLowerCase();
+  const role = this.getAttribute('role');
+  const COMPOSITE = '[role=menubar],[role=menu],[role=tablist],[role=grid],[role=treegrid],[role=tree],' +
+    '[role=listbox],[role=toolbar],[role=radiogroup]';
+  let widget = null;
+  const host = this.closest(COMPOSITE);
+  if (host) widget = path(host);
+  else if (tag === 'input' && this.type === 'radio' && this.name) widget = 'radio:' + this.name;
+  const type = (this.type || '').toLowerCase();
+  // The form control kind: 4.C's J2 (a section that needs input) and 5.D's
+  // fields (its spec, Terms) both read it.
+  const ROLE_CONTROL = { textbox: 'text', searchbox: 'text', combobox: 'combobox', checkbox: 'checkbox',
+    switch: 'switch', radio: 'radio', slider: 'slider', spinbutton: 'spinbutton' };
+  let control = null;
+  if (role && ROLE_CONTROL[role]) control = ROLE_CONTROL[role];
+  else if (tag === 'select') control = this.multiple || this.size > 1 ? 'listbox' : 'select';
+  else if (tag === 'textarea') control = 'text';
+  else if (tag === 'input') {
+    if (type === 'checkbox') control = 'checkbox';
+    else if (type === 'radio') control = 'radio';
+    else if (type === 'range') control = 'slider';
+    else if (['date', 'time', 'datetime-local', 'month', 'week'].includes(type)) control = 'date';
+    else if (!['button','submit','reset','image','color','file','hidden'].includes(type)) control = 'text';
+  }
+  // Chrome focuses the parts of a date or time input (month, day, year, the
+  // picker button) one by one, inside the input's own shadow root: they are
+  // one control, the input.
+  const uaHost = this.getRootNode().host;
+  if (uaHost && uaHost.tagName === 'INPUT' && ['date', 'time', 'datetime-local', 'month', 'week'].includes(uaHost.type)) {
+    control = 'date';
+  }
+  const readonly = this.readOnly === true || this.getAttribute('aria-readonly') === 'true';
+  const disabled = this.disabled === true || this.getAttribute('aria-disabled') === 'true';
+  let group = null;
+  if (control === 'date' && uaHost && uaHost.tagName === 'INPUT') group = 'input:' + path(uaHost);
+  else if (control === 'radio') {
+    const rg = this.closest('[role=radiogroup]');
+    group = tag === 'input' && this.name ? 'radio:' + (this.form ? path(this.form) : '') + ':' + this.name
+      : (rg ? path(rg) : null);
+  }
+  const collapsed = this.getAttribute('aria-expanded') === 'false' ||
+    (tag === 'summary' && !!this.parentElement && this.parentElement.tagName === 'DETAILS' && !this.parentElement.open);
+  const dlg = this.closest('dialog, [role=dialog], [role=alertdialog]');
+  const modal = !!dlg && ((dlg.tagName === 'DIALOG' && dlg.matches(':modal')) || dlg.getAttribute('aria-modal') === 'true');
+  return { css: path(this), tag, x: r.x, y: r.y, w: r.width, h: r.height,
+           isBody: this === document.body || this === document.documentElement,
+           widget, control, readonly, disabled, group, collapsed, modal };
+}"""
+)
+
+_ACTIVE_FN = "function () { return this.activeElement; }"
+
+# Tabbable candidates in one frame's document and its open shadow roots
+# (4.C spec section 2, Setup): natively focusable or tabindex >= 0, not
+# disabled, not inert, rendered (not display:none or visibility:hidden).
+_INVENTORY_JS = """() => {
+  const NATIVE = 'a[href], area[href], button, input:not([type="hidden"]), select, textarea, ' +
+    'iframe, frame, summary, audio[controls], video[controls], [contenteditable]:not([contenteditable="false"])';
+  const inert = (el) => {
+    for (let n = el; n; n = n.parentNode || n.host || null) if (n.nodeType === 1 && n.hasAttribute('inert')) return true;
+    return false;
+  };
+  const rendered = (el) => el.checkVisibility
+    ? el.checkVisibility({ visibilityProperty: true }) : el.getClientRects().length > 0;
+  const tabindex = (el) => {
+    const v = el.getAttribute('tabindex');
+    return v !== null && v.trim() !== '' && !isNaN(v) ? parseInt(v, 10) : null;
+  };
+  const candidate = (el) => {
+    const ti = tabindex(el);
+    if (ti !== null && ti < 0) return false;
+    if (!(el.matches(NATIVE) || ti !== null)) return false;
+    if (el.tagName === 'SUMMARY' && !(el.parentElement && el.parentElement.tagName === 'DETAILS' &&
+        el.parentElement.querySelector(':scope > summary') === el)) return false;
+    return !el.matches(':disabled') && !inert(el) && rendered(el);
+  };
+  // Form fields 5.D completes (its spec, Terms: field), radio groups once;
+  // not disabled, not read-only, rendered.
+  const FIELD = 'input:not([type=hidden]):not([type=button]):not([type=submit]):not([type=reset]):not([type=image])' +
+    ':not([type=color]):not([type=file]), select, textarea, [role=textbox], [role=searchbox], [role=combobox], ' +
+    '[role=checkbox], [role=switch], [role=radio], [role=slider], [role=spinbutton]';
+  const fieldKey = (el) => {
+    if (el.matches('input[type=radio]') && el.name) return 'radio:' + (el.form ? 'f' : '') + el.name;
+    return null;
+  };
+  let count = 0;
+  const fields = new Set();
+  let n = 0;
+  const walk = (root) => {
+    for (const el of root.querySelectorAll('*')) {
+      if (candidate(el)) count += 1;
+      if (el.matches(FIELD) && !el.matches(':disabled') && !el.readOnly && el.getAttribute('aria-disabled') !== 'true'
+          && el.getAttribute('aria-readonly') !== 'true' && !inert(el) && rendered(el)) {
+        const k = fieldKey(el);
+        fields.add(k || ('#' + (n += 1)));
+      }
+      if (el.shadowRoot) walk(el.shadowRoot);
+    }
+  };
+  walk(document);
+  return { count, fields: fields.size };
+}"""
+
+_NEG_TABINDEX_FRAME_JS = """(el) => {
+  const v = el.getAttribute('tabindex');
+  return v !== null && v.trim() !== '' && !isNaN(v) && parseInt(v, 10) < 0;
+}"""
+
+
+def tab_press_cap(inventory_size: int) -> int:
+    return min(CAP_PER_CANDIDATE * inventory_size + CAP_BASE, CAP_MAX)
+
+
+@dataclass
+class Inventory:
+    candidates: int
+    unreachable_frames: int = 0
+    # Focusable elements inside tabindex=-1 iframes: left out of `candidates`
+    # because Tab cannot reach them (V9); reported for 4.A.
+    keyboard_unreachable: int = 0
+    # Form fields 5.D would complete (radio groups once), every frame read.
+    form_fields: int = 0
+
+
+async def dom_inventory(page: Page) -> Inventory:
+    inv = Inventory(0)
+    for frame in page.frames:
+        try:
+            got = await frame.evaluate(_INVENTORY_JS)
+            n = got["count"]
+        except Exception:
+            inv.unreachable_frames += 1
+            continue
+        skipped = False
+        f = frame
+        try:
+            while f.parent_frame is not None:
+                owner = await f.frame_element()
+                if await owner.evaluate(_NEG_TABINDEX_FRAME_JS):
+                    skipped = True
+                    break
+                f = f.parent_frame
+        except Exception:
+            # The frame (or a parent) detached or reloaded mid-read: an embed
+            # can do that at any moment. Counted like a frame whose script
+            # cannot run (post-round 1 fix 1).
+            inv.unreachable_frames += 1
+            continue
+        inv.form_fields += got["fields"]
+        if skipped:
+            inv.keyboard_unreachable += n
+        else:
+            inv.candidates += n
+    return inv
+
+
+class FocusReader:
+    """Reads the focused element through CDP, one instance per page load."""
+
+    def __init__(self, context: BrowserContext, page: Page):
+        self.context, self.page = context, page
+        self._top: CDPSession | None = None
+        self._worlds: dict[str, tuple[CDPSession, int]] = {}
+
+    async def _session_for(self, frame_id: str) -> tuple[CDPSession, int]:
+        if frame_id in self._worlds:
+            return self._worlds[frame_id]
+        if self._top is None:
+            self._top = await self.context.new_cdp_session(self.page)
+        candidates = [self._top]
+        for f in self.page.frames[1:]:  # out-of-process frames have own sessions
+            try:
+                candidates.append(await self.context.new_cdp_session(f))
+            except Exception:
+                pass
+        for s in candidates:
+            try:
+                w = await s.send(
+                    "Page.createIsolatedWorld",
+                    {"frameId": frame_id, "worldName": WORLD},
+                )
+            except Exception:
+                continue
+            self._worlds[frame_id] = (s, w["executionContextId"])
+            return self._worlds[frame_id]
+        raise LookupError(f"no CDP session reaches frame {frame_id}")
+
+    async def call(self, stop: Stop, fn: str, args: list[Any] | None = None) -> Any:
+        """Run `fn` (a JS function declaration; `this` is the element) on the
+        stop's element in the isolated world, where page script cannot change
+        what it sees. Returns its value, or None if the stop cannot be reached."""
+        if stop.kind != "element" or stop.unresolved:
+            return None
+        frame_id, _, backend = stop.key.rpartition(":")
+        try:
+            session, ctx = await self._session_for(frame_id)
+            obj = await session.send(
+                "DOM.resolveNode",
+                {"backendNodeId": int(backend), "executionContextId": ctx},
+            )
+            res = await session.send(
+                "Runtime.callFunctionOn",
+                {
+                    "objectId": obj["object"]["objectId"],
+                    "functionDeclaration": fn,
+                    "arguments": [{"value": a} for a in (args or [])],
+                    "returnByValue": True,
+                },
+            )
+            return res["result"].get("value")
+        except Exception:
+            return None
+
+    async def frames(self) -> list[tuple[str, CDPSession, int]]:
+        """(CDP frame ID, session, isolated world) for every frame CDP can
+        reach, top first. Frames missing here could not be read."""
+        top = await self._top_frame_id()
+        tree = (await self._top.send("Page.getFrameTree"))["frameTree"]
+        ids: list[str] = []
+
+        def visit(node: dict) -> None:
+            ids.append(node["frame"]["id"])
+            for c in node.get("childFrames", []):
+                visit(c)
+
+        visit(tree)
+        out = []
+        for fid in [top, *[i for i in ids if i != top]]:
+            try:
+                s, ctx = await self._session_for(fid)
+            except LookupError:
+                continue
+            out.append((fid, s, ctx))
+        return out
+
+    async def call_in(
+        self, session: CDPSession, ctx: int, fn: str, args: list[Any] | None = None
+    ) -> Any:
+        """Run a JS function in a frame's isolated world; returns its value."""
+        res = await session.send(
+            "Runtime.callFunctionOn",
+            {
+                "executionContextId": ctx,
+                "functionDeclaration": fn,
+                "arguments": [{"value": a} for a in (args or [])],
+                "returnByValue": True,
+                "awaitPromise": True,
+            },
+        )
+        if "exceptionDetails" in res:
+            raise RuntimeError(str(res["exceptionDetails"].get("text")))
+        return res["result"].get("value")
+
+    async def listeners(self, session: CDPSession, ctx: int) -> list[dict[str, Any]]:
+        """Event listeners on the nodes of a frame's document (own listeners
+        only, by backend node ID; `window` listeners are not included)."""
+        doc = await session.send(
+            "Runtime.evaluate", {"expression": "document", "contextId": ctx}
+        )
+        res = await session.send(
+            "DOMDebugger.getEventListeners",
+            {"objectId": doc["result"]["objectId"], "depth": -1, "pierce": False},
+        )
+        return res.get("listeners", [])
+
+    async def mark(
+        self, session: CDPSession, ctx: int, backend_ids: list[int], fn: str
+    ) -> None:
+        """Call `fn` (this = the node) on each backend node in the isolated
+        world, e.g. to remember it in a set the world's own scripts can read."""
+        for b in backend_ids:
+            try:
+                obj = await session.send(
+                    "DOM.resolveNode",
+                    {"backendNodeId": b, "executionContextId": ctx},
+                )
+                await session.send(
+                    "Runtime.callFunctionOn",
+                    {"objectId": obj["object"]["objectId"], "functionDeclaration": fn},
+                )
+            except Exception:
+                continue
+
+    async def evaluate_top(self, expression: str) -> Any:
+        """Evaluate in the top frame's isolated world."""
+        session, ctx = await self._session_for(await self._top_frame_id())
+        res = await session.send(
+            "Runtime.evaluate",
+            {"expression": expression, "contextId": ctx, "returnByValue": True},
+        )
+        return res["result"].get("value")
+
+    async def _top_frame_id(self) -> str:
+        if self._top is None:
+            self._top = await self.context.new_cdp_session(self.page)
+        tree = await self._top.send("Page.getFrameTree")
+        return tree["frameTree"]["frame"]["id"]
+
+    async def read(self) -> tuple[Stop, bool]:
+        """(stop, top document hasFocus). After a navigation the cached worlds
+        are gone, so they are dropped and the read is retried once."""
+        try:
+            return await self._read()
+        except Exception:
+            self._worlds.clear()
+            self._top = None
+            return await self._read()
+
+    async def _read(self) -> tuple[Stop, bool]:
+        frame_id = await self._top_frame_id()
+        session, ctx = await self._session_for(frame_id)
+        has_focus = (
+            await session.send(
+                "Runtime.evaluate",
+                {
+                    "expression": "document.hasFocus()",
+                    "contextId": ctx,
+                    "returnByValue": True,
+                },
+            )
+        )["result"]["value"]
+        chain: list[str] = []
+        offset_x = offset_y = 0.0
+        res = await session.send(
+            "Runtime.evaluate",
+            {"expression": "document.activeElement", "contextId": ctx},
+        )
+        for _ in range(20):  # frames and shadow roots, deepest first
+            obj = res["result"].get("objectId")
+            if obj is None:
+                break
+            node = (
+                await session.send(
+                    "DOM.describeNode", {"objectId": obj, "depth": 1, "pierce": True}
+                )
+            )["node"]
+            info = (
+                await session.send(
+                    "Runtime.callFunctionOn",
+                    {
+                        "objectId": obj,
+                        "functionDeclaration": _DESCRIBE_FN,
+                        "returnByValue": True,
+                    },
+                )
+            )["result"]["value"]
+            roots = node.get("shadowRoots", [])
+            if roots:  # open or closed: CDP can read either
+                root = await session.send(
+                    "DOM.resolveNode",
+                    {
+                        "backendNodeId": roots[0]["backendNodeId"],
+                        "executionContextId": ctx,
+                    },
+                )
+                inner = await session.send(
+                    "Runtime.callFunctionOn",
+                    {
+                        "objectId": root["object"]["objectId"],
+                        "functionDeclaration": _ACTIVE_FN,
+                    },
+                )
+                if inner["result"].get("objectId"):
+                    res = inner
+                    continue
+            if node.get("frameId") and node["nodeName"] in ("IFRAME", "FRAME"):
+                try:
+                    child_session, child_ctx = await self._session_for(node["frameId"])
+                except LookupError:
+                    return self._unresolved(chain, info), has_focus
+                child = await child_session.send(
+                    "Runtime.evaluate",
+                    {"expression": "document.activeElement", "contextId": child_ctx},
+                )
+                child_obj = child["result"].get("objectId")
+                child_node = (
+                    (
+                        await child_session.send(
+                            "DOM.describeNode", {"objectId": child_obj}
+                        )
+                    )["node"]
+                    if child_obj
+                    else None
+                )
+                child_focus = (
+                    await child_session.send(
+                        "Runtime.evaluate",
+                        {
+                            "expression": "document.hasFocus()",
+                            "contextId": child_ctx,
+                            "returnByValue": True,
+                        },
+                    )
+                )["result"]["value"]
+                if child_node is None or (
+                    child_node["nodeName"] in ("BODY", "HTML") and not child_focus
+                ):
+                    # The iframe element itself holds focus (a valid stop).
+                    return await self._element(
+                        session,
+                        ctx,
+                        node,
+                        info,
+                        chain,
+                        offset_x,
+                        offset_y,
+                        frame_id,
+                        obj,
+                    ), has_focus
+                chain.append(info["css"])
+                offset_x += info["x"]
+                offset_y += info["y"]
+                session, ctx, frame_id, res = (
+                    child_session,
+                    child_ctx,
+                    node["frameId"],
+                    child,
+                )
+                continue
+            if info["isBody"]:
+                if not chain and not has_focus:
+                    return Stop(kind="OUT", key="OUT"), has_focus
+                return Stop(kind="BODY", key="BODY", frame_chain=chain), has_focus
+            return await self._element(
+                session, ctx, node, info, chain, offset_x, offset_y, frame_id, obj
+            ), has_focus
+        if not has_focus:
+            return Stop(kind="OUT", key="OUT"), has_focus
+        return Stop(kind="BODY", key="BODY", frame_chain=chain), has_focus
+
+    def _unresolved(self, chain: list[str], info: dict) -> Stop:
+        return Stop(
+            kind="element",
+            key=f"unresolved:{' >> '.join([*chain, info['css']])}",
+            frame_chain=chain,
+            css_path=info["css"],
+            tag=info["tag"],
+            unresolved=True,
+        )
+
+    async def _element(
+        self, session, ctx, node, info, chain, ox, oy, frame_id, obj
+    ) -> Stop:
+        role = name = None
+        try:
+            ax = await session.send(
+                "Accessibility.getPartialAXTree",
+                {"backendNodeId": node["backendNodeId"], "fetchRelatives": False},
+            )
+            first = ax["nodes"][0]
+            role = first.get("role", {}).get("value")
+            name = first.get("name", {}).get("value")
+        except Exception:
+            pass
+        box = BoundingBox(
+            x=info["x"] + ox, y=info["y"] + oy, width=info["w"], height=info["h"]
+        )
+        vp = self.page.viewport_size or {"width": 0, "height": 0}
+        in_vp = (
+            box.width > 0
+            and box.x < vp["width"]
+            and box.y < vp["height"]
+            and (box.x + box.width > 0 and box.y + box.height > 0)
+        )
+        frame_url = (
+            await session.send(
+                "Runtime.evaluate",
+                {
+                    "expression": "location.href",
+                    "contextId": ctx,
+                    "returnByValue": True,
+                },
+            )
+        )["result"]["value"]
+        return Stop(
+            kind="element",
+            key=f"{frame_id}:{node['backendNodeId']}",
+            frame_chain=chain,
+            css_path=info["css"],
+            tag=info["tag"],
+            role=role,
+            name=name,
+            bounding_box=box,
+            in_viewport=in_vp,
+            frame_url=frame_url,
+            widget=(" >> ".join([*chain, info["widget"]]) if info["widget"] else None),
+            control=info.get("control"),
+            readonly=bool(info.get("readonly")),
+            disabled=bool(info.get("disabled")),
+            group=(" >> ".join([*chain, info["group"]]) if info.get("group") else None),
+            collapsed=info["collapsed"],
+            modal=info["modal"],
+        )
+
+
+async def _read_logs(page: Page) -> tuple[int, int, float, float, int]:
+    """Total mutations and focus events; ms since the latest mutation outside
+    ignored content (the settle rule's) and since the latest focus event; and
+    mutations outside ignored content."""
+    m = f = q = 0
+    since_m = since_f = 1e9
+    for frame in page.frames:
+        try:
+            v = await frame.evaluate(_LOG_JS)
+        except Exception:
+            continue
+        if v:
+            m += v["m"]
+            q += v.get("q", v["m"])
+            f += v["f"]
+            since_m = min(since_m, v["sinceM"])
+            since_f = min(since_f, v["sinceF"])
+    return m, f, since_m, since_f, q
+
+
+async def _focus_events(page: Page, before: dict[str, int]) -> list[dict[str, Any]]:
+    out = []
+    for frame in page.frames:
+        try:
+            events = await frame.evaluate(_EVENTS_JS, before.get(frame.url, 0))
+        except Exception:
+            continue
+        before[frame.url] = before.get(frame.url, 0) + len(events)
+        out.extend({**e, "frame": frame.url} for e in events)
+    return sorted(out, key=lambda e: e["t"])
+
+
+_PAUSE_JS = """(on) => { const l = window.__a11yLog; if (!l) return;
+  if (on) { l.flush && l.flush(true); l.pause += 1; } else { l.flush && l.flush(false); l.pause = Math.max(0, l.pause - 1); } }"""
+
+
+async def submissions(page: Page) -> list[dict[str, Any]]:
+    """Every form submission logged so far, in every frame (5.D)."""
+    out: list[dict[str, Any]] = []
+    for frame in page.frames:
+        try:
+            got = await frame.evaluate(
+                "() => (window.__a11yLog ? window.__a11yLog.s.slice() : [])"
+            )
+        except Exception:
+            continue
+        out.extend({**g, "frame": frame.url} for g in got or [])
+    return out
+
+
+async def invalid_events(page: Page) -> list[dict[str, Any]]:
+    """Every native validation `invalid` event so far, main frame (5.F)."""
+    try:
+        got = await page.evaluate(
+            "() => (window.__a11yLog && window.__a11yLog.v ? window.__a11yLog.v.slice() : [])"
+        )
+    except Exception:
+        return []
+    return list(got or [])
+
+
+async def _pause_log(page: Page, on: bool) -> None:
+    for frame in page.frames:
+        try:
+            await frame.evaluate(_PAUSE_JS, on)
+        except Exception:
+            continue
+
+
+async def screenshot(page: Page, **kw: Any) -> bytes:
+    """page.screenshot, with the mutation log paused: the tool's own shots
+    must not look like the page changing (they used to mark every step of a
+    walk with 4.D's images as changed, docs/solutions/time-budget.md)."""
+    await _pause_log(page, True)
+    try:
+        return await page.screenshot(**kw)
+    finally:
+        await _pause_log(page, False)
+
+
+async def settle(page: Page, quiet_ms: int, window_ms: int = SETTLE_MAX_MS) -> bool:
+    """Wait per the settle rule: 2 animation frames, then until the DOM has been
+    quiet for `quiet_ms`. Returns False if the limit was hit (unsettled)."""
+    try:
+        await page.evaluate(
+            "() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))"
+        )
+    except Exception:
+        pass
+    waited = 0
+    while waited < window_ms:
+        _, _, since_m, since_f, _ = await _read_logs(page)
+        if since_m >= quiet_ms and since_f >= quiet_ms:
+            return True
+        await page.wait_for_timeout(POLL_MS)
+        waited += POLL_MS
+    return False
+
+
+def detect_p1_end(
+    steps: list[Step], first_key: str | None
+) -> tuple[str, list[str]] | None:
+    """P1 end conditions (4.C spec section 2): wrap, stuck or loop."""
+    keys = [s.stop.key for s in steps]
+    if first_key and "OUT" in keys[:-1] and keys[-1] == first_key:
+        return "wrap", []
+    if len(keys) >= 3 and keys[-1] == keys[-2] == keys[-3] and keys[-1] != "OUT":
+        return "stuck", [keys[-1]]
+    for p in range(2, len(keys) // 2 + 1):
+        cycle = keys[-p:]
+        if keys[-2 * p : -p] == cycle and "OUT" not in cycle and len(set(cycle)) > 1:
+            return "loop", sorted(set(cycle))
+    return None
+
+
+@dataclass
+class Traversal:
+    """One pass from a fresh load: replay `prefix`, then press `key` repeatedly."""
+
+    context: BrowserContext
+    page: Page
+    quiet_ms: int
+    shots_dir: Path | None = None
+    rel_base: Path | None = None
+    hooks: list[StepHook] = field(default_factory=list)
+    reader: FocusReader = field(init=False)
+    steps: list[Step] = field(default_factory=list)
+    _seen_focus: dict[str, int] = field(default_factory=dict)
+    _last_focus_total: int = 0
+    _last_mutations: int = 0
+    _last_q: int = 0
+
+    def __post_init__(self) -> None:
+        self.reader = FocusReader(self.context, self.page)
+
+    async def start(self) -> None:
+        await settle(self.page, self.quiet_ms)
+        for hook in self.hooks:
+            if hasattr(hook, "on_start"):
+                await hook.on_start(self)
+        m, f, _, _, q = await _read_logs(self.page)
+        self._last_mutations, self._last_focus_total, self._last_q = m, f, q
+        await _focus_events(self.page, self._seen_focus)
+
+    async def resync(self) -> None:
+        """Take the focus and mutation logs as they are now, after keys were
+        pressed outside press() (5.D's observed actions), so the next press
+        does not re-read the previous step for a change it did not cause."""
+        m, f, _, _, q = await _read_logs(self.page)
+        self._last_mutations, self._last_focus_total, self._last_q = m, f, q
+
+    async def press(self, key: str, quick: bool = False) -> Step:
+        """Press `key`, settle and read. `quick` (replay prefixes only, see
+        replay()) skips the quiet window: two animation frames, then read."""
+        # A focus change after the last step was read: re-read that step after
+        # the 1,000 ms window (settle rule).
+        _, f, _, _, _ = await _read_logs(self.page)
+        if self.steps and f != self._last_focus_total:
+            prev = self.steps[-1]
+            ok = await settle(
+                self.page, RERUN_WINDOW_MS, RERUN_WINDOW_MS + SETTLE_MAX_MS
+            )
+            stop, has_focus = await self.reader.read()
+            self.steps[-1] = prev.model_copy(
+                update={
+                    "stop": stop,
+                    "top_has_focus": has_focus,
+                    "rerun": True,
+                    "unsettled": prev.unsettled or not ok,
+                }
+            )
+            _, self._last_focus_total, _, _, _ = await _read_logs(self.page)
+        _count("presses")
+        if quick:
+            _count("quick")
+        await self.page.keyboard.press(key)
+        settled = await settle(self.page, 0 if quick else self.quiet_ms)
+        stop, has_focus = await self.reader.read()
+        m, f, _, _, q = await _read_logs(self.page)
+        step = Step(
+            n=len(self.steps) + 1,
+            key=key,
+            stop=stop,
+            top_url=self.page.url,
+            top_has_focus=has_focus,
+            open_pages=len(self.context.pages),
+            mutations=m - self._last_mutations,
+            settle_mutations=q - self._last_q,
+            focus_events=await _focus_events(self.page, self._seen_focus),
+            unsettled=not settled,
+            quick=quick,
+        )
+        self._last_mutations, self._last_focus_total, self._last_q = m, f, q
+        self.steps.append(step)
+        for hook in self.hooks:
+            value = await hook.on_step(self, step)
+            if value is not None:
+                step.extras[hook.name] = value
+        return step
+
+    async def shoot(self, label: str) -> str | None:
+        """Viewport screenshot of the current state, attached to the last step.
+        Taken only where the spec asks (a trap event), not on every press."""
+        if self.shots_dir is None or not self.steps:
+            return None
+        self.shots_dir.mkdir(parents=True, exist_ok=True)
+        path = self.shots_dir / f"{label}-{len(self.steps):04d}.png"
+        await screenshot(self.page, path=str(path), animations="disabled")
+        rel = path.resolve().relative_to(self.rel_base.resolve()).as_posix()
+        self.steps[-1] = self.steps[-1].model_copy(update={"screenshot": rel})
+        return rel
+
+
+def navigated(step: Step, start_url: str, start_pages: int) -> bool:
+    """Top-level navigation, reload or a new page (the fragment is ignored)."""
+    return (
+        step.top_url.split("#")[0] != start_url.split("#")[0]
+        or step.open_pages > start_pages
+    )
+
+
+def detect_continuation(
+    steps: list[Step], first_key: str | None
+) -> tuple[str, list[str]] | None:
+    """End of a continuation from a stop mid-page: OUT means traversal got past
+    the rest of the page (a wrap); otherwise P1's stuck and loop conditions."""
+    if steps and steps[-1].stop.kind == "OUT":
+        return "wrap", []
+    return detect_p1_end(steps, None)
+
+
+NewPage = Callable[[], Awaitable[tuple[BrowserContext, Page]]]
+
+
+class StepHook(Protocol):
+    """Extra evidence a check asks the walk to collect at every step (a walk
+    extra). Called after the step is settled and read; the return value is
+    stored in step.extras[name]. Collects facts only, never outcomes."""
+
+    name: str
+
+    async def on_step(self, t: Traversal, step: Step) -> Any: ...
+
+
+Detector = Callable[[list[Step], str | None], tuple[str, list[str]] | None]
+
+
+@dataclass
+class Session:
+    """A fresh page load with a Traversal, for passes and probes."""
+
+    traversal: Traversal
+    inventory: Inventory
+    start_url: str
+    start_pages: int
+    failed_requests: list[str] = field(default_factory=list)
+
+    @property
+    def page(self) -> Page:
+        return self.traversal.page
+
+    async def close(self) -> None:
+        # A fresh context per load: pages can keep state (localStorage, cookies)
+        # that would make the next "fresh" load differ.
+        await self.traversal.context.close()
+
+
+async def open_session(
+    new_page: NewPage,
+    quiet_ms: int,
+    shots_dir: Path | None = None,
+    rel_base: Path | None = None,
+    hooks: list[StepHook] | None = None,
+) -> Session:
+    _count("loads")
+    context, page = await new_page()
+    inv = await dom_inventory(page)
+    t = Traversal(context, page, quiet_ms, shots_dir, rel_base, list(hooks or []))
+    await t.start()
+    s = Session(t, inv, page.url, len(context.pages))
+    # Requests the recorded page cannot answer (infinite-scroll sign, V10).
+    page.on("requestfailed", lambda r: s.failed_requests.append(r.url))
+    return s
+
+
+class WalkTooLong(Exception):  # noqa: N818 (a stop, not a failure)
+    """P1's pace shows the walk cannot end before the run's deadline (4.C spec
+    section 2, Run limits). Nothing is tested: the run is refused."""
+
+    def __init__(self, candidates: int, presses: int, estimate_s: float):
+        self.candidates, self.presses, self.estimate_s = candidates, presses, estimate_s
+        super().__init__(f"walk estimate {estimate_s:.0f} s")
+
+
+@dataclass(frozen=True)
+class Cap:
+    """A check's limit on items in the DOM inventory (5.D: FIELD_MAX form
+    fields). Over it, the run stops before testing (4.C spec section 2, Run
+    limits) instead of leaving most of the items unchecked."""
+
+    attr: str  # Inventory attribute, e.g. "form_fields"
+    limit: int
+    seconds_each: float  # measured cost per item, for the time estimate
+    test: str  # TT test ID, e.g. "5.D"
+    noun: str  # plain words, e.g. "form fields"
+
+
+class TooManyItems(WalkTooLong):
+    """More items than a check's cap; nothing is tested."""
+
+    def __init__(self, cap: Cap, count: int, candidates: int, estimate_s: float):
+        self.cap, self.count = cap, count
+        super().__init__(candidates, 0, estimate_s)
+
+
+# A press's cost before any pace is measured (Linux, headless; ~0.2-0.4 s with
+# the walk's extras), for the estimate of a run refused at its first load.
+DEFAULT_PRESS_S = 0.3
+
+# Early stop: after PACE_WARM presses, P1's pace times the inventory (or the
+# presses so far, if more) times WALK_FACTOR (P2 costs about half of P1: 4.D's
+# images are taken in P1) must end before the deadline.
+PACE_WARM = 20
+WALK_FACTOR = 1.5
+
+
+@dataclass
+class Pace:
+    deadline: float
+    started: float | None = None
+    caps: list[Cap] = field(default_factory=list)
+
+    def check(
+        self, presses: int, candidates: int, inv: Inventory | None = None
+    ) -> None:
+        now = time.monotonic()
+        if self.started is None:
+            self.started = now
+            for cap in self.caps:  # known at the first load: stop at once
+                count = getattr(inv, cap.attr, 0) if inv is not None else 0
+                if count > cap.limit:
+                    walk = DEFAULT_PRESS_S * candidates * WALK_FACTOR
+                    raise TooManyItems(
+                        cap, count, candidates, walk + count * cap.seconds_each
+                    )
+            return
+        if presses < PACE_WARM:
+            return
+        n = max(candidates, presses)
+        estimate = (now - self.started) / presses * n * WALK_FACTOR
+        if self.started + estimate > self.deadline:
+            raise WalkTooLong(n, presses, estimate)
+
+
+@dataclass
+class ReplayPlan:
+    """What the walk saw at each press of each pass, for replays to its stops
+    (4.C spec section 2, settle rule): where focus went (path key) and whether
+    the press was quiet (it changed nothing a replay could depend on)."""
+
+    passes: dict[str, list[tuple[str, bool]]] = field(default_factory=dict)
+
+    @classmethod
+    def of(cls, *passes: PassResult) -> ReplayPlan:
+        plan = cls()
+        for p in passes:
+            if p.steps and p.steps[0].key not in plan.passes:
+                plan.passes[p.steps[0].key] = [
+                    (st.stop.path_key, _quiet(st, p)) for st in p.steps
+                ]
+        return plan
+
+    def flags(self, keys: list[str]) -> list[bool]:
+        """Which presses of `keys` may be quick: within the leading run of one
+        pass's key, those the walk saw quiet, except the run's last press (the
+        stop the replay goes to is always read after the full settle)."""
+        if not keys or keys[0] not in self.passes:
+            return [False] * len(keys)
+        seen = self.passes[keys[0]]
+        run = 0
+        while run < len(keys) and run < len(seen) and keys[run] == keys[0]:
+            run += 1
+        return [j < run - 1 and seen[j][1] for j in range(len(keys))]
+
+    def expect(self, keys: list[str], j: int) -> str | None:
+        seen = self.passes.get(keys[0]) if keys else None
+        if seen is None or j >= len(seen) or any(k != keys[0] for k in keys[: j + 1]):
+            return None
+        return seen[j][0]
+
+
+def _quiet(step: Step, p: PassResult) -> bool:
+    return (
+        step.stop.kind == "element"
+        and (step.mutations if step.settle_mutations is None else step.settle_mutations)
+        == 0
+        and not step.rerun
+        and not step.unsettled
+        and not navigated(step, p.start_url, p.start_pages)
+    )
+
+
+async def replay(
+    new_page: NewPage,
+    quiet_ms: int,
+    keys: list[str],
+    plan: ReplayPlan | None = None,
+    shots_dir: Path | None = None,
+    rel_base: Path | None = None,
+    hooks: list[StepHook] | None = None,
+) -> Session:
+    """A fresh load with `keys` pressed: a replay to a stop the walk reached.
+    With a plan, prefix presses the walk saw quiet are quick (no quiet window);
+    the last press is fully settled. If any press so far was quick and focus
+    is not where the walk had it, the replay is redone with every press
+    settled, so a quick press never changes where the replay ends."""
+    flags = plan.flags(keys) if plan is not None else [False] * len(keys)
+
+    async def run(quick: bool) -> Session | None:
+        s = await open_session(new_page, quiet_ms, shots_dir, rel_base, hooks)
+        try:
+            for j, k in enumerate(keys):
+                q = quick and flags[j]
+                step = await s.traversal.press(k, quick=q)
+                want = plan.expect(keys, j) if quick else None
+                if (
+                    want is not None
+                    and step.stop.path_key != want
+                    and any(flags[: j + 1])
+                ):
+                    await s.close()
+                    return None
+        except BaseException:
+            await s.close()
+            raise
+        return s
+
+    if any(flags):
+        s = await run(True)
+        if s is not None:
+            return s
+        _count("slow_redos")
+    return await run(False)
+
+
+async def drive(
+    s: Session,
+    key: str,
+    cap: int,
+    detector: Detector = detect_p1_end,
+    deadline: float | None = None,
+    pace: Pace | None = None,
+) -> tuple[str, list[str], list[Step]]:
+    """Press `key` until the detector ends it, navigation, the cap or the
+    deadline (time.monotonic()). Returns (end, trap stop keys, own steps).
+    `pace` (P1 only) raises WalkTooLong as soon as the walk cannot finish."""
+    start = len(s.traversal.steps)
+    first_key = None
+    for _ in range(cap):
+        if deadline is not None and time.monotonic() > deadline:
+            return "time", [], s.traversal.steps[start:]
+        if pace is not None:
+            pace.check(
+                len(s.traversal.steps) - start, s.inventory.candidates, s.inventory
+            )
+        step = await s.traversal.press(key)
+        own = s.traversal.steps[start:]
+        if navigated(step, s.start_url, s.start_pages):
+            return "navigation", [], own
+        if first_key is None and step.stop.kind == "element":
+            first_key = step.stop.key
+        hit = detector(own, first_key)
+        if hit:
+            return hit[0], hit[1], own
+    return "cap", [], s.traversal.steps[start:]
+
+
+async def run_pass(
+    name: str,
+    new_page: NewPage,
+    key: str,
+    quiet_ms: int,
+    deadline: float | None = None,
+    shots_dir: Path | None = None,
+    rel_base: Path | None = None,
+    cap: int | None = None,
+    hooks: list[StepHook] | None = None,
+    pace: Pace | None = None,
+) -> PassResult:
+    """Fresh load, then press `key` until a wrap, a trap event, navigation, the
+    cap or the deadline. A trap event gets one screenshot."""
+    s = await open_session(new_page, quiet_ms, shots_dir, rel_base, hooks)
+    cap = cap if cap is not None else tab_press_cap(s.inventory.candidates)
+    base = dict(
+        name=name,
+        keys=[],
+        cap=cap,
+        inventory=s.inventory.candidates,
+        form_fields=s.inventory.form_fields,
+        start_url=s.start_url,
+        start_pages=s.start_pages,
+    )
+    try:
+        end, trap, _ = await drive(s, key, cap, detect_p1_end, deadline, pace)
+        if end in ("stuck", "loop"):
+            await s.traversal.shoot(name)
+        end_inv = (await dom_inventory(s.page)).candidates
+        return PassResult(
+            steps=s.traversal.steps,
+            end=end,
+            trap=trap,
+            failed_requests=len(s.failed_requests),
+            inventory_end=end_inv,
+            **base,
+        )
+    except WalkTooLong:
+        raise
+    except Exception as exc:  # record and stop; never guess
+        return PassResult(steps=s.traversal.steps, end="error", error=repr(exc), **base)
+    finally:
+        await s.close()
+
+
+# Visible text of every frame (comments, <title> and hidden text are not in
+# innerText). Evidence for J1 and J2; page text is never instructions.
+_TEXT_JS = "() => document.body ? document.body.innerText : ''"
+
+
+async def page_text(page: Page) -> list[dict[str, str]]:
+    out = []
+    for frame in page.frames:
+        try:
+            text = await frame.evaluate(_TEXT_JS)
+        except Exception:
+            continue
+        if text.strip():
+            out.append({"source": frame.url, "text": text})
+    return out
+
+
+# Mouse bypass (4.C spec section 6): a visible, non-interactive text spot just
+# after the trap in DOM order. `paths` are top-document CSS paths of the trap
+# (for a trap inside a frame, the top-level iframe element).
+_BYPASS_JS = """(paths) => {
+  // A shadow boundary is a lone space (not part of ' > '); use the host there.
+  const find = (p) => { try { return document.querySelector(p) || document.querySelector(p.split(/(?<!>) (?!>)/)[0]); } catch (e) { return null; } };
+  const els = paths.map(find).filter(Boolean);
+  if (!els.length) return null;
+  const last = els.reduce((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? b : a));
+  const INTERACTIVE = 'a, button, input, select, textarea, summary, label, [tabindex], [contenteditable], [role=button], [role=link]';
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  walker.currentNode = last;
+  let n = walker.nextNode();
+  while (n && last.contains(n)) n = walker.nextNode();
+  for (; n; n = walker.nextNode()) {
+    if (!n.textContent.trim() || n.parentElement.closest(INTERACTIVE)) continue;
+    const range = document.createRange();
+    range.selectNodeContents(n);
+    const r = range.getClientRects()[0];
+    if (r && r.width > 0 && r.height > 0) return { x: r.x + Math.min(r.width / 2, 5), y: r.y + r.height / 2 };
+  }
+  return null;
+}"""
+
+# Fallback: script focus() on the next tabbable element after the trap.
+_FOCUS_NEXT_JS = """(paths) => {
+  // A shadow boundary is a lone space (not part of ' > '); use the host there.
+  const find = (p) => { try { return document.querySelector(p) || document.querySelector(p.split(/(?<!>) (?!>)/)[0]); } catch (e) { return null; } };
+  const els = paths.map(find).filter(Boolean);
+  if (!els.length) return false;
+  const last = els.reduce((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? b : a));
+  const all = Array.from(document.querySelectorAll('a[href], button, input, select, textarea, [tabindex]'))
+    .filter((e) => e.tabIndex >= 0 && !e.disabled && e.checkVisibility());
+  const next = all.find((e) => last.compareDocumentPosition(e) & Node.DOCUMENT_POSITION_FOLLOWING && !last.contains(e));
+  if (!next) return false;
+  next.focus();
+  return true;
+}"""
+
+
+async def bypass(page: Page, top_paths: list[str]) -> str | None:
+    """Click past the trap; fall back to script focus(). Returns "click",
+    "focus" (fallback, logged), or None if neither was possible."""
+    point = await page.evaluate(_BYPASS_JS, top_paths)
+    if point:
+        await page.mouse.click(point["x"], point["y"])
+        return "click"
+    if await page.evaluate(_FOCUS_NEXT_JS, top_paths):
+        return "focus"
+    return None

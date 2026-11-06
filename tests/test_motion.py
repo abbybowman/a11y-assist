@@ -11,8 +11,8 @@ from pathlib import Path
 
 import pytest
 
-from a11y_assist.capture import record, replay_context
-from a11y_assist.motion import (
+from tobi508.capture import record, replay_context
+from tobi508.motion import (
     MOTION_INIT_JS,
     MotionPass,
     changed_tiles,
@@ -187,7 +187,7 @@ async def test_failure_is_recorded(settings, browser, server, tmp_path, fails):
 
 async def test_elements(settings, browser, server, tmp_path):
     """V13: the element rules (Q6), read on their own."""
-    from a11y_assist.motion import read_elements
+    from tobi508.motion import read_elements
 
     har = tmp_path / "page.har.zip"
     cap = await record(
@@ -231,7 +231,7 @@ async def test_ticker_below_the_first_screen(settings, browser, server, tmp_path
     assert mp.ok, mp.error
     [r] = [r for r in mp.regions if r.source == "dom"]
     assert r.css == "#visits > span" and r.kinds == ["updating"], r
-    from a11y_assist.motion import settle_ignore
+    from tobi508.motion import settle_ignore
 
     assert settle_ignore(mp) == {"": ["#visits > span"]}
 
@@ -239,7 +239,7 @@ async def test_ticker_below_the_first_screen(settings, browser, server, tmp_path
 async def test_settle_ignores_content_that_keeps_changing(settings, browser, server):
     """T1 (b): once told, the settle rule stops waiting on a ticker's changes
     (traverse.INIT_JS setIgnore); the total count still sees them."""
-    from a11y_assist.traverse import INIT_JS, _read_logs, settle
+    from tobi508.traverse import INIT_JS, _read_logs, settle
 
     ctx = await browser.new_context()
     await ctx.add_init_script(INIT_JS)

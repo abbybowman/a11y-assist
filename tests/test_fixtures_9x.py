@@ -114,7 +114,7 @@ def test_9c_page_over_the_cap_is_never_pass_or_dna():
     """A page over the 600-unit cap has controls that were never paired, so
     agreeing pairs (G5) or no pairs (A3) cannot decide (spec 1.1.0). Built
     evidence: no fixture page this large is worth vendoring."""
-    from a11y_assist.checks.t9c import AndiPage, Comp, Pair, State9C, evaluate
+    from tobi508.checks.t9c import AndiPage, Comp, Pair, State9C, evaluate
 
     def page(n, truncated):
         c = Comp(k=0, css="a", role="link", href="/home", andi_name="Home")

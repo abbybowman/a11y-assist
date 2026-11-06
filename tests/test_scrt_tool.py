@@ -14,8 +14,8 @@ import pytest
 from fastmcp import Client
 from playwright.async_api import async_playwright
 
-from a11y_assist import config, scrt
-from a11y_assist.app import mcp
+from tobi508 import config, scrt
+from tobi508.app import mcp
 
 from .conftest import FIXTURES
 
@@ -113,7 +113,7 @@ async def test_a_run_writes_a_pre_scrt_file_the_reader_reads(settings, server):
     async with Client(mcp) as client:
         res = await _call(
             client,
-            "a11y_run_tt_tests",
+            "tobi_run_tt_tests",
             {"url": f"{server.base}/no_trap.html", "tests": ["4.C"]},
         )
         out = json.loads(res.content[0].text)
@@ -127,7 +127,7 @@ async def test_a_run_writes_a_pre_scrt_file_the_reader_reads(settings, server):
 
         res = await _call(
             client,
-            "a11y_read_report",
+            "tobi_read_report",
             # The run's own file by its link: no need to send it back.
             {"content": out["pre_scrt_uri"], "compare_to": SAMPLE.read_text()},
         )
@@ -149,12 +149,12 @@ async def test_a_run_writes_a_pre_scrt_file_the_reader_reads(settings, server):
 
 async def test_read_report_takes_a_local_path_only_in_dev_mode(settings):
     async with Client(mcp) as client:
-        local = await _call(client, "a11y_read_report", {"content": str(SAMPLE)})
+        local = await _call(client, "tobi_read_report", {"content": str(SAMPLE)})
         settings.dev_mode = False
-        refused = await _call(client, "a11y_read_report", {"content": str(SAMPLE)})
+        refused = await _call(client, "tobi_read_report", {"content": str(SAMPLE)})
         gone = await _call(
             client,
-            "a11y_read_report",
+            "tobi_read_report",
             {"content": SAMPLE.read_text(), "compare_to": "run://nope/pre-scrt.json"},
         )
     assert json.loads(local.content[0].text)["format"] == "scrt"
@@ -165,9 +165,9 @@ async def test_read_report_takes_a_local_path_only_in_dev_mode(settings):
 
 async def test_read_report_of_a_tt_file_and_bad_input():
     async with Client(mcp) as client:
-        res = await _call(client, "a11y_read_report", {"content": SAMPLE.read_text()})
+        res = await _call(client, "tobi_read_report", {"content": SAMPLE.read_text()})
         read = json.loads(res.content[0].text)
-        bad = await _call(client, "a11y_read_report", {"content": "[1, 2]"})
+        bad = await _call(client, "tobi_read_report", {"content": "[1, 2]"})
     assert read["format"] == "scrt" and read["tester_named"] is True
     assert [f["test_id"] for f in read["failures"]] == ["1.A"]
     assert (

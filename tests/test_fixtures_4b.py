@@ -9,9 +9,9 @@ import re
 
 import pytest
 
-from a11y_assist.checks import t4a, t4b
-from a11y_assist.models import TestId
-from a11y_assist.observe import Effect
+from tobi508.checks import t4a, t4b
+from tobi508.models import TestId
+from tobi508.observe import Effect
 
 from .conftest import FIXTURES
 from .harness import instance_rows, run_check
@@ -160,7 +160,7 @@ def test_unread_text_is_never_pass():
 async def test_page_text_goes_out_and_sentences_stay_whole(settings, server):
     # Judge eval 2026-10-31: page_text was empty for 4.B and the instruction
     # was cut at its line break.
-    from a11y_assist.pipeline import run_tt_tests
+    from tobi508.pipeline import run_tt_tests
 
     out = await run_tt_tests(
         settings, f"{server.base}/4b/f01-hold-space-to-switch.html", [TestId.T4B]

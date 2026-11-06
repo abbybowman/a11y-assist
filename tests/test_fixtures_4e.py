@@ -8,8 +8,8 @@ import re
 
 import pytest
 
-from a11y_assist.checks import t4e
-from a11y_assist.models import Outcome, TestId
+from tobi508.checks import t4e
+from tobi508.models import Outcome, TestId
 
 from .conftest import FIXTURES
 from .harness import instance_rows, run_check

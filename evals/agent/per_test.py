@@ -24,10 +24,10 @@ import json
 from collections import Counter
 from pathlib import Path
 
-from a11y_assist import scrt
-from a11y_assist.compare import compare, page_key
 from evals.judging import _pages, read_keys
 from evals.scoring import Verdict, score
+from tobi508 import scrt
+from tobi508.compare import compare, page_key
 
 UNDECIDED = {Verdict.NEEDS_REVIEW, Verdict.NOT_PERFORMED}
 

@@ -3,8 +3,8 @@ that the README's table shows, from the scorer's own verdicts."""
 
 from __future__ import annotations
 
-from a11y_assist.config import REPO_ROOT
 from evals.agent.per_test import per_test
+from tobi508.config import REPO_ROOT
 
 R1 = REPO_ROOT / "evals/judging/round1"
 

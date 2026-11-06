@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from a11y_assist.judgment import ApiJudge, ClientJudge, get_judge
-from a11y_assist.models import OpenQuestion, TestId
+from tobi508.judgment import ApiJudge, ClientJudge, get_judge
+from tobi508.models import OpenQuestion, TestId
 
 Q = OpenQuestion(
     question_id="q1",

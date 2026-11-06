@@ -6,10 +6,10 @@ from pathlib import Path
 
 import pytest
 
-from a11y_assist.config import REPO_ROOT, Settings
-from a11y_assist.models import TestId
-from a11y_assist.rules import RuleSpecError, load_specs, spec_versions
-from a11y_assist.versions import collect_versions
+from tobi508.config import REPO_ROOT, Settings
+from tobi508.models import TestId
+from tobi508.rules import RuleSpecError, load_specs, spec_versions
+from tobi508.versions import collect_versions
 
 RULES_DIR = REPO_ROOT / "docs" / "rules"
 
@@ -27,7 +27,7 @@ def test_repo_specs_load_and_4c_version_comes_from_front_matter() -> None:
     specs = load_specs(RULES_DIR)
     # The versioning standard (docs/rules/_template.md): a spec is 0.y.z (a
     # draft, no outcome) exactly when no check is registered for it.
-    from a11y_assist.checks import REGISTRY
+    from tobi508.checks import REGISTRY
 
     assert TestId.T4C in specs
     for t, spec in specs.items():

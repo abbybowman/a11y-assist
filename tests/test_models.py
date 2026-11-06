@@ -7,12 +7,12 @@ from datetime import datetime, timezone
 import pytest
 from pydantic import ValidationError
 
-from a11y_assist.models import Finding, Outcome, Report, TestId, Versions
+from tobi508.models import Finding, Outcome, Report, TestId, Versions
 
 
 def _versions() -> Versions:
     return Versions(
-        a11y_assist="0",
+        tobi508="0",
         andi="29.2.2",
         jquery="3.7.1",
         playwright="1.63.0",
@@ -58,7 +58,7 @@ def test_a_long_summary_and_many_rows_are_shortened_in_tool_output():
     """Post-round 1 fix 6b: a page with 96 failing fields gave a 21k
     character summary. Tool output keeps the first sentences and says how
     many more the report has; the finding itself keeps everything."""
-    from a11y_assist.models import (
+    from tobi508.models import (
         ROWS_VIEW_MAX,
         SUMMARY_VIEW_MAX,
         Finding,
@@ -88,7 +88,7 @@ def test_a_long_summary_and_many_rows_are_shortened_in_tool_output():
 def test_a_fail_names_confirmed_and_unconfirmed_instances_apart():
     """Fourth development run debrief: the agent asked which failures were
     confirmed and which still waited for answers. Tool output says both."""
-    from a11y_assist.models import Finding, FindingView, OpenQuestion
+    from tobi508.models import Finding, FindingView, OpenQuestion
 
     report = Report(
         run_id="r",

@@ -21,10 +21,10 @@ import pytest
 import pytest_asyncio
 from playwright.async_api import async_playwright
 
-from a11y_assist import egress
-from a11y_assist.browser import launch_browser
-from a11y_assist.config import Settings
-from a11y_assist.egress import EgressProxy
+from tobi508 import egress
+from tobi508.browser import launch_browser
+from tobi508.config import Settings
+from tobi508.egress import EgressProxy
 
 FIXTURES = Path(__file__).parent / "fixtures"
 

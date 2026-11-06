@@ -12,9 +12,9 @@ from pathlib import Path
 
 import pytest
 
-from a11y_assist import catalog, scrt
-from a11y_assist.compare import Change, change, compare, summary
-from a11y_assist.models import (
+from tobi508 import catalog, scrt
+from tobi508.compare import Change, change, compare, summary
+from tobi508.models import (
     NOT_CERTIFIED_DISCLAIMER,
     TEST_NOT_PERFORMED_NOTE,
     DecidedBy,
@@ -25,8 +25,8 @@ from a11y_assist.models import (
     TestId,
     Versions,
 )
-from a11y_assist.scrt import NotAReport
-from a11y_assist.scrt import ScrtResult as R
+from tobi508.scrt import NotAReport
+from tobi508.scrt import ScrtResult as R
 
 from .conftest import FIXTURES
 
@@ -118,7 +118,7 @@ def _report(findings: list[Finding]) -> Report:
         started_at=t,
         finished_at=t,
         versions=Versions(
-            a11y_assist="0",
+            tobi508="0",
             andi="29.2.2",
             jquery="3.7.1",
             playwright="1",

@@ -1,5 +1,5 @@
 [project]
-name = "a11y-assist"
+name = "tobi508"
 version = "0.1.0"
 description = "MCP server that runs parts of the DHS Trusted Tester 5.1.3 web test process in Chrome and reports agent-assisted findings"
 readme = "README.md"
@@ -13,15 +13,15 @@ dependencies = [
 ]
 
 [project.scripts]
-# Lets you run the server with `uv run a11y-assist`.
-a11y-assist = "a11y_assist.app:main"
+# Lets you run the server with `uv run tobi508`.
+tobi508 = "tobi508.app:main"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/a11y_assist"]
+packages = ["src/tobi508"]
 
 [dependency-groups]
 # Dev + eval-only deps. Install with `uv sync --group dev`.
@@ -58,32 +58,32 @@ addopts = "-m 'not slow' -n auto"
 
 [tool.ruff.lint.per-file-ignores]
 # Embedded JavaScript strings are kept readable rather than wrapped.
-"src/a11y_assist/traverse.py" = ["E501"]
+"src/tobi508/traverse.py" = ["E501"]
 # Spec row tables and question wording stay on one line each.
-"src/a11y_assist/checks/t4c.py" = ["E501"]
-"src/a11y_assist/checks/t5d.py" = ["E501"]
-"src/a11y_assist/forms.py" = ["E501"]
-"src/a11y_assist/andi.py" = ["E501"]
-"src/a11y_assist/motion.py" = ["E501"]
-"src/a11y_assist/checks/t2b.py" = ["E501"]
-"src/a11y_assist/checks/t2a.py" = ["E501"]
+"src/tobi508/checks/t4c.py" = ["E501"]
+"src/tobi508/checks/t5d.py" = ["E501"]
+"src/tobi508/forms.py" = ["E501"]
+"src/tobi508/andi.py" = ["E501"]
+"src/tobi508/motion.py" = ["E501"]
+"src/tobi508/checks/t2b.py" = ["E501"]
+"src/tobi508/checks/t2a.py" = ["E501"]
 # Scratch experiments kept as research evidence (not imported, not tests):
 # embedded JavaScript, and helpers shared by exec between scripts.
 "docs/research/**" = ["E501", "E741", "F821", "F841"]
-"src/a11y_assist/labels.py" = ["E501"]
-"src/a11y_assist/checks/t5a.py" = ["E501"]
-"src/a11y_assist/checks/t5c.py" = ["E501"]
-"src/a11y_assist/checks/t5f.py" = ["E501"]
-"src/a11y_assist/checks/t5g.py" = ["E501"]
-"src/a11y_assist/site.py" = ["E501"]
-"src/a11y_assist/checks/t9a.py" = ["E501"]
-"src/a11y_assist/checks/t9b.py" = ["E501"]
-"src/a11y_assist/checks/t9c.py" = ["E501"]
-"src/a11y_assist/checks/t19a.py" = ["E501"]
-"src/a11y_assist/checks/t5b.py" = ["E501"]
-"src/a11y_assist/checks/t5h.py" = ["E501"]
-"src/a11y_assist/checks/t4e.py" = ["E501"]
-"src/a11y_assist/checks/t4d.py" = ["E501"]
-"src/a11y_assist/checks/t4f.py" = ["E501"]
-"src/a11y_assist/checks/t4a.py" = ["E501"]
-"src/a11y_assist/checks/t4b.py" = ["E501"]
+"src/tobi508/labels.py" = ["E501"]
+"src/tobi508/checks/t5a.py" = ["E501"]
+"src/tobi508/checks/t5c.py" = ["E501"]
+"src/tobi508/checks/t5f.py" = ["E501"]
+"src/tobi508/checks/t5g.py" = ["E501"]
+"src/tobi508/site.py" = ["E501"]
+"src/tobi508/checks/t9a.py" = ["E501"]
+"src/tobi508/checks/t9b.py" = ["E501"]
+"src/tobi508/checks/t9c.py" = ["E501"]
+"src/tobi508/checks/t19a.py" = ["E501"]
+"src/tobi508/checks/t5b.py" = ["E501"]
+"src/tobi508/checks/t5h.py" = ["E501"]
+"src/tobi508/checks/t4e.py" = ["E501"]
+"src/tobi508/checks/t4d.py" = ["E501"]
+"src/tobi508/checks/t4f.py" = ["E501"]
+"src/tobi508/checks/t4a.py" = ["E501"]
+"src/tobi508/checks/t4b.py" = ["E501"]
