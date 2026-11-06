@@ -125,8 +125,31 @@ def with_pictures(result: Any, wrap: bool) -> Any:
     qs = getattr(result, "open_questions", None) or []
     text_tokens = len(result.model_dump_json(exclude={"report"})) // 3
     blocks, left = pictures(qs, TOKEN_BUDGET - text_tokens - 300)
+    # The to-do list closes the content, after the pictures, so it is the
+    # last thing read (agent follow-through plan, change 2b).
+    items = getattr(result, "todo", None) or []
+    end = (
+        [
+            TextContent(
+                type="text", text="TO DO, before you report:\n" + "\n".join(items)
+            )
+        ]
+        if items
+        else []
+    )
     if not blocks:
-        return result
+        if not end:
+            return result
+        data = result.model_dump(mode="json", exclude={"report"})
+        return ToolResult(
+            content=[
+                TextContent(
+                    type="text", text=result.model_dump_json(exclude={"report"})
+                ),
+                *end,
+            ],
+            structured_content={"result": data} if wrap else data,
+        )
     n = len(blocks) // 2
     note = (
         f" The {n} picture{'s' if n != 1 else ''} the questions name "
@@ -142,6 +165,6 @@ def with_pictures(result: Any, wrap: bool) -> Any:
     data = result.model_dump(mode="json", exclude={"report"})
     text = result.model_dump_json(exclude={"report"})
     return ToolResult(
-        content=[TextContent(type="text", text=text), *blocks],
+        content=[TextContent(type="text", text=text), *blocks, *end],
         structured_content={"result": data} if wrap else data,
     )

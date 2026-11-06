@@ -84,7 +84,7 @@ def register(mcp: FastMCP) -> None:
             out.started = [
                 {"job_id": j.id, "target": j.url, "tests": j.tests} for j in started
             ]
-            return out
+            return with_pictures(out, wrap=True)
         job = jobs.get(job_id)
         if job is None:
             raise ToolError(

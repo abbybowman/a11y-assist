@@ -763,6 +763,11 @@ class RunResult(BaseModel):
     errors: list[str] = Field(default_factory=list)
     save_hint: str = SAVE_HINT
     untrusted_content_notice: str = UNTRUSTED_NOTICE
+    todo: list[str] = Field(
+        default_factory=list,
+        description="What is left to do, last so it is read last (agent "
+        "follow-through plan, change 2b). Work through it before reporting.",
+    )
 
 
 class RunPending(BaseModel):
@@ -818,6 +823,9 @@ class Outstanding(BaseModel):
         "(no_time_limit is the user's choice): ask the user, then make them.",
     )
     next_step: str
+    todo: list[str] = Field(
+        default_factory=list, description="What is left to do, last."
+    )
 
 
 class AnswerResult(BaseModel):
@@ -863,3 +871,8 @@ class AnswerResult(BaseModel):
     errors: list[str] = Field(default_factory=list)
     save_hint: str = SAVE_HINT
     untrusted_content_notice: str = UNTRUSTED_NOTICE
+    todo: list[str] = Field(
+        default_factory=list,
+        description="What is left to do, last so it is read last (agent "
+        "follow-through plan, change 2b). Work through it before reporting.",
+    )

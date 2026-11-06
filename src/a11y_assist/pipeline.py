@@ -968,6 +968,7 @@ async def run_tt_tests(
         follow_up_calls=calls,
         work=Remaining.of(report).work,
         remaining=Remaining.of(report),
+        todo=todo(report, calls),
     )
 
 
@@ -1057,6 +1058,49 @@ def next_step(report: Report, calls: list[dict] | None = None) -> str:
     )
 
 
+def todo(report: Report, calls: list[dict] | None = None) -> list[str]:
+    """A short to-do list put last in every result (agent follow-through plan,
+    change 2b: development run 7's agent said the instructions were "buried
+    in 25-70k-character outputs" and asked for a short list at the end)."""
+    out: list[str] = []
+    qs = report.open_questions
+    if qs:
+        pics = sum(1 for q in qs if has_image(q.input))
+        pic = (
+            f"; {pics} name a picture: look and give `seen`, or "
+            "`picture_error` with unsure"
+            if pics
+            else ""
+        )
+        out.append(
+            f"[ ] Answer {len(qs)} open question(s) in one a11y_answer_questions "
+            f"call (run_id {report.run_id}){pic}."
+        )
+    calls = calls or []
+    mine = [c for c in calls if server_may_make(c)]
+    user = [c for c in calls if not server_may_make(c)]
+    if mine:
+        out.append(
+            f"[ ] Call a11y_run_status with finish=true: the server makes {len(mine)} "
+            "follow-up call(s) itself and waits for them."
+        )
+    if user:
+        out.append(
+            f"[ ] Ask the user about {len(user)} call(s) that need no_time_limit "
+            "(in follow_up_calls; they can take many minutes), then make them."
+        )
+    out.append(
+        "[ ] Before reporting: call a11y_run_status with no job_id, and repeat "
+        "until it lists nothing left (it covers every run of this session)."
+    )
+    out.append("[ ] Save report_uri and pre_scrt_uri before expires_at.")
+    out.append(
+        "[ ] Report NEEDS_REVIEW findings as needs review, and say which "
+        "findings still wait on work (waiting_on)."
+    )
+    return out
+
+
 async def answer_questions(
     settings: Settings, run_id: str, answers: list[Answer]
 ) -> AnswerResult:
@@ -1131,6 +1175,7 @@ async def answer_questions(
         follow_up_calls=calls,
         work=Remaining.of(report).work,
         remaining=Remaining.of(report),
+        todo=todo(report, calls),
     )
 
 
@@ -1239,6 +1284,34 @@ def outstanding(settings: Settings, jobs: list) -> Outstanding:
             "Nothing is left: every run of this session is finished, with no "
             "open question or follow-up call."
         )
+    items: list[str] = []
+    if q:
+        items.append(
+            f"[ ] Answer {q} open question(s) left in {len(runs)} run(s) "
+            "(a11y_answer_questions, one call per run)."
+        )
+    if c - len(user):
+        items.append(
+            f"[ ] Call a11y_run_status with finish=true: {c - len(user)} "
+            "follow-up call(s) the server makes itself."
+        )
+    if user:
+        items.append(f"[ ] Ask the user about {len(user)} call(s) in for_the_user.")
+    if running:
+        items.append(
+            f"[ ] Wait for {len(running)} run(s) still going (a11y_run_status "
+            "with each job_id)."
+        )
+    items.append(
+        "[ ] Call this again until it lists nothing left, then report."
+        if items
+        else "[x] Nothing left: report to the user, and save each run's report."
+    )
     return Outstanding(
-        runs=runs, running=running, done=done, for_the_user=user, next_step=step
+        runs=runs,
+        running=running,
+        done=done,
+        for_the_user=user,
+        next_step=step,
+        todo=items,
     )

@@ -562,7 +562,12 @@ async def test_pictures_come_with_the_questions_that_name_them(settings, server)
     out = json.loads(res.content[0].text)
     [q] = [q for q in out["open_questions"] if q["test_id"] == "5.A"]
     images = [c for c in res.content if c.type == "image"]
-    captions = [c.text for c in res.content[1:] if c.type == "text"]
+    captions = [
+        c.text
+        for c in res.content[1:]
+        if c.type == "text" and not c.text.startswith("TO DO")
+    ]
+    assert res.content[-1].text.startswith("TO DO")
     assert len(images) == 1 and images[0].mime_type in ("image/png", "image/jpeg")
     assert captions == [
         f"Picture for open question {q['question_id']}, input.image_a "
@@ -632,4 +637,27 @@ async def test_run_status_without_a_job_lists_the_work_left(settings, server):
     after = await _call("a11y_run_status", {})
     assert after["runs"] == [] and after["done"] == 1
     assert after["next_step"].startswith("Nothing is left")
+    jobs._JOBS.clear()
+
+
+async def test_every_result_ends_with_its_to_do_list(settings, server):
+    """Agent follow-through plan, change 2b: development run 7's agent said
+    the instructions were buried in large results. A short to-do list is the
+    last content block of a run's result and of the outstanding list."""
+    from a11y_assist import jobs
+
+    jobs._JOBS.clear()
+    url = f"{server.base}/4a/f01-click-only-text.html"
+    async with Client(mcp) as client:
+        res = await client.call_tool(
+            "a11y_run_tt_tests", {"url": url, "tests": ["4.A"]}
+        )
+        last = res.content[-1].text
+        assert last.startswith("TO DO, before you report:")
+        assert "[ ] Answer 1 open question(s)" in last
+        assert "a11y_run_status with no job_id" in last
+        out = json.loads(res.content[0].text)
+        assert out["todo"] == last.splitlines()[1:]
+        left = await client.call_tool("a11y_run_status", {})
+        assert "[ ] Answer 1 open question(s) left in 1 run(s)" in left.content[-1].text
     jobs._JOBS.clear()

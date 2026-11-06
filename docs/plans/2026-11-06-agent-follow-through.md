@@ -102,6 +102,35 @@ that; the tool has to make the complete path the cheap one.
 - **Status:** built (`models.Remaining`, `FindingView.waiting_on`;
   `tests/test_models.py`).
 
+### 2b. Results the agent reads to the end (after development run 7)
+
+Run 7's agent: "many questions and the outputs were huge, so I took the
+cheap answer". Results ran 25-70k characters, with the instructions at the
+top. It asked for:
+- a short to-do list at the end of each result;
+- smaller or paged outputs;
+- answers batched across runs.
+
+Abby (2026-11-06): keep honest `picture_error` answers (never refuse one
+that admits nobody looked), and build these, the to-do list first.
+
+1. **A to-do list last in every result.** `todo` is the last field, and a
+   "TO DO, before you report" text block is the last content block, after
+   the pictures. It goes on run and answer results and on the outstanding
+   list. Each line is one action:
+   - the questions left (how many need a picture);
+   - `finish=true` for the calls the server makes itself;
+   - the calls needing the user's choice;
+   - the no-job_id status check;
+   - saving the report;
+   - reporting NEEDS_REVIEW findings as needs review.
+
+   **Status:** built (`pipeline.todo`; `tests/test_tools.py::test_every_result_ends_with_its_to_do_list`).
+2. **Paged open questions.** About 10 per result, each with its pictures,
+   and the rest fetched with a page argument, so a result stays small and
+   looking at each picture is cheap.
+3. **Answers for several runs in one a11y_answer_questions call.**
+
 ### 3. Answers that show the picture was seen
 
 - A question whose rubric needs a picture asks the answer to name
