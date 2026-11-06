@@ -15,3 +15,16 @@ tests needs the same treatment. Use `-n0` to run one test on its own.
 presses keys 20 ms apart on a live infinite feed; under `-n 8` it failed
 once (2026-11-01) and passed alone and on the rerun. It checks the fixture,
 not a rule; if it fails again, rerun it alone before looking further.
+
+**In a container, `auto` counts the pod's CPU limit (2026-11-06).** xdist
+counts the CPUs the scheduler shows (`sched_getaffinity`, the same number
+`nproc` prints), which in a Kubernetes pod is every core of the node, not
+the pod's limit. On VAST (4-CPU limit) a run under `-q` printed nothing and
+seemed to hang; the likely cause is one worker, and so one Chromium, per
+node core (with `-n 4` the full suite passed there in under 10 minutes;
+`nproc` against the limit would confirm).
+`tests/conftest.py` now implements `pytest_xdist_auto_num_workers` and caps
+`auto` at the cgroup quota (v2 `cpu.max`, or v1 `cpu.cfs_quota_us`).
+`PYTEST_XDIST_AUTO_NUM_WORKERS` or an explicit `-n` still wins. Verified:
+`docker run --cpus=2` on a 4-CPU host started 2 workers, and a faked
+`cpu.max` of 4 CPUs with 64 visible returned 4.
