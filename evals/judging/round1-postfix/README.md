@@ -89,3 +89,29 @@ At commit e136924 plus the page cache, `--debrief`.
   result limit (about 25k tokens), so the agent lost part of their text,
   questions included. Fixed after the run: pictures now get only the token
   budget the text leaves (20k in all), at 768 px, at most 8.
+
+## Fourth run: the outstanding-work list and the picture budget (`results/arm-a-4/`)
+
+At commit 5adc37e, `--debrief`.
+
+| Run | Weighted | Agree | False FAIL | Questions answered | Follow-up calls made |
+| --- | --- | --- | --- | --- | --- |
+| Fourth | 55 | 56 | 1 | 27 of 28 | 2 of 7 started, 0 collected |
+| Third | 44 | 45 | 1 | 13 of 30 | 1 of 6 |
+| Second | 53 | 54 | 1 | 8 of 81 | 0 |
+
+- **Answering:** 27 of 28 questions, in 4 calls; only KSC's 4.F question
+  was missed ("I lost track", its debrief).
+- **Follow-up calls:** it started Missions' 19.A and 5.D (`no_time_limit`)
+  calls but stopped before collecting them, and made none for three other
+  pages. It never called `a11y_run_status` without a job_id. Its debrief:
+  "I stopped waiting and wrote the report", and its final message wrongly
+  said the calls "did not finish in the time available".
+- **Pictures:** it says it answered visual questions from the text and
+  mostly did not look at the pictures, though results now attach them
+  (120-380k characters with pictures, within the token budget).
+- **Results:** no false PASS; the same false FAIL (Artemis III's covered
+  player button).
+- Its own report overreached on NACA (it called 2.4.7 and 2.2.2 FAIL partly
+  on its own guesses); it asked for confirmed and unconfirmed failures to be
+  told apart more clearly.
