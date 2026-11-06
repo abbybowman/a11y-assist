@@ -69,6 +69,7 @@ class PageRef:
     url: str
     final_url: str
     new_page: NewPage
+    har_sha: str | None = None  # its recording's SHA-256 (pagecache reads)
 
 
 @dataclass

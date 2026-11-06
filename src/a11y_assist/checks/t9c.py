@@ -88,6 +88,21 @@ class State9C(BaseModel):
     pairs: list[Pair] = Field(default_factory=list)
 
 
+async def _cached_andi(p, third_party) -> AndiPage:
+    """An other page's ANDI read, from pagecache when this recording was read
+    in an earlier call of this server session."""
+    from a11y_assist import pagecache
+
+    sha = getattr(p, "har_sha", None)
+    hit = pagecache.read("andi", sha)
+    if hit is not None:
+        return hit.model_copy(update={"n": p.n})
+    got = await andi_page(p.n, p.new_page, third_party)
+    if got.ran:
+        pagecache.keep_read("andi", sha, got)
+    return got
+
+
 async def andi_page(n: int, new_page, third_party) -> AndiPage:
     out = AndiPage(n=n)
     try:
@@ -231,7 +246,7 @@ async def collect(ctx: RunContext, walk: KeyboardWalk | None) -> State9C:
         return State9C(no_pages=True)
     pages = await asyncio.gather(
         andi_page(0, ctx.new_page, ctx.third_party),
-        *(andi_page(p.n, p.new_page, ctx.third_party) for p in ctx.pages),
+        *(_cached_andi(p, ctx.third_party) for p in ctx.pages),
     )
     st = State9C(pages=list(pages))
     if any(p.error for p in st.pages):

@@ -24,13 +24,14 @@ import shutil
 import time
 from collections.abc import Awaitable, Callable
 from dataclasses import asdict
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
 
 from playwright.async_api import Browser, async_playwright
 
-from a11y_assist import motion, scrt
+from a11y_assist import motion, pagecache, scrt
 from a11y_assist.browser import (
     MOTION_BROWSER,
     NavigationBlocked,
@@ -39,7 +40,7 @@ from a11y_assist.browser import (
     replay_browser_name,
     replay_in_full_chromium,
 )
-from a11y_assist.capture import replay_context
+from a11y_assist.capture import Capture, replay_context
 from a11y_assist.checks import REGISTRY, RunContext
 from a11y_assist.checks.base import PageRef
 from a11y_assist.config import Settings
@@ -344,6 +345,9 @@ def _page_refs(get_browser, settings: Settings, run, report: Report) -> list[Pag
             n=p.n,
             url=p.url,
             final_url=p.final_url or p.url,
+            har_sha=pagecache.sha256(run.dir / p.har)
+            if (run.dir / p.har).is_file()
+            else None,
             new_page=_opener(
                 get_browser,
                 settings,
@@ -698,22 +702,42 @@ async def run_tt_tests(
                 rel = f"evidence/pages/p{i}.har.zip"
                 t1 = time.monotonic()
                 (run.dir / rel).parent.mkdir(parents=True, exist_ok=True)
+                hit = pagecache.reused(settings, other, run.dir / rel)
                 try:
                     # Each other page records within its own share of the
                     # limit, so a slow one cannot eat the other tests' time.
                     share = hard if no_time_limit else t1 + settings.other_page_s
-                    oc = await _bounded(
-                        obtain(
-                            browser,
+                    oc = (
+                        Capture(
+                            target_url=other,
+                            final_url=hit.final_url,
+                            har_path=run.dir / rel,
+                            cross_site_frames=list(hit.cross_site_frames),
+                            frozen=hit.frozen,
+                        )
+                        if hit
+                        else await _bounded(
+                            obtain(
+                                browser,
+                                settings,
+                                other,
+                                run.dir / rel,
+                                run.log,
+                                proxy,
+                                tested=False,
+                            ),
+                            min(hard, share),
+                        )
+                    )
+                    if hit is None:
+                        pagecache.keep(
                             settings,
                             other,
                             run.dir / rel,
-                            run.log,
-                            proxy,
-                            tested=False,
-                        ),
-                        min(hard, share),
-                    )
+                            oc.final_url,
+                            oc.cross_site_frames,
+                            oc.frozen,
+                        )
                 except TimeoutError:
                     # The single-page tests still run; the tests that compare
                     # pages are not performed rather than run on fewer pages.
@@ -748,6 +772,13 @@ async def run_tt_tests(
                         har=rel,
                         cross_site_frames=oc.cross_site_frames,
                         frozen=oc.frozen if settings.frozen_pages_dir else None,
+                        reused_from=(
+                            datetime.fromtimestamp(
+                                hit.recorded_at, timezone.utc
+                            ).isoformat(timespec="seconds")
+                            if hit
+                            else None
+                        ),
                         replay_browser=replay_browser_name(
                             settings, oc.cross_site_frames
                         ),
@@ -756,6 +787,7 @@ async def run_tt_tests(
                 run.log(
                     "captured_other",
                     n=i,
+                    reused=bool(hit),
                     final_url=oc.final_url,
                     seconds=round(time.monotonic() - t1, 2),
                 )

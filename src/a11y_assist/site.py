@@ -268,12 +268,25 @@ async def read_page(n: int, url: str, new_page: NewPage) -> PageRead:
         await context.close()
 
 
+async def _cached_read(p: Any) -> PageRead:
+    """An other page's read, from pagecache when this recording was read in
+    an earlier call of this server session."""
+    from a11y_assist import pagecache
+
+    hit = pagecache.read("site", getattr(p, "har_sha", None))
+    if hit is not None:
+        return hit.model_copy(update={"n": p.n})
+    got = await read_page(p.n, p.final_url, p.new_page)
+    pagecache.keep_read("site", getattr(p, "har_sha", None), got)
+    return got
+
+
 async def site_read(ctx: Any) -> SiteRead:
     """The tested page and every other page, read once per run (cached)."""
     if "site" not in ctx.cache:
         reads = await asyncio.gather(
             read_page(0, "", ctx.new_page),
-            *(read_page(p.n, p.final_url, p.new_page) for p in ctx.pages),
+            *(_cached_read(p) for p in ctx.pages),
         )
         ctx.cache["site"] = SiteRead(pages=list(reads))
     return ctx.cache["site"]

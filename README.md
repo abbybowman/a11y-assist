@@ -187,6 +187,8 @@ Save the report in your repository: a run's files expire after 24 hours.
 **Settings** come from the environment or `.env` (`.env.example`):
 - `ALLOWED_DOMAINS`, `RUN_LIMIT_S` and `OTHER_PAGE_S`;
 - `CALL_WAIT_S` and `MAX_CONCURRENT_RUNS`;
+- `PAGE_CACHE_S` (default 1800): how long an other page's recording, and
+  its reads, are reused by later calls of the same server session;
 - `BROWSER_CHANNEL` and `HEADLESS`;
 - `DEV_MODE` (allows `file://` pages);
 - `UPSTREAM_PROXY`, for containers that re-sign TLS.

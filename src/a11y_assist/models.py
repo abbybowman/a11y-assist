@@ -426,6 +426,12 @@ class OtherPage(BaseModel):
     url: str
     final_url: str | None = None
     har: str = Field(description="HAR path relative to the run folder.")
+    reused_from: str | None = Field(
+        default=None,
+        description="When the recording was reused from an earlier call in "
+        "this server session instead of recorded again (pagecache.py): when "
+        "that recording was made (UTC).",
+    )
     cross_site_frames: list[str] = Field(
         default_factory=list,
         description="Frames on another host, seen while recording (URLs without "

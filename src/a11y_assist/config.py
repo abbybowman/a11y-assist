@@ -106,6 +106,9 @@ class Settings(BaseSettings):
     # Finished jobs kept in memory for a11y_run_status (the run folder is kept
     # for run_ttl_hours either way).
     job_keep_s: int = Field(default=3600, ge=60)
+    # An other page's recording, and its reads, reused for this long within
+    # one server session (pagecache.py); 0 turns the cache off.
+    page_cache_s: int = Field(default=1800, ge=0)
     runs_dir: Path = REPO_ROOT / "runs"
     # Runs are working files, not an archive: deleted after this many hours.
     # Durable results belong in the user's codebase (saved from tool output).

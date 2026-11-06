@@ -769,6 +769,12 @@ Then (Abby, 2026-11-05):
   duration, which included waiting behind the agent's other runs. Largest
   phases: the walk 147 s (204 presses), 9.A 83 s (8 loads, 38 replays),
   2.B 42 s, 4.F 36 s.
+- **Other pages once per session** (`pagecache.py`, Abby): an other page
+  recorded in the last `PAGE_CACHE_S` (1800 s) is copied into the new run
+  instead of recorded again (the report's `reused_from` says when it was
+  recorded), and its page read and ANDI read are kept by the recording's
+  SHA-256. Each run keeps its own copy. Test: `test_pagecache.py` (the
+  second call does not request the page again).
 
 ## Observations to decide after scoring
 

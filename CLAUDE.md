@@ -211,6 +211,7 @@ src/a11y_assist/
   pipeline.py   run_tt_tests / answer_questions orchestration (generic)
   jobs.py       runs that outlive one call: the call wait, the run cap, a11y_run_status
   inline.py     the pictures attached to a result for its open questions (capped)
+  pagecache.py  other pages recorded and read once per server session (PAGE_CACHE_S)
   runlog.py     runs/<run_id>/ folder, steps.jsonl
   versions.py   version collection
   catalog.py    the TT 5.1.3 test catalog (from docs/sources/tt-5.1.3/tt.json)
