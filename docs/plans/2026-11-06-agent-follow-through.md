@@ -127,8 +127,8 @@ that; the tool has to make the complete path the cheap one.
     refused too.
 
   Checked: `tests/test_models.py`, README example 3, the scripted test
-  answers. **Not yet checked:** the judge eval (the answer format changed)
-  and a development answering run.
+  answers, and judge eval run 24 (29/29, every picture opened; see
+  `evals/README.md`). **Not yet checked:** a development answering run.
 
 ### 4. Reconsider which choices stay with the agent or the user (Abby, 2026-11-06)
 

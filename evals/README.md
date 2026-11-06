@@ -99,6 +99,24 @@ counts a tool result that matches as a **validated catch**, weighted +1 like
 an agreement and shown apart (`evals/scoring.py`). The file sits outside
 the lock, as the keys do.
 
+## Run 24, 2026-11-06: `seen` and `picture_error` (4.D, 4.F, 5.A, 5.C packets)
+
+Answers to a question whose input names a picture now need `seen`
+(something the picture shows), or `picture_error` with unsure; a bare
+answer is refused (agent follow-through plan, change 3). 29 cases, one
+fresh Sonnet agent: **29/29 match**, no false PASS, no answer refused. It
+opened every picture, filled `seen` with what the numbered or outlined
+elements showed, and never needed `picture_error`. It used Bash once
+(read-only, a packet file) against its instructions. Points it raised:
+- **Shared texts are easy to miss.** About half the cases point to
+  `question_texts`.
+- **The `answer_format` line is long.** Read shows it on every packet file.
+- **`choice.quote`:** whether it is needed for "labeled" or "missing" is
+  not said.
+- **Close calls it flagged:** 5.A's "Find an office" heading over a field
+  with only a Find button (it answered not_labeled), and a sidebar order
+  in 4.F (preserves). Both match.
+
 ## Run 23, 2026-11-06: 5.C 1.3.0 (the heading over an option), its packets only
 
 J1's input now gives an option's heading (`heading_over_it`,
