@@ -1,7 +1,8 @@
 # Plan: the agent finishes the work, whatever prompt started it
 
-Status: **draft 2026-11-06, building on branch `agent-follow-through`**
-(after PR #14, post-round 1 fixes).
+Status: **changes 1-4 built 2026-11-07 on branch `agent-follow-through`**
+(after PR #14, post-round 1 fixes); 5-7 not started. Results and next
+steps: "Outcome" at the end.
 
 **Why (Abby, 2026-11-06):** the tool should help agents give consistent
 results without relying on a perfect starting prompt. Development runs 4
@@ -235,3 +236,71 @@ that admits nobody looked), and build these, the to-do list first.
 - **Target:** every prompt within a few points of the others, and no
   false PASS on any. Prompt variants go in `evals/agent/prompt_dev.py`.
 - Round 2's scored run still uses one fixed prompt, chosen before its lock.
+
+## Outcome (2026-11-07, development runs 5-12)
+
+Records: `evals/judging/round1-postfix/README.md`. Lessons:
+`docs/solutions/agent-follow-through.md`.
+
+**Built:**
+- **Change 1:** `finish=true`, with 19.A's suggested pages visited by the
+  server.
+- **Change 2:** `work`, `remaining` and `waiting_on`.
+- **Change 2b:**
+  - the to-do list last in every result;
+  - open questions 10 at a time;
+  - one line per finding, with FAIL summaries whole;
+  - only changed findings after answers;
+  - `tobi_explain`;
+  - compact question inputs;
+  - tall pictures in parts.
+- **Change 3:** `seen` or `picture_error`, with `picture_error` refused for
+  attached pictures.
+- **Change 4:** no time limit by default (`MAX_RUN_S` 30 min) and a
+  progress line in every still-running result.
+- **Also:** 9.C spec 1.1.1 (wording), and snapshots
+  (`evals/snapshot.py`) to check that a refactor keeps reports identical.
+
+| | Runs 5-7 | Runs 8-9 (before refactor) | Runs 10-11 (after) | Run 12 |
+| --- | --- | --- | --- | --- |
+| Weighted | 58, 59, 57 | 58, 58 | 59, 62 | 54 (a walk bug) |
+| False PASS / FAIL | 0 / 0 | 0 / 0 | 0 / 0 | 0 / 0 |
+| `finish` used | – / yes / no | yes, yes | yes, yes | yes |
+| New context per run | 169-190k | 176-178k | 107-122k | 152k |
+
+**Worked:**
+- **`finish`.** The agent uses it since the to-do list.
+- **Smaller results.** New context fell 35-40% across the before and after
+  pairs, with outcomes unchanged (snapshot identical, full suite passing).
+- **The `no_time_limit` default.** It removes a question the agent never
+  asked the user.
+
+**Did not move with wording:**
+- looking at pictures (`seen` and `picture_error` are filled to get past
+  the rule);
+- reading every follow-up result;
+- calling `tobi_explain` before reporting.
+
+## Next (recommendations, 2026-11-07)
+
+1. **Artemis III's Tab walk stops early with "loop", intermittently**
+   (ROADMAP "Soon"). It cost run 12 six tests. Fix it and check it by
+   replaying the frozen page, no answering run needed.
+2. **ApiJudge and deterministic visual checks** (change 6, moved up).
+   Visual questions do not get looked at by the calling agent, whatever
+   the wording. Research first, from the handoff Abby has: an inventory of
+   picture questions, which parts a mechanical check can settle, and the
+   libraries for image diff, contrast, OCR and layout. The research also
+   covers the visual-versus-code cluster.
+3. **5.D's grouped questions.** With no time limit, Missions' 5.D runs in
+   full and asks about groups of 30 fields, which the agent answered
+   "unsure". Look at merging or reshaping them, with the judge eval.
+4. **Fold a short "why" into non-FAIL findings that wait on a person,** or
+   accept that `tobi_explain` is for people more than agents. Decide after
+   ApiJudge.
+5. **Measuring.** One answering run per change batch, read for behaviour.
+   Two runs on each side only for structural changes, and the judge eval
+   first for question changes. Consider 3 of the 5 pages for behaviour
+   checks.
+6. **Later, unchanged:** the MCP Apps review view (change 5) and MCP Tasks
+   (change 7).
