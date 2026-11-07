@@ -64,6 +64,13 @@ EXPECTED: dict[str, dict] = {
         "rows": ["M11"],
         "answers": {"J2": {"choice": "content_only"}, "J1": {"choice": "not_told"}},
     },
+    # 1.2.0: checking a box puts a panel over most of the window; J2's input
+    # says how much changed (test_j2_says_how_much_of_the_window_changed).
+    "f16-checkbox-shows-full-terms": {
+        "outcome": "FAIL",
+        "rows": ["M9"],
+        "answers": {"J2": {"choice": "changes_context"}, "J1": {"choice": "not_told"}},
+    },
     "f08-autocomplete-list": {"outcome": "PASS", "rows": []},
     "f09-field-in-iframe": {"outcome": "FAIL", "rows": ["M9"], "answers": NOT_TOLD},
     "f10-zip-submits-when-valid": {
@@ -271,6 +278,15 @@ def test_rows_on_recorded_evidence():
     taken = {"choice": "changes_context"}
     assert _row(_inst(attempt=content, j2=taken)) == "J1?"
     assert _row(_inst(attempt=content, j2=taken, j1={"choice": "not_told"})) == "M9"
+    # 1.2.0, row M15: content_only for a change over most of the window, or
+    # a modal dialog, is left for a person, never PASS.
+    only = {"choice": "content_only"}
+    wide = {**content, "cover": {"changed": 0.7, "layer": 0.0, "modal": False}}
+    modal = {**content, "cover": {"changed": 0.1, "layer": 0.2, "modal": True}}
+    small = {**content, "cover": {"changed": 0.1, "layer": 0.0, "modal": False}}
+    assert _row(_inst(attempt=wide, j2=only)) == "M15"
+    assert _row(_inst(attempt=modal, j2=only)) == "M15"
+    assert _row(_inst(attempt=small, j2=only)) == "M11"
     # Page noise during the action, and only DOM changes: unreliable.
     noisy = {
         "complete": [Effect(kinds=["dom"], mutations=2, noise=3)],
@@ -290,3 +306,22 @@ def test_rejected_value_asks_j3_then_stands_when_unsure():
     }
     assert _row(_inst(attempt=rejected)) == "M3"
     assert _row(_inst(attempt=rejected, j3={"choice": "unsure"})) == "M14"
+
+
+async def test_j2_says_how_much_of_the_window_changed(settings, server):
+    """1.2.0: J2's input gives the share of the window that changed (or a new
+    dialog covers) and whether a new dialog is modal. F16's terms panel
+    covers most of it; F07's revealed fields do not."""
+    from tobi508.pipeline import run_tt_tests
+
+    async def j2(name: str) -> dict:
+        out = await run_tt_tests(
+            settings, f"{server.base}/5d/{name}.html", [TestId.T5D]
+        )
+        [q] = [q for q in out.report.open_questions if q.question_id.endswith("-J2")]
+        return q.input
+
+    big = await j2("f16-checkbox-shows-full-terms")
+    assert int(big["covers_window"].rstrip("%")) > 50 and big["modal"] is False, big
+    small = await j2("f07-checkbox-reveals-fields")
+    assert int(small["covers_window"].rstrip("%")) < 50, small

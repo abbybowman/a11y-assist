@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Awaitable, Callable
+from pathlib import Path
 from typing import Any
 
 from pydantic import BaseModel, Field
@@ -55,10 +56,83 @@ DIALOGS_JS = (
     ? el.checkVisibility({ visibilityProperty: true })
     : el.getClientRects().length > 0;
   const sel = 'dialog[open], [role=dialog], [role=alertdialog]';
+  // How much of the window its box covers, and whether it is modal (a
+  // dialog opened with showModal(), or aria-modal="true"): 4.E J1 and 5.D
+  // J2's covering guard (4.E 1.2.0, 5.D 1.2.0).
+  const vw = innerWidth, vh = innerHeight;
+  const share = (el) => {
+    const r = el.getBoundingClientRect();
+    const w = Math.max(0, Math.min(vw, r.right) - Math.max(0, r.left));
+    const h = Math.max(0, Math.min(vh, r.bottom) - Math.max(0, r.top));
+    return vw && vh ? Math.round((w * h) / (vw * vh) * 100) / 100 : 0;
+  };
+  const modal = (el) => {
+    try { if (el.matches(':modal')) return true; } catch (e) {}
+    return el.getAttribute('aria-modal') === 'true';
+  };
   return Array.from(document.querySelectorAll(sel)).filter(vis)
-    .map((el) => ({ css: path(el), name: el.getAttribute('aria-label') || '' }));
+    .map((el) => ({ css: path(el), name: el.getAttribute('aria-label') || '',
+      share: share(el), modal: modal(el) }));
 }"""
 )
+
+# Positioned layers over a quarter of the window or more (5.D J2's covering
+# guard, 1.2.0): a panel laid over the page need not be a dialog, and white
+# on white changes few pixels. Visible ones only; the path is their identity.
+OVERLAYS_JS = (
+    "() => {"
+    + PATH_JS
+    + """
+  const vw = innerWidth, vh = innerHeight, out = [];
+  if (!vw || !vh || !document.body) return out;
+  for (const el of document.body.querySelectorAll('*')) {
+    const cs = getComputedStyle(el);
+    if (!['fixed', 'absolute', 'sticky'].includes(cs.position)) continue;
+    if (cs.display === 'none' || cs.visibility === 'hidden') continue;
+    if (Number(cs.opacity) === 0) continue;
+    const r = el.getBoundingClientRect();
+    const w = Math.max(0, Math.min(vw, r.right) - Math.max(0, r.left));
+    const h = Math.max(0, Math.min(vh, r.bottom) - Math.max(0, r.top));
+    const share = (w * h) / (vw * vh);
+    if (share < 0.25) continue;
+    out.push({ css: path(el), share: Math.round(share * 100) / 100, modal: false });
+  }
+  return out;
+}"""
+)
+
+# "Most of the window" (4.E J1, 5.D J2): a dialog or change covering more
+# than this share of the viewport, or a modal one, is never content_only.
+COVER_MOST = 0.5
+
+
+def cover(dialogs: list[dict[str, Any]]) -> dict[str, Any]:
+    """The largest share of the window the given dialogs cover, and whether
+    any is modal (DIALOGS_JS items). Facts; the checks' rows read them."""
+    return {
+        "share": max((float(d.get("share") or 0) for d in dialogs), default=0.0),
+        "modal": any(bool(d.get("modal")) for d in dialogs),
+    }
+
+
+def changed_share(a: Path, b: Path, delta: int = 8) -> float | None:
+    """Share of the pixels that differ (any channel by `delta` or more)
+    between two pictures of the same viewport; None if they cannot be
+    compared. 5.D J2's covering guard for a change that is not a dialog."""
+    from PIL import Image, ImageChops
+
+    try:
+        x = Image.open(a).convert("RGB")
+        y = Image.open(b).convert("RGB")
+    except Exception:
+        return None
+    if x.size != y.size:
+        return None
+    r, g, bl = ImageChops.difference(x, y).split()
+    mx = ImageChops.lighter(ImageChops.lighter(r, g), bl)
+    changed = mx.point(lambda v: 255 if v >= delta else 0).histogram()[255]
+    return round(changed / (x.size[0] * x.size[1]), 2)
+
 
 # Before the action, the page is watched this long; DOM changes in it are
 # page noise (animation), so an effect of only DOM changes is unreliable.

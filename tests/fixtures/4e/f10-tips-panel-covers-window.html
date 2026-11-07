@@ -1,0 +1,17 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>F10 Tips panel on focus</title>
+<style>#tips{position:fixed;left:5vw;top:8vh;width:90vw;height:80vh;background:#fff;border:2px solid #333;padding:24px;box-sizing:border-box}</style></head><body>
+<h1>Find a record</h1>
+<a href="#a" id="before">Before</a>
+<label>Record number <input id="rec"></label>
+<a href="#c" id="after">After</a>
+<div id="tips" role="dialog" aria-label="Search tips" hidden>
+<h2>Search tips</h2>
+<p>Record numbers start with two letters. Leave out spaces and dashes.</p>
+<p>You can also search by the date the record was made.</p>
+<button type="button" id="close">Close tips</button>
+</div>
+<script>
+  rec.addEventListener('focus', () => { tips.hidden = false; });
+  close.addEventListener('click', () => { tips.hidden = true; });
+</script>
+</body></html>

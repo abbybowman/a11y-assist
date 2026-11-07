@@ -1,0 +1,17 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>F16 Register for updates</title>
+<style>#terms{position:fixed;left:4vw;top:6vh;width:92vw;height:84vh;overflow:auto;background:#fff;border:2px solid #333;padding:24px;box-sizing:border-box}</style></head><body>
+<h1>Register for updates</h1>
+<form onsubmit="return false">
+<p><label>Email <input id="email" type="email"></label></p>
+<p><label><input type="checkbox" id="show"> Show the full terms</label></p>
+<p><button>Register</button></p>
+</form>
+<div id="terms" hidden>
+<h2>Terms of use</h2>
+<p>Updates are sent no more than once a week. You can stop them at any time from the link in each message.</p>
+<p>Your address is used only to send these updates and is never shared.</p>
+</div>
+<script>
+  show.addEventListener('change', () => { terms.hidden = !show.checked; });
+</script>
+</body></html>

@@ -38,6 +38,13 @@ EXPECTED: dict[str, dict] = {
         "rows": ["M9"],
         "choice": "changes_context",
     },
+    # 1.2.0: a tips panel over most of the window, not marked modal; J1's
+    # input says how much it covers (test_j1_says_how_much_a_dialog_covers).
+    "f10-tips-panel-covers-window": {
+        "outcome": "FAIL",
+        "rows": ["M9"],
+        "choice": "changes_context",
+    },
 }
 HELPERS = {"f02-other"}
 # Pages from other tests that prove a "not an instance" rule for 4.E.
@@ -140,3 +147,47 @@ async def test_focus_pulled_back_by_the_element_left_is_not_an_instance(
     )
     got = await run_check(settings, f"{act_server}/{case['path']}", TestId.T4E)
     assert got["finding"].outcome is Outcome.PASS, got["finding"].rationale
+
+
+async def test_j1_says_how_much_a_dialog_covers(settings, server):
+    """1.2.0: J1's input gives the dialog's share of the window and whether
+    it is modal, read from the DOM (F10 covers most of it; F08's bubble
+    very little)."""
+    from tobi508.pipeline import run_tt_tests
+
+    async def dialog(name: str) -> dict:
+        out = await run_tt_tests(
+            settings, f"{server.base}/4e/{name}.html", [TestId.T4E]
+        )
+        [q] = [q for q in out.report.open_questions if q.test_id is TestId.T4E]
+        return q.input["dialog"]
+
+    big = await dialog("f10-tips-panel-covers-window")
+    assert int(big["covers_window"].rstrip("%")) > 50 and big["modal"] is False, big
+    small = await dialog("f08-help-bubble-on-focus")
+    assert int(small["covers_window"].rstrip("%")) < 5 and small["modal"] is False
+
+
+def test_content_only_is_not_taken_for_a_dialog_over_most_of_the_window():
+    """1.2.0, row M12: content_only for a dialog that covers more than half
+    the window, or is modal, is left for a person, never PASS."""
+    from tobi508.engine import first_match
+
+    def row(other: dict) -> str:
+        i = t4e.Inst4E(
+            id="i1",
+            pass_name="P1",
+            step=2,
+            key="Tab",
+            keys=["Tab", "Tab"],
+            target={},
+            signal=t4e.Signal(kind="dialog", other={"dialogs": ["#d"], **other}),
+            reproduced=True,
+            j1={"choice": "content_only", "reasons": "", "decided_by": "model"},
+        )
+        return first_match(t4e.INSTANCE_ROWS, i).id
+
+    assert row({"covers_window": "72%", "modal": False}) == "M12"
+    assert row({"covers_window": "10%", "modal": True}) == "M12"
+    assert row({"covers_window": "10%", "modal": False}) == "M10"
+    assert row({}) == "M10"  # evidence from before 1.2.0
