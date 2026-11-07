@@ -342,32 +342,23 @@ This is mechanical, but anti-aliased glyph edges make "the text's colour" fuzzy.
 
 ### Experiment: real browser zoom against our half-width stand-in
 
-The question came from Playwright issue #2497 and the `playwright-zoom` package.
+Background: Playwright has no browser-zoom API ([microsoft/playwright#2497](https://github.com/microsoft/playwright/issues/2497), closed "not planned" in 2026; the thread lists the workarounds people have tried).
 
-**What the thread says** (read in full, 2026-11-07, except four comments hidden as off-topic):
-- **Status:** opened 2020-06-08; closed "not planned" 2026-10-31, when Playwright retired its P3 label. Pavel Feldman: "This doesn't mean the request is wrong."
-- **Joel Einbinder (2020):** zoom is "doable today with setting the device pixel ratio. But its not a great api"; real Chromium zoom is also remembered per origin.
-- **Jeff Witt (2026-08-25):** compared the engines.
-  - **Chromium:** CDP has no zoom command, only `Emulation.setPageScaleFactor` (pinch: no reflow, `innerWidth` unchanged) and `setEmulatedOSTextScale`.
-  - **The stand-in:** viewport w/z × h/z at DPR × z reflows and re-evaluates media queries, but is "not identical to real zoom, e.g. scrollbar sizing".
-  - **The rejected Playwright fix:** a PR using `setPageScaleFactor` was closed because "zoom and scale are not the same".
-  - **Proposed fix:** a Chromium `Emulation.setPageZoomOverride` (Chromium issue 551970393).
-- **Ron Au (2021):** keyboard Ctrl+ in Playwright "isn't able to emulate zoom".
+**Options we evaluated.**
 
-**`playwright-zoom` (npm 1.1.0, MIT, 2025-04; github.com/dszendrei/playwright-zoom).** I downloaded the npm tarball and read its source.
-- **How it works:**
-  - A Manifest V3 Chrome extension with `tabs` permission.
-  - Its service worker calls **`chrome.tabs.setZoom(tabId, zoom)`**, the browser's real zoom (the same as Ctrl+).
-  - The test library launches a *persistent* Chromium context with `--load-extension` and `headless: false`.
-- **Limits:**
-  - Chromium only.
-  - Node and `@playwright/test` only (we are Python).
-  - Headed in its code.
-  - **A security problem for us:** its content script runs on every http(s) page and listens to `window.postMessage`. Any page script can post `{type: "setTabZoom"}` and change the zoom, which breaks principle 5. We should not use the package. Its mechanism is fine.
+| Option | What it does | Verdict |
+| --- | --- | --- |
+| CDP `Emulation.setPageScaleFactor` | Pinch zoom: magnifies without re-laying out the page; `innerWidth` does not change | Rejected: not browser zoom |
+| Pressing Ctrl and + through Playwright | Reported in the issue not to zoom (synthetic key events do not reach the browser's zoom shortcut) | Rejected |
+| Stand-in: half the viewport at device pixel ratio 2 | Re-lays out the page at half the CSS width | Close, but native form controls differ (below). Fallback only |
+| Chrome extension calling `chrome.tabs.setZoom` | The browser's own zoom, as Ctrl+ sets it | **Chosen, in a minimal version of our own** |
+| The [`playwright-zoom`](https://www.npmjs.com/package/playwright-zoom) package (npm 1.1.0, MIT), which uses that extension approach | Node and `@playwright/test` only; launches Chromium headed; its content script listens to `window.postMessage` on every page, so any page script can change the zoom | Rejected: we are Python, and page content must not control the test (principle 5) |
 
-**Our experiment** (2026-11-07, Linux container, Playwright 1.63 Python, Chromium `channel="chromium"`, headless). Scripts: the session scratchpad, `zoom/probe.py`, `zoom/probe3.py`.
+**Credit.** The extension approach is the one `playwright-zoom` uses, and the issue thread pointed us to it; we credit both here. Our version copies none of its code: two files of our own, with no content script.
 
-The mechanism is ours: a two-file extension with **no content script**, only `tabs` permission. We drive it from Playwright through the extension's service worker (`context.service_workers[0].evaluate(...)` calling `chrome.tabs.setZoomSettings(tab, {scope: 'per-tab'})` then `chrome.tabs.setZoom(tab, 2.0)`), so the page cannot reach it.
+**Our experiment** (2026-11-07, Linux container, Playwright 1.63 Python, Chromium `channel="chromium"`, headless). The scripts were throwaway and are not committed; when 18.A is built, the comparison becomes a test.
+
+**The mechanism.** An extension with only the `tabs` permission and a service worker. Playwright drives it through the service worker (`context.service_workers[0].evaluate(...)` calling `chrome.tabs.setZoomSettings(tab, {scope: 'per-tab'})`, then `chrome.tabs.setZoom(tab, 2.0)`), so the page cannot reach it.
 
 | Arm | `innerWidth` | DPR | `(max-width: 800px)` media query | Grid columns | `2vw` text |
 | --- | --- | --- | --- | --- | --- |
@@ -478,7 +469,7 @@ The mechanism is ours: a two-file extension with **no content script**, only `ta
 - The contrast comparison: ANDI and axe against exact WCAG maths, 444 pairs.
 - The zoom comparison: real `chrome.tabs.setZoom` against the stand-in, in headless Chromium on Linux, one synthetic page plus three budget fixtures.
 - `playwright-zoom`'s mechanism, from its npm tarball.
-- The issue #2497 thread, read in full, apart from four comments hidden as off-topic.
+- The Playwright issue thread (#2497), read in full apart from comments hidden as off-topic.
 
 **Assumed, not tested:**
 - HAR replay in a persistent context;
