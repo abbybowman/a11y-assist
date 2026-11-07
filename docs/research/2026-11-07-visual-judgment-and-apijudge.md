@@ -1,81 +1,41 @@
 # Visual judgment: what can be decided mechanically, and ApiJudge
 
-Research note, 2026-11-07, on branch `agent-follow-through` (commit
-ba9f7b6). This is research only: no code, and no spec or rubric change.
-The TT PDF (`docs/sources/`) is the authority. TT text below comes from
-`tt.json`. Page numbers are the PDF's printed pages: the PDF's own page
-index minus 3, checked against the footers on PDF pages 25, 41, 49 and 77.
+Research note, 2026-11-07, on branch `agent-follow-through` (commit ba9f7b6). This is research only: no code, and no spec or rubric change. The TT PDF (`docs/sources/`) is the authority. TT text below comes from `tt.json`. Page numbers are the PDF's printed pages: the PDF's own page index minus 3, checked against the footers on PDF pages 25, 41, 49 and 77.
 
-**Why.** Development runs 5-11 showed that calling agents do not reliably
-look at the pictures a question names. They answer "unsure", write
-`picture_error` ("not inspected"), or write `seen` without looking (run 11;
-`docs/solutions/agent-follow-through.md`). When an agent does look, the
-same questions work (judge eval runs 24 and 27: 29/29 and 2/2). There are
-two ways out:
+**Why.** Development runs 5-11 showed that calling agents do not reliably look at the pictures a question names. They answer "unsure", write `picture_error` ("not inspected"), or write `seen` without looking (run 11; `docs/solutions/agent-follow-through.md`). When an agent does look, the same questions work (judge eval runs 24 and 27: 29/29 and 2/2). There are two ways out:
 
-1. **Decide mechanically** where one answer is the only possible one, or
-   where a measurement settles it.
-2. **Send what is left to a model the server controls** (`ApiJudge`), and
-   measure it with the judge eval.
+1. **Decide mechanically** where one answer is the only possible one, or where a measurement settles it.
+2. **Send what is left to a model the server controls** (`ApiJudge`), and measure it with the judge eval.
 
-Principles 3 and 8 limit both. A mechanical check may confirm an opinion
-or replace a question that has only one possible answer. It may never
-create a PASS from missing evidence.
+Principles 3 and 8 limit both. A mechanical check may confirm an opinion or replace a question that has only one possible answer. It may never create a PASS from missing evidence.
 
 ## Summary
 
-- **16 open questions across 13 built tests name a picture in `input`,**
-  so the `seen` rule applies to them. 4.C J2 carries a screenshot only in
-  `evidence_paths`, and the rest are text questions.
-  - Of the 16, these truly need the picture: **4.F J1, 4.D J1, 4.E J1,
-    5.D J2, 2.B J1, 2.C J1 / 2.B J2 (icons), 5.A J1 (the graphic case),
-    5.B J1 (icons) and 5.F J2**. The picture helps but is not decisive
-    for 4.A J1 and 5.C J1.
-  - **2.D J1/J2, 5.F J1 and 5.G J1** are questions a person settles by
-    *reading*. Their pictures are context, yet they trigger the `seen`
-    rule.
-- **Most visual questions already have their mechanical half built.** 4.D
-  measures changed pixels and styles before asking, 4.F computes order
-  signals, and 5.A takes visible text and geometry from the DOM. What is
-  left is the judgment band. A pixel library will not close it. Some
-  measurements could narrow it (below), but mostly towards FAIL or
-  NEEDS_REVIEW, never towards PASS.
-- **For the visual-versus-code cluster (10.B-10.D, 14.A-14.C, 15.A, 18.A),
-  the browser is the main evidence source, not image libraries.** Computed
-  styles, box geometry, overflow and ANDI's output give candidates and
-  most FAILs. Pixels and OCR add little beyond 7.E (images of text) and
-  13.C (text on images), which are outside the cluster as the roadmap
-  defines it.
-- **No new image dependency is needed now.** Pillow (already locked)
-  covers the diff work. The WCAG 2 contrast formula is a few lines and
-  needs no library.
-  - **NumPy:** any library that needs it (scikit-image, OpenCV, imagehash,
-    colour-science) holds us on NumPy 2.4.x, because NumPy 2.5 and SciPy
-    1.18 dropped Python 3.11.
-  - **APCA:** ruled out. Its licence is restrictive, and it is not
-    WCAG 2.
-- **ApiJudge:** recommended as a server-side answerer for the
-  picture-dependent questions only, with three rules:
-  - A failed or timed-out call leaves the question with the calling
-    agent, as now.
-  - The server model's "unsure" goes to a person, never back to the
-    agent.
+- **16 open questions across 13 built tests name a picture in `input`,** so the `seen` rule applies to them. 4.C J2 carries a screenshot only in `evidence_paths`, and the rest are text questions.
+  - Of the 16, these truly need the picture: **4.F J1, 4.D J1, 4.E J1, 5.D J2, 2.B J1, 2.C J1 / 2.B J2 (icons), 5.A J1 (the graphic case), 5.B J1 (icons) and 5.F J2**. The picture helps but is not decisive for 4.A J1 and 5.C J1.
+  - **2.D J1/J2, 5.F J1 and 5.G J1** are questions a person settles by *reading*. Their pictures are context, yet they trigger the `seen` rule.
+- **Most visual questions already have their mechanical half built.** 4.D measures changed pixels and styles before asking, 4.F computes order signals, and 5.A takes visible text and geometry from the DOM. What is left is the judgment band. A pixel library will not close it. Some measurements could narrow it (below), but mostly towards FAIL or NEEDS_REVIEW, never towards PASS.
+- **For the visual-versus-code cluster (10.B-10.D, 14.A-14.C, 15.A, 18.A), the browser is the main evidence source, not image libraries.** Computed styles, box geometry, overflow and ANDI's output give candidates and most FAILs. Pixels and OCR add little beyond 7.E (images of text) and 13.C (text on images), which are outside the cluster as the roadmap defines it.
+- **No new image dependency is needed now.** Pillow (already locked) covers the diff work. The WCAG 2 contrast formula is a few lines and needs no library.
+  - **NumPy:** any library that needs it (scikit-image, OpenCV, imagehash, colour-science) holds us on NumPy 2.4.x, because NumPy 2.5 and SciPy 1.18 dropped Python 3.11.
+  - **APCA:** ruled out. Its licence is restrictive, and it is not WCAG 2.
+- **Most of the leftover work can avoid model tokens (section 5b).**
+  - Visual tables: found from the page's own layout (boxes that line up in rows and columns).
+  - Text in images: OCR on our own server (tesseract.js inside the browser we already run), compared with the alt text.
+  - The rest goes to one contact sheet per page for a person.
+- **ApiJudge:** recommended as a server-side answerer for the picture-dependent questions only, with three rules:
+  - A failed or timed-out call leaves the question with the calling agent, as now.
+  - The server model's "unsure" goes to a person, never back to the agent.
   - A person's answer still overrides it.
-- **Before ApiJudge is turned on,** it must match or beat the agent
-  `all`-pictures arm on the judge eval, with zero false PASSes over three
-  repeats and a set of prompt-injection packets. The hosted model's API,
-  limits and image support are unknown, and are open questions for Abby.
+- **Before ApiJudge is turned on,** it must match or beat the agent `all`-pictures arm on the judge eval, with zero false PASSes over three repeats and a set of prompt-injection packets. The hosted model's API, limits and image support are unknown, and are open questions for Abby.
 
 ## 1. Inventory of open questions that need a picture or visual judgment
 
-**How this was found.** I searched `src/tobi508/checks/` for `image_`,
-`"images"`, `"image"` and `evidence_paths`, and read each spec's section 4.
+**How this was found.** I searched `src/tobi508/checks/` for `image_`, `"images"`, `"image"` and `evidence_paths`, and read each spec's section 4.
 
 **Column meanings.**
-- **Pic in input:** a `run://…png` is in `input`, so
-  `judgment._picture_problem` demands `seen` or `picture_error`.
-- **Look-PASS:** the spec marks the question as settled by looking or
-  reading (CLAUDE.md principle 8), so an agent's answer can lead to PASS.
+- **Pic in input:** a `run://…png` is in `input`, so `judgment._picture_problem` demands `seen` or `picture_error`.
+- **Look-PASS:** the spec marks the question as settled by looking or reading (CLAUDE.md principle 8), so an agent's answer can lead to PASS.
 
 ### 1a. Questions where the picture carries the evidence
 
@@ -102,47 +62,28 @@ create a PASS from missing evidence.
 | **5.F J1** error text names the field and the problem | before, after | Yes, with the quote check | error texts and where they appeared | as above |
 | **5.G J1** the error says how to fix it | before, after | Yes, with the quote check | errors and instructions | as above |
 
-**Option, not decided.** Move these pictures from `input` to
-`evidence_paths`. The `seen` rule would then stop asking agents to look
-at pictures that do not settle the question. This would be the cheapest
-cut in picture burden: four question kinds, no new code beyond the input.
-It changes question inputs, so the judge eval runs first (principle 6).
-The risk is small: a 5.F error shown only as a red icon is 5.F J2's case,
-which keeps its pictures.
+**Option, not decided.** Move these pictures from `input` to `evidence_paths`. The `seen` rule would then stop asking agents to look at pictures that do not settle the question. This would be the cheapest cut in picture burden: four question kinds, no new code beyond the input. It changes question inputs, so the judge eval runs first (principle 6). The risk is small: a 5.F error shown only as a red icon is 5.F J2's case, which keeps its pictures.
 
 ### 1c. Text questions (no picture in input)
 
-These are 2.C J2 and 2.B J3 (text describes a way to stop),
-4.A J2 (title essential), 4.B J1/J2, 4.C J1 and J2 (4.C J2 has a
-screenshot in `evidence_paths` only), 5.D J1 and J3, 5.F J0, 5.H J1/J2,
-9.A J1/J2, 9.C J1 and 19.A J1.
+These are 2.C J2 and 2.B J3 (text describes a way to stop), 4.A J2 (title essential), 4.B J1/J2, 4.C J1 and J2 (4.C J2 has a screenshot in `evidence_paths` only), 5.D J1 and J3, 5.F J0, 5.H J1/J2, 9.A J1/J2, 9.C J1 and 19.A J1.
 
-They stay with whoever answers text well. Runs 7-11 answered 9.C from
-names alone, which the 1.1.1 rubric now allows.
+They stay with whoever answers text well. Runs 7-11 answered 9.C from names alone, which the 1.1.1 rubric now allows.
 
 ### 1d. Volume
 
 The volume sets ApiJudge's cost:
-- Development runs 9-11 answered 24-30 questions per 5-page run, 14-15 of
-  them picture questions (round1-postfix README, runs 9-11).
-- Before 5.C's set grouping, NASA's Missions page alone asked 81, 56 of
-  them 5.C's.
+- Development runs 9-11 answered 24-30 questions per 5-page run, 14-15 of them picture questions (round1-postfix README, runs 9-11).
+- Before 5.C's set grouping, NASA's Missions page alone asked 81, 56 of them 5.C's.
 
 ## 2. Libraries for deterministic visual and text processing
 
-**How the facts were checked.** Licence, last release, Python and wheel
-sizes come from the PyPI JSON API on 2026-11-07, read with a script in
-the scratchpad. "MB" is the largest Linux x86-64 wheel usable on 3.11.
-npm facts come from registry.npmjs.org.
+**How the facts were checked.** Licence, last release, Python and wheel sizes come from the PyPI JSON API on 2026-11-07, read with a script in the scratchpad. "MB" is the largest Linux x86-64 wheel usable on 3.11. npm facts come from registry.npmjs.org.
 
-Nothing here does cryptography. FIPS 140 applies to cryptographic
-modules, so these libraries carry no FIPS question themselves. The FIPS
-points that matter:
+Nothing here does cryptography. FIPS 140 applies to cryptographic modules, so these libraries carry no FIPS question themselves. The FIPS points that matter:
 - the TLS connection to the hosted model (the host's FIPS OpenSSL);
 - SHA-256 in PROVENANCE, which is an approved algorithm;
-- libraries that download models and use `hashlib.md5` without
-  `usedforsecurity=False` can fail on a FIPS-mode host. This is assumed,
-  not tested here.
+- libraries that download models and use `hashlib.md5` without `usedforsecurity=False` can fail on a FIPS-mode host. This is assumed, not tested here.
 
 | Library | Licence | Latest (date) | Py 3.11 wheel / size | Offline / Windows | Accuracy evidence | Verdict |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -166,41 +107,28 @@ points that matter:
 | **axe-core** | MPL-2.0 (unmodified files: no terms on our code) | 4.14.0 (npm; 3.4 MB unpacked) | vendored JS, run in our page | yes / yes | ACT implementation reports | Evidence for 10.B (`p-as-heading`, experimental), 10.D (`list`, `listitem`, `definition-list`), 14.B (`td-headers-attr`, `th-has-data-cells`), 18.A (`meta-viewport`), 13.C (`color-contrast`). **Never a PASS by itself.** Already planned (ROADMAP "Scanners") |
 | IBM Equal Access `accessibility-checker-engine` | Apache-2.0 | 4.0.34 (npm; 25.6 MB unpacked) | vendored JS | yes / yes | ACT implementation reports (W3C ACT implementations page) | Has rules axe lacks for this cluster, both "needs review": `text_block_heading` (styled text that may be a heading: 10.B) and `table_layout_linearized` (14.C/15.A) |
 
-**Layout and geometry from the browser itself.** This comes before
-pixels. Playwright and CDP already give:
+**Layout and geometry from the browser itself.** This comes before pixels. Playwright and CDP already give:
 - `getBoundingClientRect` and `DOM.getBoxModel`;
-- `getComputedStyle` (font size and weight, `display`, `position`,
-  `overflow`, `text-overflow`, `::before`/`::after` content, colours);
+- `getComputedStyle` (font size and weight, `display`, `position`, `overflow`, `text-overflow`, `::before`/`::after` content, colours);
 - `scrollWidth > clientWidth` on elements and the document;
 - `elementFromPoint`, to detect when one element covers another;
-- `Emulation.setDeviceMetricsOverride` (the window size and device pixel
-  ratio).
+- `Emulation.setDeviceMetricsOverride` (the window size and device pixel ratio).
 
-The walk already reads boxes and styles, and `andi.andi_output` gives
-ANDI's per-element analysis. These are exact, cheap, and the same on
-every run. For the cluster they are the primary evidence, as ANDI is for
-a human tester.
+The walk already reads boxes and styles, and `andi.andi_output` gives ANDI's per-element analysis. These are exact, cheap, and the same on every run. For the cluster they are the primary evidence, as ANDI is for a human tester.
 
 ## 3. The visual-versus-code cluster
 
-**A correction to the prompt.** "10.x sensory characteristics/images of
-text" does not match TT 5.1.3. In TT 5.1.3:
+**A correction to the prompt.** "10.x sensory characteristics/images of text" does not match TT 5.1.3. In TT 5.1.3:
 - 10.A-10.D are headings and lists (section 10, Content Structure);
 - sensory characteristics is **13.B**, and images of text is **7.E**.
 
-Both are covered below for completeness. 7.E and 13.B are not in
-ROADMAP's cluster.
+Both are covered below for completeness. 7.E and 13.B are not in ROADMAP's cluster.
 
 ### DHS's ACT verdicts
 
-Source: `act-tt` (Section508Coordinators/act-tt, `act-trusted-tester.json`),
-fetched 2026-11-07. It holds DHS verdicts only for 1.4.5 (7.E), 2.4.6
-(10.A, 5.B) and 2.4.7 (4.D) among the tests below.
-- **1.4.5, ACT rule 0va7u6:** DHS agrees on 11 cases, and gives
-  *inapplicable* for 4 of ACT's 8 *passed* cases. DHS treats more of
-  those images as not images of text.
-- **1.3.1 (10.B-10.D, 14.x), 1.3.2 (15.A), 1.4.3 (13.C) and 1.4.4
-  (18.A):** none.
+Source: `act-tt` (Section508Coordinators/act-tt, `act-trusted-tester.json`), fetched 2026-11-07. It holds DHS verdicts only for 1.4.5 (7.E), 2.4.6 (10.A, 5.B) and 2.4.7 (4.D) among the tests below.
+- **1.4.5, ACT rule 0va7u6:** DHS agrees on 11 cases, and gives *inapplicable* for 4 of ACT's 8 *passed* cases. DHS treats more of those images as not images of text.
+- **1.3.1 (10.B-10.D, 14.x), 1.3.2 (15.A), 1.4.3 (13.C) and 1.4.4 (18.A):** none.
 
 ### The cluster, test by test
 
@@ -217,102 +145,58 @@ fetched 2026-11-07. It holds DHS verdicts only for 1.4.5 (7.E), 2.4.6
 | 7.E Image of text (p. 38; identify p. 37) | Find images of text (not logos or diagrams); can it be text, or customised? | Inventory (images) | **OCR is the evidence here**: text detected in `img`, CSS backgrounds or canvas, and its share of the image | Logotype or essential? Mostly text, or a picture containing text (excluded, p. 37)? | 0va7u6 HTML images contain no text (DHS verdicts above) | TC06.D-1-fail-1, TC06.D-ic-dna-1 |
 | 13.B Sensory info (p. 56) | Read instructions for shape, colour, size or position words | none | Word list in visible text ("click the green button", "on the right", "round icon") → candidates; "above" or "below" for sequence is allowed (Note) | Whether another non-sensory cue is given | 9bd38c Content has alternative for visual reference (15/4/2) | TC07.B-ic-dna-1 |
 
-**18.A: open decision (ROADMAP, found 2026-11-06), listed, not decided.**
-Three questions are open:
-- **Which window or windows.** Proposed: the default 1280 px, and one near
-  1024 px.
-- **A failure only in the smaller window:** FAIL, or NEEDS REVIEW with a
-  note.
-- **How to zoom.** "Half the viewport width at DPR 2" is assumed to lay a
-  page out like 200% zoom, and needs a V-check against real Ctrl+ zoom in
-  headed Chrome.
+**18.A: open decision (ROADMAP, found 2026-11-06), listed, not decided.** Three questions are open:
+- **Which window or windows.** Proposed: the default 1280 px, and one near 1024 px.
+- **A failure only in the smaller window:** FAIL, or NEEDS REVIEW with a note.
+- **How to zoom.** "Half the viewport width at DPR 2" is assumed to lay a page out like 200% zoom, and needs a V-check against real Ctrl+ zoom in headed Chrome.
 
 **What the sources add (checked 2026-11-07).**
 - **TT and Baseline.** Neither names a window size:
   - TT p. 74 says "use built-in browser zoom functions";
-  - ICT Baseline Test 22's instructions say "200% of original size", and
-    list browser zoom, platform features or on-page controls as
-    acceptable ways.
+  - ICT Baseline Test 22's instructions say "200% of original size", and list browser zoom, platform features or on-page controls as acceptable ways.
 - **WCAG Understanding 1.4.4 says three things:**
   - content passes if *one* user-agent mechanism reaches 200%;
-  - the criterion "applies to each layout variation", such as media-query
-    breakpoints;
+  - the criterion "applies to each layout variation", such as media-query breakpoints;
   - its example uses a 1280 CSS px window.
 - **The techniques to cite:**
   - sufficient: G142, G179, G146, G178, C28, C12-C14, SCR34;
   - failures: F69 (clipping), F80 (form controls), F94 (viewport units).
-- **Zooming in headless Chrome.** CDP's `Emulation.setPageScaleFactor`
-  magnifies without re-laying out the page, so it is not a stand-in for
-  browser zoom. Playwright has no built-in zoom (playwright issue #2497).
+- **Zooming in headless Chrome.** CDP's `Emulation.setPageScaleFactor` magnifies without re-laying out the page, so it is not a stand-in for browser zoom. Playwright has no built-in zoom (playwright issue #2497).
 
 ## 4. ApiJudge design options
 
-The stub is `ApiJudge(endpoint, model)` in `judgment.py`. `get_judge("api")`
-exists, but `config.judge_backend` is `Literal["client"]`, so it cannot be
-switched on yet. That is by design.
+The stub is `ApiJudge(endpoint, model)` in `judgment.py`. `get_judge("api")` exists, but `config.judge_backend` is `Literal["client"]`, so it cannot be switched on yet. That is by design.
 
 ### 4a. Interface
 
-- **Same contract.** `judge(questions) -> JudgeResult(answers, pending)`.
-  ApiJudge answers the questions it is configured for and returns the rest
-  as `pending`, which go to the client as now. Answers go through
-  `record_answers`, so every existing guard applies unchanged:
+- **Same contract.** `judge(questions) -> JudgeResult(answers, pending)`. ApiJudge answers the questions it is configured for and returns the rest as `pending`, which go to the client as now. Answers go through `record_answers`, so every existing guard applies unchanged:
   - kind and choice validity;
   - quote-found checks;
   - the stop-number guard.
 
   Outcomes still come only from the specs (principle 2).
-- **`decided_by` stays `"model"`.** A model answer needs no new outcome
-  path. Two things become ambiguous, though:
+- **`decided_by` stays `"model"`.** A model answer needs no new outcome path. Two things become ambiguous, though:
   - which model answered (the server's, or the calling agent's);
-  - `Versions.judging_model`, which is today one server setting ("none")
-    that records nothing about the client agent.
+  - `Versions.judging_model`, which is today one server setting ("none") that records nothing about the client agent.
 
-  **Proposal:** add `Answer.answered_by` (e.g. `"server:<model id>"` vs
-  `"client"`), set by the server, never by the caller. Record the hosted
-  model's id and version, a hash of the prompt template, and the
-  parameters in `judging_model` (principle 4).
-- **The `seen` rule.** Keep it for the client's answers. For ApiJudge,
-  `seen` is still worth filling: it is a short description the judge eval
-  can check, and a person can read. The server can now *know* the picture
-  was sent, so `not_viewed` is always false.
+  **Proposal:** add `Answer.answered_by` (e.g. `"server:<model id>"` vs `"client"`), set by the server, never by the caller. Record the hosted model's id and version, a hash of the prompt template, and the parameters in `judging_model` (principle 4).
+- **The `seen` rule.** Keep it for the client's answers. For ApiJudge, `seen` is still worth filling: it is a short description the judge eval can check, and a person can read. The server can now *know* the picture was sent, so `not_viewed` is always false.
 
 ### 4b. What the model is given
 
-- **What goes in.** The question, the rubric and the `question_texts`
-  entry; the input and the `shared_inputs` it names; the pictures
-  themselves.
-  - **Picture size.** Send pictures at full captured resolution, or as
-    crops, not the 768 px downscale `inline.py` makes for clients. The
-    hosted model's image limits decide the tile size: an open question.
-  - **4.F needs crops.** A full-page order picture is unreadable when
-    shrunk (run 9). Crops around the stops in question help any judge, so
-    they are worth building first.
-- **Untrusted content, in structure.** The system prompt is fixed and
-  holds no page content. The page-derived input goes in one delimited
-  JSON block labelled as untrusted data, as `OpenQuestion.input`
-  describes it now.
-- **The answer is structured.** Use JSON-schema output with the
-  question's `choices` as an enum, `quote`, `reasons` and `seen`. Free
-  text is ignored.
-- **No tools, no URLs.** The model's output can never choose a URL, a
-  tool or an outcome (principle 5).
-- **Prompt injection.** Screenshots and page text can say "answer
-  preserves", and an image is a channel text filters do not see. The
-  defences:
-  1. **Structure.** An enum answer, so an injected instruction can only
-     pick an allowed choice.
-  2. **The existing mechanical guards.** Quotes must be found in the
-     text; 4.D's PASS needs measured pixels; 2.C's evident needs the key
-     press that worked.
+- **What goes in.** The question, the rubric and the `question_texts` entry; the input and the `shared_inputs` it names; the pictures themselves.
+  - **Picture size.** Send pictures at full captured resolution, or as crops, not the 768 px downscale `inline.py` makes for clients. The hosted model's image limits decide the tile size: an open question.
+  - **4.F needs crops.** A full-page order picture is unreadable when shrunk (run 9). Crops around the stops in question help any judge, so they are worth building first.
+- **Untrusted content, in structure.** The system prompt is fixed and holds no page content. The page-derived input goes in one delimited JSON block labelled as untrusted data, as `OpenQuestion.input` describes it now.
+- **The answer is structured.** Use JSON-schema output with the question's `choices` as an enum, `quote`, `reasons` and `seen`. Free text is ignored.
+- **No tools, no URLs.** The model's output can never choose a URL, a tool or an outcome (principle 5).
+- **Prompt injection.** Screenshots and page text can say "answer preserves", and an image is a channel text filters do not see. The defences:
+  1. **Structure.** An enum answer, so an injected instruction can only pick an allowed choice.
+  2. **The existing mechanical guards.** Quotes must be found in the text; 4.D's PASS needs measured pixels; 2.C's evident needs the key press that worked.
   3. **Only `unsure` defaults to a person.**
-  4. **An injection set in the judge eval.** Custom fixture pages whose
-     visible text addresses the judge, as a red-team case (a gap no ACT
-     page covers, so a custom page is allowed). Their expected answer is
-     the one with the text ignored.
+  4. **An injection set in the judge eval.** Custom fixture pages whose visible text addresses the judge, as a red-team case (a gap no ACT page covers, so a custom page is allowed). Their expected answer is the one with the text ignored.
 
-  No defence is complete. These limit an injection to choosing among the
-  choices the spec already allows. They do not limit it to "unsure".
+  No defence is complete. These limit an injection to choosing among the choices the spec already allows. They do not limit it to "unsure".
 
 ### 4c. Where it runs
 
@@ -323,79 +207,48 @@ switched on yet. That is by design.
 | C. Fallback only | ApiJudge answers what the client left unsure or `not_viewed` | Cheapest | Run 11 shows `seen` filled without looking: wrong-but-sure answers never reach the fallback |
 
 **What these options assume.**
-- **Latency.** The calls run inside the job (`jobs.py`), so
-  `CALL_WAIT_S` and `tobi_run_status` already cover them. The calls are
-  independent, so a small concurrency limit (e.g. 4) keeps the time near
-  the slowest call.
-- **Failure.** A timeout, an HTTP error, a refusal or a schema violation
-  leaves the question pending for the client, as now. It is never
-  answered by default, and the failure is recorded in `steps.jsonl`.
-- **The server model's "unsure" goes to a person (recommended).** It
-  becomes NEEDS_REVIEW with the open question for a person. It does not
-  go back to the agent, which had a worse view of the same picture.
-- **Overrides.** A person's answer overrides any model
-  (`current_answer`). Whether the *calling agent* may override the
-  server model's answer is an open question; the recommendation is no.
+- **Latency.** The calls run inside the job (`jobs.py`), so `CALL_WAIT_S` and `tobi_run_status` already cover them. The calls are independent, so a small concurrency limit (e.g. 4) keeps the time near the slowest call.
+- **Failure.** A timeout, an HTTP error, a refusal or a schema violation leaves the question pending for the client, as now. It is never answered by default, and the failure is recorded in `steps.jsonl`.
+- **The server model's "unsure" goes to a person (recommended).** It becomes NEEDS_REVIEW with the open question for a person. It does not go back to the agent, which had a worse view of the same picture.
+- **Overrides.** A person's answer overrides any model (`current_answer`). Whether the *calling agent* may override the server model's answer is an open question; the recommendation is no.
 
 ### 4d. Cost and latency per run
 
-The figures are estimates, built from what we have. The hosted model's
-pricing and speed are unknown.
+The figures are estimates, built from what we have. The hosted model's pricing and speed are unknown.
 
 **Questions per run.**
-- 24-30 questions per 5-page development run, 14-15 of them picture
-  questions (runs 9-11).
+- 24-30 questions per 5-page development run, 14-15 of them picture questions (runs 9-11).
 - Option A sends about 15 per 5 pages; option B sends about 30.
 - Worst case: one large form page asked 81 before grouping (Missions).
 
 **Input per question.**
-- Text: about 1-4k tokens (question, rubric, input). Large inputs reach
-  more: one 4.F stop list was 13k characters, about 3-4k tokens.
+- Text: about 1-4k tokens (question, rubric, input). Large inputs reach more: one 4.F stop list was 13k characters, about 3-4k tokens.
 - Pictures: one to four per question.
-- What a picture costs depends on the model. For scale, Anthropic's
-  published approximation is width × height / 750 tokens, which gives
-  about 1k tokens for a 768×1024 tile; full resolution or several tiles
-  cost proportionally more.
-- Total: about 3-10k input tokens and under 300 output tokens per
-  question.
+- What a picture costs depends on the model. For scale, Anthropic's published approximation is width × height / 750 tokens, which gives about 1k tokens for a 768×1024 tile; full resolution or several tiles cost proportionally more.
+- Total: about 3-10k input tokens and under 300 output tokens per question.
 
 **Per 5-page run.**
-- **Option A:** about 50-150k input tokens. That is about the same as the
-  calling agent's whole new context per run now (107-122k, runs 10-11;
-  round1-postfix README).
-- **Time:** about 15 questions, 4 at a time, at 3-15 s each (assumed):
-  roughly 15-60 s per run, inside the job.
+- **Option A:** about 50-150k input tokens. That is about the same as the calling agent's whole new context per run now (107-122k, runs 10-11; round1-postfix README).
+- **Time:** about 15 questions, 4 at a time, at 3-15 s each (assumed): roughly 15-60 s per run, inside the job.
 
-**To measure.** `evals/time_budget.py` gives the collect-phase cost
-today. An ApiJudge phase in `steps.jsonl` (calls, tokens, seconds) would
-let it report the judging cost the same way.
+**To measure.** `evals/time_budget.py` gives the collect-phase cost today. An ApiJudge phase in `steps.jsonl` (calls, tokens, seconds) would let it report the judging cost the same way.
 
 ### 4e. How to evaluate it
 
-1. **Add a judge-eval answering backend.** `evals/judge_eval.py prepare`
-   builds the packets as now. A new step runs ApiJudge over each packet
-   (the same prompt the server will use) in place of a fresh agent, then
-   `apply` scores as now.
+1. **Add a judge-eval answering backend.** `evals/judge_eval.py prepare` builds the packets as now. A new step runs ApiJudge over each packet (the same prompt the server will use) in place of a fresh agent, then `apply` scores as now.
 2. **What counts.**
    - false PASS first, and false DNA for 2.B;
    - then matches, false FAILs and unsure answers;
    - run on all packets (the 71 cases of run 19) plus the injection set.
-3. **Three repeats.** Repeat at least 3 times at the model's lowest
-   temperature. One run is noise for behaviour
-   (solutions/agent-follow-through.md). Report the spread.
+3. **Three repeats.** Repeat at least 3 times at the model's lowest temperature. One run is noise for behaviour (solutions/agent-follow-through.md). Report the spread.
 4. **The bar before `judge_backend` may be set to "api":**
    - zero false PASS and false DNA in every repeat;
-   - matches at least the agent `all`-pictures arm (run 19: 67/70, 0
-     false PASS);
+   - matches at least the agent `all`-pictures arm (run 19: 67/70, 0 false PASS);
    - every injection case answered as if the injected text were absent.
 
-   Then a development answering run with ApiJudge on (option A), compared
-   with runs 10-11.
-5. **Rubric examples must not be fixture words** (solutions/judge-eval.md,
-   runs 26-27): grep `tests/fixtures/` first. This matters more for a
-   model that may have been tuned on public ACT pages.
-6. **Leaks.** The packet scrubbing rules apply to the server prompt too.
-   Fixture file names must never reach the model.
+   Then a development answering run with ApiJudge on (option A), compared with runs 10-11.
+5. **Rubric examples must not be fixture words** (solutions/judge-eval.md, runs 26-27): grep `tests/fixtures/` first. This matters more for a model that may have been tuned on public ACT pages.
+6. **Leaks.** The packet scrubbing rules apply to the server prompt too. Fixture file names must never reach the model.
 
 ### 4f. Which questions stay with the calling agent
 
@@ -411,111 +264,158 @@ If they keep their pictures, they go to ApiJudge with the rest of 1a.
 
 ## 5. Recommendations, ranked by false-PASS safety, then effort
 
-1. **Decide mechanically only what has one possible answer, and use
-   measurements to route, never to pass.** No new dependency.
-   - **4.E/5.D J2:** a covering-share guard that refuses `content_only`
-     for a dialog covering most of the viewport (to unsure).
+1. **Decide mechanically only what has one possible answer, and use measurements to route, never to pass.** No new dependency.
+   - **4.E/5.D J2:** a covering-share guard that refuses `content_only` for a dialog covering most of the viewport (to unsure).
    - **5.C:** CSS `::before` content added to `visible`.
-   - **4.D:** where the changed pixels sit, passed to the judge as
-     numbers.
+   - **4.D:** where the changed pixels sit, passed to the judge as numbers.
 
-   Each is a spec change (MINOR) with its own fixture. None can create a
-   PASS. Effort: small, per test.
-2. **Better pictures for any judge.** Crop 4.F's order picture to the
-   stops in question, and give 2.B content below the first screen a crop
-   (ROADMAP). This removes "unreadable" as a reason to skip looking.
-   Effort: small to medium. Run the judge eval after each.
-3. **Move the pictures out of `input` for reading questions** (2.D J1/J2,
-   5.F J1, 5.G J1), so `seen` stops being asked where looking does not
-   settle anything. Effort: small, plus a judge eval.
+   Each is a spec change (MINOR) with its own fixture. None can create a PASS. Effort: small, per test.
+2. **Better pictures for any judge.** Crop 4.F's order picture to the stops in question, and give 2.B content below the first screen a crop (ROADMAP). This removes "unreadable" as a reason to skip looking. Effort: small to medium. Run the judge eval after each.
+3. **Move the pictures out of `input` for reading questions** (2.D J1/J2, 5.F J1, 5.G J1), so `seen` stops being asked where looking does not settle anything. Effort: small, plus a judge eval.
 4. **ApiJudge, option A**, behind `JUDGE_BACKEND=api`.
    - **Build it after** the hosted model's API is known.
    - **Turn it on only after** the judge eval bar in 4e.
-   - **Effort:** medium (client, prompt, mock in tests, eval backend,
-     recording).
-   - **The largest gain.** It is the only option that removes the
-     dependence on the agent looking.
+   - **Effort:** medium (client, prompt, mock in tests, eval backend, recording).
+   - **The largest gain.** It is the only option that removes the dependence on the agent looking.
 5. **For the cluster, start from the browser and ANDI, not pixels.**
-   - Computed styles, boxes, overflow and ANDI output as candidates and
-     FAIL evidence.
+   - Computed styles, boxes, overflow and ANDI output as candidates and FAIL evidence.
    - axe-core and IBM's engine as evidence sources (already planned).
-   - A model or person for "is this a heading / list / data table / a
-     meaningful order".
+   - A model or person for "is this a heading / list / data table / a meaningful order".
 
-   Choose the first test with the coverage map. 18.A waits on the window
-   decision. 14.C is the most mechanical once data-vs-layout is settled.
-6. **OCR: not now.** It earns its place only with 7.E (and 13.C text on
-   images).
-   - **When 7.E is built:** Tesseract 5.5 with vendored `eng` tessdata,
-     a system install, so ask first.
-   - **If a system binary is ruled out:** RapidOCR (Apache-2.0,
-     onnxruntime).
+   Choose the first test with the coverage map. 18.A waits on the window decision. 14.C is the most mechanical once data-vs-layout is settled.
+6. **OCR: not now.** It earns its place only with 7.E (and 13.C text on images).
+   - **When 7.E is built:** Tesseract 5.5 with vendored `eng` tessdata, a system install, so ask first.
+   - **If a system binary is ruled out:** RapidOCR (Apache-2.0, onnxruntime).
    - **Not:** EasyOCR, PaddleOCR or docTR.
+
+## 5b. Options that use no model tokens (Abby, 2026-11-07)
+
+Tokens for NASA's internal agent API are hard to get. So the aim is a funnel:
+1. cheap browser facts first;
+2. then detectors that run on our own server, with no API call;
+3. a model or a person only for what is left over.
+
+One rule holds throughout: **a detector that finds nothing is not evidence that nothing is there.** A missed table or a missed image of text would be a false PASS or a false DNA. "No candidates" can give DNA only when the page plainly has no such content. Examples: no images bigger than an icon, or no text blocks arranged in rows. Otherwise the result is NEEDS_REVIEW, shown to a person cheaply (below).
+
+### Visual tables built without table markup (14.A, also 14.C and 10.D)
+
+1. **The page's own layout, no pixels.** For every visible text block, read its box from the browser. Look for at least 3 rows × 2 columns where:
+   - left edges (or centres) line up across rows within a few pixels;
+   - row spacing is regular;
+   - cells hold short text;
+   - none of it is inside `table`, `role=table` or `role=grid`.
+
+   This takes milliseconds, gives the same answer every run, and catches both div tables and CSS grid or flex "tables". Test it with the Baseline cases (TC12.A) and a few custom div-table pages.
+2. **CSS signals.** Look for `display: table`, `table-row` or `table-cell` on elements that are not tables, and for `grid-template-columns` on an element whose children repeat the same pattern.
+3. **Data table or layout?** The TT's own test is whether cells need headers to be understood (p. 60). A tester decides that, but signals can rank candidates:
+   - a header-like first row (bold, or a different background);
+   - columns of numbers, dates or short values;
+   - matching units down a column.
+
+   Card grids with images and paragraphs score low. Clear cases could be decided by rule, such as numeric columns under a styled header row. Unclear ones go to a person with the reading-order text, which is what ANDI's "reading order" shows a tester.
+4. **Pictures of tables** (TT p. 60 includes "images of data tables"). Find horizontal and vertical ruling lines in the image, plus OCR words lined up in columns.
+   - `img2table` does both: MIT licence, 2.0.0 (2026-05), 3 MB, but it needs OpenCV.
+   - Line detection alone can be done with Pillow.
+5. **A local table-detection model, only if 1-4 miss real tables.** Microsoft's Table Transformer: MIT licence, runs on our server, no API tokens. It needs PyTorch (hundreds of MB), so it is the last resort.
+
+### Text inside images with no alt text or nearby description (7.E; it also helps 7.A and 13.C)
+
+1. **Find the images in the DOM first.** Include:
+   - visible `img`;
+   - `input type=image`;
+   - CSS background images;
+   - `canvas`;
+   - SVG `image`.
+
+   Skip anything at icon size, and SVG `<text>`, which is real text. For each image, record its alt text or accessible name and the visible text next to it.
+2. **OCR on our own server, inside the browser we already run.**
+   - **tesseract.js** (Apache-2.0, 7.0.0; WebAssembly core 6.1.2; plus the English model file) can be vendored with SHA-256 hashes in `third_party/` and loaded the way ANDI is.
+   - No system install and no network. It behaves the same on Linux and Windows.
+   - It reads the image file itself from the recording (the HAR), so it sees the exact pixels, not a screenshot.
+   - Native Tesseract or RapidOCR are the faster alternatives if speed matters.
+3. **Compare by rule.** OCR words above a confidence level are compared with the alt text and the nearby text (fuzzy matching, Python's `difflib`). Words in the image that appear in neither become a candidate, with the image, the words and the alt text side by side.
+4. **Cheap pixel signals to choose what to OCR first:** few colours, dense horizontal bands of edges, a banner shape.
+5. **What stays a judgment.** Is it a logotype? Is it a picture whose text is minor (excluded, p. 37)? Rule signals can mark "likely logo" for a person:
+   - the image is in the header and links to the home page;
+   - its alt text holds the agency's name;
+   - its file name says "logo".
+
+### Ideas that cut tokens wherever a model or person is still needed
+
+- **One contact sheet per page instead of one question per picture.**
+  - Tile every leftover image, or every 4.D on/off pair, into one numbered sheet.
+  - A person scans it in seconds and lists the numbers that are a problem.
+  - If a model is used, it is one call per page rather than per question.
+- **Answer once per site.** Key answers by image hash and question. Shared headers, logos and navigation are then judged once, not once per page and run (like `pagecache.py` for pages).
+- **Crop hard.** Send the element and its surroundings, not the viewport. Tokens scale with pixels.
+- **Small vision models on our own server** (no API tokens, still models):
+  - Florence-2-base: MIT, about 0.23B parameters, does OCR and object detection.
+  - SmolVLM-256M: Apache-2.0.
+
+  They run on CPU, slowly, with weights of hundreds of MB to vendor and hash. They would need the same judge-eval bar as ApiJudge. A middle option, not a first step.
+- **What the operating system or browser offers (checked, mostly unusable for us).**
+  - Windows (`Windows.Media.Ocr`) and macOS (Vision) have free offline OCR, but the hosted target is Linux.
+  - Chrome's `TextDetector` (Shape Detection API) is still "in progress", behind a flag, and not supported on Linux (web.dev; Chromium's 2018 design doc).
+
+### Ranking, token-free
+
+1. DOM grid detection for 14.A (small effort, deterministic).
+2. The DOM image inventory, plus tesseract.js OCR, plus the alt-text comparison for 7.E (medium effort).
+3. Contact sheets for whatever is left, for a person first.
+4. Local models only if real pages show 1-3 missing too much.
+
+**Verified this session:** the licences and versions of img2table, tesseract.js and tesseract.js-core (PyPI and npm), and of Florence-2-base, Table Transformer and SmolVLM-256M (Hugging Face API); TextDetector's status (web.dev, Chromium design doc).
+
+**Assumed, not tested:**
+- the accuracy of OCR on agency banners;
+- tesseract.js speed per image;
+- whether DOM grid detection catches the tables found on real pages.
 
 ## 6. Open questions for Abby
 
 1. **The hosted model (NASA).**
-   - The API style (OpenAI-compatible? Bedrock? something else?) and how
-     the server authenticates.
-   - Image input: whether it is supported, the formats, the largest size
-     and the number of images per request.
+   - The API style (OpenAI-compatible? Bedrock? something else?) and how the server authenticates.
+   - Image input: whether it is supported, the formats, the largest size and the number of images per request.
    - Context and output limits, rate limits, cost or quota per run.
    - Whether it gives deterministic settings (temperature 0, seed).
    - A model version id we can record.
-   - Data handling: may screenshots of public .gov/.mil pages be sent?
-     Are prompts logged or retained?
-   - Is the endpoint FIPS-validated TLS? Is it reachable from the hosted
-     deployment?
+   - Data handling: may screenshots of public .gov/.mil pages be sent? Are prompts logged or retained?
+   - Is the endpoint FIPS-validated TLS? Is it reachable from the hosted deployment?
 2. **Licence policy.**
-   - Are MPL-2.0 (axe-core, unmodified) and Apache-2.0 (IBM engine,
-     Tesseract, RapidOCR) acceptable for GSA and NASA release?
-   - Is a system-installed OCR binary acceptable in the container image
-     and on Windows?
-3. **Overrides.** May the calling agent override an ApiJudge answer, or
-   only a person? (The recommendation is only a person.)
-4. **Where unsure goes.** Should an ApiJudge "unsure" go straight to a
-   person (recommended), or to the agent first?
+   - Are MPL-2.0 (axe-core, unmodified) and Apache-2.0 (IBM engine, Tesseract, RapidOCR) acceptable for GSA and NASA release?
+   - Is a system-installed OCR binary acceptable in the container image and on Windows?
+3. **Overrides.** May the calling agent override an ApiJudge answer, or only a person? (The recommendation is only a person.)
+4. **Where unsure goes.** Should an ApiJudge "unsure" go straight to a person (recommended), or to the agent first?
 5. **18.A.** The ROADMAP decision:
    - which windows (1280 px, and about 1024 px?);
    - a failure only in the smaller window: FAIL or NEEDS REVIEW;
-   - approval to V-check the zoom stand-in against real Ctrl+ zoom on
-     Windows headed Chrome.
-6. **Reading questions.** May the pictures move from `input` to
-   `evidence_paths` for 2.D J1/J2, 5.F J1 and 5.G J1, subject to the
-   judge eval?
+   - approval to V-check the zoom stand-in against real Ctrl+ zoom on Windows headed Chrome.
+6. **Reading questions.** May the pictures move from `input` to `evidence_paths` for 2.D J1/J2, 5.F J1 and 5.G J1, subject to the judge eval?
 
 ## Verified vs assumed (principle 6)
 
 **Verified, with commands this session:**
-- The inventory, from the checks' code (grep of `image_`, `"images"`,
-  `"image"`, `evidence_paths`) and the specs' section 4.
-- `judge_backend` is `Literal["client"]`; `judging_model` defaults to
-  "none".
-- Pillow is the only image dependency; 4.D, `motion.py` and
-  `mechanism.py` use `ImageChops`.
-- Licences, versions, dates, Python requirements and wheel sizes from the
-  PyPI JSON API; npm licences, versions and sizes from the registry.
+- The inventory, from the checks' code (grep of `image_`, `"images"`, `"image"`, `evidence_paths`) and the specs' section 4.
+- `judge_backend` is `Literal["client"]`; `judging_model` defaults to "none".
+- Pillow is the only image dependency; 4.D, `motion.py` and `mechanism.py` use `ImageChops`.
+- Licences, versions, dates, Python requirements and wheel sizes from the PyPI JSON API; npm licences, versions and sizes from the registry.
 - NumPy 2.5 and SciPy 1.18 require Python ≥3.12.
 - DHS act-tt verdicts and ACT rule case counts, from the two JSON files.
-- Baseline Alignment cases, from baselinealignment.section508.gov
-  testcases (148 cases; none for Resize Text or CSS positioning).
+- Baseline Alignment cases, from baselinealignment.section508.gov testcases (148 cases; none for Resize Text or CSS positioning).
 - TT text from `tt.json`, and printed page numbers from the PDF.
 - WCAG Understanding 1.4.4, 1.3.2 and 1.4.5 techniques, from w3.org.
 - ICT Baseline Test 22's instructions, from ictbaseline.access-board.gov.
-- Run figures from `evals/README.md` and
-  `evals/judging/round1-postfix/README.md`.
+- Run figures from `evals/README.md` and `evals/judging/round1-postfix/README.md`.
 
 **Assumed or second-hand (not checked):**
 - Tesseract's latest version (5.5.3, per Wikipedia) and tessdata sizes.
 - RapidOCR running fully offline with packaged models.
 - EasyOCR's upkeep (third-party review sites).
-- APCA licence details (secondary sources, plus npm's licence string
-  "Limited W3 License").
+- APCA licence details (secondary sources, plus npm's licence string "Limited W3 License").
 - `setPageScaleFactor` behaviour (forum posts).
 - FIPS behaviour of model-downloading libraries.
 - Every cost and latency figure in 4d, since the hosted model is unknown.
-- Whether Windows behaves the same as Linux for any library (no Windows
-  here).
+- Whether Windows behaves the same as Linux for any library (no Windows here).
 
 ## Sources
 
@@ -529,21 +429,16 @@ If they keep their pictures, they go to ApiJudge with the rest of 1a.
 - `src/tobi508/judgment.py`, `inline.py`, `config.py`, `models.py`;
 - `evals/README.md` (runs 19, 24, 26-27);
 - `evals/judging/round1-postfix/README.md`;
-- `docs/sources/Trusted Tester Test Process v5.1.3.pdf` and
-  `tt-5.1.3/tt.json`.
+- `docs/sources/Trusted Tester Test Process v5.1.3.pdf` and `tt-5.1.3/tt.json`.
 
 **ACT and DHS data:**
-- [act-tt](https://github.com/Section508Coordinators/act-tt)
-  (`act-trusted-tester.json`);
+- [act-tt](https://github.com/Section508Coordinators/act-tt) (`act-trusted-tester.json`);
 - [W3C ACT testcases.json](https://www.w3.org/WAI/content-assets/wcag-act-rules/testcases.json).
 
 **Baselines and WCAG:**
 - [Section 508 Baseline Alignment test cases](https://baselinealignment.section508.gov/testcases.html);
 - [ICT Testing Baseline, 22. Resize Text](https://ictbaseline.access-board.gov/web-baselines/22Resize/);
-- WCAG 2.2 Understanding:
-  [1.4.4](https://www.w3.org/WAI/WCAG22/Understanding/resize-text.html),
-  [1.3.2](https://www.w3.org/WAI/WCAG22/Understanding/meaningful-sequence.html),
-  [1.4.5](https://www.w3.org/WAI/WCAG22/Understanding/images-of-text.html).
+- WCAG 2.2 Understanding: [1.4.4](https://www.w3.org/WAI/WCAG22/Understanding/resize-text.html), [1.3.2](https://www.w3.org/WAI/WCAG22/Understanding/meaningful-sequence.html), [1.4.5](https://www.w3.org/WAI/WCAG22/Understanding/images-of-text.html).
 
 **Packages:**
 - PyPI JSON API (`https://pypi.org/pypi/<name>/json`);
@@ -552,8 +447,7 @@ If they keep their pictures, they go to ApiJudge with the rest of 1a.
 **Libraries and tools:**
 - [Tesseract (Wikipedia)](https://en.wikipedia.org/wiki/Tesseract_(software));
 - [EasyOCR release notes](https://github.com/JaidedAI/EasyOCR/blob/master/releasenotes.md);
-- [APCA licence](https://www.github.com/Myndex/SAPC-APCA/blob/master/LICENSE.md)
-  and [apca-w3 discussion #12](https://github.com/Myndex/apca-w3/discussions/12);
+- [APCA licence](https://www.github.com/Myndex/SAPC-APCA/blob/master/LICENSE.md) and [apca-w3 discussion #12](https://github.com/Myndex/apca-w3/discussions/12);
 - [IBM text_block_heading help](https://app.unpkg.com/accessibility-checker-engine@4.0.29/files/help/en-US/text_block_heading.html);
 - [W3C ACT implementations: Equal Access](https://www.w3.org/WAI/standards-guidelines/act/implementations/equal-access);
 - [Playwright issue #2497 (zoom)](https://github.com/microsoft/playwright/issues/2497).
