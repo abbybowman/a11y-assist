@@ -263,3 +263,36 @@ restarted after a container restart cut off its first try.
   resource was opened. Only pictures not attached go through the resource
   reader, so the server could check those reads but not attention to
   attached ones.
+
+## Twelfth run: no time limit by default, and the rest of change 2b (`results/arm-a-12/`)
+
+At commit ba9f7b6, `--debrief`, from a worktree. New since run 11:
+- no time limit by default, with a progress line in every still-running
+  result;
+- FAIL summaries whole, and `tobi_explain` on the to-do list;
+- `picture_error` refused for attached pictures, and tall pictures in parts;
+- 9.C 1.1.1.
+
+**Weighted 54** (run 11: 62), no false PASS or FAIL. 53 agree, 31 not
+performed. The drop has two causes, neither of them the default:
+- **Artemis III's keyboard walk stopped early.** P1 ended "loop" after 13
+  presses (run 11: wrap at 82), so 4.B, 4.E, 5.D, 5.F, 5.G and 5.H went to
+  NEEDS REVIEW. Replaying the frozen page four times, P1 ended "loop" once
+  (9 presses) with the 600 s limit and wrapped at 82 the other three
+  times, with and without it. It is an intermittent walk problem on this
+  page, now in the ROADMAP.
+- **4.F on Careers and Missions stayed open.** The agent answered "unsure"
+  with `picture_error` ("did not open images") where run 11 answered.
+
+What the run showed of the new changes:
+- **Picture rule:** 15 refusals (9 for `picture_error` on an attached
+  picture). The agent answered again, 11 with `seen` and 11 with
+  `picture_error`. It still opened no `run://` picture.
+- **`finish`:** called twice, and the status check with no job_id twice.
+- **`tobi_explain`:** never called, though the to-do list names it ("My
+  failure explanations come only from the one-line summaries").
+- **Missions' 5.D:** run with no time limit, with no question to the user.
+  It asked 5.D questions in groups of 30 fields, which the agent answered
+  "unsure".
+- **It asked for:** a "nothing left" signal in the answer result itself,
+  and `tobi_explain`'s output folded into results.
