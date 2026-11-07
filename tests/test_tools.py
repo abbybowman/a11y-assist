@@ -48,8 +48,9 @@ async def test_no_time_limit_is_an_opt_in_input():
     async with Client(mcp) as client:
         [tool] = [t for t in await client.list_tools() if t.name == "tobi_run_tt_tests"]
     prop = tool.inputSchema["properties"]["no_time_limit"]
-    assert prop["type"] == "boolean" and prop["default"] is False
-    assert "no_time_limit=true" in tool.description
+    # Abby, 2026-11-07: unset means the server's choice, by default no limit.
+    assert prop["default"] is None
+    assert "no_time_limit=false" in tool.description
 
 
 async def test_run_tt_tests_on_http_page(settings, server):
@@ -62,7 +63,7 @@ async def test_run_tt_tests_on_http_page(settings, server):
     assert out["walk"]["P2"]["end"] == "wrap"
     [finding] = out["findings"]
     assert (finding["test_id"], finding["outcome"]) == ("4.C", "PASS")
-    assert finding["rows"] == ["A3", "G4"]
+    assert "rows" not in finding  # in the report and tobi_explain (change 2b)
     assert "never got trapped" in finding["summary"]
     assert out["open_questions"] == []
     # The full report is a resource, not inline (it was ~60% of the result).
@@ -87,7 +88,7 @@ async def test_run_tt_tests_on_http_page(settings, server):
         "record_scroll_passes": settings.record_scroll_passes,
         "run_limit_s": settings.run_limit_s,
         "other_page_s": settings.other_page_s,
-        "no_time_limit": False,
+        "no_time_limit": True,  # the server's default since 2026-11-07
     }
     # The window the page was tested in, as configured and as a page saw it.
     d = report.versions.display
@@ -493,12 +494,10 @@ async def test_explain_after_a_run(settings, server):
         "tobi_run_tt_tests", {"url": f"{server.base}/no_trap.html", "tests": ["4.C"]}
     )
     [f] = out["findings"]
-    assert f["reference"] == "tt://5.1.3/tests/4.C"
-    assert f["understanding"] == [
-        "https://www.w3.org/WAI/WCAG22/Understanding/no-keyboard-trap.html"
-    ]
+    assert "reference" not in f and "understanding" not in f  # tobi_explain has them
     text = await _prompt({"run_id": out["run_id"]})  # every result of the run
     assert "Explain these results" in text and "Result for 4.C: PASS" in text
+    assert "https://www.w3.org/WAI/WCAG22/Understanding/no-keyboard-trap.html" in text
     gone = await _prompt({"about": "4.C", "run_id": "20000101T000000Z-000000"})
     assert "no longer on the server" in gone and "saved its report" in gone
 
@@ -529,7 +528,7 @@ async def test_open_questions_are_named_in_the_summary(settings, server):
     assert f["outcome"] == "NEEDS_REVIEW"
     assert f["summary"].startswith("This test is not finished yet: 1 question about")
     assert "a person needs to check it" not in f["summary"]
-    assert '"Show delivery times"' in f["summary"]
+    assert '"Show delivery times"' in f["summary"] or "tobi_explain" in f["summary"]
     # Post-round 1 fix 4: the result says plainly what to do next.
     step = out["next_step"]
     assert step.startswith("Not finished: 4.A stay NEEDS_REVIEW until you answer")
@@ -562,7 +561,12 @@ async def test_pictures_come_with_the_questions_that_name_them(settings, server)
     out = json.loads(res.content[0].text)
     [q] = [q for q in out["open_questions"] if q["test_id"] == "5.A"]
     images = [c for c in res.content if c.type == "image"]
-    captions = [c.text for c in res.content[1:] if c.type == "text"]
+    captions = [
+        c.text
+        for c in res.content[1:]
+        if c.type == "text" and not c.text.startswith("TO DO")
+    ]
+    assert res.content[-1].text.startswith("TO DO")
     assert len(images) == 1 and images[0].mime_type in ("image/png", "image/jpeg")
     assert captions == [
         f"Picture for open question {q['question_id']}, input.image_a "
@@ -623,6 +627,7 @@ async def test_run_status_without_a_job_lists_the_work_left(settings, server):
                     "question_id": q["question_id"],
                     "decided_by": "model",
                     "rationale": "test",
+                    "seen": "test: a page with a text box",
                     "choice": {"choice": "unsure", "reasons": "test"},
                 }
             ],
@@ -632,3 +637,86 @@ async def test_run_status_without_a_job_lists_the_work_left(settings, server):
     assert after["runs"] == [] and after["done"] == 1
     assert after["next_step"].startswith("Nothing is left")
     jobs._JOBS.clear()
+
+
+async def test_every_result_ends_with_its_to_do_list(settings, server):
+    """Agent follow-through plan, change 2b: development run 7's agent said
+    the instructions were buried in large results. A short to-do list is the
+    last content block of a run's result and of the outstanding list."""
+    from tobi508 import jobs
+
+    jobs._JOBS.clear()
+    url = f"{server.base}/4a/f01-click-only-text.html"
+    async with Client(mcp) as client:
+        res = await client.call_tool(
+            "tobi_run_tt_tests", {"url": url, "tests": ["4.A"]}
+        )
+        last = res.content[-1].text
+        assert last.startswith("TO DO, before you report:")
+        assert "[ ] Answer the 1 open question(s)" in last
+        assert "tobi_run_status with no job_id" in last
+        out = json.loads(res.content[0].text)
+        assert out["todo"] == last.splitlines()[1:]
+        left = await client.call_tool("tobi_run_status", {})
+        assert "[ ] Answer 1 open question(s) left in 1 run(s)" in left.content[-1].text
+    jobs._JOBS.clear()
+
+
+async def test_explain_holds_every_detail_a_result_leaves_out(settings, server):
+    """Agent follow-through plan, change 2b: results get shorter, so every
+    finding's full summary, rule trail and W3C links must be one tobi_explain
+    call away (the prompt's builder, now a tool the agent can call)."""
+    from tobi508 import catalog
+    from tobi508.models import Report
+    from tobi508.runlog import RunRecorder
+
+    url = f"{server.base}/4a/f01-click-only-text.html"
+    out = await _call(
+        "tobi_run_tt_tests", {"url": url, "tests": ["4.A", "4.C", "4.D", "4.E"]}
+    )
+    run = RunRecorder.open(settings.runs_dir, out["run_id"])
+    report = Report.model_validate_json(run.report_path.read_text("utf-8"))
+    async with Client(mcp) as client:
+        res = await client.call_tool("tobi_explain", {"run_id": out["run_id"]})
+        text = res.content[0].text
+        one = (
+            (
+                await client.call_tool(
+                    "tobi_explain", {"about": "4.A, 4.D", "run_id": out["run_id"]}
+                )
+            )
+            .content[0]
+            .text
+        )
+        general = (
+            (await client.call_tool("tobi_explain", {"about": "keyboard trap"}))
+            .content[0]
+            .text
+        )
+    assert "NOT a certified" in text
+    for f in report.findings:
+        assert f.summary in text and f"Result for {f.test_id.value}" in text
+        assert all(r in text for r in f.rows)
+        assert all(u in text for u in catalog.understanding_urls(f.test_id.value))
+    assert "Not final: 1 open question(s)" in text  # 4.A waits on its question
+    assert "=== 4.A ===" in one and "=== 4.D ===" in one and "=== 4.C ===" not in one
+    assert "4.C" in general and "NOT a certified" in general
+
+
+def test_a_tall_picture_is_sent_in_readable_parts(tmp_path):
+    """Development run 9: a full-page 4.F order picture shrunk to 768 px on
+    its longer side was too small to read. A tall picture keeps a readable
+    width and is cut into parts, the first MAX_TILES sent."""
+    from PIL import Image
+
+    from tobi508.inline import MAX_SIDE, MAX_TILES, TILE_HEIGHT, _encode
+
+    tall = tmp_path / "tall.png"
+    Image.new("RGB", (1280, 9000), "white").save(tall)
+    parts, total = _encode(tall)
+    assert len(parts) == MAX_TILES and total > MAX_TILES
+    assert all(size[0] == MAX_SIDE and size[1] <= TILE_HEIGHT for _, _, size in parts)
+    wide = tmp_path / "wide.png"
+    Image.new("RGB", (1280, 900), "white").save(wide)
+    [(_, _, size)], total = _encode(wide)
+    assert total == 1 and max(size) == MAX_SIDE

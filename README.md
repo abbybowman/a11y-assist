@@ -63,7 +63,7 @@ Details: [round 1](evals/agent/README.md#results);
 | 5.H | 3.3.4-error-prevention | 3.3.4 | [1.1.0](docs/rules/5h-error-prevention.md) | 🟢 Sure and accurate once the agent answers its question |
 | 9.A | 2.4.1-bypass-function | 2.4.1 | [1.0.0](docs/rules/9a-bypass.md) | 🟢 Sure and accurate: found the failure on 8 of 9 pages and left the ninth for a person |
 | 9.B | 3.2.3-consistent-navigation | 3.2.3 | [1.0.0](docs/rules/9b-consistent-navigation.md) | 🟢 Sure and accurate |
-| 9.C | 3.2.4-consistent-identification | 3.2.4 | [1.1.0](docs/rules/9c-consistent-identification.md) | 🟢 Sure and accurate once the agent answers its questions |
+| 9.C | 3.2.4-consistent-identification | 3.2.4 | [1.1.1](docs/rules/9c-consistent-identification.md) | 🟢 Sure and accurate once the agent answers its questions |
 | 19.A | 2.4.5-multiple-ways | 2.4.5 | [1.1.1](docs/rules/19a-multiple-ways.md) | ⚠️ Undecided on every page: needs more pages of the site. It now tells the agent to add the pages it suggests itself (fixed after round 1, not yet re-measured) |
 
 ## Tools
@@ -72,22 +72,27 @@ Details: [round 1](evals/agent/README.md#results);
 | --- | --- | --- |
 | `tobi_run_tt_tests` | Tests one page. It records the page once, runs the chosen TT tests on the recording, and returns findings, open questions for your agent, and links to the full report and pre-SCRT file. | `url` (`.gov` and `.mil` by default); `tests` (default: all implemented); `other_pages` (1-5 pages of the same site, for 9.A-9.C and 19.A); `no_time_limit` |
 | `tobi_answer_questions` | Records answers to the open questions and decides again by the spec. A person's answer overrides the agent's. | `run_id`; `answers` (one per question) |
-| `tobi_run_status` | Waits for a run that was still going when its call returned, and gives its result. Without `job_id`: what is left across the session's runs (open questions, follow-up calls, runs still going). | `job_id` (optional) |
+| `tobi_run_status` | Waits for a run that was still going when its call returned, and gives its result. Without `job_id`: what is left across the session's runs (open questions, follow-up calls, runs still going); with `finish=true` it also makes the follow-up calls the server may make itself. | `job_id` (optional); `finish` |
+| `tobi_explain` | Explains tests in plain language: what a test checks, or, with a `run_id`, what that run found and why (full summaries, the reasoning, the places on the page, what can still change a result, and the W3C links for fixing it). Results carry one line per finding; this holds the detail. | `about` (test IDs, a WCAG criterion or words); `run_id` |
 | `tobi_read_report` | Reads an SCRT or pre-SCRT file: what failed and what still needs a person. With `compare_to`, it lists every test whose result differs between two files (for example, before and after a fix). | `content`; `compare_to` |
 
 **Also:**
 - **Resources:** `run://{run_id}/...` (a run's files, kept 24 hours) and
   `tt://5.1.3/...` (the TT text).
-- **Prompt:** `explain` (a test or a result in plain language).
+- **Prompt:** `explain` (a test or a result in plain language; the same
+  material as `tobi_explain`, as a command for the user).
 
 ## How long it takes
 
-- **One run:** at most 10 min (`RUN_LIMIT_S`, 600 s), plus 20 s for each other page, plus 45 s
-  when something on the page keeps changing by itself (a ticker, a
-  carousel: every key press waits longer there, and Test 2 tries its
-  controls). On
-  www.nasa.gov, runs with 3 other pages took 2-3 minutes. Tests not
-  finished in time come back NEEDS REVIEW, with the reason.
+- **One run:** by default as long as the page needs, up to 30 min
+  (`MAX_RUN_S`); a large page can take several minutes, and each
+  still-running result says what the run is doing and for how long. With
+  `no_time_limit=false` a run is held to 10 min (`RUN_LIMIT_S`, 600 s),
+  plus 20 s for each other page, plus 45 s when something on the page
+  keeps changing by itself (a ticker, a carousel), and a page too large
+  for that is refused. On www.nasa.gov, runs with 3 other pages took 2-3
+  minutes. Tests not finished in time come back NEEDS REVIEW, with the
+  reason.
 - **One call:** at most 45 s (`CALL_WAIT_S`), under common MCP client
   timeouts. A run not done by then goes on in the server: the result says
   `"status": "running"` with a `job_id`, and `tobi_run_status` waits for it
@@ -173,7 +178,7 @@ gets out. The agent answers from the page text:
 
 <!-- example -->
 ```json
-{"tool": "tobi_answer_questions", "arguments": {"run_id": "<run_id from the result>", "answers": [{"question_id": "4.C-i1-J1", "decided_by": "model", "rationale": "The page text names no key that moves focus out of the three looping links.", "j1": {"documented": "no"}}]}}
+{"tool": "tobi_answer_questions", "arguments": {"run_id": "<run_id from the result>", "answers": [{"question_id": "4.C-i1-J1", "decided_by": "model", "rationale": "The page text names no key that moves focus out of the three looping links.", "seen": "three links in a row and no instructions", "j1": {"documented": "no"}}]}}
 ```
 
 4.C is now FAIL: "Keyboard focus gets trapped on this page…".
@@ -190,7 +195,8 @@ Save the report in your repository: a run's files expire after 24 hours.
 ## Configuration and safety
 
 **Settings** come from the environment or `.env` (`.env.example`):
-- `ALLOWED_DOMAINS`, `RUN_LIMIT_S` and `OTHER_PAGE_S`;
+- `ALLOWED_DOMAINS`, `NO_TIME_LIMIT_DEFAULT` (default true), `MAX_RUN_S`,
+  `RUN_LIMIT_S` and `OTHER_PAGE_S`;
 - `CALL_WAIT_S` and `MAX_CONCURRENT_RUNS`;
 - `PAGE_CACHE_S` (default 1800): how long an other page's recording, and
   its reads, are reused by later calls of the same server session;

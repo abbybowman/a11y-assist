@@ -84,6 +84,10 @@ class RunContext:
     rel: Path  # run folder (evidence paths are relative to it)
     plan: ReplayPlan | None = None  # from the walk, once it has run
     timed_out: bool = False  # a check stopped work for the run limit
+    # The run is not held to the run limit (no_time_limit): caps that exist
+    # only to fit the limit (5.D, 5.F fields) are lifted. The deadline is
+    # then MAX_RUN_S, a safety stop, not a run limit.
+    no_time_limit: bool = False
     # Evidence one check collects for another in the same call (5.F's error
     # pass, which 5.G reads): keyed by the collector's name.
     cache: dict[str, Any] = field(default_factory=dict)

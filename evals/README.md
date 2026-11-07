@@ -99,6 +99,58 @@ counts a tool result that matches as a **validated catch**, weighted +1 like
 an agreement and shown apart (`evals/scoring.py`). The file sits outside
 the lock, as the keys do.
 
+## Runs 26 and 27, 2026-11-07: 9.C 1.1.1 (when names show different things), its packets
+
+The rubric now says names that name different things count as
+different_function, and different words for the same action are
+inconsistent. 2 cases, 4 questions, one fresh Sonnet agent each run.
+- **Run 26:** 2/2, but the rubric's examples ("Contact" / "Get in touch",
+  "Search" / "Find") were the fixture pairs themselves. The agent said "the
+  rubric names this exact pair", so the run tested matching, not
+  judgment.
+- **Run 27:** the examples were changed to names on no fixture page.
+  **2/2 match**, no false PASS, each answer reasoned from the evidence:
+  same destination with different words is inconsistent; different
+  destinations are different_function.
+
+Still unclear to the agent: links named "Go to page N" whose number does
+not match where they go. It followed the different-destination rule,
+which matches.
+
+## Run 25, 2026-11-07: compact question inputs (4.F, 5.B packets)
+
+After the result refactor (agent follow-through change 2b), question
+inputs as sent round coordinates to one decimal and leave out empty fields.
+33 cases (11 4.F, 22 5.B), one fresh Sonnet agent: **33/33 match**, no
+false PASS. It opened every picture and found each one readable.
+
+What it found unclear:
+- **Where 5.B puts numbers:** the question says "in elements", but the
+  `element` field's description says "from input.stops".
+- **4.F main content before a left sidebar:** the rubric does not say how
+  to treat main content reached before a left-hand sidebar.
+- **4.F menu skipped by the next Tab:** the rubric does not say whether a
+  menu whose content the next Tab skips counts as reached far from its
+  trigger. It answered does_not_preserve, which matches.
+
+## Run 24, 2026-11-06: `seen` and `picture_error` (4.D, 4.F, 5.A, 5.C packets)
+
+Answers to a question whose input names a picture now need `seen`
+(something the picture shows), or `picture_error` with unsure; a bare
+answer is refused (agent follow-through plan, change 3). 29 cases, one
+fresh Sonnet agent: **29/29 match**, no false PASS, no answer refused. It
+opened every picture, filled `seen` with what the numbered or outlined
+elements showed, and never needed `picture_error`. It used Bash once
+(read-only, a packet file) against its instructions. Points it raised:
+- **Shared texts are easy to miss.** About half the cases point to
+  `question_texts`.
+- **The `answer_format` line is long.** Read shows it on every packet file.
+- **`choice.quote`:** whether it is needed for "labeled" or "missing" is
+  not said.
+- **Close calls it flagged:** 5.A's "Find an office" heading over a field
+  with only a Find button (it answered not_labeled), and a sidebar order
+  in 4.F (preserves). Both match.
+
 ## Run 23, 2026-11-06: 5.C 1.3.0 (the heading over an option), its packets only
 
 J1's input now gives an option's heading (`heading_over_it`,

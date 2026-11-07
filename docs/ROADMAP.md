@@ -59,7 +59,14 @@ Next (Abby, 2026-11-05):
    - time and concurrency;
    - 4.D row M8;
    - the 5.F/5.G, 5.A/5.B, 19.A and 4.F fixes.
-3. **Then the visual-versus-code cluster.** Choose with the coverage map
+3. **The agent finishes the work, whatever prompt started it** (built
+   2026-11-07, PR for `agent-follow-through`; outcome and next steps in
+   the plan: the Artemis III walk bug, then ApiJudge research)
+   ([plans/2026-11-06-agent-follow-through.md](plans/2026-11-06-agent-follow-through.md);
+   Abby, 2026-11-06): one call finishes outstanding work, an "incomplete"
+   status in the data, answers that show the picture was seen, and
+   development rounds with several prompts to measure consistency.
+4. **Then the visual-versus-code cluster.** Choose with the coverage map
    and CLAUDE.md's research rule.
 
 Browser checks still to run for the built tests (mostly Windows headed
@@ -68,6 +75,15 @@ Chrome, which a Linux container cannot run) are in
 test's leftovers are under "Per-test leftovers" below.
 
 ## Soon
+
+- **Artemis III's Tab walk sometimes stops early with "loop" (found
+  2026-11-07).** P1 ended after 9-13 presses in 1 of 4 replays of the
+  frozen page, and in development run 12, against 82 presses otherwise.
+  This happened with and without the time limit. Every walk-based test
+  then goes to NEEDS REVIEW (safe, but it cost run 12 six tests). Find
+  which stop repeats (likely the video player) and why the loop check
+  fires, then decide whether a second P1 should confirm a loop before the
+  walk ends.
 
 - **5.F row M1 is half built (found 2026-11-05).** The spec's M1 gives
   NEEDS REVIEW when "a read was unsettled or unresolved"; `t5f.py` ignores

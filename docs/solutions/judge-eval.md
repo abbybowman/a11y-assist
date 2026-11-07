@@ -58,3 +58,9 @@ rarely opens** (round1-answers, 2026-11-04).
   overstates how often a real agent answers a question that needs
   looking. To measure the real path, use an agent eval run (or an
   answering run), not the judge eval. Post-round 1 plan, fix 19.
+
+**Rubric examples must not be a fixture's own words (runs 26-27,
+2026-11-07).** When 9.C's rubric example was the fixture's pair, the agent
+said "the rubric names this exact pair", and the eval measured matching.
+Grep `tests/fixtures/` for an example before using it. See
+[agent-follow-through.md](agent-follow-through.md).

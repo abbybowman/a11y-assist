@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from typing import Annotated
 
 from fastmcp import Context, FastMCP
@@ -10,8 +11,14 @@ from pydantic import Field
 
 from tobi508 import config, jobs
 from tobi508.inline import with_pictures
-from tobi508.models import Outstanding, RunPending, RunResult
-from tobi508.pipeline import RunRefused, outstanding
+from tobi508.models import Outstanding, RunPending, RunResult, TestId
+from tobi508.pipeline import (
+    RunRefused,
+    outstanding,
+    record_follow_up,
+    take_follow_ups,
+)
+from tobi508.pipeline import run_tt_tests as run_pipeline
 from tobi508.redact import safe_error
 
 
@@ -38,6 +45,17 @@ def register(mcp: FastMCP) -> None:
                 "left across this session's runs instead.",
             ),
         ] = None,
+        finish: Annotated[
+            bool,
+            Field(
+                description="Without a job_id only: also make every follow-up "
+                "call the server may make by itself (19.A with the pages it "
+                "suggested; all but no_time_limit calls), as new runs, and wait "
+                "for them like any run. Calls that need the user's choice are "
+                "listed in for_the_user instead. Use it after answering the open "
+                "questions, then call again until nothing is left.",
+            ),
+        ] = False,
         ctx: Context | None = None,
     ) -> RunResult | RunPending | Outstanding:
         """With a job_id: wait for a run that tobi_run_tt_tests started and
@@ -54,8 +72,19 @@ def register(mcp: FastMCP) -> None:
         the user, and again until nothing is left. Results are
         agent-assisted and NOT a certified Trusted Tester result.
         """
+        s = config.settings
         if job_id is None:
-            return outstanding(config.settings, jobs.all_jobs(config.settings))
+            started = []
+            if finish:
+                started = _start_follow_ups(s)
+                tasks = {j.task for j in started if j.task is not None}
+                if tasks:
+                    await asyncio.wait(tasks, timeout=s.call_wait_s)
+            out = outstanding(s, jobs.all_jobs(s))
+            out.started = [
+                {"job_id": j.id, "target": j.url, "tests": j.tests} for j in started
+            ]
+            return with_pictures(out, wrap=True)
         job = jobs.get(job_id)
         if job is None:
             raise ToolError(
@@ -73,3 +102,22 @@ def register(mcp: FastMCP) -> None:
         except Exception as exc:
             # One redacted line, no stack trace or call log (redact.py).
             raise ToolError(safe_error(exc)) from None
+
+
+def _start_follow_ups(s) -> list[jobs.Job]:
+    started = []
+    for run_id, call in take_follow_ups(s, jobs.all_jobs(s)):
+        url = call["url"]
+        tests = [TestId(t) for t in call.get("tests") or []]
+        if not tests:
+            continue
+        pages = list(call.get("other_pages") or [])
+
+        def go(p, url=url, tests=tests, pages=pages):
+            return run_pipeline(s, url, tests, p, s.no_time_limit_default, pages)
+
+        job = jobs.start(s, url, go)
+        job.tests = [t.value for t in tests]
+        record_follow_up(s, run_id, call, job.id)
+        started.append(job)
+    return started

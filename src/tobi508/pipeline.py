@@ -19,6 +19,7 @@ Nothing here decides an outcome: checks do, from their specs.
 from __future__ import annotations
 
 import asyncio
+import json
 import math
 import shutil
 import time
@@ -46,7 +47,7 @@ from tobi508.checks.base import PageRef
 from tobi508.config import Settings
 from tobi508.egress import EgressProxy
 from tobi508.frozen import NotFrozen, obtain
-from tobi508.judgment import get_judge, record_answers
+from tobi508.judgment import get_judge, has_image, record_answers
 from tobi508.models import (
     REVIEW_HEAD,
     Answer,
@@ -58,6 +59,7 @@ from tobi508.models import (
     Outcome,
     Outstanding,
     OutstandingRun,
+    Remaining,
     Report,
     RunResult,
     TestId,
@@ -224,7 +226,7 @@ def _soft_deadline(
     start: float, settings: Settings, no_time_limit: bool, pages: int = 0
 ) -> float:
     if no_time_limit:
-        return math.inf
+        return start + settings.max_run_s - RESERVE_S
     return start + _limit(settings, pages) - RESERVE_S
 
 
@@ -461,6 +463,29 @@ def _evidence_uris(run: RunRecorder) -> list[str]:
     return [run_uri(run.run_id, run.rel(f)) for f in files if f.exists()]
 
 
+# Open questions shown per result (agent follow-through plan, change 2b:
+# development run 7's agent skipped the pictures of results 25-70k
+# characters long). The rest come with each tobi_answer_questions result.
+QUESTION_PAGE = 10
+
+
+def _compact(v: Any) -> Any:
+    """A question input as sent: floats to one decimal, None and empty
+    values left out of objects. Text is never changed."""
+    if isinstance(v, float):
+        r = round(v, 1)
+        return int(r) if r == int(r) else r
+    if isinstance(v, dict):
+        return {
+            k: _compact(x)
+            for k, x in v.items()
+            if x is not None and x != [] and x != {}
+        }
+    if isinstance(v, list):
+        return [_compact(x) for x in v]
+    return v
+
+
 def _question_view(
     qs: list[OpenQuestion],
 ) -> tuple[list[OpenQuestion], dict[str, dict[str, str]]]:
@@ -474,6 +499,12 @@ def _question_view(
     texts: dict[str, dict[str, str]] = {}
     out = []
     for q in qs:
+        # A picture already in the input is not listed again, coordinates
+        # are rounded and empty fields dropped (change 2b; the report keeps
+        # the input as recorded).
+        named = json.dumps(q.input)
+        paths = [p for p in q.evidence_paths if f'"{p}"' not in named]
+        q = q.model_copy(update={"evidence_paths": paths, "input": _compact(q.input)})
         pair = (q.question, q.rubric)
         if counts[pair] < 2:
             out.append(q)
@@ -596,14 +627,16 @@ async def run_tt_tests(
     progress: Progress | None = None,
     no_time_limit: bool = False,
     other_pages: list[str] | None = None,
+    lift_media_cap: bool | None = None,
 ) -> RunResult:
     async def say(step: float, message: str) -> None:
         if progress is not None:
             await progress(step, 4, message)
 
     t_start = time.monotonic()
-    if no_time_limit:
-        # The user's choice also lifts the media store's cap (plan Q9).
+    if no_time_limit if lift_media_cap is None else lift_media_cap:
+        # The user's choice also lifts the media store's cap (plan Q9); the
+        # server's default of no time limit does not.
         settings = settings.model_copy(
             update={"media_cap_mb": None, "media_cap_s": None}
         )
@@ -634,7 +667,7 @@ async def run_tt_tests(
         others = []
     soft = _soft_deadline(t_start, settings, no_time_limit, len(others))
     hard = (
-        math.inf
+        t_start + settings.max_run_s - HARD_MARGIN_S
         if no_time_limit
         else t_start + _limit(settings, len(others)) - HARD_MARGIN_S
     )
@@ -811,6 +844,7 @@ async def run_tt_tests(
             ctx = _context(
                 settings, run, get_browser, cap.final_url, soft, cap.cross_site_frames
             )
+            ctx.no_time_limit = no_time_limit
             ctx_ref.append(ctx)
             ctx.selected = frozenset(c.test_id.value for c in checks)
             ctx.requested_url = url
@@ -944,7 +978,7 @@ async def run_tt_tests(
     run.write_json(run.report_path, report)
     pre_scrt = scrt.write_for_run(run.dir, run.report_path, report)
     run.log("run_end", status="error" if report.errors else "ok")
-    qview = _question_view(report.open_questions)
+    qview = _question_view(report.open_questions[:QUESTION_PAGE])
     calls = report.follow_up_calls
     return RunResult(
         run_id=run.run_id,
@@ -965,17 +999,11 @@ async def run_tt_tests(
         errors=report.errors,
         next_step=next_step(report, calls),
         follow_up_calls=calls,
+        work=Remaining.of(report).work,
+        remaining=Remaining.of(report),
+        todo=todo(report, calls),
+        more_questions=max(0, len(report.open_questions) - QUESTION_PAGE),
     )
-
-
-def _has_image(value: Any) -> bool:
-    if isinstance(value, str):
-        return value.startswith("run://") and value.endswith(".png")
-    if isinstance(value, dict):
-        return any(_has_image(v) for v in value.values())
-    if isinstance(value, list):
-        return any(_has_image(v) for v in value)
-    return False
 
 
 def follow_ups(
@@ -1000,21 +1028,30 @@ def _calls_text(calls: list[dict] | None) -> str:
     if not calls:
         return ""
     n = len(calls)
+    user = sum(1 for c in calls if not server_may_make(c))
+    ask = (
+        f" {user} of them need the user's choice (no_time_limit): ask the "
+        "user, then make those yourself as given."
+        if user
+        else ""
+    )
     return (
-        f" Then make the {n} call{'s' if n != 1 else ''} in follow_up_calls "
-        "yourself, as they are, without asking the user: they let tests left "
-        "for review decide (the 2026-11-05 development run named them here in "
-        "prose and the agent made none). Replace those tests' results in the "
-        "saved report with the new ones."
+        f" Then call tobi_run_status with finish=true: the server makes the "
+        f"follow-up call{'s' if n != 1 else ''} in follow_up_calls that it may "
+        "make itself, which let tests left for review decide, and waits for "
+        f"them (the development runs' agents made almost none).{ask} Replace "
+        "those tests' results in the saved report with the new ones."
     )
 
 
 FINISH = (
-    " Your work is finished only when tobi_run_status with no job_id lists "
+    ' `work` stays "incomplete" while anything is left (`remaining`); '
+    "your work is finished only when tobi_run_status with no job_id lists "
     "nothing left (the fourth development run's agent ended with questions "
-    "and follow-up calls open). In a FAIL finding, `confirmed` names what the "
-    "spec decided and `unconfirmed` the instances still waiting for answers: "
-    "report them apart."
+    "and follow-up calls open). In a FAIL finding, `confirmed` (true) means "
+    "the rules decided it and `unconfirmed` counts instances still waiting for "
+    "answers: report them apart. Each finding is one line here: tobi_explain "
+    "with the run_id gives the full summaries, reasons and fixes."
 )
 
 
@@ -1039,17 +1076,84 @@ def next_step(report: Report, calls: list[dict] | None = None) -> str:
     looks = (
         " Some questions ask what an image shows: open each run:// image they "
         "name with your MCP client's resource reader (read resource; a file "
-        "reader cannot open run:// links) and look before answering."
-        if any(_has_image(q.input) for q in qs)
+        "reader cannot open run:// links; the pictures are also attached to "
+        "this result) and look before answering. Their answers need `seen`: "
+        "something the picture shows; or, if a picture cannot be opened or "
+        "shows nothing, `picture_error` saying what happened, with unsure. "
+        "An answer with neither is refused."
+        if any(has_image(q.input) for q in qs)
         else ""
     )
     return (
         f"Not finished: {', '.join(tests)} stay NEEDS_REVIEW until you answer "
-        f"the {len(qs)} open question(s) in open_questions. Answer them now, "
-        "yourself, all in one tobi_answer_questions call, each by its rubric; "
+        f"the {len(qs)} open question(s)"
+        + (
+            f" ({QUESTION_PAGE} are in open_questions now; each answer result "
+            "brings the next ones)"
+            if len(qs) > QUESTION_PAGE
+            else " in open_questions"
+        )
+        + ". Answer them now, "
+        "yourself, in one tobi_answer_questions call per batch, each by its rubric; "
         "answer unsure only when the evidence does not settle it (only those go "
         f"to a person).{looks} Until then, {review}." + _calls_text(calls) + FINISH
     )
+
+
+def todo(report: Report, calls: list[dict] | None = None) -> list[str]:
+    """A short to-do list put last in every result (agent follow-through plan,
+    change 2b: development run 7's agent said the instructions were "buried
+    in 25-70k-character outputs" and asked for a short list at the end)."""
+    out: list[str] = []
+    qs = report.open_questions
+    if qs:
+        shown = qs[:QUESTION_PAGE]
+        pics = sum(1 for q in shown if has_image(q.input))
+        pic = (
+            f"; {pics} name a picture: look and give `seen`, or "
+            "`picture_error` with unsure"
+            if pics
+            else ""
+        )
+        more = (
+            f" {len(qs) - len(shown)} more come with the answer result: "
+            "answer those too, the same way, until none are left."
+            if len(qs) > len(shown)
+            else ""
+        )
+        out.append(
+            f"[ ] Answer the {len(shown)} open question(s) in open_questions in "
+            f"one tobi_answer_questions call (run_id {report.run_id}){pic}.{more}"
+        )
+    calls = calls or []
+    mine = [c for c in calls if server_may_make(c)]
+    user = [c for c in calls if not server_may_make(c)]
+    if mine:
+        out.append(
+            f"[ ] Call tobi_run_status with finish=true: the server makes {len(mine)} "
+            "follow-up call(s) itself and waits for them."
+        )
+    if user:
+        out.append(
+            f"[ ] Ask the user about {len(user)} call(s) that need no_time_limit "
+            "(in follow_up_calls; they can take many minutes), then make them."
+        )
+    out.append(
+        "[ ] Before reporting: call tobi_run_status with no job_id, and repeat "
+        "until it lists nothing left (it covers every run of this session)."
+    )
+    out.append(
+        f"[ ] Before writing your report: call tobi_explain with run_id "
+        f"{report.run_id} for the tests you report on (every FAIL at least): "
+        "results give one line per finding; it gives the places on the page, "
+        "the reasons and how to fix them."
+    )
+    out.append("[ ] Save report_uri and pre_scrt_uri before expires_at.")
+    out.append(
+        "[ ] Report NEEDS_REVIEW findings as needs review, and say which "
+        "findings still wait on work (waiting_on)."
+    )
+    return out
 
 
 async def answer_questions(
@@ -1062,7 +1166,10 @@ async def answer_questions(
     except FileNotFoundError as exc:
         raise RunRefused(str(exc)) from exc
     report = Report.model_validate_json(run.report_path.read_text("utf-8"))
-    accepted, rejected = record_answers(report, answers)
+    before = {f.test_id: (f.outcome, f.summary, f.note) for f in report.findings}
+    from tobi508.inline import attached
+
+    accepted, rejected = record_answers(report, answers, attached(run.dir))
     states = _load_states(run)
     errors: list[str] = []
     browser = _LazyBrowser(settings)
@@ -1076,6 +1183,7 @@ async def answer_questions(
             _soft_deadline(time.monotonic(), settings, no_limit),
             report.cross_site_frames,
         )
+        ctx.no_time_limit = no_limit
         ctx.pages = _page_refs(browser.get, settings, run, report)
         walk_path = run.evidence_dir / "walk.json"
         if walk_path.exists():
@@ -1092,7 +1200,12 @@ async def answer_questions(
     _evaluate(run, report, states)
     # A test left out over a cap (no_time_limit) stays to do after answers.
     kept = [c for c in report.follow_up_calls if c.get("no_time_limit")]
-    report.follow_up_calls = follow_ups(report, states, None) + kept
+    made = [
+        {k: v for k, v in c.items() if k != "job_id"} for c in report.follow_ups_made
+    ]
+    report.follow_up_calls = [
+        c for c in follow_ups(report, states, None) if c not in made
+    ] + kept
     run.write_json(run.report_path, report)
     pre_scrt = scrt.write_for_run(run.dir, run.report_path, report)
     run.log(
@@ -1102,13 +1215,22 @@ async def answer_questions(
         rejected=rejected,
         errors=errors,
     )
-    qview = _question_view(report.open_questions)
+    qview = _question_view(report.open_questions[:QUESTION_PAGE])
     calls = report.follow_up_calls
+    # Only the findings this answer changed (agent follow-through plan,
+    # change 2b): the rest were in earlier results and are in the report.
+    changed = [
+        f
+        for f in report.findings
+        if before.get(f.test_id) != (f.outcome, f.summary, f.note)
+        or any(q.test_id == f.test_id for q in report.open_questions)
+    ]
     return AnswerResult(
         run_id=run_id,
         accepted=accepted,
         rejected=rejected,
-        findings=[FindingView.of(f, report) for f in report.findings],
+        findings=[FindingView.of(f, report) for f in changed],
+        unchanged=[f.test_id.value for f in report.findings if f not in changed],
         open_questions=qview[0],
         question_texts=qview[1],
         page_text=_page_text(report, states),
@@ -1119,7 +1241,56 @@ async def answer_questions(
         errors=errors,
         next_step=next_step(report, calls),
         follow_up_calls=calls,
+        work=Remaining.of(report).work,
+        remaining=Remaining.of(report),
+        todo=todo(report, calls),
+        more_questions=max(0, len(report.open_questions) - QUESTION_PAGE),
     )
+
+
+def server_may_make(call: dict) -> bool:
+    """A follow-up call the server makes by itself (agent follow-through plan,
+    change 1). 19.A's suggested pages may be visited (Abby, 2026-11-06):
+    they are other pages like any caller's, checked by the allowlist and the
+    tested page's host before and after redirects. no_time_limit stays the
+    user's choice (CLAUDE.md)."""
+    return not call.get("no_time_limit")
+
+
+def take_follow_ups(settings: Settings, jobs: list) -> list[tuple[str, dict]]:
+    """The follow-up calls the server may make, removed from each finished
+    run's report (so they are made once) and recorded there as made.
+    Returns (run_id, call) pairs; the caller starts them and records each
+    job id with `record_follow_up`."""
+    out: list[tuple[str, dict]] = []
+    for j in jobs:
+        if j.task is None or not j.task.done() or j.task.cancelled():
+            continue
+        if j.task.exception() is not None:
+            continue
+        res = j.task.result()
+        try:
+            run = RunRecorder.open(settings.runs_dir, res.run_id)
+            report = Report.model_validate_json(run.report_path.read_text("utf-8"))
+        except Exception:
+            continue
+        mine = [c for c in report.follow_up_calls if server_may_make(c)]
+        if not mine:
+            continue
+        report.follow_up_calls = [
+            c for c in report.follow_up_calls if not server_may_make(c)
+        ]
+        run.write_json(run.report_path, report)
+        out.extend((report.run_id, c) for c in mine)
+    return out
+
+
+def record_follow_up(settings: Settings, run_id: str, call: dict, job_id: str) -> None:
+    run = RunRecorder.open(settings.runs_dir, run_id)
+    report = Report.model_validate_json(run.report_path.read_text("utf-8"))
+    report.follow_ups_made.append({**call, "job_id": job_id})
+    run.write_json(run.report_path, report)
+    run.log("follow_up_started", job_id=job_id, tests=call.get("tests"))
 
 
 def outstanding(settings: Settings, jobs: list) -> Outstanding:
@@ -1160,19 +1331,56 @@ def outstanding(settings: Settings, jobs: list) -> Outstanding:
         )
     q = sum(r.open_questions for r in runs)
     c = sum(len(r.follow_up_calls) for r in runs)
+    user = [
+        {"run_id": r.run_id, **call}
+        for r in runs
+        for call in r.follow_up_calls
+        if not server_may_make(call)
+    ]
     if runs or running:
         step = (
             f"Left: {q} open question(s) in {len(runs)} run(s) and {c} follow-up "
             f"call(s); {len(running)} run(s) still going. For each run, answer "
             "its open questions with tobi_answer_questions (its report_uri has "
             "them, or call tobi_run_status with the job_id of a run still "
-            "going), then make its follow_up_calls as given, without asking "
-            "the user. Call this again until nothing is left, before you "
-            "report to the user."
+            "going). Then call tobi_run_status with finish=true: the server "
+            "makes the follow-up calls it may make itself and waits for them. "
+            "Ask the user about those in for_the_user. Call this again until "
+            "nothing is left, before you report to the user."
         )
     else:
         step = (
             "Nothing is left: every run of this session is finished, with no "
             "open question or follow-up call."
         )
-    return Outstanding(runs=runs, running=running, done=done, next_step=step)
+    items: list[str] = []
+    if q:
+        items.append(
+            f"[ ] Answer {q} open question(s) left in {len(runs)} run(s) "
+            "(tobi_answer_questions, one call per run)."
+        )
+    if c - len(user):
+        items.append(
+            f"[ ] Call tobi_run_status with finish=true: {c - len(user)} "
+            "follow-up call(s) the server makes itself."
+        )
+    if user:
+        items.append(f"[ ] Ask the user about {len(user)} call(s) in for_the_user.")
+    if running:
+        items.append(
+            f"[ ] Wait for {len(running)} run(s) still going (tobi_run_status "
+            "with each job_id)."
+        )
+    items.append(
+        "[ ] Call this again until it lists nothing left, then report."
+        if items
+        else "[x] Nothing left: report to the user, and save each run's report."
+    )
+    return Outstanding(
+        runs=runs,
+        running=running,
+        done=done,
+        for_the_user=user,
+        next_step=step,
+        todo=items,
+    )

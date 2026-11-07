@@ -252,6 +252,7 @@ async def run_both(settings, url: str, answers: dict[str, dict]) -> dict:
                     question_id=q.question_id,
                     choice=ChoiceAnswer(**{"reasons": "scripted test answer", **f}),
                     rationale="scripted test answer",
+                    seen="scripted: the picture was not opened",
                 )
             )
         res = await answer_questions(settings, out.run_id, sent)

@@ -613,7 +613,7 @@ async def error_pass(ctx: RunContext, walk: KeyboardWalk) -> PassE:
         inventory_fields=walk.p1.form_fields,
     )
     fields = [f for f in _fields(walk) if f.index >= 0]
-    limit = FIELD_MAX if ctx.deadline != float("inf") else len(fields)
+    limit = len(fields) if ctx.no_time_limit else FIELD_MAX
     if len(fields) > limit:
         ps.incomplete.append(
             f"The page has {len(fields)} form fields; only the first {limit} were checked."

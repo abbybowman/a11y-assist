@@ -61,6 +61,7 @@ async def run_check(
                 question_id=q.question_id,
                 choice=ChoiceAnswer(**fields(q)),
                 rationale="scripted test answer",
+                seen="scripted: the picture was not opened",
             )
             for q in open_qs
         ]
@@ -107,6 +108,7 @@ async def run_tests(
                     question_id=q.question_id,
                     choice=ChoiceAnswer(**{"reasons": "scripted test answer", **f}),
                     rationale="scripted test answer",
+                    seen="scripted: the picture was not opened",
                 )
             )
         res = await answer_questions(settings, out.run_id, sent)

@@ -102,7 +102,7 @@ flowchart LR
 - One keyboard walk per page feeds every Test 4 check, and 5.D On input
 - Each check declares the extra evidence it needs
 - Time budget: under 60 s per page for Test 4, hard limit 10 min per run (+45 s when content keeps changing by itself, like a ticker); a call returns within 45 s and a longer run goes on in the server, at most two at once
-- A page too large for the limit is refused early; the user can choose to run it with no time limit
+- No time limit by default since 2026-11-07 (a run stops at 30 min; each still-running result gives a progress line to relay); a caller can ask for the 10-minute limit, and a page too large for it is refused early
 - Replays reuse what the walk saw: realistic agency page 151 s → 97 s, same outcomes
 - Checks reuse each other's replays (4.A reads 4.D's arrow presses and 4.F's Enter presses): with 5.F and 5.G added, both realistic pages still fit with all eleven tests (110.2 s and 97.1 s)
 
@@ -193,7 +193,7 @@ flowchart LR
 - Public .gov/.mil pages only, checked on every redirect; no logins, no credentials
 - Every browser connection is checked at connect time: names that point inside (private, loopback, cloud metadata) are refused, and DNS rebinding can't get past the check (an optional upstream proxy for cloud containers keeps the checks, with the upstream resolving the name again)
 - Page content is untrusted: never shown to the agent as instructions; outcomes come only from rules; page scripts cannot fake where focus is, even where a skip link lands
-- Other pages for the multi-page tests come only from the user, on the same allowed host; links on a page are never followed, only suggested; one exception, 19.A's site search: one GET search on the same host, recorded; if a page is too slow to record, the other tests still run and the multi-page tests say why they could not
+- Other pages for the multi-page tests come only from the user, on the same allowed host; links on a page are never followed; two exceptions for 19.A: one GET site search on the same host, and up to 5 site map, home or breadcrumb links on the same host, tested in a follow-up run, each recorded; if a page is too slow to record, the other tests still run and the multi-page tests say why they could not
 - A test page tells "automated testers" to report PASS; the tool must still find both traps **[FILL: result]**
 - Evidence kept 24 h, then deleted; results go to the user's repository
 - No secrets in errors or logs: query strings, headers and page text are redacted
@@ -234,5 +234,5 @@ flowchart LR
 - Export drafts to DHS's SCRT format so a certified tester can review and finish them
 - Test 2 (2.A Audio control, 2.B Blinking and moving, 2.C Auto-updating, 2.D Change notification; 1.0.0): a second browser watches the page with autoplay allowed, then tries the controls near changing content with the keyboard (W3C ACT efbfc7 11/11 and 80f0bf, 4c31df, aaa1bf 14/14 as expected; judge eval 18/18, no false PASS)
 - Built after Test 4: 5.D On input (forms that change context when filled in), 5.F Error identification and 5.G Error suggestion (forms whose errors are not named, explained, announced or fixable), 5.A Label provided, 5.B Label descriptive and 5.C Programmatic label (labels people can see, and what ANDI says screen readers announce); 5.H Error prevention (payments and other consequential forms can be reviewed, undone or checked), which completes Test 5
-- Multi-page 9.A Bypass, 9.B Consistent navigation, 9.C Consistent identification and 19.A Multiple ways: the page compared with other pages of the same site the user names (judge eval 6/6, no false PASS, with the evidence in hand; real agents rarely opened screenshots, which a fix addresses)
+- Multi-page 9.A Bypass, 9.B Consistent navigation, 9.C Consistent identification and 19.A Multiple ways: the page compared with other pages of the same site the user names (judge eval 6/6, no false PASS, with the evidence in hand; real agents rarely opened screenshots, which a fix addresses; 9.C spec 1.1.1 says when names alone show two controls do different things)
 - Then: more form tests, headings, reading order — where scanners fall short

@@ -16,6 +16,7 @@ spec's job, so nothing here changes a Finding.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -69,8 +70,74 @@ def get_judge(backend: str) -> Judge:
     raise ValueError(f"Unknown judge backend {backend!r}; use 'client' or 'api'.")
 
 
+def has_image(value: Any) -> bool:
+    """A run:// picture anywhere in a question's input or evidence."""
+    if isinstance(value, str):
+        return value.startswith("run://") and value.endswith(".png")
+    if isinstance(value, dict):
+        return any(has_image(v) for v in value.values())
+    if isinstance(value, list):
+        return any(has_image(v) for v in value)
+    return False
+
+
+def _unsure(answer: Answer) -> bool:
+    if answer.choice is not None:
+        return answer.choice.choice == "unsure"
+    return answer.j2 is not None and answer.j2.gate == "unsure"
+
+
+def _picture_links(value: Any) -> set[str]:
+    if isinstance(value, str):
+        return (
+            {value} if value.startswith("run://") and value.endswith(".png") else set()
+        )
+    if isinstance(value, dict):
+        return {x for v in value.values() for x in _picture_links(v)}
+    if isinstance(value, list):
+        return {x for v in value for x in _picture_links(v)}
+    return set()
+
+
+def _picture_problem(q, answer: Answer, sent: set[str] = frozenset()) -> str | None:
+    """Agent follow-through plan, change 3 (Abby, 2026-11-06): development
+    runs 5 and 6's agents answered every picture question without opening a
+    picture, mostly "unsure". A model's answer to a question whose input
+    names a picture says what it shows (`seen`), or, if the picture could
+    not be opened or shows nothing, what went wrong (`picture_error`, then
+    only unsure). Neither: refused."""
+    if answer.decided_by is not DecidedBy.MODEL or not has_image(q.input):
+        return None
+    if answer.seen.strip():
+        return None
+    if answer.picture_error.strip():
+        if _picture_links(q.input) & sent:
+            # Abby, 2026-11-06: picture_error is for a picture that could not
+            # be opened. One attached to a result was in front of the agent;
+            # a dark or blank one is described in `seen`.
+            return (
+                "this question's picture was attached to a result, so it was "
+                "in front of you: look at it and say in `seen` what it shows "
+                "(a dark, blank or cut-off picture is described too, then "
+                "answer unsure if it does not settle the question). "
+                "picture_error is only for a picture you could not open"
+            )
+        if _unsure(answer):
+            return None
+        return (
+            "with a picture_error the answer can only be unsure: a picture "
+            "that was not seen cannot settle the question"
+        )
+    return (
+        "this question names a picture. Open it (read the run:// resource, or "
+        "look at the image attached to the result) and say in `seen` something "
+        "it shows, then answer again. If it cannot be opened or shows nothing, "
+        "say what happened in `picture_error` and answer unsure"
+    )
+
+
 def record_answers(
-    report: Report, answers: list[Answer]
+    report: Report, answers: list[Answer], sent: set[str] = frozenset()
 ) -> tuple[list[str], list[str]]:
     """Record answers to questions asked in this run. One answer closes a
     question; a later answer replaces it (a person's answer beats a model's).
@@ -91,7 +158,15 @@ def record_answers(
             errors.append(f"{tag}: a {q.kind} question needs a `{field}` answer")
         elif q.kind == "choice" and answer.choice.choice not in q.choices:
             errors.append(f"{tag}: choice must be one of {', '.join(q.choices)}")
+        elif (picture := _picture_problem(q, answer, sent)) is not None:
+            errors.append(f"{tag}: {picture}")
         else:
+            viewed = not (
+                answer.decided_by is DecidedBy.MODEL
+                and has_image(q.input)
+                and not answer.seen.strip()
+            )
+            answer = answer.model_copy(update={"not_viewed": not viewed})
             report.answers.append(
                 RecordedAnswer(question=q, answer=answer, recorded_at=utcnow())
             )

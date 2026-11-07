@@ -504,7 +504,7 @@ async def collect(ctx: RunContext, walk: KeyboardWalk) -> State5D:
         inventory_fields=walk.p1.form_fields,
     )
     fields = _fields(walk)
-    limit = FIELD_MAX if ctx.deadline != float("inf") else len(fields)
+    limit = len(fields) if ctx.no_time_limit else FIELD_MAX
     known = {s.stop.path_key for s in walk.p1.steps if s.stop.kind == "element"}
     if len(fields) > limit:
         st.incomplete.append(
