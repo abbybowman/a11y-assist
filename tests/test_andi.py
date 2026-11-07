@@ -102,3 +102,30 @@ async def test_andi_injects_on_har_replay(
     await page.wait_for_function("document.getElementById('xhr').textContent")
     await _assert_andi_fully_loaded(page, settings, replay.andi_aborted, failed)
     await ctx.close()
+
+
+async def test_andi_runs_on_a_page_whose_policy_forbids_inline_scripts(
+    browser, offline_browser, settings, server, tmp_path
+):
+    # bypass_csp (default on; Abby, 2026-11-07): ANDI's inline script runs
+    # under a replayed "script-src 'self'". With it off, the policy blocks it.
+    har = tmp_path / "page.har.zip"
+    cap = await record(browser, settings, f"{server.base}/csp.html", har, noop_log)
+    server.stop()
+    for bypass in (True, False):
+        s = settings.model_copy(update={"bypass_csp": bypass})
+        replay = await replay_context(offline_browser, s, har, noop_log, with_andi=True)
+        page = await replay.context.new_page()
+        await replay.guard.goto(page, cap.final_url)
+        try:
+            if bypass:
+                await _assert_andi_fully_loaded(page, s, replay.andi_aborted, [])
+            else:
+                try:
+                    await inject_andi(page, s.third_party_dir, timeout_ms=2000)
+                    ran = True
+                except Exception:
+                    ran = False
+                assert not ran
+        finally:
+            await replay.context.close()

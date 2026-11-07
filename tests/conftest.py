@@ -160,6 +160,11 @@ class _Handler(http.server.BaseHTTPRequestHandler):
                 f"<iframe title=inner src='http://localhost:{port}/inner'></iframe>"
             )
             return self._send(200, body.encode())
+        if self.path == "/csp.html":  # a policy that forbids inline scripts
+            body = "<!doctype html><html lang=en><title>csp</title><p>Policy</p>"
+            return self._send(
+                200, body.encode(), **{"Content-Security-Policy": "script-src 'self'"}
+            )
         if self.path == "/inner":
             body = "<!doctype html><title>inner</title><button>Inner</button>"
             return self._send(200, body.encode())

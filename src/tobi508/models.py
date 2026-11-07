@@ -443,8 +443,10 @@ class Versions(BaseModel):
     run_settings: dict[str, bool | int] = Field(
         default_factory=dict,
         description=(
-            "Spec run limits from server config (settle, scroll, time), and "
-            "whether the caller turned the time limit off for this run."
+            "Spec run limits from server config (settle, scroll, time), "
+            "whether the caller turned the time limit off for this run, and "
+            "whether pages' Content-Security-Policy was bypassed (bypass_csp, "
+            "so ANDI can run)."
         ),
     )
     display: dict[str, int | float | None] = Field(
