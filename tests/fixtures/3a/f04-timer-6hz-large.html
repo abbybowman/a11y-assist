@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head><title>Large timer strobe</title>
+<style>
+body { margin: 0; font: 16px sans-serif; background: #808080; }
+h1 { margin: 8px; font-size: 20px; }
+#s { position: absolute; left: 0; top: 60px; width: 400px; height: 300px; background: #000; }
+</style>
+</head>
+<body>
+<main>
+<h1>Large timer strobe</h1>
+<div id="s" role="img" aria-label="Banner"></div>
+</main>
+<script>
+const s = document.getElementById('s');
+let on = false;
+setInterval(() => { on = !on; s.style.background = on ? '#fff' : '#000'; }, 80);
+</script>
+</body>
+</html>

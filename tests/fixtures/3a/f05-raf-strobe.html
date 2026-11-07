@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head><title>Frame strobe</title>
+<style>
+body { margin: 0; font: 16px sans-serif; background: #808080; }
+h1 { margin: 8px; font-size: 20px; }
+#s { position: absolute; left: 0; top: 60px; width: 1024px; height: 300px; background: #000; }
+</style>
+</head>
+<body>
+<main>
+<h1>Frame strobe</h1>
+<canvas id="s" width="1024" height="300" aria-label="Strobe"></canvas>
+</main>
+<script>
+// A new colour every animation frame, drawn on a canvas: about 30 flashes a second.
+const c = document.getElementById('s').getContext('2d');
+let on = false;
+(function draw() { on = !on; c.fillStyle = on ? '#fff' : '#000'; c.fillRect(0, 0, 1024, 300); requestAnimationFrame(draw); })();
+</script>
+</body>
+</html>

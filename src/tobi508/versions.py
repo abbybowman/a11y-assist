@@ -41,6 +41,8 @@ def collect_versions(
             "other_page_s": settings.other_page_s,
             # The caller turned the run limit off for this run (tobi_run_tt_tests).
             "no_time_limit": no_time_limit,
+            # Pages' Content-Security-Policy ignored, so ANDI can run (config).
+            "bypass_csp": settings.bypass_csp,
         },
     )
 

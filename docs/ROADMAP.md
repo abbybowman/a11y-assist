@@ -50,8 +50,10 @@ Next (Abby, 2026-11-05):
    mechanism probe and the media store
    ([solutions/watching-a-page-over-time.md](solutions/watching-a-page-over-time.md));
    their leftovers are under "Per-test leftovers" below.
-   Not yet in a judging round. 3.A (flashing) has its spec at 0.1.0 and its
-   research done; it can reuse pass T's frames.
+   Not yet in a judging round. 3.A (flashing) is built as a draft (spec
+   0.2.0, `checks/t3a.py` in `tests/drafts.py`, 16 fixtures passing); three
+   questions in the spec's "Open for Abby" are left before 1.0.0
+   ([rules/3a-build-tasks.md](rules/3a-build-tasks.md)).
 2. **The post-round 1 fixes, in the plan's order**
    ([plans/2026-11-04-post-round1-fixes.md](plans/2026-11-04-post-round1-fixes.md)),
    while Abby labels the next judging round blind:
@@ -306,8 +308,8 @@ None blocks an outcome: each is NEEDS REVIEW-safe today.
     Reflow, not Section 508; at most a separate, clearly labelled extra.
   The report records the window (`Versions.display`: viewport, inner size
   and device pixel ratio), so results at different sizes can be told apart.
-  3.A's spec should name its window too: the flash threshold is an area
-  (341 x 256 px at 1024 x 768).
+  3.A's spec names its window (done in 0.2.0): its capture loads the page
+  at 1024 x 768 and records the window measured (`State3A.window`).
 - **Firefox as an optional browser.** TT 5.1.3 validates Chrome and Firefox
   (Test Environment). Results are reported for the browser the report
   records and never claimed for others (e.g. Chrome 130+ tabs to scroll

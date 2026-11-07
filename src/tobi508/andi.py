@@ -8,8 +8,10 @@ third_party/ and abort anything that has no local copy, so none of these
 requests reach the network. Any other www.ssa.gov request is aborted too.
 Verified in tests/test_andi.py.
 
-Injection uses an inline script tag, so a page Content-Security-Policy that
-forbids inline scripts will block ANDI. No CSP bypass is enabled.
+Injection uses an inline script tag, which a page Content-Security-Policy
+that forbids inline scripts would block. Contexts bypass the policy by
+default (config `bypass_csp`, Abby, 2026-11-07); with it off, ANDI does not
+run on such pages and the checks that read it say so.
 """
 
 from __future__ import annotations

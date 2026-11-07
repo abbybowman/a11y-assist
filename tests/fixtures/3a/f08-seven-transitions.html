@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+<head><title>A short burst</title>
+<style>
+body { margin: 0; font: 16px sans-serif; background: #808080; }
+h1 { margin: 8px; font-size: 20px; }
+@keyframes s { 0% { background: #000; } 12.5% { background: #fff; } 25% { background: #000; } 37.5% { background: #fff; } 50% { background: #000; } 62.5% { background: #fff; } 75% { background: #000; } 87.5%, 100% { background: #fff; } }
+#s { position: absolute; left: 0; top: 60px; width: 200px; height: 200px; background: #000; animation: s 800ms steps(1, end) 500ms 1 forwards; }
+</style>
+</head>
+<body>
+<main>
+<h1>A short burst</h1>
+<div id="s" role="img" aria-label="Burst"></div>
+</main>
+
+</body>
+</html>

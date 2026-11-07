@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head><title>Image beside an animation</title>
+<style>
+body { margin: 0; font: 16px sans-serif; background: #808080; }
+h1 { margin: 8px; font-size: 20px; }
+@keyframes f { 0%, 49.9% { background: #000; } 50%, 100% { background: #fff; } }
+#f { position: absolute; left: 0; top: 60px; width: 120px; height: 100px; animation: f 200ms steps(1) infinite; }
+img { position: absolute; left: 140px; top: 60px; }
+</style>
+</head>
+<body>
+<main>
+<h1>Image beside an animation</h1>
+<div id="f" role="img" aria-label="Light"></div><img src="/3a/media/gif-5hz-small.gif" alt="Second light" width="120" height="100">
+</main>
+
+</body>
+</html>

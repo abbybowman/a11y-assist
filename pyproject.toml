@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "fastmcp>=2.0.0",
+    "numpy>=2.0",
     "pillow>=13.0.0",
     "playwright==1.63.0",
     "pydantic>=2.0.0",
@@ -67,6 +68,8 @@ addopts = "-m 'not slow' -n auto"
 "src/tobi508/motion.py" = ["E501"]
 "src/tobi508/checks/t2b.py" = ["E501"]
 "src/tobi508/checks/t2a.py" = ["E501"]
+"src/tobi508/flashcap.py" = ["E501"]
+"src/tobi508/checks/t3a.py" = ["E501"]
 # Scratch experiments kept as research evidence (not imported, not tests):
 # embedded JavaScript, and helpers shared by exec between scripts.
 "docs/research/**" = ["E501", "E741", "F821", "F841"]

@@ -122,12 +122,15 @@ async def launch_for(
 async def new_context(
     browser: Browser, settings: Settings, **kwargs: Any
 ) -> BrowserContext:
-    """A fresh, isolated context. Service workers are blocked so routes see all."""
-    ctx = await browser.new_context(
-        viewport={"width": settings.viewport_width, "height": settings.viewport_height},
-        service_workers="block",
-        **kwargs,
+    """A fresh, isolated context. Service workers are blocked so routes see all.
+    `viewport` may be given (3.A's flash capture is 1024 x 768); the page's
+    Content-Security-Policy is bypassed when `settings.bypass_csp` is on."""
+    kwargs.setdefault(
+        "viewport",
+        {"width": settings.viewport_width, "height": settings.viewport_height},
     )
+    kwargs.setdefault("bypass_csp", settings.bypass_csp)  # ANDI (config)
+    ctx = await browser.new_context(service_workers="block", **kwargs)
     ctx.set_default_navigation_timeout(settings.navigation_timeout_ms)
     return ctx
 

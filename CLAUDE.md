@@ -70,7 +70,7 @@ by TT test ID. Package: `tobi508`.
   with `DEV_MODE=true`. Do not weaken this to make a test pass.
 - Never load ANDI from ssa.gov. `andi.install_andi_routes` serves it from
   `third_party/` and aborts any other www.ssa.gov request.
-- No Content-Security-Policy bypass (`bypass_csp`) without explicit approval.
+- Content-Security-Policy is bypassed in every browser context (`BYPASS_CSP`, default on; Abby, 2026-11-07) so ANDI's injected script runs; the report records it (`run_settings`). Any other CSP change needs explicit approval.
 - Ask before installing anything system-wide.
 - Read TT text (names, conditions, how to test, requirements, WCAG links)
   from `catalog.py` / `tt.json`, never retype it. Specs still cite the PDF's

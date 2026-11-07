@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+<head><title>Three flashes a second</title>
+<style>
+body { margin: 0; font: 16px sans-serif; background: #808080; }
+h1 { margin: 8px; font-size: 20px; }
+@keyframes t { 0%, 16.66% { background: #000; } 16.67%, 33.33% { background: #fff; } 33.34%, 49.99% { background: #000; } 50%, 66.66% { background: #fff; } 66.67%, 83.33% { background: #000; } 83.34%, 100% { background: #fff; } }
+#t { position: absolute; left: 0; top: 60px; width: 400px; height: 300px; animation: t 1000ms steps(1) infinite; }
+</style>
+</head>
+<body>
+<main>
+<h1>Three flashes a second</h1>
+<div id="t" role="img" aria-label="Beacon"></div>
+</main>
+
+</body>
+</html>

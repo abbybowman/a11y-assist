@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+<head><title>Slow blink</title>
+<style>
+body { margin: 0; font: 16px sans-serif; background: #808080; }
+h1 { margin: 8px; font-size: 20px; }
+@keyframes b { 0%, 49.9% { background: #000; } 50%, 100% { background: #fff; } }
+#b { width: 200px; height: 100px; animation: b 1000ms steps(1) infinite; }
+</style>
+</head>
+<body>
+<main>
+<h1>Slow blink</h1>
+<div id="b"></div>
+</main>
+
+</body>
+</html>

@@ -100,6 +100,13 @@ class Settings(BaseSettings):
     browser_args: list[str] = Field(default_factory=list)
     viewport_width: int = 1280
     viewport_height: int = 900
+    # Every browser context ignores the page's Content-Security-Policy
+    # (Playwright bypass_csp), so ANDI's injected script runs on pages whose
+    # policy forbids inline scripts (Abby, 2026-11-07, approved). Every load
+    # of a run (recording, replays, pass T) uses the same setting, so the
+    # page behaves the same in each; the report records it
+    # (Versions.run_settings). Set false to test pages under their policy.
+    bypass_csp: bool = True
     navigation_timeout_ms: int = 30_000
 
     # ── Evidence ──────────────────────────────────────────────────────────────

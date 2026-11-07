@@ -105,6 +105,10 @@ class RunContext:
     # scripts, for 2.A-2.D (motion.collect). None when not available.
     open_motion: NewPage | None = None
     motion_browser: str = ""  # what runs those loads, for the evidence
+    # 3.A's flash capture load: pass T's browser at 1024 x 768, with the
+    # page's clock paused before page scripts (flashcap.py). None when not
+    # available.
+    open_flash: NewPage | None = None
     # Content pass T found still changing, which the settle rule stops
     # waiting on once pass T ends (pipeline.SettleIgnore; T1 (b)).
     settle_ignore: Any = None

@@ -58,6 +58,7 @@ TILE = 20
 MAX_COMPONENTS = 30  # changed-tile groups mapped per frame
 MAX_REGIONS = 40
 MAX_BOXES = 400  # changed-pixel boxes kept per region
+FAST_KEPT = 300  # 3.A's fast callbacks kept per frame
 # A frame where more than this share of the viewport's tiles changed is a
 # page-wide change (a dialog's backdrop, a scroll), noted and not mapped.
 PAGE_CHANGE = 0.5
@@ -98,16 +99,46 @@ MOTION_INIT_JS = (
     return v === 'polite' || v === 'assertive';
   };
   const liveOf = (el) => { for (let e = el; e; e = e.parentElement) if (isLive(e)) return e; return null; };
+  // 3.A's triggers (3.A spec section 2): callbacks of timers under 334 ms
+  // and of requestAnimationFrame that change the page or draw on a canvas,
+  // by time. A second observer's takeRecords() sees a callback's own DOM
+  // changes synchronously, without taking them from the observer below.
+  M.fast = []; M.draws = 0;
+  const FAST_MS = 334, FAST_MAX = 600;
+  const fx = new MutationObserver(() => {});
+  fx.observe(document, { subtree: true, childList: true, attributes: true, characterData: true });
+  const drawHook = (C, names) => {
+    if (!C) return;
+    for (const k of names) {
+      const o = C.prototype[k];
+      if (typeof o === 'function') C.prototype[k] = function (...a) { M.draws++; return o.apply(this, a); };
+    }
+  };
+  const D2 = ['fillRect', 'clearRect', 'strokeRect', 'fill', 'stroke', 'drawImage', 'putImageData', 'fillText', 'strokeText'];
+  drawHook(window.CanvasRenderingContext2D, D2);
+  drawHook(window.OffscreenCanvasRenderingContext2D, D2);
+  drawHook(window.WebGLRenderingContext, ['drawArrays', 'drawElements', 'clear']);
+  drawHook(window.WebGL2RenderingContext, ['drawArrays', 'drawElements', 'clear']);
+  const fast = (f, kind) => function (...a) {
+    const d0 = M.draws;
+    try { return f.apply(this, a); } finally {
+      try { if ((fx.takeRecords().length || M.draws !== d0) && M.fast.length < FAST_MAX) M.fast.push({ at: now(), kind }); } catch (e) {}
+    }
+  };
+  const raf = window.requestAnimationFrame;
+  if (raf) window.requestAnimationFrame = function (f, ...a) { return raf.call(this, typeof f === 'function' ? fast(f, 'raf') : f, ...a); };
   // Timers (2.C A2: a period longer than the watch, item 7).
   const si = window.setInterval, st = window.setTimeout;
   window.setInterval = function (f, ms, ...a) {
     const v = Number(ms) || 0;
     if (v >= 1000 && M.timers.length < TIMER_MAX) M.timers.push({ kind: 'interval', ms: Math.round(v), at: now() });
+    if (typeof f === 'function' && v < FAST_MS) f = fast(f, 'interval');
     return si.call(this, f, ms, ...a);
   };
   window.setTimeout = function (f, ms, ...a) {
     const v = Number(ms) || 0;
     if (v >= 1000 && M.timers.length < TIMER_MAX) M.timers.push({ kind: 'timeout', ms: Math.round(v), at: now() });
+    if (typeof f === 'function' && v < FAST_MS) f = fast(f, 'timeout');
     return st.call(this, f, ms, ...a);
   };
   // What the page waits to see scrolled into view (Understanding 2.2.2:
@@ -374,7 +405,40 @@ MOTION_INIT_JS = (
     }
     return false;
   };
+  // 3.A's trigger: running animations whose colour, background (a pattern
+  // shifted by its position), opacity, visibility or filter changes more
+  // than 3 times a second (keyframe changes, each
+  // steps(n) easing counting n, per iteration).
+  const FLASHY = /^(color|background(Color|Image|Position|PositionX|PositionY|Size)?|opacity|visibility|filter|fill|stroke|border(Top|Right|Bottom|Left)?Color|outlineColor|boxShadow|textShadow)$/;
+  M.fastAnims = () => {
+    const out = [];
+    for (const a of document.getAnimations()) {
+      if (out.length >= 20) break;
+      try {
+        if (a.playState !== 'running' || !a.effect || !a.effect.getKeyframes) continue;
+        const t = a.effect.getComputedTiming();
+        const dur = typeof t.duration === 'number' ? t.duration : 0;
+        if (!(dur > 0)) continue;
+        const kf = a.effect.getKeyframes();
+        const look = (k) => Object.keys(k).filter((p) => FLASHY.test(p)).map((p) => p + ':' + k[p]).sort().join('|');
+        let changes = 0;
+        for (let i = 1; i < kf.length; i++) {
+          if (look(kf[i]) === look(kf[i - 1])) continue;
+          const m = /steps\\((\\d+)/.exec(kf[i - 1].easing || '');
+          changes += m ? Number(m[1]) : 1;
+        }
+        if (kf.length > 1 && look(kf[kf.length - 1]) !== look(kf[0]) && !String(t.direction || '').includes('alternate')) changes++;
+        const perS = changes * 1000 / dur * Math.abs(a.playbackRate || 1);
+        if (perS <= 3) continue;
+        const tg = a.effect.target;
+        out.push({ css: tg && tg.nodeType === 1 ? path(tg) : '', name: a.animationName || a.transitionProperty || a.id || '',
+          per_s: Math.round(perS * 100) / 100, duration_ms: Math.round(dur) });
+      } catch (e) {}
+    }
+    return out;
+  };
   M.facts = () => ({ timers: M.timers, audio: M.audio, dropped: M.dropped, blink: blinkMarkup(),
+    fast: M.fast.map((f) => ({ at: f.at, kind: f.kind })), fast_anims: M.fastAnims(),
     // Web Audio contexts playing to the speakers (2.A), and the iframes'
     // sources (2.A: a YouTube or Vimeo player cannot be measured).
     audio_states: Array.from(M.ctxs).map((c) => c.state),
@@ -768,6 +832,13 @@ class MotionPass(BaseModel):
     frames_read: int = 0  # document frames read (the top page included)
     elements: list[Element] = Field(default_factory=list)  # at 0 s
     elements_truncated: bool = False
+    # 3.A's triggers (3.A spec section 2): callbacks of timers under 334 ms
+    # and of requestAnimationFrame that changed the page or drew on a canvas
+    # (frame, t in s from the start of the watch, kind), capped; and running
+    # animations whose colour, opacity, visibility or filter changes more
+    # than 3 times a second.
+    fast_callbacks: list[dict[str, Any]] = Field(default_factory=list)
+    fast_animations: list[dict[str, Any]] = Field(default_factory=list)
 
 
 def changed_tiles(
@@ -1171,6 +1242,15 @@ async def _watch(
         out.audio_states += facts.get("audio_states", [])
         out.iframes += facts.get("iframes", [])
         out.dropped_changes += facts["dropped"]
+        for f in facts.get("fast", [])[:FAST_KEPT]:
+            out.fast_callbacks.append(
+                {
+                    "frame": i,
+                    "t": round((f["at"] - t0_epoch) / 1000, 3),
+                    "kind": f["kind"],
+                }
+            )
+        out.fast_animations += [{"frame": i, **a} for a in facts.get("fast_anims", [])]
         counts: dict[tuple[str, int], int] = {}
         for tm in facts["timers"]:
             counts[(tm["kind"], tm["ms"])] = counts.get((tm["kind"], tm["ms"]), 0) + 1
@@ -1280,13 +1360,17 @@ _IMAGE_JS = """async ([b64, type]) => {
     await d.tracks.ready;
     const t = d.tracks.selectedTrack;
     const n = t.frameCount;
-    let once = 0;
+    let once = 0, min = null;
     for (let i = 0; i < n && i < 500 && n > 1; i++) {
       const r = await d.decode({ frameIndex: i });
       once += (r.image.duration || 0) / 1000;
+      // Chrome shows a frame of 10 ms or less for 100 ms (3.A).
+      const ms = (r.image.duration || 0) / 1000;
+      const shown = ms <= 10 ? 100 : ms;
+      min = min === null ? shown : Math.min(min, shown);
       r.image.close();
     }
-    return { frames: n, once_ms: Math.round(once), reps: t.repetitionCount === Infinity ? -1 : t.repetitionCount };
+    return { frames: n, once_ms: Math.round(once), reps: t.repetitionCount === Infinity ? -1 : t.repetitionCount, min_ms: min === null ? null : Math.round(min) };
   } catch (e) { return null; }
 }"""
 IMAGE_MAX_BYTES = 5_000_000
