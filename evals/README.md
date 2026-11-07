@@ -99,6 +99,21 @@ counts a tool result that matches as a **validated catch**, weighted +1 like
 an agreement and shown apart (`evals/scoring.py`). The file sits outside
 the lock, as the keys do.
 
+## Run 30, 2026-11-07: 4.D 1.3.0 (where the changed pixels sit), its packets
+
+4.D was missing from `judge_eval.py`'s cases (its custom fixtures and its ACT cases); both are in now. 2 cases ask (F09's faint outline, F16's faint colour change with a counter beside the link), 4 questions, one fresh Sonnet agent: **2/2 match**, all four answers unsure, no false PASS.
+- **`changed_pixels`:** it matched the numbers to the pictures (touching only for the thin outline, on the element for the colour shift) and saw the counter's pixels as elsewhere.
+- **What the numbers do not say:** how visible a change is; hundreds of pixels can still be a shift no one sees, which is why it answered unsure.
+- **Rules:** it opened the two evidence JSON files the questions' `evidence_paths` name, inside the packets.
+
+## Run 29, 2026-11-07: pictures and guards (2.B 1.1.0, 4.E 1.2.0, 4.F 1.3.0, 5.C 1.4.0, 5.D 1.2.0), their packets
+
+2.B content below the first screen in crops; 4.F's order picture cropped to the stops in question; 4.E J1 and 5.D J2 given `covers_window` and `modal`, with content_only over half the window or modal refused by rule; 5.C text drawn by CSS in `visible`. 45 cases, 51 questions (7 2.B, 4 4.E, 11 4.F, 7 5.C, 16 5.D), two with a follow-up round, one fresh Sonnet agent: **44/45 match**, no false PASS, no false DNA. Leak grep clean.
+- **The new cases all match:** the badge below the first screen, answered from its crops (was unsure in run 16); the tips panel and the terms panel over most of the window, answered changes_context; the long report's interleaved form, from the crop; the "*" drawn by CSS, answered missing.
+- **The mismatch is safe:** 4.F f05 (main content before a left-hand list of links) was unsure, NEEDS REVIEW against PASS. Run 25 raised the same gap: the rubric does not say how to treat main content reached before a left sidebar.
+- **Pictures:** it opened the crops for every 4.F case that had one, both 2.B crops, the 4.E and 5.D after pictures, and the 5.C pictures.
+- **Unclear to it:** a menu whose items the next Tab skips (4.F, as run 25); whether "Mission status" over three options is their question (5.C; it answered missing, which matches); grouped 5.D questions, answered once for every field listed.
+
 ## Run 28, 2026-11-07: reading questions without pictures (2.D 1.1.0, 5.F 1.3.0), their packets
 
 2.D J1 and J2 and 5.F J1 are settled by reading, so their pictures moved from the question input to evidence only (Abby, 2026-11-07); the agent is no longer asked to say what a picture shows for them. 5.F J2 (the field's look) keeps its pictures. 19 cases (2 2.D, 17 5.F, one with a follow-up round), one fresh Sonnet agent: **19/19 match**, no false PASS, no answer refused. It opened pictures only for the 5.F J2 questions, which name them.
