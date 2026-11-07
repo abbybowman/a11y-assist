@@ -143,12 +143,37 @@ else; *Hint*, optional help.
   the walk's stops and the DOM inventory serve, from real key presses.
 - **ANDI is the head start for visual versus code** (headings, tables,
   reading order, contrast leftovers). andi-cli extracts alerts only; the
-  per-element data comes from `andi.andi_output`.
+  per-element data comes from `andi.andi_output`. Which modules exist and what we read from them: [ANDI modules as vendored](#andi-modules-as-vendored-added-2026-11-07) below.
 - **Scanners own the 3 reliable tests and the scanned half of the 21
   partial ones,** imported as evidence, never as a PASS on their own (not
   vendored yet; ROADMAP "Scanners"). Coverage ratings reflect default
   configurations; enabling pa11y warnings and notices adds reminders, not
   checks.
+
+## ANDI modules as vendored (added 2026-11-07)
+
+The ANDI column above says how the TT's How-to-Test steps use ANDI. This section says what each module of the vendored ANDI 29.2.2 actually outputs, and how much of it we read today. Facts are from reading `third_party/andi/*.js` and `src/tobi508/andi.py`. Per-test detail, with file and line references, is in [2026-11-07-visual-cluster-per-test.md](2026-11-07-visual-cluster-per-test.md).
+
+**What we run today.** Only the default module, focusable elements (`f`). `andi.inject_andi` loads `andi.js`, which launches `f` (andi.js:45, 132). Nothing launches the other modules, though our route serves them from local files (andi.py:43-55), so `AndiModule.launchModule("<letter>")` works offline.
+
+**What we read today.** `andi.andi_output` returns each analysed element's name, description, group label, dangers and warnings (andi.py:88-125). Used by 5.A/5.C (pass L) and 9.C. It does not read:
+- cautions;
+- module-specific data (the contrast module's `candi508`, the tables module's `data-tandi508-*` cell indexes);
+- page-level alerts, which go only to ANDI's alert list (andi.js:3691-3698).
+
+| Module | Letter | TT tests that name it | What it gives | Limits found |
+| --- | --- | --- | --- | --- |
+| Focusable elements | f | 4.x (hint), 5.C core, 9.C core | names, descriptions, group labels, alerts per focusable element | the only module we run |
+| Graphics/images | g | 7.A-7.E | images (`img`, `svg`, `canvas`, `role=img`); decorative or not; alt-text alerts (redundant phrase, file name, not descriptive); background images marked; font icons | no image-of-text detection; background images get a page-level caution only, not per-element data; gradients are not counted |
+| Links/buttons | l | 6.A | link and button names and purpose alerts | not surveyed in detail (6.A not in this cluster) |
+| Tables | t | 14.A-14.C | data vs presentation **by markup only** (no layout judgement); cell indexes with spans; scope and headers/id modes; about 20 table alerts | one table per launch; a cell's header text is computed only when the cell is inspected |
+| Structures | s | 10.A-10.D, 11.A/B, 12.A, 15.A (reading order) | headings list and outline levels; lists mode (counts, list-item alerts); landmarks; language; page title; "reading order" numbering | fake-heading check only before the first real heading; the aria-level conflict alert needs a `role` attribute too; lists mode needs a relaunch; no visual-list detection |
+| Color contrast | c | 13.C | per text element: colours, ratio, minimum, PASS/FAIL or manual test needed; disabled elements exempt | **rounds the ratio to 2 decimals before comparing** (4.495-4.499 passes; WCAG says do not round); a background image or gradient or opacity means manual test; positioned text and text-shadow not handled |
+| Hidden content | h | (CSS content, hidden text) | hidden and CSS-generated content | not surveyed in detail |
+| Iframes | i | 12.C, 12.D | iframe titles | not surveyed in detail |
+| Linearize (setting in `andi.js`) | | 15.A | removes CSS positioning: absolute, fixed, relative and sticky positioning with an offset, and floats (andi.js:1464-1498) | does not undo flexbox or grid reordering, transforms or multi-column layout |
+
+**Checked against independent maths.** On 444 colour pairs, the contrast module's ratios equal the exact WCAG 2 ratio rounded to 2 decimals (2026-11-07; the per-test note, 13.C).
 
 ## Tools, versions and ratings
 

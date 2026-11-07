@@ -99,6 +99,13 @@ counts a tool result that matches as a **validated catch**, weighted +1 like
 an agreement and shown apart (`evals/scoring.py`). The file sits outside
 the lock, as the keys do.
 
+## Run 28, 2026-11-07: reading questions without pictures (2.D 1.1.0, 5.F 1.3.0), their packets
+
+2.D J1 and J2 and 5.F J1 are settled by reading, so their pictures moved from the question input to evidence only (Abby, 2026-11-07); the agent is no longer asked to say what a picture shows for them. 5.F J2 (the field's look) keeps its pictures. 19 cases (2 2.D, 17 5.F, one with a follow-up round), one fresh Sonnet agent: **19/19 match**, no false PASS, no answer refused. It opened pictures only for the 5.F J2 questions, which name them.
+- **Limit:** both 2.D cases expect PASS, so no fixture checks a 2.D not_sufficient answer without the picture.
+- **Rules:** it used one read-only Bash call and Grep inside the packets, against its instructions (Read, Write and Glob only); the follow-up round used only the allowed tools.
+- **Unclear to it:** whether "Go" in 5.F f11 is a search or filter button (it picked "Send my question", which matches); "Enter your full name" as a reference to the Full name field (it answered described, which matches).
+
 ## Runs 26 and 27, 2026-11-07: 9.C 1.1.1 (when names show different things), its packets
 
 The rubric now says names that name different things count as
