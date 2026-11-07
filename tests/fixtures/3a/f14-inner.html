@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="en">
+<head><title>Strobe</title><style>body { margin: 0; } #s { width: 400px; height: 300px; background: #000; }</style></head>
+<body>
+<div id="s" role="img" aria-label="Strobe"></div>
+<script>
+const s = document.getElementById('s');
+let on = false;
+setInterval(() => { on = !on; s.style.background = on ? '#fff' : '#000'; }, 80);
+</script>
+</body>
+</html>

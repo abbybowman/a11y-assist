@@ -32,7 +32,7 @@ from urllib.parse import urlsplit
 
 from playwright.async_api import Browser, async_playwright
 
-from tobi508 import motion, pagecache, scrt
+from tobi508 import flashcap, motion, pagecache, scrt
 from tobi508.browser import (
     MOTION_BROWSER,
     NavigationBlocked,
@@ -116,19 +116,30 @@ def _opener(
     init_scripts: tuple[str, ...] = (),
     autoplay: bool = False,
     ignore: SettleIgnore | None = None,
+    viewport: dict[str, int] | None = None,
+    paused_clock: bool = False,
 ):
     """A fresh replay context and page for every load (docs/solutions/
     fresh-load-per-probe.md). A page with cross-site frames replays in full
     Chromium (browser.replay_in_full_chromium). `init_scripts`: extra hooks;
     `autoplay`: pass T's browser (full Chromium, headless, autoplay allowed;
-    plan Q1 and Q11)."""
+    plan Q1 and Q11). `viewport` and `paused_clock`: 3.A's flash capture
+    (flashcap.py), at 1024 x 768 with Playwright's clock installed and paused
+    before the page loads, so the capture steps the page's time."""
     full = autoplay or replay_in_full_chromium(settings, frames)
 
     async def new_page():
         browser = await get_browser(full, autoplay)
         replay = await replay_context(
-            browser, settings, har, run.log, init_scripts=init_scripts
+            browser,
+            settings,
+            har,
+            run.log,
+            init_scripts=init_scripts,
+            viewport=viewport,
         )
+        if paused_clock:
+            await flashcap.pause_clock(replay.context)
         page = await replay.context.new_page()
         await replay.guard.goto(page, final_url)
         if ignore is not None:
@@ -211,6 +222,19 @@ def _context(
             (MOTION_INIT_JS,),
             autoplay=True,
             ignore=ignore,
+        ),
+        # 3.A's flash capture: pass T's browser, 1024 x 768, the page's clock
+        # paused before it loads (flashcap.py), and no hooks of ours.
+        open_flash=_opener(
+            get_browser,
+            settings,
+            har,
+            final_url,
+            run,
+            frames,
+            autoplay=True,
+            viewport=dict(zip(("width", "height"), flashcap.VIEWPORT)),
+            paused_clock=True,
         ),
         settle_ignore=ignore,
         motion_browser=MOTION_BROWSER,

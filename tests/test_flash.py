@@ -187,7 +187,9 @@ def test_mask_leaves_pixels_out():
 def test_scale_counts_css_pixels():
     # A video drawn at a quarter of full screen (px 4, cell 1): a 10 x 10
     # frame-pixel flasher is 40 x 40 CSS px.
-    a = run(toggles(120, 3), size=(64, 48), box=(5, 5, 10, 10), cell=1, px=4.0, fine=False)
+    a = run(
+        toggles(120, 3), size=(64, 48), box=(5, 5, 10, 10), cell=1, px=4.0, fine=False
+    )
     assert a.general.area == 1600
 
 

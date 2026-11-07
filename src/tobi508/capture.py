@@ -310,13 +310,17 @@ async def replay_context(
     log: LogFn,
     with_andi: bool = False,
     init_scripts: tuple[str, ...] = (),
+    viewport: dict[str, int] | None = None,
 ) -> Replay:
     """A fresh context that answers only from the HAR (unknown URLs abort).
 
     `init_scripts` run in every frame after INIT_JS and before page scripts
     (pass T's hooks, motion.py; plan Q7): INIT_JS stays the same for every
-    other load."""
-    ctx = await new_context(browser, settings)
+    other load. `viewport`: another window than the configured one (3.A's
+    flash capture, 1024 x 768)."""
+    ctx = await new_context(
+        browser, settings, **({"viewport": viewport} if viewport else {})
+    )
     await ctx.add_init_script(INIT_JS)  # focus and mutation log (settle rule)
     for script in init_scripts:
         await ctx.add_init_script(script)

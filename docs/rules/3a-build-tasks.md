@@ -1,92 +1,84 @@
 # Build tasks: 3.A Flashing
 
-Spec [3a-flashing.md](3a-flashing.md) at 0.1.0 (a draft, no outcome).
-Research and decisions:
-[research/2026-11-03-3a-flashing.md](../research/2026-11-03-3a-flashing.md).
-Build it after 2.B, which brings pass T, the batch browser, the media store
-and the timer hooks
-([solutions/watching-a-page-over-time.md](../solutions/watching-a-page-over-time.md)).
+Spec [3a-flashing.md](3a-flashing.md) at 0.2.0 (a draft, no outcome from the server). Research and decisions: [research/2026-11-03-3a-flashing.md](../research/2026-11-03-3a-flashing.md). Built on pass T, the media store and the motion browser ([solutions/watching-a-page-over-time.md](../solutions/watching-a-page-over-time.md)).
 
 ## Code changes
 
-| Where | Change |
-| --- | --- |
-| `motion.py` (2.x) | Triggers: animations, transitions and timers under 334 ms; `requestAnimationFrame` loops (extend the timer hook); animated image frame delays; videos; a 2 s CDP screencast beside pass T |
-| `flash.py` (new) | The flash capture: a stepped clock and animations at 1024 × 768 with real-time media masked; images decoded; video decoded at 0.5× with `requestVideoFrameCallback` (first 10 s, full-screen scale) |
-| `flash.py` | The counting: per-cell L (WCAG 2.0 formula), peak-to-valley transitions, general and red transitions (2.0, plus 2.2 red for the note), flashes in sliding one-second windows, concurrent flashing area in any 341 × 256 rectangle, the fine-pattern check. Pure functions on frame arrays, unit-tested without a browser |
-| `checks/t3a.py` | Rows A1–A4 and the assessment F1–F5; the summary carries the assessment sentence (so SCRT's `TesterComment` keeps it); registered in `tests/drafts.py` until 1.0.0 |
-| `models.py`, SCRT export | Check that NOT TESTED with a summary reaches the SCRT file as "Not Tested" with the comment (`scrt.py` maps `Outcome.NOT_TESTED`) |
+Checked against the code on 2026-11-07. Everything in the 0.1.0 list exists; the table names where.
+
+| Where | What | Status |
+| --- | --- | --- |
+| `motion.py` | Animations and transitions changing colour, background, opacity, visibility or filter more than 3 times a second: `M.fastAnims()` in `MOTION_INIT_JS`, read with `facts()` into `MotionPass.fast_animations` | Built |
+| `motion.py` | Timer hook extended: callbacks of timers under 334 ms and of `requestAnimationFrame` that change the DOM (a second observer's `takeRecords()`) or draw on a canvas (2D and WebGL draw calls counted) are timed into `MotionPass.fast_callbacks`. The 2.x timer list (`M.timers`, 1 s and longer) is unchanged | Built |
+| `motion.py` | Animated images' shortest frame (`_IMAGE_JS`, `animated_images[].min_ms`), Chrome's 10 ms → 100 ms rule applied. Decoding already existed (`_long_images`, `_secure_tool_page`) | Built |
+| `motion.py` | Videos: pass T's media reads (`MotionPass.media`), unchanged | Existed |
+| `flashcap.py` (new) | The screencast trigger on its own load (`screencast`), not beside pass T: pass T's timing stays the same | Built |
+| `flashcap.py` | The stepped capture (`stepped`, `STEP_JS`, `MASK_JS`): the pipeline's `open_flash` opener (pass T's browser, 1024 × 768, `pause_clock` before the load), `run_for` per step, animations' `currentTime` and SMIL's time per frame, real-time media masked; `analyze_stepped` counts inside the changed box | Built |
+| `flashcap.py` | Images (`image_frames`, `analyze_image`: rendered size, two plays and at least 2 s) and video (`video_frames`, `analyze_video`: 0.5×, `requestVideoFrameCallback`, first 10 s, full screen on a 256 × 192 canvas); bytes from `capture.media_body` (HAR or media store) | Built |
+| `flash.py` (new) | The counting, pure functions on frame arrays: `linear`, `luminance`, `blocks`, `red_values`, `chromaticity`, `Hysteresis` (peaks and valleys), `Hysteresis2D` (2.2 red), `window_counts`, `best_rect`, `analyze` (general, red, 2.2 red, area, fine pattern, places, plotted series), `steps_ms`, `resample` | Built |
+| `checks/t3a.py` (new) | Triggers, rows A1-A4, the assessment F1-F5 (`assess`, `together`, `assess22`), sentences; registered in `tests/drafts.py` | Built |
+| `pipeline.py`, `capture.py`, `browser.py`, `checks/base.py` | `RunContext.open_flash`; `_opener(viewport=, paused_clock=)`; `replay_context(viewport=)`; `new_context` takes a viewport | Built |
+| `models.py`, `scrt.py` | NOT TESTED with its summary reaches the SCRT file as "Not Tested" with the comment (`scrt.RESULT_OF` already mapped it) | Checked, `tests/test_rows_3a.py` |
+| Screen size record | `Versions.display` already records the run's window (ROADMAP display item). 3.A's own window is in `State3A.window` and the finding's rationale | Existed; 3.A's added |
 
 ## Fixtures
 
-No ACT rule, DHS verdict or Baseline Alignment case exists for 2.3.1.
-All fixtures are custom pages in `tests/fixtures/3a/`. Media are generated
-by a script (as `docs/research/2026-11-03-2x-experiments/make_flash_media.py`),
-not committed as large binaries.
+All custom pages in `tests/fixtures/3a/` (no ACT rule, DHS verdict or Baseline Alignment case exists for 2.3.1). GIFs are generated by the test server from `tests/fixtures/3a/make_media.py`; its two WebM files (3 KB and 11 KB) are written by the same script with ffmpeg and committed, so tests need no ffmpeg. Expected outcomes are in `tests/test_fixtures_3a.py`.
 
-| Case | Expected |
-| --- | --- |
-| none (static page) | A4 DNA, no capture |
-| blink-1hz (CSS, 1 per second) | A4 DNA (2.B's) |
-| css-5hz-small (40 × 40 px) | A2 NOT TESTED; F5 does not fail |
-| css-5hz-large (400 × 300 px, black and white) | A2; F2 fails |
-| timer-6hz-large (setInterval 80 ms) | A2; F2 |
-| raf-strobe (toggles every frame, full width) | A2; F2 (needs stepping; real-time screenshots alias it) |
-| red-strobe (saturated red and black, large) | A2; F3 fails (red) |
-| exactly-3 (3 flashes in a second, ending on the start state) | A4 (G19) |
-| seven-transitions | A2 |
-| gif-5hz-large, gif-2hz | A2 with F2; A4 |
-| video-strobe (5 per second, 3 s) | A2; F2 at full-screen scale |
-| video-late-flash (flashes from 12 s) | A3 (beyond the 10 s cap) |
-| checkerboard-fine (2 px squares alternating) | A2; F1 could not assess |
-| two-small-flashers (each under the area, together over it, in one rectangle) | A2; F2 if aligned frame by frame, else F4 |
-| strobe-in-iframe (cross-site) | A2; captured through the iframe (run also with full Chromium) |
+| Page | Expected | Result |
+| --- | --- | --- |
+| f01 static | A4, no capture | Passes |
+| f02 blink 1 Hz | A4 (no trigger) | Passes |
+| f03 CSS 5 Hz, 40 × 40 | A2, F5 (1,600 px) | Passes |
+| f04 timer 80 ms, 400 × 300 | A2, F2 | Passes |
+| f05 canvas toggled every frame | A2, F2 | Passes |
+| f06 red and an equal-luminance grey | A2, F3 | Passes |
+| f07 exactly 3 a second | A4 (trigger fires, count 6) | Passes |
+| f08 seven changes once | A2 (only the screencast triggers it) | Passes |
+| f09 GIF 5 Hz, 400 × 300 | A2, F2 | Passes |
+| f10 video strobe | A2, F2 at full screen | Passes |
+| f11 video flashing from 12 s | A3 | Passes |
+| f12 2 px checkerboard inverting | A2, F1 | Passes |
+| f13 CSS flasher beside a GIF, 12,000 px each | A2, F4 on both | Passes |
+| f14 strobe in a cross-site frame | A2, F2 | Passes |
+| f15 SMIL strobe | A2, F2 | Passes |
+| 2x/t-marquee | A3 (marquee) | Passes |
+
+Two flashers in step in the same capture (F2, area added) and out of step (each alone) are unit tests in `tests/test_flash.py`, with no browser.
 
 ## Browser behavior to verify in code
 
 | ID | Verify | Status |
 | --- | --- | --- |
-| V1 | Stepping (clock paused, `run_for`, animations' `currentTime`) measures CSS, timers and `requestAnimationFrame` exactly; real-time screenshots alias a strobe | Checked (research section 4) |
-| V2 | The counting on synthetic frame arrays: G19's boundary (6 versus 7 transitions; ending state), peak-to-valley transitions with intermediate frames (fades) | Not checked |
-| V3 | The area: the largest concurrent flashing area inside any 341 × 256 rectangle, on a page with flashers of known sizes | Not checked |
-| V4 | Red transitions (WCAG 2.0 Note 3 and 2.2) on known colors | Not checked |
-| V5 | Video decoded at 0.5× gets every frame (61 of 61 checked), scaled to 1024 × 768 | Decoding checked; scaling not |
-| V6 | `ImageDecoder` frames and delays for GIF, APNG and WebP (2.x item 8); two loops | Checked for frames; loops not |
-| V7 | `<marquee>` and SMIL: can they be stepped (`SVGSVGElement.pauseAnimations`, `setCurrentTime`)? If not, A3 | Not checked |
-| V8 | A strobe in a cross-site iframe is captured, out-of-process (full Chromium) and in the shell | Not checked |
-| V9 | Masking real-time media out of stepped frames, and a page mixing both | Not checked |
-| V10 | The screencast trigger catches a 30 per second strobe that the other triggers miss (a strobe drawn with `setTimeout(0)` chains, say) | Not checked |
+| V1 | Stepping measures CSS, timers and `requestAnimationFrame` exactly; real-time screenshots alias a strobe | Checked: research section 4; fixtures f03-f07, f05 (canvas every frame) |
+| V2 | The counting: G19's boundary (6 versus 7 transitions; ending state), peak-to-valley with fades, noise | Checked: `tests/test_flash.py` (six, seven, fades, small changes, light pairs, wiggles, the half-open window); fixture f07 in a browser |
+| V3 | The area in any 341 × 256 rectangle, with flashers of known sizes | Checked: `tests/test_flash.py` (40 × 40, 400 × 300, two in step, two out of step, two far apart, scale); fixtures f03, f04 |
+| V4 | Red transitions (2.0 Note 3 and 2.2) on known colours | Checked: `tests/test_flash.py` (red-black both versions, equal-luminance grey, dull red); fixture f06 |
+| V5 | Video decoded at 0.5× gets every frame, scaled to 1024 × 768 | Checked: research (61 of 61 frames); `tests/test_flash.py::test_scale_counts_css_pixels`; fixture f10 (fails at full screen) |
+| V6 | `ImageDecoder` frames and delays; looping | Checked: fixtures f09, f13; Chrome's 10 ms delay read as 10 ms by `ImageDecoder` (scratch check 2026-11-07), so the 100 ms rule is applied by us. Not checked: that Chrome really shows such frames for 100 ms (assumed from Chromium's image decoder) |
+| V7 | `<marquee>` and SMIL steppable? | Checked 2026-11-07: SMIL steps with `pauseAnimations` and `setCurrentTime` (fixture f15); a marquee moves by the wall clock (57 different positions in 60 steps of 1 s of page time), so it is A3 (fixture 2x/t-marquee) |
+| V8 | A strobe in a cross-site iframe is captured | Checked: the paused clock reaches an out-of-process frame's timers (scratch check; fixture f14 in full Chromium). The headless shell is not used for pass T's browser |
+| V9 | Masking real-time media out of stepped frames, and a page mixing both | Checked: fixture f13 (the GIF masked from the stepped frames and decoded on its own; both sources counted) |
+| V10 | The screencast catches what the other triggers miss | Checked: fixture f08 (a one-off burst, finished before pass T reads animations) and f15 (SMIL, which no hook sees). A `setTimeout(0)` strobe is now caught by the timer hook itself |
 
 ## Optional: IRIS as a cross-check
 
-Only if there is time; not required (Abby, 2026-11-03). See research
-section 7:
-
-- build EA's IRIS locally, never as a dependency;
-- run it on our frame-exact captures written as lossless 1024 × 768
-  video, with its defaults and with `AreaProportion` 0.0278;
-- compare.
-
-Its area rule (25% of the whole frame) differs from WCAG's, so its
-defaults can pass what WCAG fails.
+Not done (optional; Abby, 2026-11-03). Research section 7 has the plan.
 
 ## At 1.0.0
 
-- CLAUDE.md: Layout gains `flash.py` and `t3a.py`. Principle 2 already
-  allows NOT TESTED where the TT names it. Add one line saying 3.A's
-  assessment is a note recorded with NOT TESTED, never an outcome.
-- `docs/hackathon/evaluation.md` and the deck: 3.A as the first test where
-  the tool goes past what the TT can test, with its assessment recorded
-  for DHS or W3C to judge. No answer key exists, so accuracy comes from
-  the fixtures and held-out pages with flashing, if any.
-- `docs/solutions/`: why flashing needs stepped capture (aliasing), and
-  how decoding replaces it for images and video.
-- ROADMAP: move 3.A from the coverage map's "Tier 1, rank 19 (detection)"
-  to built.
+- CLAUDE.md: Layout gains `flash.py`, `flashcap.py` and `t3a.py`. Principle 2 already allows NOT TESTED where the TT names it. Add one line saying 3.A's assessment is a note recorded with NOT TESTED, never an outcome.
+- `docs/hackathon/evaluation.md` and the deck: 3.A as the first test where the tool goes past what the TT can test, with its assessment recorded for DHS or W3C to judge. No answer key exists, so accuracy comes from the fixtures and held-out pages with flashing, if any.
+- `docs/solutions/`: why flashing needs stepped capture (aliasing), and how decoding replaces it for images and video.
+- ROADMAP: move 3.A from the coverage map's "Tier 1, rank 19 (detection)" to built.
+- README tests-in-scope table (`tests/test_readme.py`).
+- Move the check from `tests/drafts.py` to `checks/__init__.py`; `tests/test_tools.py` asserts no default finding is NOT TESTED, which 3.A changes.
+- Remove `docs/research/2026-11-03-2x-experiments/flash_*.py`, `make_flash_media.py` and `pages/flash` (its README says they stay until 3.A is built).
+- Move the V-checks above to `_browser-checks.md`, what is left to the ROADMAP, and delete this file.
 
 ## Left
 
-- V2–V4 and V7–V10.
-- Whether fine-pattern detection (F1) is reliable enough to keep, or every
-  pattern should go to a person.
-- Real pages with flashing for the held-out set, which are rare.
+- The three questions in the spec's "Open for Abby".
+- Real pages with flashing for a held-out set, which are rare.
+- CSS background animated images are not decoded (only `<img>`); the screencast's extra A3 is the net for them.
+- H.264 video cannot be decoded in Chromium: A3.

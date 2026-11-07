@@ -121,6 +121,18 @@ def _tone(seconds: int = 4, rate: int = 8000, loud: bool = True) -> bytes:
     return out.getvalue()
 
 
+def _media_3a():
+    """tests/fixtures/3a/make_media.py (its folder name is not a package)."""
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(
+        "make_media_3a", FIXTURES / "3a" / "make_media.py"
+    )
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
 class _Handler(http.server.BaseHTTPRequestHandler):
     hits: Counter  # set per server
 
@@ -170,6 +182,14 @@ class _Handler(http.server.BaseHTTPRequestHandler):
             return self._send(200, body.encode())
         if self.path == "/tone.wav":  # 4 s, 440 Hz (2.A-2.D fixtures; no files)
             return self._send(200, _tone(), "audio/wav")
+        if self.path.startswith("/3a/media/"):  # 3.A (fixtures/3a/make_media.py)
+            name = self.path.removeprefix("/3a/media/")
+            body = _media_3a().gif(name)
+            if body is not None:
+                return self._send(200, body, "image/gif")
+            f = FIXTURES / "3a" / "media" / name
+            if name.endswith(".webm") and f.is_file():
+                return self._send(200, f.read_bytes(), "video/webm")
         if self.path in ("/anim-forever.gif", "/anim-once.gif"):  # 2.B, G152
             return self._send(
                 200, _gif(forever=self.path == "/anim-forever.gif"), "image/gif"

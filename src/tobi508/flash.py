@@ -150,10 +150,18 @@ class Hysteresis:
         if t == 0:
             n = self.n
             self.dir = np.zeros(n, np.int8)
-            self.ext_v, self.ext_last, self.ext_aux = v.copy(), np.zeros(n, np.int64), aux.copy()
+            self.ext_v, self.ext_last, self.ext_aux = (
+                v.copy(),
+                np.zeros(n, np.int64),
+                aux.copy(),
+            )
             self.run_v, self.run_first = v.copy(), np.zeros(n, np.int64)
             self.run_last, self.run_aux = np.zeros(n, np.int64), aux.copy()
-            self.lo_v, self.lo_last, self.lo_aux = v.copy(), np.zeros(n, np.int64), aux.copy()
+            self.lo_v, self.lo_last, self.lo_aux = (
+                v.copy(),
+                np.zeros(n, np.int64),
+                aux.copy(),
+            )
             self.hi_v, self.hi_first = v.copy(), np.zeros(n, np.int64)
             self.hi_last, self.hi_aux = np.zeros(n, np.int64), aux.copy()
             self.run_at = np.zeros(n, np.int64)
@@ -165,7 +173,11 @@ class Hysteresis:
         z = self.dir == 0
         newhi = z & (v > self.hi_v + EPS)
         samehi = z & ~newhi & (np.abs(v - self.hi_v) <= EPS)
-        self.hi_v[newhi], self.hi_first[newhi], self.hi_aux[newhi] = v[newhi], t, aux[newhi]
+        self.hi_v[newhi], self.hi_first[newhi], self.hi_aux[newhi] = (
+            v[newhi],
+            t,
+            aux[newhi],
+        )
         self.hi_last[newhi | samehi] = t
         newlo = z & (v < self.lo_v - EPS)
         samelo = z & ~newlo & (np.abs(v - self.lo_v) <= EPS)
@@ -198,7 +210,11 @@ class Hysteresis:
                 continue
             more = p & ((v > self.run_v + EPS) if d == 1 else (v < self.run_v - EPS))
             same = p & ~more & (np.abs(v - self.run_v) <= EPS)
-            self.run_v[more], self.run_first[more], self.run_aux[more] = v[more], t, aux[more]
+            self.run_v[more], self.run_first[more], self.run_aux[more] = (
+                v[more],
+                t,
+                aux[more],
+            )
             self.run_last[more | same] = t
             back = (self.run_v - v) if d == 1 else (v - self.run_v)
             self.near_last[p & (back < half)] = t
@@ -253,9 +269,17 @@ class Hysteresis2D:
         t = self.t
         if t == 0:
             n = self.n
-            self.anc, self.anc_last, self.anc_aux = uv.copy(), np.zeros(n, np.int64), aux.copy()
+            self.anc, self.anc_last, self.anc_aux = (
+                uv.copy(),
+                np.zeros(n, np.int64),
+                aux.copy(),
+            )
             self.moving = np.zeros(n, bool)
-            self.run, self.run_first, self.run_last = uv.copy(), np.zeros(n, np.int64), np.zeros(n, np.int64)
+            self.run, self.run_first, self.run_last = (
+                uv.copy(),
+                np.zeros(n, np.int64),
+                np.zeros(n, np.int64),
+            )
             self.run_aux, self.run_d = aux.copy(), np.zeros(n, np.float32)
             return
         da = np.linalg.norm(uv - self.anc, axis=1)
@@ -361,9 +385,7 @@ def window_counts(
     return cand, cum[stop] - cum[:nt]
 
 
-def best_rect(
-    ys: np.ndarray, xs: np.ndarray, rh: int, rw: int
-) -> tuple[int, int, int]:
+def best_rect(ys: np.ndarray, xs: np.ndarray, rh: int, rw: int) -> tuple[int, int, int]:
     """The most points (cells) inside any rh x rw rectangle: (count, y, x)
     of its top left cell."""
     if not len(ys):
