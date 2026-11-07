@@ -231,8 +231,8 @@ None blocks an outcome: each is NEEDS REVIEW-safe today.
 - **2.A-2.D:** ER 3's shortlist (6.A, 7.A, 7.E, 12.D, 13.A, 13.B, 13.C,
   18.A): until each is built, a working mechanism is NEEDS REVIEW (E3),
   never PASS. 2.C J1's wording when the mechanism is page text naming a
-  key; 2.B J1 for content below the first screen needs a crop (judge eval
-  runs 15, 16; rerun it after either). A large media file fetched in
+  key (judge eval run 15; rerun it after). 2.B J1's crop for content below
+  the first screen is built (1.1.0). A large media file fetched in
   several byte ranges is not reproduced in a test; real YouTube and Vimeo
   embeds on a normal network are NEEDS REVIEW (2.A A2).
 

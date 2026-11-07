@@ -40,7 +40,7 @@ REVIEW, "This test could not be performed".
 | ID | TT test name | WCAG 2.0 | Spec | Results from real-page tests |
 | --- | --- | --- | --- | --- |
 | 2.A | 1.4.2-audio-control | 1.4.2 | [1.0.0](docs/rules/2a-audio-control.md) | ❓ Not yet tested on real pages |
-| 2.B | 2.2.2-blinking-moving-scrolling | 2.2.2 | [1.0.0](docs/rules/2b-blinking-moving-scrolling.md) | ❓ Not yet tested on real pages |
+| 2.B | 2.2.2-blinking-moving-scrolling | 2.2.2 | [1.1.0](docs/rules/2b-blinking-moving-scrolling.md) | ❓ Not yet tested on real pages |
 | 2.C | 2.2.2-auto-updating | 2.2.2 | [1.0.0](docs/rules/2c-auto-updating.md) | ❓ Not yet tested on real pages |
 | 2.D | 4.1.2-change-notify-auto | 4.1.2 | [1.1.0](docs/rules/2d-change-notify-auto.md) | ❓ Not yet tested on real pages |
 | 4.A | 2.1.1-keyboard-access | 2.1.1 | [1.2.1](docs/rules/4a-keyboard-access.md) | ⚠️ Mostly undecided (embedded frames, time limit); agrees where decided |

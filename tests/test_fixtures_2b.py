@@ -8,6 +8,8 @@ import json
 
 import pytest
 
+from tobi508.models import TestId
+
 from .conftest import ACT_ROOT
 from .drafts import drafts  # noqa: F401 (a fixture)
 from .harness import instance_rows, run_tests
@@ -83,8 +85,8 @@ async def test_act_color_cycle_with_stop(settings, act_server, drafts):  # noqa:
 
 
 # For the judge eval (evals/judge_eval.py): page -> the outcome a correct
-# agent gets. The badge below the first screen has no frame that shows it,
-# so a careful agent answers J1 unsure (NEEDS REVIEW, A5).
+# agent gets. The badge below the first screen has no frame that shows it;
+# since 1.1.0 J1 shows it in two crops, so a careful agent can settle it.
 EVAL = {
     "t-css-infinite": "FAIL",
     "t-marquee": "FAIL",
@@ -92,5 +94,32 @@ EVAL = {
     "t-color-cycle": "NEEDS_REVIEW",
     "t-anim-pause": "NEEDS_REVIEW",
     "t-carousels": "FAIL",
-    "t-below-fold": "NEEDS_REVIEW",
+    "t-below-fold": "FAIL",
 }
+
+
+async def test_j1_shows_content_below_the_first_screen_in_crops(
+    settings,
+    server,
+    drafts,  # noqa: F811
+):  # noqa: F811
+    """1.1.0: content no frame shows whole gets two pictures cut around it,
+    about 1 s apart (judge eval run 16: J1 for the badge below the first
+    screen could only be unsure). Content on the first screen keeps the
+    frames."""
+    from tobi508.pipeline import run_tt_tests
+
+    async def j1(name: str):
+        out = await run_tt_tests(
+            settings, f"{server.base}/2x/{name}.html", [TestId.T2B]
+        )
+        return [q for q in out.report.open_questions if q.question_id.endswith("-J1")]
+
+    [q] = await j1("t-below-fold")
+    assert [i.rsplit("/", 1)[1] for i in q.input["images"]] == [
+        "2t-crop1-a.png",
+        "2t-crop1-b.png",
+    ]
+    assert "first screen does not show" in q.input["images_show"]
+    for q in await j1("t-marquee"):
+        assert q.input["images_show"] == "the first screen of the page", q.input

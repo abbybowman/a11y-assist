@@ -408,8 +408,9 @@ def evaluate(st: State2B, evidence_refs: list[str]) -> Finding:
 
 J1_CHOICES = ["essential", "not_essential", "unsure"]
 J1_QUESTION = (
-    "input.content moves by itself (images A and B, about 1 s apart; the "
-    "content is at input.box, x, y, width, height; input.timing). Would "
+    "input.content moves by itself (images A and B, about 1 s apart; "
+    "input.images_show says what they show, and the content is at input.box, "
+    "x, y, width, height on the page; input.timing). Would "
     "removing the movement fundamentally change what the content is or does, "
     "for example a loading animation shown while nothing on the page can be "
     "used yet, or a game or simulation whose motion is the point? Decorative "
@@ -457,6 +458,10 @@ def questions_for(st: State2B, evidence_refs: list[str]) -> list[OpenQuestion]:
             if r.changed_at
             else ""
         )
+        # A region no frame shows whole (below the first screen, or found by
+        # the scrolled watch) is shown by its own two crops (1.1.0).
+        crops = _images(evidence_refs, r.crops[:2])
+        images = crops if len(crops) == 2 else frames
         out.append(
             OpenQuestion(
                 question_id=f"2.B-{n}-J1",
@@ -470,9 +475,15 @@ def questions_for(st: State2B, evidence_refs: list[str]) -> list[OpenQuestion]:
                     "content": name(r),
                     "box": r.box,
                     "timing": timing,
-                    "images": frames,
+                    "images": images,
+                    "images_show": (
+                        "the part of the page around the content, which the "
+                        "first screen does not show whole"
+                        if images is crops
+                        else "the first screen of the page"
+                    ),
                 },
-                evidence_paths=evidence_refs + frames,
+                evidence_paths=evidence_refs + images,
             )
         )
     first = _images(evidence_refs, st.mp.shots[:1])

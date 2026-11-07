@@ -1,7 +1,7 @@
 ---
 tt_test: 2.B
 tt_name: 2.2.2-blinking-moving-scrolling
-spec_version: 1.0.0
+spec_version: 1.1.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -114,7 +114,9 @@ Asked for each moving region. Not settled by looking for PASS: it can
 only lead to DOES NOT APPLY, and the agent answers unsure whenever the
 evidence does not settle it (a false DNA is as bad as a false PASS).
 
-**Question:** "input.content moves by itself (images A and B, 1 s apart; input.timing). Would removing the movement fundamentally change what the content is or does, for example a loading animation shown while nothing on the page can be used yet, or a game or simulation whose motion is the point? Decorative motion, carousels, tickers, banners and background video are not essential. Answer essential, not_essential or unsure."
+**Question:** "input.content moves by itself (images A and B, 1 s apart; input.images_show says what they show, and the content is at input.box on the page; input.timing). Would removing the movement fundamentally change what the content is or does, for example a loading animation shown while nothing on the page can be used yet, or a game or simulation whose motion is the point? Decorative motion, carousels, tickers, banners and background video are not essential. Answer essential, not_essential or unsure."
+
+**Images** (1.1.0). Images A and B are two of pass T's frames, about 5 s and 6 s into the watch, which show the first screen. Content that no frame shows whole (below the first screen, or found by the scrolled watch, whose frames are not kept) gets its own two pictures instead: cut from the whole page around its box (40 px around it, at least 320 by 200 px), about 1 s apart at the end of its watch, with animations running (`motion.Region.crops`; at most 6 regions per watch). `images_show` says which. Judge eval run 16: with no frame showing the badge below the first screen, J1 could only be unsure. Fixture: `2x/t-below-fold.html`.
 
 **Output:** `{choice: essential|not_essential|unsure, reasons}`. Guard: a region still moving at 6.5 s while the page has usable controls cannot be a loading animation; answer essential is then accepted only with a reason other than loading.
 

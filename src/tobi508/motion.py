@@ -648,6 +648,10 @@ class Region(BaseModel):
     # Its changed pixels over the watch, one box per 20 px tile (x0, y0, x1,
     # y1 in the top page's viewport), capped: which elements really changed.
     changed_boxes: list[list[int]] = Field(default_factory=list)
+    # Two pictures cut around it, about CROP_GAP_S apart (run-folder paths),
+    # when no frame shows it whole: below the first screen, or found by the
+    # scrolled watch (2.B 1.1.0; judge eval run 16).
+    crops: list[str] = Field(default_factory=list)
 
 
 class LiveRegion(BaseModel):
@@ -935,6 +939,11 @@ async def pass_t(
             )
             await page.wait_for_timeout(300)
         await _watch(page, out, shots, rel, watch_s, har, prefix)
+        if shots is not None:
+            try:
+                await _crops(page, out, shots, rel, prefix, every=bool(scroll_to))
+            except Exception:
+                pass  # evidence for a question only; the frames still stand
         if har is not None:
             from tobi508.capture import media_index
 
@@ -1188,6 +1197,52 @@ async def _watch(
                 out.focus_moves.append(FocusMove(t=round(at, 2), css=e.get("css")))
     except Exception:
         pass
+
+
+CROP_PAD = 40  # CSS px around a region in its crop
+CROP_MIN = (320, 200)  # a crop's least size, for some context around it
+CROP_GAP_S = 1.0  # between a region's two crops, as between J1's two frames
+CROP_REGIONS = 6
+
+
+async def _crops(
+    page: Page, out: MotionPass, shots: Path, rel: Path | None, prefix: str, every: bool
+) -> None:
+    """Two pictures cut from the whole page around each top-page region the
+    frames do not show whole (or, after the scrolled watch, `every` region),
+    CROP_GAP_S apart and with animations running (2.B 1.1.0). Coordinates:
+    region boxes are in the viewport as read, so the scroll is added."""
+    vw, vh = (out.viewport + [0, 0])[:2] if out.viewport else (0, 0)
+
+    def whole(b: list[int]) -> bool:
+        return b[0] >= 0 and b[1] >= 0 and b[0] + b[2] <= vw and b[1] + b[3] <= vh
+
+    todo = [
+        r
+        for r in out.regions
+        if r.frame == 0
+        and len(r.box) == 4
+        and r.box[2] > 0
+        and r.box[3] > 0
+        and (every or not whole(r.box))
+    ][:CROP_REGIONS]
+    if not todo:
+        return
+    sx, sy = await page.evaluate("() => [scrollX, scrollY]")
+    clips = []
+    for r in todo:
+        x, y, w, h = r.box
+        cw, ch = max(w + 2 * CROP_PAD, CROP_MIN[0]), max(h + 2 * CROP_PAD, CROP_MIN[1])
+        cx = max(0, x + sx + w / 2 - cw / 2)
+        cy = max(0, y + sy + h / 2 - ch / 2)
+        clips.append((r, {"x": cx, "y": cy, "width": cw, "height": ch}))
+    for k in range(2):
+        if k:
+            await page.wait_for_timeout(CROP_GAP_S * 1000)
+        for i, (r, clip) in enumerate(clips):
+            path = shots / f"{prefix}-crop{i + 1}-{'ab'[k]}.png"
+            await screenshot(page, path=str(path), clip=clip, full_page=True)
+            r.crops.append(str(path.relative_to(rel)) if rel else str(path))
 
 
 MAX_STATES = 10
