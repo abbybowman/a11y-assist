@@ -99,6 +99,24 @@ counts a tool result that matches as a **validated catch**, weighted +1 like
 an agreement and shown apart (`evals/scoring.py`). The file sits outside
 the lock, as the keys do.
 
+## Runs 26 and 27, 2026-11-07: 9.C 1.1.1 (when names show different things), its packets
+
+The rubric now says names that name different things count as
+different_function, and different words for the same action are
+inconsistent. 2 cases, 4 questions, one fresh Sonnet agent each run.
+- **Run 26:** 2/2, but the rubric's examples ("Contact" / "Get in touch",
+  "Search" / "Find") were the fixture pairs themselves. The agent said "the
+  rubric names this exact pair", so the run tested matching, not
+  judgment.
+- **Run 27:** the examples were changed to names on no fixture page.
+  **2/2 match**, no false PASS, each answer reasoned from the evidence:
+  same destination with different words is inconsistent; different
+  destinations are different_function.
+
+Still unclear to the agent: links named "Go to page N" whose number does
+not match where they go. It followed the different-destination rule,
+which matches.
+
 ## Run 25, 2026-11-07: compact question inputs (4.F, 5.B packets)
 
 After the result refactor (agent follow-through change 2b), question
