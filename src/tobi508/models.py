@@ -543,6 +543,17 @@ SUMMARY_VIEW_MAX = 240
 SUMMARY_WHOLE_MAX = 400
 
 
+FAIL_SUMMARY_MAX = 1500
+
+
+def _capped(text: str) -> str:
+    if len(text) <= FAIL_SUMMARY_MAX:
+        return text
+    cut = text.rfind(". ", 0, FAIL_SUMMARY_MAX)
+    cut = cut + 1 if cut > 0 else FAIL_SUMMARY_MAX
+    return text[:cut].rstrip() + " (More: tobi_explain.)"
+
+
 def _first_sentence(text: str) -> str:
     """The first sentence of a summary, at most SUMMARY_VIEW_MAX characters,
     saying when there is more. A short summary is kept whole."""
@@ -605,7 +616,14 @@ class FindingView(BaseModel):
             test_name=f.test_name,
             wcag_sc=f.test_id.wcag_sc,
             outcome=f.outcome,
-            summary=_first_sentence(f.summary),
+            # A FAIL is what the user acts on: its summary is kept whole, up
+            # to a cap (Abby, 2026-11-07: run 10's agent never called
+            # tobi_explain and its report left the failures unitemized).
+            summary=(
+                _capped(f.summary)
+                if f.outcome == Outcome.FAIL
+                else _first_sentence(f.summary)
+            ),
             note=_first_sentence(f.note) if f.note else None,
             confirmed=True if f.outcome == Outcome.FAIL else None,
             unconfirmed=waiting,

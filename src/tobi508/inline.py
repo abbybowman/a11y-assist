@@ -154,6 +154,47 @@ def pictures(
     return blocks, left
 
 
+ATTACHED_FILE = "attached-pictures.json"
+
+
+def attached(run_dir) -> set[str]:
+    """The run:// pictures attached to this run's results so far."""
+    import json
+
+    try:
+        return set(json.loads((run_dir / ATTACHED_FILE).read_text("utf-8")))
+    except (OSError, ValueError):
+        return set()
+
+
+def _note_attached(result: Any, blocks: list) -> None:
+    """Record which pictures went out attached, so an answer can be held to
+    them (agent follow-through plan, change 3: development run 10 gave
+    picture_error, "not inspected", for pictures it had been sent)."""
+    import json
+    import re
+
+    from tobi508 import config
+    from tobi508.runlog import RunRecorder
+
+    links = {
+        m.group(1)
+        for b in blocks
+        if isinstance(b, TextContent)
+        for m in [re.search(r"\((run://[^)\s]+)\)", b.text)]
+        if m
+    }
+    run_id = getattr(result, "run_id", None)
+    if not links or not run_id:
+        return
+    try:
+        run = RunRecorder.open(config.settings.runs_dir, run_id)
+        path = run.dir / ATTACHED_FILE
+        path.write_text(json.dumps(sorted(attached(run.dir) | links)), "utf-8")
+    except Exception:
+        pass  # never fail a result over this record
+
+
 def with_pictures(result: Any, wrap: bool) -> Any:
     """The tool's return value: the result itself when no open question
     names a picture, else a ToolResult whose content is the result's JSON
@@ -164,6 +205,7 @@ def with_pictures(result: Any, wrap: bool) -> Any:
     qs = getattr(result, "open_questions", None) or []
     text_tokens = len(result.model_dump_json(exclude={"report"})) // 3
     blocks, left = pictures(qs, TOKEN_BUDGET - text_tokens - 300)
+    _note_attached(result, blocks)
     # The to-do list closes the content, after the pictures, so it is the
     # last thing read (agent follow-through plan, change 2b).
     items = getattr(result, "todo", None) or []

@@ -1139,6 +1139,12 @@ def todo(report: Report, calls: list[dict] | None = None) -> list[str]:
         "[ ] Before reporting: call tobi_run_status with no job_id, and repeat "
         "until it lists nothing left (it covers every run of this session)."
     )
+    out.append(
+        f"[ ] Before writing your report: call tobi_explain with run_id "
+        f"{report.run_id} for the tests you report on (every FAIL at least): "
+        "results give one line per finding; it gives the places on the page, "
+        "the reasons and how to fix them."
+    )
     out.append("[ ] Save report_uri and pre_scrt_uri before expires_at.")
     out.append(
         "[ ] Report NEEDS_REVIEW findings as needs review, and say which "
@@ -1158,7 +1164,9 @@ async def answer_questions(
         raise RunRefused(str(exc)) from exc
     report = Report.model_validate_json(run.report_path.read_text("utf-8"))
     before = {f.test_id: (f.outcome, f.summary, f.note) for f in report.findings}
-    accepted, rejected = record_answers(report, answers)
+    from tobi508.inline import attached
+
+    accepted, rejected = record_answers(report, answers, attached(run.dir))
     states = _load_states(run)
     errors: list[str] = []
     browser = _LazyBrowser(settings)

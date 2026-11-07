@@ -75,12 +75,16 @@ def test_a_finding_is_one_line_in_tool_output():
         summary="Some fields change the page. " + sentence * 96,
         rows=["A3"] + [f"f{n}:M9" for n in range(96)] + ["G2"],
     )
-    v = FindingView.of(f)
+    v = FindingView.of(f.model_copy(update={"outcome": Outcome.NEEDS_REVIEW}))
     assert v.summary == "Some fields change the page. (More: tobi_explain.)"
-    assert v.confirmed is True and "rows" not in v.model_dump()
-    long = FindingView.of(f.model_copy(update={"summary": "word " * 200}))
+    fail = FindingView.of(f)  # a FAIL keeps its summary, up to a cap
+    assert fail.summary.startswith("Some fields change the page. When we filled")
+    assert len(fail.summary) < 1600 and fail.summary.endswith("(More: tobi_explain.)")
+    assert fail.confirmed is True and "rows" not in v.model_dump()
+    review = f.model_copy(update={"outcome": Outcome.NEEDS_REVIEW})
+    long = FindingView.of(review.model_copy(update={"summary": "word " * 200}))
     assert len(long.summary) < SUMMARY_VIEW_MAX + 40 and "..." in long.summary
-    short = FindingView.of(f.model_copy(update={"summary": "All good."}))
+    short = FindingView.of(review.model_copy(update={"summary": "All good."}))
     assert short.summary == "All good."
     assert len(f.summary) > 5000 and len(f.rows) == 98  # the report keeps them
 
@@ -241,3 +245,45 @@ def test_open_questions_come_ten_at_a_time():
     assert first.startswith("[ ] Answer the 10 open question(s)")
     assert "3 name a picture" in first and "2 more come with the answer result" in first
     assert "10 are in open_questions now" in next_step(report)
+
+
+def test_picture_error_is_refused_for_a_picture_that_was_attached():
+    """Abby, 2026-11-07: development run 10 gave picture_error ("not
+    inspected") for pictures it had been sent. For a picture attached to a
+    result the answer needs `seen`; picture_error stays for one that could
+    not be opened."""
+    from tobi508.judgment import record_answers
+    from tobi508.models import Answer, ChoiceAnswer, OpenQuestion
+
+    def q(qid, link):
+        return OpenQuestion(
+            question_id=qid,
+            test_id=TestId.T4F,
+            kind="choice",
+            choices=["preserves", "unsure"],
+            instance="x",
+            question="?",
+            rubric="?",
+            input={"image_a_order": link},
+        )
+
+    report = Report(
+        run_id="r",
+        target="https://nasa.gov",
+        started_at=datetime.now(timezone.utc),
+        versions=_versions(),
+        evidence_dir="x",
+        open_questions=[q("sent", "run://r/a.png"), q("not_sent", "run://r/b.png")],
+    )
+    err = [
+        Answer(
+            question_id=i,
+            choice=ChoiceAnswer(choice="unsure"),
+            rationale="r",
+            picture_error="not inspected",
+        )
+        for i in ("sent", "not_sent")
+    ]
+    ok, errors = record_answers(report, err, {"run://r/a.png"})
+    assert ok == ["not_sent"]
+    assert errors[0].startswith("sent: this question's picture was attached")

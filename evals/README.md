@@ -99,6 +99,22 @@ counts a tool result that matches as a **validated catch**, weighted +1 like
 an agreement and shown apart (`evals/scoring.py`). The file sits outside
 the lock, as the keys do.
 
+## Run 25, 2026-11-07: compact question inputs (4.F, 5.B packets)
+
+After the result refactor (agent follow-through change 2b), question
+inputs as sent round coordinates to one decimal and leave out empty fields.
+33 cases (11 4.F, 22 5.B), one fresh Sonnet agent: **33/33 match**, no
+false PASS. It opened every picture and found each one readable.
+
+What it found unclear:
+- **Where 5.B puts numbers:** the question says "in elements", but the
+  `element` field's description says "from input.stops".
+- **4.F main content before a left sidebar:** the rubric does not say how
+  to treat main content reached before a left-hand sidebar.
+- **4.F menu skipped by the next Tab:** the rubric does not say whether a
+  menu whose content the next Tab skips counts as reached far from its
+  trigger. It answered does_not_preserve, which matches.
+
 ## Run 24, 2026-11-06: `seen` and `picture_error` (4.D, 4.F, 5.A, 5.C packets)
 
 Answers to a question whose input names a picture now need `seen`
