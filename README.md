@@ -53,8 +53,8 @@ REVIEW, "This test could not be performed".
 | 5.B | 2.4.6-label-descriptive | 2.4.6 | [1.2.0](docs/rules/5b-label-descriptive.md) | ⚠️ One wrong PASS; fixed, not yet retested |
 | 5.C | 1.3.1-programmatic-label | 1.3.1, 4.1.2 | [1.3.0](docs/rules/5c-programmatic-label.md) | ⚠️ About half decided, agrees where decided; one missed FAIL fixed, not yet retested |
 | 5.D | 3.2.2-on-input | 3.2.2 | [1.1.0](docs/rules/5d-on-input.md) | 🟢 Mostly sure and accurate; one missed FAIL fixed, not yet retested |
-| 5.F | 3.3.1-error-identification | 3.3.1 | [1.3.0](docs/rules/5f-error-identification.md) | ⚠️ Undecided on every page (site search); fixed, not yet retested |
-| 5.G | 3.3.3-error-suggestion | 3.3.3 | [1.2.0](docs/rules/5g-error-suggestion.md) | ⚠️ Undecided on every page (site search); fixed, not yet retested |
+| 5.F | 3.3.1-error-identification | 3.3.1 | [1.3.1](docs/rules/5f-error-identification.md) | ⚠️ Undecided on every page (site search); fixed, not yet retested |
+| 5.G | 3.3.3-error-suggestion | 3.3.3 | [1.2.1](docs/rules/5g-error-suggestion.md) | ⚠️ Undecided on every page (site search); fixed, not yet retested |
 | 5.H | 3.3.4-error-prevention | 3.3.4 | [1.1.0](docs/rules/5h-error-prevention.md) | 🟢 Sure and accurate once answered |
 | 9.A | 2.4.1-bypass-function | 2.4.1 | [1.0.0](docs/rules/9a-bypass.md) | 🟢 Sure and accurate |
 | 9.B | 3.2.3-consistent-navigation | 3.2.3 | [1.0.0](docs/rules/9b-consistent-navigation.md) | 🟢 Sure and accurate |

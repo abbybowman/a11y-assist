@@ -76,14 +76,7 @@ test's leftovers are under "Per-test leftovers" below.
 
 ## Soon
 
-- **5.F row M1 is half built (found 2026-11-05).** The spec's M1 gives
-  NEEDS REVIEW when "a read was unsettled or unresolved"; `t5f.py` ignores
-  the result of `settle()` after the submit press, so an attempt read
-  before the page settled is used as if complete. A failed read and an
-  attempt that never reached the form are handled (as incomplete, page row
-  G3). 5.G's N1 reads 5.F's pass, so it shares the gap. Fix in the code
-  (the spec is right), with a fixture whose error text appears after the
-  settle window; it can move outcomes toward NEEDS REVIEW only.
+- **The settle rule can call a page settled before it reacts (found 2026-11-07).** It waits two animation frames (about 35 ms), then for 150 ms with no DOM change. A page whose first change comes later (a submit handler that starts a 50 ms timer, a reply to a request) is read as settled and quiet. 5.F then reads its attempt about 150 ms after the press: an error shown later is missed, and a page with no other indicator would be DOES NOT APPLY (A3). Fixture F20 starts its "checking" bar at once so that it tests M1; a variant whose bar starts on the first timer tick reproduces the gap. Options: a minimum wait after a submit press, or reading again after a second window when an attempt shows nothing. It needs a 4.C settle-rule decision, since every test uses the rule.
 - **Fixes found in agent eval round 1:** 20 fixes, all built, in
   [plans/2026-11-04-post-round1-fixes.md](plans/2026-11-04-post-round1-fixes.md)
   (PR #14), including MCP clients' tool timeouts as long polling (fix 2: a

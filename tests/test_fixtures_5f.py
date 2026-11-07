@@ -207,6 +207,18 @@ EXPECTED: dict[str, dict[str, dict]] = {
     },
     # Post-round 1 fix 17 (Abby, 2026-11-05): a site search accepts any
     # input, so both are Does Not Apply (A3s), though it was sent.
+    # The page checks for 3 s with no text, past the settle window, then
+    # shows its error: the read came too soon (M1), never DNA.
+    "f20-slow-check": {
+        "5.F": {"outcome": "NEEDS_REVIEW", "rows": []},
+        "5.G": {"outcome": "NEEDS_REVIEW", "rows": []},
+    },
+    # The field is marked at once and its text comes after the settle
+    # window: no FAIL for a mark with no text, since the text was not read.
+    "f21-marked-then-slow-text": {
+        "5.F": {"outcome": "NEEDS_REVIEW", "rows": ["M1", "M1"]},
+        "5.G": {"outcome": "NEEDS_REVIEW", "rows": ["N1", "N1"]},
+    },
     "f18-site-search": {
         "5.F": {"outcome": "DNA", "rows": []},
         "5.G": {"outcome": "DNA", "rows": []},

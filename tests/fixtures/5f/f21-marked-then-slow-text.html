@@ -1,0 +1,30 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>F21 Check a permit</title>
+<style>.err{color:#b00;display:block}#bar{height:6px;background:#2a5;width:0}</style></head><body>
+<h1>Check a permit</h1>
+<form id="f" novalidate>
+<p><label for="permit">Permit number</label> <input id="permit" aria-describedby="permit-err"><span class="err" id="permit-err" role="alert"></span></p>
+<div id="bar"></div>
+<p><button type="submit">Check</button></p>
+</form>
+<script>
+// The page marks the field at once, then checks the value slowly: a bar
+// grows for 3 seconds, with no text, and only then shows its message.
+document.getElementById("f").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const bar = document.getElementById("bar"), field = document.getElementById("permit");
+  const ok0 = /^\d{8}$/.test(field.value);
+  field.setAttribute("aria-invalid", ok0 ? "false" : "true");
+  const start = Date.now();
+  bar.style.width = "1%";
+  const tick = setInterval(() => {
+    const t = Date.now() - start;
+    bar.style.width = Math.min(100, t / 30) + "%";
+    if (t < 3000) return;
+    clearInterval(tick);
+    bar.style.width = "0";
+    const ok = /^\d{8}$/.test(field.value);
+    document.getElementById("permit-err").textContent = ok ? "" : "Permit number must be 8 digits.";
+    field.setAttribute("aria-invalid", ok ? "false" : "true");
+  }, 50);
+});
+</script></body></html>

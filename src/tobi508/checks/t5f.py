@@ -276,6 +276,10 @@ class AttemptE(BaseModel):
     invalid: int = 0  # native validation invalid events
     invalid_shown: int = 0  # of those, not cancelled: the browser showed its message
     sent: bool = False  # a submission not cancelled, or the page left
+    # A read taken before the page settled (row M1): the submit press, or a
+    # Tab in attempt 2, hit the settle rule's limit, so an error shown later
+    # was not seen.
+    unsettled: bool = False
     shot_before: str | None = None
     shot_after: str | None = None
 
@@ -374,7 +378,8 @@ async def _press_submit(
     inv0 = len(await invalid_events(page))
     url0 = page.url
     await page.keyboard.press("Enter")
-    await settle(page, ctx.quiet_ms)
+    if not await settle(page, ctx.quiet_ms):
+        a.unsettled = True
     await page.wait_for_timeout(150)  # an alert's handler, a late re-render
     subs = (await submissions(page))[sub0:]
     inv = (await invalid_events(page))[inv0:]
@@ -472,10 +477,12 @@ async def attempt(
                 if btn is None and f is text[-1]:
                     break  # Enter in this field submits (implicit submission)
                 step = await s.traversal.press("Tab")
+                a.unsettled = a.unsettled or step.unsettled
                 for _ in range(5):  # a date input's parts: Tab until off it
                     if not (f.group and step.stop.group == f.group):
                         break
                     step = await s.traversal.press("Tab")
+                    a.unsettled = a.unsettled or step.unsettled
                 a.reads.append(await _read(s, f"tab:{f.n}", fields))
             steps.append(
                 f'type "{WRONG_VALUE}" into each text field'
@@ -921,8 +928,8 @@ def questions_for(
         return out
     for i in instances(ps):
         a = ps.attempts[i.attempt]
-        if i.native:
-            continue
+        if i.native or a.unsettled:
+            continue  # M2 decides; or M1 does, whatever the answer
         if i.page_text and f"{i.id}-J1" not in j:
             images = [f"{base}/{p}" for p in (a.shot_before, a.shot_after) if p]
             out.append(
@@ -1077,8 +1084,15 @@ def _notice(st: State5F, i: Inst5F) -> bool:
     return notice(a, new_texts(a, st.ps.fields))
 
 
+def unsettled(ps: PassE, i: Inst5F) -> bool:
+    """Row M1's read part (5.G's N1): the attempt was read before the page
+    settled."""
+    return ps.attempts[i.attempt].unsettled
+
+
 def instance_rows(st: State5F) -> list[Row]:
     return [
+        Row("M1", lambda i: unsettled(st.ps, i), Outcome.NEEDS_REVIEW, "Spec rule"),
         Row(
             "M2",
             lambda i: bool(i.native),
@@ -1157,6 +1171,12 @@ def incomplete_of(ps: PassE) -> list[str]:
             out.append(
                 "The page could not be read before one attempt to send a form, so its errors could not be told apart from what was already there."
             )
+        elif a.unsettled:
+            # Row M1 (unsettled read): an error shown after the read was
+            # missed, so no instance at all is not "no error" (never DNA).
+            out.append(
+                "The page was still changing when we read it after one attempt to send a form, so an error message that appeared later may have been missed."
+            )
     if any(r.capped for a in ps.attempts for r in [a.base, *a.reads] if r):
         out.append(
             "Not all the text that appeared after one attempt could be read, so an error message may have been missed."
@@ -1173,9 +1193,14 @@ def _label(i: Inst5F) -> str:
     return f'"{name}" ({kind})'
 
 
-def see(ps: PassE, i: Inst5F) -> str:
+def steps(ps: PassE, i: Inst5F) -> str:
+    """The keys that reproduce the attempt, as the end of a sentence."""
     k = ps.attempts[i.attempt].keys or "repeat the steps"
-    return f"To see it, load the page and {k[0].lower()}{k[1:]}."
+    return f"{k[0].lower()}{k[1:]}."
+
+
+def see(ps: PassE, i: Inst5F) -> str:
+    return f"To see it, load the page and {steps(ps, i)}"
 
 
 SORRY = " If you disagree, tell your assistant."
@@ -1191,6 +1216,7 @@ def _sentence(st: State5F, i: Inst5F, rid: str) -> str:
         else "it was marked as invalid for screen readers"
     )
     return {
+        "M1": f"We read the page after {fl} was {i.done} while it was still changing, so an error message that appeared later may have been missed. Please look: load the page and {steps(ps, i)}",
         "M2": f"The browser's own message points to {fl} and explains the error; that is fine.",
         "M3": f"When {fl} was wrong, the page only marked it ({look}), with no text saying what is wrong. {see(ps, i)}{SORRY}",
         "M5": f"When {fl} was wrong, its look changed, and we could not tell whether that marks an error. Please look: load the page and {see(ps, i)[18:]}",

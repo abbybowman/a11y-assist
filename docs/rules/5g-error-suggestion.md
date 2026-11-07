@@ -1,7 +1,7 @@
 ---
 tt_test: 5.G
 tt_name: 3.3.3-error-suggestion
-spec_version: 1.2.0
+spec_version: 1.2.1
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -35,7 +35,7 @@ Each 5.F instance (a field an attempt showed in error) is a 5.G instance.
 
 | # | Evidence pattern | Instance outcome | Source |
 | --- | --- | --- | --- |
-| N1 | 5.F's M1 (the replay or a read failed) | NEEDS REVIEW | Spec rule |
+| N1 | 5.F's M1 (the replay or a read failed, or a read was unsettled; 1.2.1, wording) | NEEDS REVIEW | Spec rule |
 | N2 | The field is a password field (`type=password`) | DOES NOT APPLY for this field | p. 29 Applicability ("details about an incorrect password") |
 | N3 | No error text at all, and the field is marked by `aria-invalid`, or by its look and J2 (5.F's J2, asked again under 5.G) = error | FAIL: no guidance in text | p. 29 ER 1, 2 |
 | J2? | No error text, look only, J2 not answered | NEEDS REVIEW | Open question |
@@ -64,6 +64,7 @@ Each 5.F instance (a field an attempt showed in error) is a 5.G instance.
 | Page FAIL | "Some form errors say something is wrong but not how to fix it, so a person may not know what to enter." |
 | Page NEEDS REVIEW | "We could not finish this test, so a person needs to check it." |
 | A1 (DNA) | "The page did not check the form for errors, so this test does not apply." |
+| N1 (unsettled) | "We read the page after <field> was <done> while it was still changing, so an error message, or what it says to enter, may have been missed. Please look: load the page and press <keys>." |
 | N2 (note) | "<field> is a password field; saying more about what was wrong could help someone guess it, so no hint is needed." |
 | N3 | "When <field> was wrong, the page only marked it, with no text saying how to fix it. To see it, load the page and press <keys>. If you disagree, tell your assistant." |
 | N5 | "The error for <field> (\"<text>\") does not say what to enter instead. To see it, load the page and press <keys>. If you disagree, tell your assistant." |
