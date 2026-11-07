@@ -279,7 +279,9 @@ None blocks an outcome: each is NEEDS REVIEW-safe today.
   to "not evaluated". TT tests map to WCAG criteria through `tt.json`
   (Appendix A); 4.A and 4.B share 2.1.1.
 - **The visual-versus-code cluster** (10.x, 14.x, 15.A, 18.A; ANDI is the
-  core evidence for most of it).
+  core evidence for most of it). Research on what the browser, ANDI,
+  scanners and image libraries can settle, and on ApiJudge:
+  [research/2026-11-07-visual-judgment-and-apijudge.md](research/2026-11-07-visual-judgment-and-apijudge.md).
 - **18.A Resize text: decide before its spec (found 2026-11-06).** The TT
   says only "use built-in browser zoom functions to resize the text to at
   least 200%" (pp. 74-75, HtT 1) and names no window size; its environment is
