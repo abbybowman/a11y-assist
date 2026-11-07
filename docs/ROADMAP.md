@@ -291,6 +291,9 @@ None blocks an outcome: each is NEEDS REVIEW-safe today.
   core evidence for most of it). Research on what the browser, ANDI,
   scanners and image libraries can settle, and on ApiJudge:
   [research/2026-11-07-visual-judgment-and-apijudge.md](research/2026-11-07-visual-judgment-and-apijudge.md).
+- **Answer once per site (Abby, 2026-11-07).** A judgment about the same thing on several pages of a site is made once and reused until something differs, as 9.A-9.C already do with repeated content. It covers per-image questions (7.E, 7.A, 13.C text in images), and media: videos, GIFs and other moving content in 2.A-2.D and 3.A. Key it by content (the image or media bytes' hash, and the question's spec version), never by URL alone. A new scan reuses an answer only when the hash and spec version match, and says so in the finding. A person's answer beats a reused model answer. Hosted, this can outlive one server session (a store beside run state, with an expiry); stdio keeps it in memory (`pagecache.keep_read`). Plan first: what is stored, for how long, and who may see answers from another user's runs.
+- **A review view for people: parked (Abby, 2026-11-07).** Before building one, decide what is most usable and accessible for people who review results, answer open questions and add what the tool missed. One idea: open the recorded page (the HAR replay) beside the pre-SCRT file, so the reviewer can mark it up and answer comments in place. Whether that works outside Claude's artifacts is unknown. Not near term: reliability of the tool itself comes first.
+- **13.C: ANDI's rounding (found 2026-11-07).** ANDI's contrast ratios equal exact WCAG maths rounded to 2 decimals (444 pairs checked), but ANDI compares after rounding, so 4.495-4.499 counts as 4.5 and PASS. WCAG Understanding 1.4.3 and the ICT Baseline say ratios are not rounded; the TT says to use ANDI's number. Decide in the 13.C spec; principle 3 suggests NEEDS REVIEW for that band. axe-core 4.14 compares unrounded. Details: research/2026-11-07-visual-cluster-per-test.md (13.C).
 - **18.A Resize text: decide before its spec (found 2026-11-06).** The TT
   says only "use built-in browser zoom functions to resize the text to at
   least 200%" (pp. 74-75, HtT 1) and names no window size; its environment is
@@ -305,10 +308,7 @@ None blocks an outcome: each is NEEDS REVIEW-safe today.
     CSS px at 200%).
   - **A failure only in the smaller window:** FAIL, or NEEDS REVIEW with a
     note, since the TT names no size.
-  - **How to zoom.** Playwright cannot press Ctrl+ in headless Chrome.
-    Assumed, not checked: half the viewport width with a device pixel ratio
-    of 2 lays a page out like 200% browser zoom. A V-check against real
-    Ctrl+ zoom in headed Chrome must show it first (principle 6).
+  - **How to zoom: real browser zoom, checked 2026-11-07.** A two-file Chrome extension of our own (no content script, `tabs` permission only), driven through its service worker with `chrome.tabs.setZoom`, gives real 200% zoom in headless Chromium (`channel="chromium"`) on Linux. The half-width, DPR 2 stand-in matches it on layout width, DPR, media queries and most boxes, but not native form controls (text inputs 180×22 vs 185×21 CSS px), which F80 is about. So use real zoom. Per-tab zoom resets on navigation: set it after each load. Still to check: HAR replay in a persistent context (extensions need one), and Windows Chrome. Do not use the `playwright-zoom` npm package: its content script lets any page script change the zoom. Details: [research/2026-11-07-visual-cluster-per-test.md](research/2026-11-07-visual-cluster-per-test.md) (18.A).
   - **Functionality and time.** ER 3 ("all functionality is available"):
     compare the keyboard stops at 100% and 200% (a control gone or
     unreachable, such as a menu behind a hamburger button). A second walk

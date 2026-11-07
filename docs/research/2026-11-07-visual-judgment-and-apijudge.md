@@ -13,7 +13,7 @@ Principles 3 and 8 limit both. A mechanical check may confirm an opinion or repl
 
 - **16 open questions across 13 built tests name a picture in `input`,** so the `seen` rule applies to them. 4.C J2 carries a screenshot only in `evidence_paths`, and the rest are text questions.
   - Of the 16, these truly need the picture: **4.F J1, 4.D J1, 4.E J1, 5.D J2, 2.B J1, 2.C J1 / 2.B J2 (icons), 5.A J1 (the graphic case), 5.B J1 (icons) and 5.F J2**. The picture helps but is not decisive for 4.A J1 and 5.C J1.
-  - **2.D J1/J2, 5.F J1 and 5.G J1** are questions a person settles by *reading*. Their pictures are context, yet they trigger the `seen` rule.
+  - **2.D J1/J2 and 5.F J1** are questions a person settles by *reading*. Their pictures were context, yet they triggered the `seen` rule. **Done 2026-11-07** (Abby): their pictures are now evidence only (2.D 1.1.0, 5.F 1.3.0); see "Decisions, 2026-11-07" below. Correction: 5.G J1 never had pictures; the 5.G question with pictures is J2 ("does the field's look mark an error?"), which is visual and keeps them.
 - **Most visual questions already have their mechanical half built.** 4.D measures changed pixels and styles before asking, 4.F computes order signals, and 5.A takes visible text and geometry from the DOM. What is left is the judgment band. A pixel library will not close it. Some measurements could narrow it (below), but mostly towards FAIL or NEEDS_REVIEW, never towards PASS.
 - **For the visual-versus-code cluster (10.B-10.D, 14.A-14.C, 15.A, 18.A), the browser is the main evidence source, not image libraries.** Computed styles, box geometry, overflow and ANDI's output give candidates and most FAILs. Pixels and OCR add little beyond 7.E (images of text) and 13.C (text on images), which are outside the cluster as the roadmap defines it.
 - **No new image dependency is needed now.** Pillow (already locked) covers the diff work. The WCAG 2 contrast formula is a few lines and needs no library.
@@ -60,7 +60,6 @@ Principles 3 and 8 limit both. A mechanical check may confirm an opinion or repl
 | **2.D J1** focused content says what changed | images | Yes | the focused element's text | The picture adds little. With it in `input`, `seen` is demanded |
 | **2.D J2** the dialog says what changed | images | Yes | the dialog's role, name and text | as above |
 | **5.F J1** error text names the field and the problem | before, after | Yes, with the quote check | error texts and where they appeared | as above |
-| **5.G J1** the error says how to fix it | before, after | Yes, with the quote check | errors and instructions | as above |
 
 **Option, not decided.** Move these pictures from `input` to `evidence_paths`. The `seen` rule would then stop asking agents to look at pictures that do not settle the question. This would be the cheapest cut in picture burden: four question kinds, no new code beyond the input. It changes question inputs, so the judge eval runs first (principle 6). The risk is small: a 5.F error shown only as a red icon is 5.F J2's case, which keeps its pictures.
 
@@ -271,7 +270,7 @@ If they keep their pictures, they go to ApiJudge with the rest of 1a.
 
    Each is a spec change (MINOR) with its own fixture. None can create a PASS. Effort: small, per test.
 2. **Better pictures for any judge.** Crop 4.F's order picture to the stops in question, and give 2.B content below the first screen a crop (ROADMAP). This removes "unreadable" as a reason to skip looking. Effort: small to medium. Run the judge eval after each.
-3. **Move the pictures out of `input` for reading questions** (2.D J1/J2, 5.F J1, 5.G J1), so `seen` stops being asked where looking does not settle anything. Effort: small, plus a judge eval.
+3. **Move the pictures out of `input` for reading questions** (2.D J1/J2, 5.F J1), so `seen` stops being asked where looking does not settle anything. Effort: small, plus a judge eval.
 4. **ApiJudge, option A**, behind `JUDGE_BACKEND=api`.
    - **Build it after** the hosted model's API is known.
    - **Turn it on only after** the judge eval bar in 4e.
@@ -371,6 +370,56 @@ One rule holds throughout: **a detector that finds nothing is not evidence that 
 - tesseract.js speed per image;
 - whether DOM grid detection catches the tables found on real pages.
 
+## 5c. Decisions and follow-ups, 2026-11-07 (Abby)
+
+The per-test deep dive (ANDI, axe-core and our own code for 10.B-10.D, 13.C, 14.A-14.C, 15.A, 18.A and 7.E, with the contrast and zoom experiments) is in [2026-11-07-visual-cluster-per-test.md](2026-11-07-visual-cluster-per-test.md).
+
+**Done: reading questions carry no pictures.**
+- **What changed:** 2.D J1 and J2 and 5.F J1 now keep their pictures as evidence only, not question input, so the `seen` rule no longer applies to them (2.D 1.1.0, 5.F 1.3.0).
+- **Checks:** judge eval run 28, 19/19 with no false PASS; the 2.x and 5.F fixture tests and the model and tool tests pass (145).
+- **Limit:** no 2.D fixture expects a not_sufficient answer.
+- **Correction to section 1:** 5.G J1 never had pictures; 5.G J2, the visual one, keeps them.
+
+**Contrast: ANDI already has the maths, and it checks out.**
+- **The check:** ANDI's contrast module, run on 444 colour pairs in Chromium, gives the exact WCAG ratio rounded to 2 decimals every time.
+- **One catch:** it compares *after* rounding, so 4.495-4.499 passes. WCAG and the ICT Baseline say not to round.
+- **Plan:** read ANDI's numbers; never compute contrast in a model; pin it with a fixture of known ratios. The rounding band is a decision for the 13.C spec (ROADMAP).
+
+**Zoom: real browser zoom works.** `chrome.tabs.setZoom`, from an extension of our own, works in headless Chromium here. The stand-in differs from it only on native form controls. Use real zoom (ROADMAP 18.A).
+
+**Answer once per site, for images and media too** (ROADMAP).
+- **What it is:** a judgment keyed by the content's hash and the spec version, reused on other pages and later scans until the content changes.
+- **Hosted:** it can outlive a session.
+- **Same pattern as** 9.A-9.C's repeated-content rule.
+
+**A review view for people: parked** (ROADMAP). The idea to explore later: the recorded page beside the pre-SCRT file, marked up in place.
+
+**Should agents A and B have to submit a pre-SCRT-like report for grading?**
+- **They already submit a structured report.**
+  - Both arms must end with a `RESULT:` JSON line (every page × every WCAG criterion, with failing elements), and `evals/agent/score.py` scores it. A missing entry counts as missing.
+  - 18 of the 19 recorded development and round runs have one (the exception was an answers-only run).
+  - Agent A's server-side pre-SCRT files are scored separately, so the gap between what the tool found and what the agent relayed already shows.
+- **A required report gets filled, not followed** (solutions/agent-follow-through.md). What agents skipped was the work *before* the report: open questions, follow-up calls, pictures. A required format can be met by writing NEEDS_REVIEW everywhere.
+- **Grading during the run would spoil the eval.**
+  - Feedback that draws on the answer key is contamination.
+  - Grading through our MCP would give Agent B our server, so it would no longer be the comparison arm.
+- **What would help: a format and completeness check, never correctness.** After the final answer, the harness checks that `RESULT` parses and covers every page and criterion, and that each NEEDS_REVIEW says why. If not, it resumes the session once with what is missing, like `--debrief`. It is cheap, fair to both arms, and costs no answer-key information.
+- **In the product,** a "submit your report" tool would be one more step to skip. The server's own pre-SCRT file stays the record, and the to-do list asks the agent to save it.
+
+**OCR: our own ApiJudge, or an OCR tool?**
+- **What agents failed at was looking, not reading.** The calling agents did not open the pictures. ApiJudge fixes *that* (the server sends the picture), and an OCR tool fixes it too.
+- **For reading text out of pixels, an OCR tool is the safer choice.**
+  - **Repeatable:** the same image bytes and the same engine version give the same words, so a test can pin it. A hosted vision model can return different text for the same image even at temperature 0.
+  - **Fails safely:** OCR gives each word a confidence and a box, and fails by *missing* text. A language model can produce plausible text that is not there: correcting a misspelling, completing cut-off words, reading a logo's tagline from memory. That is exactly what a quote check must not trust.
+  - **No tokens.**
+- **What OCR cannot do is judge:** logo or not, essential or not, minor text in a picture. Those are judgments.
+- **The safe split:**
+  1. OCR reads.
+  2. Rules compare (with the alt text, with nearby text).
+  3. Only the judgment goes to a person or a model, with OCR's words as *text* input: small, cheap, no picture needed for most.
+- **A model's reading can add candidates,** such as text OCR missed. It must never settle a PASS on its own reading of the text (principle 3).
+- **Recommendation:** an OCR tool for reading; ApiJudge, if built, for the judgment only.
+
 ## 6. Open questions for Abby
 
 1. **The hosted model (NASA).**
@@ -390,7 +439,7 @@ One rule holds throughout: **a detector that finds nothing is not evidence that 
    - which windows (1280 px, and about 1024 px?);
    - a failure only in the smaller window: FAIL or NEEDS REVIEW;
    - approval to V-check the zoom stand-in against real Ctrl+ zoom on Windows headed Chrome.
-6. **Reading questions.** May the pictures move from `input` to `evidence_paths` for 2.D J1/J2, 5.F J1 and 5.G J1, subject to the judge eval?
+6. **Reading questions.** Decided (Abby, 2026-11-07): yes, done for 2.D J1/J2 and 5.F J1.
 
 ## Verified vs assumed (principle 6)
 
