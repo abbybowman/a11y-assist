@@ -63,7 +63,7 @@ Details: [round 1](evals/agent/README.md#results);
 | 5.H | 3.3.4-error-prevention | 3.3.4 | [1.1.0](docs/rules/5h-error-prevention.md) | 🟢 Sure and accurate once the agent answers its question |
 | 9.A | 2.4.1-bypass-function | 2.4.1 | [1.0.0](docs/rules/9a-bypass.md) | 🟢 Sure and accurate: found the failure on 8 of 9 pages and left the ninth for a person |
 | 9.B | 3.2.3-consistent-navigation | 3.2.3 | [1.0.0](docs/rules/9b-consistent-navigation.md) | 🟢 Sure and accurate |
-| 9.C | 3.2.4-consistent-identification | 3.2.4 | [1.1.0](docs/rules/9c-consistent-identification.md) | 🟢 Sure and accurate once the agent answers its questions |
+| 9.C | 3.2.4-consistent-identification | 3.2.4 | [1.1.1](docs/rules/9c-consistent-identification.md) | 🟢 Sure and accurate once the agent answers its questions |
 | 19.A | 2.4.5-multiple-ways | 2.4.5 | [1.1.1](docs/rules/19a-multiple-ways.md) | ⚠️ Undecided on every page: needs more pages of the site. It now tells the agent to add the pages it suggests itself (fixed after round 1, not yet re-measured) |
 
 ## Tools
