@@ -844,6 +844,7 @@ async def run_tt_tests(
             ctx = _context(
                 settings, run, get_browser, cap.final_url, soft, cap.cross_site_frames
             )
+            ctx.no_time_limit = no_time_limit
             ctx_ref.append(ctx)
             ctx.selected = frozenset(c.test_id.value for c in checks)
             ctx.requested_url = url
@@ -1182,6 +1183,7 @@ async def answer_questions(
             _soft_deadline(time.monotonic(), settings, no_limit),
             report.cross_site_frames,
         )
+        ctx.no_time_limit = no_limit
         ctx.pages = _page_refs(browser.get, settings, run, report)
         walk_path = run.evidence_dir / "walk.json"
         if walk_path.exists():

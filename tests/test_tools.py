@@ -48,8 +48,9 @@ async def test_no_time_limit_is_an_opt_in_input():
     async with Client(mcp) as client:
         [tool] = [t for t in await client.list_tools() if t.name == "tobi_run_tt_tests"]
     prop = tool.inputSchema["properties"]["no_time_limit"]
-    assert prop["type"] == "boolean" and prop["default"] is False
-    assert "no_time_limit=true" in tool.description
+    # Abby, 2026-11-07: unset means the server's choice, by default no limit.
+    assert prop["default"] is None
+    assert "no_time_limit=false" in tool.description
 
 
 async def test_run_tt_tests_on_http_page(settings, server):
@@ -87,7 +88,7 @@ async def test_run_tt_tests_on_http_page(settings, server):
         "record_scroll_passes": settings.record_scroll_passes,
         "run_limit_s": settings.run_limit_s,
         "other_page_s": settings.other_page_s,
-        "no_time_limit": False,
+        "no_time_limit": True,  # the server's default since 2026-11-07
     }
     # The window the page was tested in, as configured and as a page saw it.
     d = report.versions.display

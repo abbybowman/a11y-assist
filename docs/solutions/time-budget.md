@@ -86,3 +86,10 @@ not performed and skip even the walk (`pipeline.needs_walk`). All fourteen
 tests: agency page 108.0 s, benefits form 94.6 s. With one other page the
 limit grows by `OTHER_PAGE_S` (20 s) and the agency page took 110.1 s of
 140 s; measure with `time_budget.py --other`.
+
+**Do not infer a mode from a sentinel value (2026-11-07).** 5.D and 5.F
+lifted their field caps when `ctx.deadline` was infinite, which was how
+`no_time_limit` used to show. When no_time_limit runs got a finite safety
+stop (`MAX_RUN_S`), the caps came back silently, and a time-budget test
+caught it. The run context now carries `no_time_limit` itself; check that
+flag, never the deadline's value.
