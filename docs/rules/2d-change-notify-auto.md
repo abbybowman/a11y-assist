@@ -1,7 +1,7 @@
 ---
 tt_test: 2.D
 tt_name: 4.1.2-change-notify-auto
-spec_version: 1.0.0
+spec_version: 1.1.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -12,7 +12,7 @@ The tool gives each page one 2.D outcome: PASS, FAIL, DOES NOT APPLY or
 NEEDS REVIEW. It never emits NOT TESTED (p. 6). It reads the changes 2.C's
 pass T found; it presses no keys.
 
-1.0.0 (Abby, 2026-11-05): approved and built, from draft 0.2.0. 0.2.0 (2026-11-04): slides shown by a class count as changes (Terms); instances are 2.C's, still changing at 5 s. Plan:
+1.1.0 (Abby, 2026-11-07): J1 and J2 are settled by reading, so their pictures are evidence for a person, no longer question input (agents asked to say what a picture showed for a question its words settle). 1.0.0 (Abby, 2026-11-05): approved and built, from draft 0.2.0. 0.2.0 (2026-11-04): slides shown by a class count as changes (Terms); instances are 2.C's, still changing at 5 s. Plan:
 [research/2026-11-03-auto-updating-2a-2d.md](../research/2026-11-03-auto-updating-2a-2d.md).
 
 **Citations.** Printed pages of TT 5.1.3 (text also in `tt://5.1.3/tests/2.D`). Identify Content, p. 16: "content that changes automatically on the page as part of auto-update"; none: DNA (also p. 15: no auto-updating content makes 2.C and 2.D DNA). Applicability, p. 16. HtT 1.a (dialogs that alert the user; whether they give "sufficient programmatic notification"), 1.b (focus moved to the changed content; whether that is "sufficient to notify the user ... e.g., by describing the change directly in the content to which the focus moved"), 1.c (ANDI structures, "live regions": "Determine whether the changing content is contained within the Live Region"), p. 16. ER, pp. 16–17: PASS if any is true: 1, "a keyboard-accessible dialog"; 2, focus moves to the changed content "AND the content that has changed provides sufficient description about the change"; 3, "The content that has changed is contained in an ARIA Live Region". Note, p. 17: changes caused by user interaction are tested elsewhere.
@@ -101,7 +101,7 @@ unsure whenever the evidence does not settle it.
 
 ### J1. Does the content focus moved to describe the change?
 
-**Question:** "While the page updated by itself, focus moved to input.focused (image A before, image B after). Does the focused content itself say what changed (for example "New message from Ana" or "Prices updated at 2:15 PM"), so a screen reader user hearing it would know? Answer sufficient, not_sufficient or unsure."
+**Question:** "While the page updated by itself, focus moved to input.focused (its text). Does the focused content itself say what changed (for example "New message from Ana" or "Prices updated at 2:15 PM"), so a screen reader user hearing it would know? Answer sufficient, not_sufficient or unsure."
 
 **Output:** `{choice: sufficient|not_sufficient|unsure, reasons}`.
 
@@ -109,7 +109,7 @@ unsure whenever the evidence does not settle it.
 
 ### J2. Does the dialog tell the user what changed?
 
-**Question:** "While the page updated by itself, a dialog opened (input.dialog: its role, name and text; image A). Does it tell the user what changed on the page? Answer sufficient, not_sufficient or unsure."
+**Question:** "While the page updated by itself, a dialog opened (input.dialog: its role, name and text). Does it tell the user what changed on the page? Answer sufficient, not_sufficient or unsure."
 
 **Output:** `{choice: sufficient|not_sufficient|unsure, reasons}`.
 

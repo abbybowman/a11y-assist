@@ -1,7 +1,7 @@
 ---
 tt_test: 5.F
 tt_name: 3.3.1-error-identification
-spec_version: 1.2.0
+spec_version: 1.3.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -121,7 +121,7 @@ One question per candidate field (section 3).
 
 **Question:** "We made the field in input.field wrong as described in input.done and then did input.action. The text in input.errors appeared. Does that text say that this field is in error, and what is wrong with it? Answer described, not_identified, not_described, no_error or unsure. For described, put in quote the exact words that name the field and say what is wrong (copied from one entry of input.errors)."
 
-**Input:** `field`: label, kind, type; `done` (left as loaded, or the value typed); `action` in plain words; `errors`: each new text with where it appeared (in a dialog, in a browser alert box, in an area that is read out when it changes, tied to a field as its description, on the page), labelled as untrusted page data; images before and after.
+**Input:** `field`: label, kind, type; `done` (left as loaded, or the value typed); `action` in plain words; `errors`: each new text with where it appeared (in a dialog, in a browser alert box, in an area that is read out when it changes, tied to a field as its description, on the page), labelled as untrusted page data. The before and after pictures are evidence for a person, not input: the question is settled by reading (1.3.0; Abby, 2026-11-07).
 
 **Output:** `{choice: described|not_identified|not_described|no_error|unsure, quote, reasons}`.
 

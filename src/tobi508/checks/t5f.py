@@ -939,9 +939,9 @@ def questions_for(
                         "done": i.done,
                         "action": _where_pressed(ps, a),
                         "errors": error_inputs(ps, a),
-                        "image_a_before": images[0] if len(images) > 1 else None,
-                        "image_b_after": images[-1] if images else None,
                     },
+                    # 5.F 1.2.1 (Abby, 2026-11-07): J1 is settled by reading
+                    # the error text; the pictures are evidence only.
                     evidence_paths=evidence_refs + images,
                 )
             )
