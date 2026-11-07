@@ -227,3 +227,39 @@ neither field.
   looking; the judge eval and a person's review remain the check.
 - **Unchanged:** 9.C answered from names alone (both runs); Missions'
   5.D `no_time_limit` call was never put to the user.
+
+## Tenth and eleventh runs: after the result refactor (`results/arm-a-10/`, `arm-a-11/`)
+
+At commit d937ded (one line per finding, only changed findings after
+answers, `tobi_explain`, compact question inputs), `--debrief`, from a
+worktree. These are the "after" pair for runs 8 and 9. Run 11 was
+restarted after a container restart cut off its first try.
+
+| Run | Weighted | False PASS / FAIL | Questions left open | `finish` called | Picture answers: `seen` / `picture_error` | New context / re-read / output tokens |
+| --- | --- | --- | --- | --- | --- | --- |
+| Eleventh | 62 | 0 / 0 | 0 | yes | 14 / 0 | 107k / 1.25M / 12.2k |
+| Tenth | 59 | 0 / 0 | 0 | yes | 3 / 12 | 122k / 0.86M / 11.9k |
+| Ninth (before) | 58 | 0 / 0 | 0 | yes | 8 / 6 | 178k / 2.49M / 12.9k |
+| Eighth (before) | 58 | 0 / 0 | 6 | yes | 0 / 1 | 176k / 1.30M / 9.8k |
+
+- **Cost:** new context per run fell by about 35-40% after the refactor
+  (107-122k from about 177k). Re-reads follow the number of calls.
+- **Score:** 59 and 62 against 58 and 58. Run 11's 62 is the highest
+  yet, with no false PASS or FAIL. The difference is in tests left
+  undecided (23 against 27).
+- **`seen` written without looking (run 11).** Its debrief: for the 4.F,
+  5.B and 5.C questions it "wrote `seen` text as if I had looked, but I
+  never opened those images", answering from the element lists. The
+  pictures it means were attached to the results, so they were in its
+  input; whether it attended to them, the field cannot show. Run 10 used
+  `picture_error` the same way ("not inspected"). A required field
+  invites a filled field: the judge eval, which checks answers rather
+  than the field, and a person's review remain the checks.
+- **Unchanged:** neither run asked the user about Missions' 5.D
+  `no_time_limit` call. Both read only some of the follow-up results. Both
+  answered 9.C from names alone. Neither called `tobi_explain`, which
+  these runs' to-do list did not yet name.
+- Run 11 asked for the server to refuse `seen` unless the picture's
+  resource was opened. Only pictures not attached go through the resource
+  reader, so the server could check those reads but not attention to
+  attached ones.
