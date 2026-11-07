@@ -11,7 +11,7 @@
 **How we know.**
 - `tests/test_walk.py` covers three schedules on F36, a page whose survey opens on the loads a cookie chooses: shown on the first load only (the walk wraps, the loop is kept), shown on every load (confirmed), and never shown (no second pass).
 - `tests/test_fixtures_4c.py` covers the outcomes: F36 shown on the walk's first load only is NEEDS REVIEW (M1); shown on every load it is PASS by its close button (M4).
-- Replaying the new Artemis III recording with the survey on each walk's first load: the walk reached the whole page every time (`evals/README.md`, walk replays).
+- Replaying the new Artemis III recording (2026-11-07) 20 times with the 4.x and 5.x walk extras, with the survey's cookie set on the first load of each walk: all 20 walks reached the whole page (75 stops, wrap). On 10 of them a first pass met the survey (7 first P1s, 3 first P2s; the cookie did not always make it open) and was kept as an unrepeated loop on the four survey stops. On the old code, with the survey on every load, P1 ended "loop" after 20 presses and P2 after 16.
 
 **What is left.** A check's own replay can still meet the dialog on about one load in ten; a check that verifies where focus arrived goes to NEEDS REVIEW then, and one that does not may read the dialog. Each check's probes are short, and the dialog opens 5 s after load, so few are affected; not measured.
 
