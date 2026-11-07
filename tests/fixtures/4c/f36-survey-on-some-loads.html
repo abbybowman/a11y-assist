@@ -1,0 +1,46 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>F36 Mission overview</title>
+<style>
+#survey{display:none;position:fixed;right:16px;bottom:16px;width:280px;padding:12px;background:#fff;border:2px solid #333}
+#survey.open{display:block}
+</style></head><body>
+<h1>Mission overview</h1>
+<nav aria-label="Sections">
+<a href="#crew">Crew</a> <a href="#vehicle">Vehicle</a> <a href="#launch">Launch</a>
+<a href="#landing">Landing</a> <a href="#science">Science</a> <a href="#timeline">Timeline</a>
+</nav>
+<p id="crew">Four people fly on this mission.</p>
+<p><a href="#gallery">Gallery</a> <a href="#news">News</a> <a href="#contact">Contact</a></p>
+<div id="survey" role="dialog" aria-modal="false" aria-labelledby="survey-h">
+<p id="survey-h">Did you find what you came for?</p>
+<button type="button" id="yes">Yes</button> <button type="button" id="no">No</button>
+<button type="button" id="close">Close survey</button>
+</div>
+<script>
+// Like a site survey that is shown to some visitors only: the site decides
+// once per session (here, a session cookie holds the decision; with no
+// cookie it is not shown). It opens by itself a moment into the visit (here,
+// on the fourth focus move), takes focus and keeps Tab and Shift+Tab inside.
+const show = document.cookie.split("; ").includes("survey=show");
+const box = document.getElementById("survey");
+const parts = [...box.querySelectorAll("button")];
+let moves = 0, before = null;
+document.addEventListener("focusin", (e) => {
+  if (!show || box.dataset.done || box.contains(e.target)) return;
+  if (++moves === 4) {
+    before = e.target;
+    box.classList.add("open");
+    parts[0].focus();
+  }
+});
+box.addEventListener("keydown", (e) => {
+  if (e.key !== "Tab") return;
+  const i = parts.indexOf(document.activeElement);
+  e.preventDefault();
+  parts[(i + (e.shiftKey ? parts.length - 1 : 1)) % parts.length].focus();
+});
+document.getElementById("close").addEventListener("click", () => {
+  box.classList.remove("open");
+  box.dataset.done = "1";
+  if (before) before.focus();
+});
+</script></body></html>

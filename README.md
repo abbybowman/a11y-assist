@@ -45,7 +45,7 @@ REVIEW, "This test could not be performed".
 | 2.D | 4.1.2-change-notify-auto | 4.1.2 | [1.1.0](docs/rules/2d-change-notify-auto.md) | ❓ Not yet tested on real pages |
 | 4.A | 2.1.1-keyboard-access | 2.1.1 | [1.2.1](docs/rules/4a-keyboard-access.md) | ⚠️ Mostly undecided (embedded frames, time limit); agrees where decided |
 | 4.B | 2.1.1-no-keystroke-timing | 2.1.1 | [1.2.0](docs/rules/4b-no-keystroke-timing.md) | 🟢 Sure and accurate |
-| 4.C | 2.1.2-no-keyboard-trap | 2.1.2 | [1.8.0](docs/rules/4c-no-keyboard-trap.md) | 🟢 Sure and accurate |
+| 4.C | 2.1.2-no-keyboard-trap | 2.1.2 | [1.9.0](docs/rules/4c-no-keyboard-trap.md) | 🟢 Sure and accurate |
 | 4.D | 2.4.7-focus-visible | 2.4.7 | [1.2.0](docs/rules/4d-focus-visible.md) | ⚠️ Some false FAILs; fixed, not yet retested |
 | 4.E | 3.2.1-on-focus | 3.2.1 | [1.1.0](docs/rules/4e-on-focus.md) | 🟢 Sure and accurate |
 | 4.F | 2.4.3-focus-order-meaning | 2.4.3 | [1.2.0](docs/rules/4f-focus-order-meaning.md) | ⚠️ Mostly undecided; two false FAILs fixed, not yet retested |
@@ -53,8 +53,8 @@ REVIEW, "This test could not be performed".
 | 5.B | 2.4.6-label-descriptive | 2.4.6 | [1.2.0](docs/rules/5b-label-descriptive.md) | ⚠️ One wrong PASS; fixed, not yet retested |
 | 5.C | 1.3.1-programmatic-label | 1.3.1, 4.1.2 | [1.3.0](docs/rules/5c-programmatic-label.md) | ⚠️ About half decided, agrees where decided; one missed FAIL fixed, not yet retested |
 | 5.D | 3.2.2-on-input | 3.2.2 | [1.1.0](docs/rules/5d-on-input.md) | 🟢 Mostly sure and accurate; one missed FAIL fixed, not yet retested |
-| 5.F | 3.3.1-error-identification | 3.3.1 | [1.3.0](docs/rules/5f-error-identification.md) | ⚠️ Undecided on every page (site search); fixed, not yet retested |
-| 5.G | 3.3.3-error-suggestion | 3.3.3 | [1.2.0](docs/rules/5g-error-suggestion.md) | ⚠️ Undecided on every page (site search); fixed, not yet retested |
+| 5.F | 3.3.1-error-identification | 3.3.1 | [1.3.1](docs/rules/5f-error-identification.md) | ⚠️ Undecided on every page (site search); fixed, not yet retested |
+| 5.G | 3.3.3-error-suggestion | 3.3.3 | [1.2.1](docs/rules/5g-error-suggestion.md) | ⚠️ Undecided on every page (site search); fixed, not yet retested |
 | 5.H | 3.3.4-error-prevention | 3.3.4 | [1.1.0](docs/rules/5h-error-prevention.md) | 🟢 Sure and accurate once answered |
 | 9.A | 2.4.1-bypass-function | 2.4.1 | [1.0.0](docs/rules/9a-bypass.md) | 🟢 Sure and accurate |
 | 9.B | 3.2.3-consistent-navigation | 3.2.3 | [1.0.0](docs/rules/9b-consistent-navigation.md) | 🟢 Sure and accurate |

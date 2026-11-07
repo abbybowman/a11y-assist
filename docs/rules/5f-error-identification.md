@@ -1,7 +1,7 @@
 ---
 tt_test: 5.F
 tt_name: 3.3.1-error-identification
-spec_version: 1.3.0
+spec_version: 1.3.1
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -60,7 +60,7 @@ An attempt's *notice* is how the user learns of its errors (Baseline 10.D "made 
 
 | # | Evidence pattern | Instance outcome | Source |
 | --- | --- | --- | --- |
-| M1 | The replay did not reach the field or the submit control, or a read was unsettled or unresolved | NEEDS REVIEW | Spec rule |
+| M1 | The replay did not reach the field or the submit control, or a read was unsettled or unresolved. A read is unsettled when the submit press, or a Tab in attempt 2, hit the settle rule's 1,500 ms limit: the page was still changing, so an error shown later was not read (1.3.1, wording; the code ignored it before) | NEEDS REVIEW | Spec rule |
 | M2 | The error came from native validation (the `invalid` event blocked the submission, the page did not cancel it, and the field has a `validationMessage`). A cancelled `invalid` event shows no message (pages cancel it to draw their own errors), so the field falls to the rows below (1.1.0) | PASS: the browser identifies the field by focusing it and describes the error in text | Understanding 3.3.1 (user agent native HTML form validation) |
 | M3 | The field has an error indicator, and no new text appeared anywhere and no JS dialog opened (the field is marked by `aria-invalid` or its look alone) | Ask J2 when only its look changed (is it marked as an error?); FAIL when `aria-invalid` is set, or J2 = error | p. 29 ER 1 ("in text"); Understanding 3.3.1 (color alone); TC10.D-2-fail-2 |
 | M4 | J2 = not an error (a look that means valid, or unrelated) | No instance | Spec rule |
@@ -79,7 +79,7 @@ An attempt's *notice* is how the user learns of its errors (Baseline 10.D "made 
 | --- | --- | --- |
 | G1 | Section 1 gives DOES NOT APPLY or NEEDS REVIEW | That outcome |
 | G2 | Any instance is FAIL | FAIL, listing every instance |
-| G3 | Any instance is NEEDS REVIEW; P1 incomplete before the last field; more forms than `FORM_MAX`; an attempt cut by the run limit; the page could not be read before an attempt (1.1.0); more than 200 new pieces of text appeared after one action, or the list from the fresh load was lost, so new text may not all have been read (1.1.0); or an attempt sent its form (A4) | NEEDS REVIEW, with the note "This test could not be performed" and the reason (p. 5) |
+| G3 | Any instance is NEEDS REVIEW; P1 incomplete before the last field; more forms than `FORM_MAX`; an attempt cut by the run limit; the page could not be read before an attempt (1.1.0); an attempt read before the page settled (M1), even with no instance, since an error shown later was missed (1.3.1); more than 200 new pieces of text appeared after one action, or the list from the fresh load was lost, so new text may not all have been read (1.1.0); or an attempt sent its form (A4) | NEEDS REVIEW, with the note "This test could not be performed" and the reason (p. 5) |
 | G4 | Both attempts ran for every form (attempt 2 only for a form with a text or date field: with none there is nothing to make wrong, 1.1.0), at least one instance, every instance PASS | PASS |
 | G5 | Anything else | NEEDS REVIEW |
 
@@ -97,6 +97,7 @@ An attempt's *notice* is how the user learns of its errors (Baseline 10.D "made 
 | M3 | "When <field> was wrong, the page only marked it (<how>), with no text saying what is wrong. To see it, load the page and press <keys>. If you disagree, tell your assistant." |
 | M7 | "The page shows an error for <field> (\"<quote>\"), but nothing announces it: it is not read out, and focus does not move to it, so a screen reader user may not know it appeared. To see it, load the page and press <keys>. If you disagree, tell your assistant." |
 | M8 | "The error message \"<text>\" does not say <which field is wrong / what is wrong with <field>>. To see it, load the page and press <keys>. If you disagree, tell your assistant." |
+| M1 (unsettled) | "We read the page after <field> was <done> while it was still changing, so an error message that appeared later may have been missed. Please look: load the page and press <keys>." |
 | M9, M5 | "An error appeared for <field>, and we could not tell whether its message names the field and explains the problem. Please look: load the page and press <keys>." |
 
 ## 4. Judgment questions

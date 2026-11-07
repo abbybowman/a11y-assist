@@ -1,7 +1,7 @@
 ---
 tt_test: 4.C
 tt_name: 2.1.2-no-keyboard-trap
-spec_version: 1.8.0
+spec_version: 1.9.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -51,11 +51,13 @@ The tool does what p. 21 asks a human tester to do, and no more: walk the page w
 
 | Pass | Keys | Ends when | Cap |
 | --- | --- | --- | --- |
-| P1 Forward | Tab | Wrap seen: OUT, then the first stop of P1 again. Or a trap event: *stuck* (same stop for 3 presses) or *loop* (a cycle of 2+ stops, no OUT, repeated twice in a row). Or navigation or a new page | 3 × inventory + 50 presses, max 3,000 |
+| P1 Forward | Tab | Wrap seen: OUT, then the first stop of P1 again. Or a trap event: *stuck* (same stop for 3 presses) or *loop* (a cycle of 2+ stops, no OUT, repeated twice in a row), *confirmed* by a second P1 from a fresh load (below, 1.9.0). Or navigation or a new page | 3 × inventory + 50 presses, max 3,000, per pass |
 | P2 Backward | Shift+Tab | Same as P1, mirrored | Same as P1 |
 | P3 Exit probes | Per trap event, from a fresh replay of the steps that reached it, one probe per replay, in this order: the opposite direction ×3; each arrow ×3 (stuck elements only); Escape then the pass key; Enter on each member of the trap, in the order reached, then the pass key; then any key found by J1. Text revealed by Enter is kept for J1 | The first probe that exits (below), or every probe is spent | 10 members per trap |
 | P4 Widget check | At each composite widget stop P1 reached (menubar, menu, tablist, grid, treegrid, tree, listbox, toolbar, radio group): one arrow (ArrowRight in a menubar, tablist or toolbar; ArrowDown otherwise), then Tab with P1's trap detection | Focus leaves the widget, or a trap event | 20 widgets per page |
 | P6 Bypass | Only when P1 and P2 end in different trap events, so stops between them may be unreached: replay to P1's trap, click past it (section 6), then Tab with P1's rules. A trap found here gets P3 and, if it is not P2's trap, P6 again | As P1 | As P1 |
+
+**A trap event is confirmed by a second pass** (1.9.0). When P1 or P2 ends stuck or in a loop, the same pass runs again from a fresh load. If it ends in the same trap event (the same kind, with the same stops matched by frame chain and CSS path), the trap is *confirmed* and the first pass stands. Otherwise the second pass is the walk's pass, whatever its end, and the first pass's trap is kept as *seen once*: an instance that M1 leaves for a person. It is never probed, because a replay would not reach it, and no question is asked about it. Why: some pages differ from load to load. NASA's Artemis III page opens a survey dialog on about one load in ten (the site rolls a random number per session), 5 s after load. The dialog takes focus and keeps Tab and Shift+Tab inside it, so P1 ended "loop" after 9-13 presses on those loads, every test that reads the walk went to NEEDS REVIEW, and the probes, each on its own fresh load, would meet the dialog on about one load in ten (ROADMAP, 2026-11-07; [solutions/trap-seen-once.md](../solutions/trap-seen-once.md)). A real trap repeats on the second load, so it is found as before at the cost of one more pass up to the trap. A trap seen once is never a PASS. The PDF asks a tester to look for traps on the page (p. 21 HtT 1, 2); a person who meets such a dialog checks it when it appears, which is what the M1 sentence asks.
 
 There is no P5. Content behind disclosure controls (menus, accordions, dialogs opened by a button) is not opened by 4.C; the finding carries a note with the number of collapsed controls. 4.F (p. 23, HtT 2.b) asks for revealing hidden content, and that step will be shared with 4.C once 4.F is specified.
 
@@ -75,7 +77,7 @@ Each trap event is an *instance* judged by the first matching row of table 3a. T
 
 | # | Evidence pattern | Instance outcome | Source |
 | --- | --- | --- | --- |
-| M1 | Any stop in the trap is unresolved, or a trap step is unsettled | NEEDS REVIEW | Spec rule |
+| M1 | Any stop in the trap is unresolved, or a trap step is unsettled, or the trap was seen once (a second pass from a fresh load did not repeat it, section 2; 1.9.0) | NEEDS REVIEW | Spec rule |
 | M2 | Stuck: Shift+Tab, an arrow key, or Escape then Tab exits | PASS (standard keys). If Shift+Tab is the only exit, the instance is also logged for 4.F | p. 21 HtT 1, 2.a; ER 1.a |
 | M3 | Loop: the opposite direction (Shift+Tab for a forward loop, Tab for a backward one), or Escape then Tab, exits | PASS (standard keys; modal exception if a dialog). If the opposite direction is the only exit, the instance is also logged for 4.F | p. 21 HtT 1, 2.b note 1; ER 2.a |
 | M4 | Stuck or loop: Enter on one control in the trap keeps the same URL and page, and the next press exits | PASS (dialog closed or interaction gate cleared) | p. 21 HtT 2.b notes 1–2; ACT standard keyboard navigation |
@@ -166,6 +168,7 @@ Only cases that need a rule of their own; everything else follows sections 2–3
 | Infinite scroll | Signs: inventory grows past 2× its start, page height grows every 10 presses, or a request the recording cannot answer during a pass (V10). If there is a sign and Shift+Tab from the top reaches the content after the feed: no trap event, and a note "Feed growth was not fully observed in the recorded page"; whether that content is reachable forward is logged for 4.A. Otherwise NEEDS REVIEW. A sign never produces PASS by itself | V10 |
 | Focus lost to the page body | BODY counts as a stop. Tab resuming after the lost element is no event; BODY leading back into earlier stops is a loop | V7 |
 | Navigation, reload or new tab during a pass | Not an exit (M5). Logged for 4.E. The pass is incomplete (resume is not implemented) | — |
+| A dialog that opens by itself on some loads only (a survey shown to some visitors, a prompt after a delay) | A trap event a second pass from a fresh load does not repeat is *seen once*: the second pass is the walk's pass, and M1 leaves the trap for a person with the keys that reached it (section 2, 1.9.0) | F36 |
 | Content behind disclosure controls | Not opened by 4.C (no P5). Note: "N collapsed controls (aria-expanded=false) were not opened; content behind them was not checked for traps" | — |
 
 ## 6. What a FAIL records

@@ -1193,9 +1193,11 @@ async def run_pass(
     cap: int | None = None,
     hooks: list[StepHook] | None = None,
     pace: Pace | None = None,
+    shot_label: str | None = None,
 ) -> PassResult:
     """Fresh load, then press `key` until a wrap, a trap event, navigation, the
-    cap or the deadline. A trap event gets one screenshot."""
+    cap or the deadline. A trap event gets one screenshot (named by
+    `shot_label`, default `name`)."""
     s = await open_session(new_page, quiet_ms, shots_dir, rel_base, hooks)
     cap = cap if cap is not None else tab_press_cap(s.inventory.candidates)
     base = dict(
@@ -1210,7 +1212,7 @@ async def run_pass(
     try:
         end, trap, _ = await drive(s, key, cap, detect_p1_end, deadline, pace)
         if end in ("stuck", "loop"):
-            await s.traversal.shoot(name)
+            await s.traversal.shoot(shot_label or name)
         end_inv = (await dom_inventory(s.page)).candidates
         return PassResult(
             steps=s.traversal.steps,

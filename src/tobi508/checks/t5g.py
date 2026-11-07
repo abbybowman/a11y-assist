@@ -84,6 +84,12 @@ def _has_text(i: Inst5F) -> bool:
 
 def instance_rows(st: State5G) -> list[Row]:
     return [
+        Row(
+            "N1",
+            lambda i: t5f.unsettled(st.ps, i),
+            Outcome.NEEDS_REVIEW,
+            "Spec rule (5.F's M1)",
+        ),
         Row("N2", lambda i: i.type == "password", Outcome.DNA, "p. 29 Applicability"),
         Row("N3", lambda i: not _has_text(i) and i.aria, Outcome.FAIL, "p. 29 ER 1, 2"),
         Row(
@@ -139,6 +145,8 @@ def questions_for(st: State5G, evidence_refs: list[str]) -> list[OpenQuestion]:
         if i.type == "password":
             continue
         a = ps.attempts[i.attempt]
+        if a.unsettled:
+            continue  # N1 decides, whatever the answer
         images = [f"{base}/{p}" for p in (a.shot_before, a.shot_after) if p]
         if _has_text(i) and f"{i.id}-J1" not in st.j:
             errors = (
@@ -193,14 +201,15 @@ def _sentence(st: State5G, i: Inst5F, rid: str) -> str:
     see = t5f.see(ps, i)
     errs = "; ".join(f'"{t}"' for t in _errors(ps, i)[:3])
     return {
+        "N1": f"We read the page after {fl} was {i.done} while it was still changing, so an error message, or what it says to enter, may have been missed. Please look: load the page and {t5f.steps(ps, i)}",
         "N2": f"{fl} is a password field; saying more about what was wrong could help someone guess it, so no hint is needed.",
         "N3": f"When {fl} was wrong, the page only marked it, with no text saying how to fix it. {see}{t5f.SORRY}",
         "J2?": f"When {fl} was wrong, its look changed; a question about it is still open. {see}",
         "J1?": f"An error appeared for {fl}; a question about it is still open. {see}",
         "N4": "",
         "N5": f"The error for {fl} ({errs}) does not say what to enter instead. {see}{t5f.SORRY}",
-        "N6": f"We could not tell whether a correct value for {fl} could be known. Please look: load the page and {see[18:]}",
-        "N7": f"We could not tell whether the error for {fl} says how to fix it. Please look: load the page and {see[18:]}",
+        "N6": f"We could not tell whether a correct value for {fl} could be known. Please look: load the page and {t5f.steps(ps, i)}",
+        "N7": f"We could not tell whether the error for {fl} says how to fix it. Please look: load the page and {t5f.steps(ps, i)}",
     }[rid]
 
 

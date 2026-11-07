@@ -35,7 +35,7 @@ def test_repo_specs_load_and_4c_version_comes_from_front_matter() -> None:
             t,
             spec.spec_version,
         )
-    assert specs[TestId.T4C].spec_version == "1.8.0"
+    assert specs[TestId.T4C].spec_version == "1.9.0"
     assert specs[TestId.T4C].path.name == "4c-no-keyboard-trap.md"
 
 
