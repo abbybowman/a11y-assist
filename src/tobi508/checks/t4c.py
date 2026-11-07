@@ -107,6 +107,9 @@ class Inst(BaseModel):
     unresolved: bool
     unsettled: bool
     modal: bool
+    # Seen on one load only: a second pass from a fresh load did not repeat
+    # it (spec section 2, 1.9.0). Not probed: a replay would not reach it.
+    once: bool = False
     fields: list[str]
     via: dict[str, Any] | None = Field(
         default=None, description="Reached after a mouse bypass: {keys, paths}."
@@ -597,6 +600,21 @@ async def collect(ctx: RunContext, walk: KeyboardWalk) -> State4C:
             inst = c.add_event(p.end, key, p.name, [key] * len(p.steps), p.steps)
             found = inst or c.known(p.end, _members_at_end(p.steps, p.end))
             setattr(st, attr, found.id if found else None)
+    # After the confirmed traps, so one that a later load repeated is probed.
+    for p, key in ((p1, "Tab"), (p2, "Shift+Tab")):
+        first = p.unrepeated
+        if first is not None and first.end in ("stuck", "loop"):
+            # A trap the next fresh load did not repeat: kept for a person
+            # (row M1), never probed or asked about (spec section 2, 1.9.0).
+            inst = c.add_event(
+                first.end,
+                key,
+                f"{p.name} (one load)",
+                [key] * len(first.steps),
+                first.steps,
+            )
+            if inst is not None:
+                inst.once = True
     both_trapped = st.p1_trap is not None and st.p2_trap is not None
 
     def needs_bypass(inst: Inst) -> bool:
@@ -608,7 +626,7 @@ async def collect(ctx: RunContext, walk: KeyboardWalk) -> State4C:
             and (inst.id == st.p1_trap or inst.source.startswith("P6"))
         )
 
-    done: set[str] = set()
+    done: set[str] = {i.id for i in st.instances if i.once}
 
     async def work() -> None:
         while todo := [i for i in st.instances if i.id not in done]:
@@ -640,7 +658,12 @@ def questions_for(st: State4C, evidence_paths: list[str]) -> list[OpenQuestion]:
         return {**info, "screenshot": f"{base}/{shot}"} if shot and base else info
 
     for inst in st.instances:
-        if any(p.exit for p in inst.probes) or inst.unresolved or inst.unsettled:
+        if (
+            any(p.exit for p in inst.probes)
+            or inst.unresolved
+            or inst.unsettled
+            or inst.once
+        ):
             continue
         what = "element" if inst.kind == "stuck" else "section"
         if inst.j1 is None:
@@ -775,7 +798,7 @@ def instance_rows(st: State4C) -> list[Row]:
     return [
         Row(
             "M1",
-            lambda i: i.unresolved or i.unsettled,
+            lambda i: i.unresolved or i.unsettled or i.once,
             Outcome.NEEDS_REVIEW,
             "Spec rule",
         ),
@@ -1080,6 +1103,15 @@ def _instance_sentence(inst: Inst, rid: str, outcome: Outcome) -> str:
             f"{where[0].upper()}{where[1:]}. This section looks like it needs you to fill "
             f"something in before you can move on{hint}. Please try it: if focus can "
             f"then move on, it is not a trap. Tell your assistant what happened. {repro}"
+        )
+    if rid == "M1" and inst.once:
+        return (
+            f"On one load of the page, {where}. That may be "
+            f"a window that opens by itself, for some visitors or after a delay: "
+            f"when we loaded the page again it did not happen, so we could not "
+            f"check whether you can move out of it. Please load the page a few "
+            f"times and, if it appears, check that Tab, Shift+Tab, Escape or its "
+            f"buttons let you move on. {repro}"
         )
     if rid == "M1":
         return (

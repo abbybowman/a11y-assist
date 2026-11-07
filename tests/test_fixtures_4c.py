@@ -46,6 +46,9 @@ EXPECTED: dict[str, dict] = {
         "j2": {"gate": "yes", "fields": [{"locator": "m1", "value": "12345"}]},
     },
     # A gate made of radio buttons: "input or interaction" (p. 21), 1.8.0.
+    # The survey opens only on loads its cookie chooses (none here); with it
+    # on one load or every load: test_f36_survey_*.
+    "f36-survey-on-some-loads": {"outcome": "PASS", "rows": []},
     "f35-radio-gate": {
         "outcome": "NEEDS_REVIEW",
         "rows": ["M8"],
@@ -133,6 +136,64 @@ async def test_fixture_outcome(name, settings, server):
     )
     if e.get("note"):
         assert e["note"] in f.rationale or e["note"] in f.summary
+
+
+async def _survey_cookie(context, url: str) -> None:
+    host = url.split("//", 1)[1].split(":", 1)[0]
+    await context.add_cookies(
+        [{"name": "survey", "value": "show", "domain": host, "path": "/"}]
+    )
+
+
+async def test_f36_survey_on_one_load_only_is_left_for_a_person(
+    settings, server, monkeypatch
+):
+    """The walk's first load shows the survey; no later load does (as on a
+    site that shows it to some visitors). The trap was seen once, could not
+    be probed, and goes to a person (M1, 1.9.0); the walk still covers the
+    whole page."""
+    import tobi508.pipeline as pipeline
+
+    url = f"{server.base}/4c/f36-survey-on-some-loads.html"
+    real = pipeline.walk_page
+
+    async def walk_page(new_page, *a, **kw):
+        loads = 0
+
+        async def first_with_survey():
+            nonlocal loads
+            context, page = await new_page()
+            loads += 1
+            if loads == 1:
+                await _survey_cookie(context, url)
+                await page.reload()
+            return context, page
+
+        return await real(first_with_survey, *a, **kw)
+
+    monkeypatch.setattr(pipeline, "walk_page", walk_page)
+    got = await run_4c(settings, url)
+    f = got["finding"]
+    assert (f.outcome.value, instance_rows(f)) == ("NEEDS_REVIEW", ["M1"]), f.rationale
+    assert "On one load of the page" in f.summary
+
+
+async def test_f36_survey_on_every_load_is_probed(settings, server, monkeypatch):
+    """Every load shows it: the second pass confirms the loop, and the probes
+    find that Enter on its close button lets focus move on (M4)."""
+    import tobi508.capture as capture
+
+    url = f"{server.base}/4c/f36-survey-on-some-loads.html"
+    real = capture.new_context
+
+    async def new_context(browser, settings, **kw):
+        context = await real(browser, settings, **kw)
+        await _survey_cookie(context, url)
+        return context
+
+    monkeypatch.setattr(capture, "new_context", new_context)
+    f = (await run_4c(settings, url))["finding"]
+    assert (f.outcome.value, instance_rows(f)) == ("PASS", ["M4"]), f.rationale
 
 
 # ── Behavior ─────────────────────────────────────────────────────────────────

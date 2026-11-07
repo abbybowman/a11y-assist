@@ -190,6 +190,17 @@ class PassResult(BaseModel):
     start_url: str | None = Field(default=None, description="Top URL at load.")
     start_pages: int = Field(default=1, description="Open pages at load.")
     error: str | None = None
+    confirmed: bool = Field(
+        default=False,
+        description="The pass ended in a trap event that a second pass, from a "
+        "fresh load, ended in too (4.C spec section 2, 1.9.0).",
+    )
+    unrepeated: PassResult | None = Field(
+        default=None,
+        description="The first pass, when it ended in a trap event that this "
+        "pass, from a fresh load, did not repeat: a dialog that opened by itself "
+        "on one load only (4.C spec section 2, 1.9.0).",
+    )
 
     @property
     def complete(self) -> bool:
