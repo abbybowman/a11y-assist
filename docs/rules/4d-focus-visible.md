@@ -1,7 +1,7 @@
 ---
 tt_test: 4.D
 tt_name: 2.4.7-focus-visible
-spec_version: 1.2.0
+spec_version: 1.3.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -124,9 +124,9 @@ One question, asked only for M7. The calling agent answers it once, by the rubri
 
 ### J1. Does this change show where focus is?
 
-**Question:** "Image A shows part of a web page without keyboard focus; image B shows the same part with keyboard focus on the outlined element. Image C marks the pixels that differ. Is there a change on or right around the outlined element in B that a sighted user would notice as showing it has focus? Answer yes, no or unsure, and describe the change in a few plain words."
+**Question:** "Image A shows part of a web page without keyboard focus; image B shows the same part with keyboard focus on the outlined element. Image C marks the pixels that differ. Is there a change on or right around the outlined element in B that a sighted user would notice as showing it has focus? input.changed_pixels counts the pixels that differ, in CSS pixels: on the element, touching it (within 8 pixels of its edge) and elsewhere in the picture. Answer yes, no or unsure, and describe the change in a few plain words."
 
-**Input:** images A (off), B (on, with the stop's box outlined on a copy) and C (changed pixels); the instance ID; the stop's role and accessible name, labelled as untrusted page data.
+**Input:** images A (off), B (on, with the stop's box outlined on a copy) and C (changed pixels); the instance ID; the stop's role and accessible name, labelled as untrusted page data; `changed_pixels` (1.3.0): the pixels that differ between A and B, in CSS pixels, on the element's box, touching it (within `INDICATOR_MARGIN_PX`, 8) and elsewhere in the picture, after the pixels that change with focus held (noise) and the masked area are left out, as for M7. These are facts for the judge, so it need not estimate from the pictures where a change sits ([research note](../research/2026-11-07-visual-judgment-and-apijudge.md), section 1); no row reads them. Fixture F16: a faint colour change on the link and a counter beside it.
 
 **Output:** `{indicator: yes|no|unsure, change: "<a few plain words>"}`.
 

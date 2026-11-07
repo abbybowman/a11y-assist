@@ -49,6 +49,10 @@ EXPECTED: dict[str, dict] = {
     # clipped, and the card marks focus elsewhere; 0 px where the title is
     # is no clear view (M4), not a FAIL.
     "f15-card-title-outline-clipped": {"outcome": "NEEDS_REVIEW", "rows": ["M4"]},
+    # 1.3.0: focus shifts each link's text colour too little to see, and a
+    # counter 160 px to the first link's right updates by itself; J1 gets
+    # where the changed pixels sit.
+    "f16-faint-color-and-counter": {"outcome": "NEEDS_REVIEW", "choice": "unsure"},
     "f08-focusable-iframe": {"outcome": "PASS"},
     "f09-faint-outline": {"outcome": "NEEDS_REVIEW", "choice": "unsure"},
     # ~59-62 s alone on the 2026-11-01 container (was ~55 s when the guard was
@@ -114,3 +118,19 @@ def test_a_link_moved_by_the_page_while_pictured_is_not_failed():
     assert "moved on the page" in stuck.attempts[0].extras["incomplete"]
     slid_in = inst(3600.0)
     assert _best(slid_in) is slid_in.attempts[0]
+
+
+async def test_j1_gets_where_the_changed_pixels_sit(settings, server):
+    """1.3.0: J1's input counts the changed pixels on the element, touching
+    it (within 8 px) and elsewhere. In F16 focus shifts the links' text colour
+    faintly, and a counter beside the first link changes by itself."""
+    from tobi508.pipeline import run_tt_tests
+
+    out = await run_tt_tests(
+        settings, f"{server.base}/4d/f16-faint-color-and-counter.html", [TestId.T4D]
+    )
+    qs = [q for q in out.report.open_questions if q.test_id is TestId.T4D]
+    assert qs, out.report.findings
+    px = {q.instance: q.input["changed_pixels"] for q in qs}
+    assert all(p["on_element"] > 0 for p in px.values()), px
+    assert any(p["elsewhere"] > 0 for p in px.values()), px  # the counter

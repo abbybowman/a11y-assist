@@ -95,7 +95,10 @@ J1_QUESTION = (
     "same part with keyboard focus on the outlined element. Image C marks the "
     "pixels that differ. Is there a change on or right around the outlined "
     "element in B that a sighted user would notice as showing it has focus? "
-    "Answer yes, no or unsure, and describe the change in a few plain words."
+    "input.changed_pixels counts the pixels that differ, in CSS pixels: on "
+    "the element, touching it (within 8 pixels of its edge) and elsewhere in "
+    "the picture. Answer yes, no or unsure, and describe the change in a few "
+    "plain words."
 )
 J1_RUBRIC = (
     "Yes: an outline, border, underline, background or text color change, or an "
@@ -386,6 +389,9 @@ class Attempt(BaseModel):
     strong_px: float | None = None
     mask_fraction: float | None = None
     next_inside_frame: bool = False
+    # Where the differing pixels sit, for J1 (1.3.0): CSS px on the element,
+    # touching it (within INDICATOR_MARGIN_PX) and elsewhere in the picture.
+    places: dict[str, int] | None = None
 
 
 class Inst4D(BaseModel):
@@ -482,6 +488,62 @@ def compare(
     return vis / scale, strong / scale, frac, view
 
 
+def places(rel: Path, e: dict[str, Any]) -> dict[str, int]:
+    """Where the pixels that differ between the off and on pictures sit
+    relative to the element (1.3.0, for J1): on its box, touching it (within
+    INDICATOR_MARGIN_PX) or elsewhere in the picture, in CSS px. Pixels that
+    change with focus held (noise) and the masked area are left out, as in
+    compare(). Facts for the judge; no outcome reads them."""
+    on = Image.open(rel / e["on"]).convert("RGB")
+    off = Image.open(rel / e["off"]).convert("RGB")
+    if on.size != off.size:
+        off = off.resize(on.size)
+    on2 = Image.open(rel / e["on2"]).convert("RGB") if e.get("on2") else on
+    if on2.size != on.size:
+        on2 = on2.resize(on.size)
+    dpr = e.get("dpr") or 1
+
+    def over(a: Image.Image, b: Image.Image) -> Image.Image:
+        r, g, b_ = ImageChops.difference(a, b).split()
+        mx = ImageChops.lighter(ImageChops.lighter(r, g), b_)
+        return mx.point(lambda v: 255 if v >= PIXEL_DELTA_VISIBLE else 0)
+
+    changed = ImageChops.subtract(over(on, off), over(on, on2))
+    cp = e["clip_view"]
+
+    def zone(rect: list[float]) -> Image.Image:
+        z = Image.new("L", on.size, 0)
+        rr = _clip([rect[0] - cp[0], rect[1] - cp[1], rect[2], rect[3]], cp[2], cp[3])
+        if rr:
+            x, y, w, h = rr
+            ImageDraw.Draw(z).rectangle(
+                [x * dpr, y * dpr, (x + w) * dpr - 1, (y + h) * dpr - 1], fill=255
+            )
+        return z
+
+    if e.get("mask_view"):
+        x, y, w, h = e["mask_view"]
+        m = Image.new("L", on.size, 0)
+        ImageDraw.Draw(m).rectangle(
+            [x * dpr, y * dpr, (x + w) * dpr - 1, (y + h) * dpr - 1], fill=255
+        )
+        changed = ImageChops.subtract(changed, m)
+    own = zone(e["self_rect"])
+    near = ImageChops.subtract(zone(_grow(e["self_rect"], INDICATOR_MARGIN_PX)), own)
+
+    def count(img: Image.Image) -> int:
+        return round(img.histogram()[255] / (dpr * dpr))
+
+    total = count(changed)
+    on_el = count(ImageChops.multiply(changed, own))
+    touching = count(ImageChops.multiply(changed, near))
+    return {
+        "on_element": on_el,
+        "touching": touching,
+        "elsewhere": max(0, total - on_el - touching),
+    }
+
+
 def _keys(pass_name: str, n: int) -> list[str]:
     return ["Tab" if pass_name == "P1" else "Shift+Tab"] * n
 
@@ -559,6 +621,7 @@ def _attempts_from(
         if e.get("on") and e.get("off") and not e.get("incomplete"):
             try:
                 a.changed_px, a.strong_px, a.mask_fraction, diff = compare(rel, e)
+                a.places = places(rel, e)
                 if diff is not None and inst.diff_image is None:
                     path = rel / e["on"].replace("-on.png", "-diff.png")
                     diff.save(path)
@@ -773,7 +836,8 @@ def questions_for(st: State4D, evidence_refs: list[str]) -> list[OpenQuestion]:
         # J1 is asked exactly where rows M1-M8 give no outcome (row M7).
         if first_match(INSTANCE_ROWS[:7], _ctx(inst)) is not None:
             continue
-        e = _best(inst).extras
+        best = _best(inst)
+        e = best.extras
         imgs = [f"{base}/{e['off']}", f"{base}/{e['on']}"] + (
             [f"{base}/{inst.diff_image}"] if inst.diff_image else []
         )
@@ -788,6 +852,7 @@ def questions_for(st: State4D, evidence_refs: list[str]) -> list[OpenQuestion]:
                 rubric=J1_RUBRIC,
                 input={
                     "element": inst.label,
+                    **({"changed_pixels": best.places} if best.places else {}),
                     "image_a_off": imgs[0],
                     "image_b_on": imgs[1],
                     "image_c_changed": imgs[2] if len(imgs) > 2 else None,
