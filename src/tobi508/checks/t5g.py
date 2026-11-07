@@ -208,8 +208,8 @@ def _sentence(st: State5G, i: Inst5F, rid: str) -> str:
         "J1?": f"An error appeared for {fl}; a question about it is still open. {see}",
         "N4": "",
         "N5": f"The error for {fl} ({errs}) does not say what to enter instead. {see}{t5f.SORRY}",
-        "N6": f"We could not tell whether a correct value for {fl} could be known. Please look: load the page and {see[18:]}",
-        "N7": f"We could not tell whether the error for {fl} says how to fix it. Please look: load the page and {see[18:]}",
+        "N6": f"We could not tell whether a correct value for {fl} could be known. Please look: load the page and {t5f.steps(ps, i)}",
+        "N7": f"We could not tell whether the error for {fl} says how to fix it. Please look: load the page and {t5f.steps(ps, i)}",
     }[rid]
 
 

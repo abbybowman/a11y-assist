@@ -1219,12 +1219,12 @@ def _sentence(st: State5F, i: Inst5F, rid: str) -> str:
         "M1": f"We read the page after {fl} was {i.done} while it was still changing, so an error message that appeared later may have been missed. Please look: load the page and {steps(ps, i)}",
         "M2": f"The browser's own message points to {fl} and explains the error; that is fine.",
         "M3": f"When {fl} was wrong, the page only marked it ({look}), with no text saying what is wrong. {see(ps, i)}{SORRY}",
-        "M5": f"When {fl} was wrong, its look changed, and we could not tell whether that marks an error. Please look: load the page and {see(ps, i)[18:]}",
+        "M5": f"When {fl} was wrong, its look changed, and we could not tell whether that marks an error. Please look: load the page and {steps(ps, i)}",
         "J1?": f"An error appeared after {fl} was {i.done}; a question about it is still open. {see(ps, i)}",
         "M6": "",
         "M7": f'The page shows an error for {fl} ("{q}"), but nothing announces it: it is not read out, and focus does not move to it, so a screen reader user may not know it appeared. {see(ps, i)}{SORRY}',
         "M8": f"The error message {errs} does not say {'which field is wrong' if _j(st, i, 'J1') == 'not_identified' else f'what is wrong with {fl}'}. {see(ps, i)}{SORRY}",
-        "M9": f"An error appeared for {fl}, and we could not tell whether its message names the field and explains the problem. Please look: load the page and {see(ps, i)[18:]}",
+        "M9": f"An error appeared for {fl}, and we could not tell whether its message names the field and explains the problem. Please look: load the page and {steps(ps, i)}",
     }[rid]
 
 

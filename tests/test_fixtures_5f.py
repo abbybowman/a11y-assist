@@ -291,3 +291,30 @@ async def test_outcome(name, settings, server, drafts):  # noqa: F811
             f.rationale,
             f.summary,
         )
+
+
+@pytest.mark.parametrize(
+    "test,row",
+    [
+        ("5.F", "M1"),
+        ("5.F", "M5"),
+        ("5.F", "M9"),
+        ("5.G", "N1"),
+        ("5.G", "N6"),
+        ("5.G", "N7"),
+    ],
+)
+def test_please_look_sentences_end_with_the_keys(test, row):
+    """'Please look: load the page and <keys>' once cut the wrong part of
+    'To see it, load the page and ...' and read '... and e page and tab'."""
+    from tobi508.checks import t5f, t5g
+
+    ps = t5f.PassE.model_construct(
+        attempts=[t5f.AttemptE(form="form1", kind=1, keys="Tab 2 times, press Enter")]
+    )
+    i = t5f.Inst5F(id="a1-f1", attempt=0, field=1, label="Name", kind="text")
+    if test == "5.F":
+        text = t5f._sentence(t5f.State5F.model_construct(ps=ps, j={}), i, row)
+    else:
+        text = t5g._sentence(t5g.State5G.model_construct(ps=ps, j={}), i, row)
+    assert text.endswith("load the page and tab 2 times, press Enter."), text
