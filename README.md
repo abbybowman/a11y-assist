@@ -48,7 +48,7 @@ REVIEW, "This test could not be performed".
 | 4.C | 2.1.2-no-keyboard-trap | 2.1.2 | [1.9.0](docs/rules/4c-no-keyboard-trap.md) | 🟢 Sure and accurate |
 | 4.D | 2.4.7-focus-visible | 2.4.7 | [1.3.0](docs/rules/4d-focus-visible.md) | ⚠️ Some false FAILs; fixed, not yet retested |
 | 4.E | 3.2.1-on-focus | 3.2.1 | [1.2.0](docs/rules/4e-on-focus.md) | 🟢 Sure and accurate |
-| 4.F | 2.4.3-focus-order-meaning | 2.4.3 | [1.2.0](docs/rules/4f-focus-order-meaning.md) | ⚠️ Mostly undecided; two false FAILs fixed, not yet retested |
+| 4.F | 2.4.3-focus-order-meaning | 2.4.3 | [1.3.0](docs/rules/4f-focus-order-meaning.md) | ⚠️ Mostly undecided; two false FAILs fixed, not yet retested |
 | 5.A | 3.3.2-label-provided | 3.3.2 | [1.2.0](docs/rules/5a-label-provided.md) | 🟢 Sure and accurate once answered; one wrong label fixed, not yet retested |
 | 5.B | 2.4.6-label-descriptive | 2.4.6 | [1.2.0](docs/rules/5b-label-descriptive.md) | ⚠️ One wrong PASS; fixed, not yet retested |
 | 5.C | 1.3.1-programmatic-label | 1.3.1, 4.1.2 | [1.4.0](docs/rules/5c-programmatic-label.md) | ⚠️ About half decided, agrees where decided; one missed FAIL fixed, not yet retested |

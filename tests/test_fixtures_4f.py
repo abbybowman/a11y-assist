@@ -18,6 +18,13 @@ EXPECTED: dict[str, dict] = {
         "choice": "does_not_preserve",
         "signals": {"S1", "S5"},
     },
+    # 1.3.0: the form at the end of a long page; image A is the crop around
+    # the stops the signals name (test_order_image_is_cropped_to_the_signals).
+    "f19-long-report-form-interleaved": {
+        "outcome": "FAIL",
+        "choice": "does_not_preserve",
+        "signals": {"S1"},
+    },
     "f03-footer-first-tabindex": {
         "outcome": "FAIL",
         "choice": "does_not_preserve",
@@ -126,3 +133,26 @@ async def test_backward_order_is_in_the_question(settings, server):
     [q] = out.open_questions
     assert [s["name"] for s in q.input["backward"]] == ["Four", "Two", "Three", "One"]
     assert "Shift+Tab" in q.question
+
+
+async def test_order_image_is_cropped_to_the_signals(settings, server):
+    """1.3.0: on a long page, J1's image A is the parts of the order image
+    around the stops the signals name; the full page stays evidence. A full
+    page shrunk to 768 px was unreadable (development run 9)."""
+    from PIL import Image
+
+    from tobi508.pipeline import run_tt_tests
+
+    out = await run_tt_tests(
+        settings,
+        f"{server.base}/4f/f19-long-report-form-interleaved.html",
+        [TestId.T4F],
+    )
+    [q] = [q for q in out.report.open_questions if q.test_id is TestId.T4F]
+    crop, full = q.input["image_a_order"], q.evidence_paths[-1]
+    assert crop.endswith("4f-order-crop.png") and full.endswith("4f-order.png"), q
+    assert "around the elements" in q.input["image_shows"]
+    run = settings.runs_dir / out.run_id
+    c = Image.open(run / crop.split(out.run_id + "/", 1)[1])
+    f = Image.open(run / full.split(out.run_id + "/", 1)[1])
+    assert c.height * 3 < f.height, (c.size, f.size)
