@@ -274,7 +274,7 @@ None blocks an outcome: each is NEEDS REVIEW-safe today.
   labels are read for 5.C (`andi.andi_output`; ANDI does not report table
   headers). Next to try: contrast and image output for 7.x and 13.C. TT prescribes ANDI for
   about 20 tests, so matching its output matters there. Not needed for Test 4
-  (4.F's note: use keyboard order, not ANDI's).
+  (4.F's note: use keyboard order, not ANDI's). What each vendored module gives, and what we read (only the focusable-elements module runs today): [research/2026-10-31-tt-coverage-map.md](research/2026-10-31-tt-coverage-map.md), "ANDI modules as vendored".
 - **SCRT report files** (read, write, compare, TT review, export; plan:
   [plans/2026-11-02-scrt-io.md](plans/2026-11-02-scrt-io.md)). Fix advice for
   a read report is a separate, optional tool, reusing `explain.py`. ACRs and

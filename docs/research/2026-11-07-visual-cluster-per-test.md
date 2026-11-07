@@ -1,6 +1,6 @@
 # The visual-versus-code cluster, test by test: what ANDI, axe-core and our own code already give
 
-Research note, 2026-11-07. It goes deeper than section 3 of [2026-11-07-visual-judgment-and-apijudge.md](2026-11-07-visual-judgment-and-apijudge.md). It covers 10.B, 10.C, 10.D, 13.C, 14.A, 14.B, 14.C, 15.A, 18.A and 7.E.
+Research note, 2026-11-07. It goes deeper than section 3 of [2026-11-07-visual-judgment-and-apijudge.md](2026-11-07-visual-judgment-and-apijudge.md), and builds on the scanner and ANDI ratings in [2026-10-31-tt-coverage-map.md](2026-10-31-tt-coverage-map.md). It covers 10.B, 10.C, 10.D, 13.C, 14.A, 14.B, 14.C, 15.A, 18.A and 7.E.
 
 This is research, not an authority. The TT PDF is the authority, and TT text comes from `tt.json`. Page numbers are the PDF's printed pages.
 
@@ -14,20 +14,16 @@ This is research, not an authority. The TT PDF is the authority, and TT text com
 
 ### ANDI as we run it today
 
-- **Only ANDI's focusable-elements module runs.** `andi.inject_andi` loads `andi.js`, which launches its default module, `f` (andi.js:45, 132). Nothing in `src/` launches the structures (`s`), tables (`t`), contrast (`c`) or graphics (`g`) modules.
-  - **They work offline.** Our route serves every file under `third_party/andi/` (andi.py:43-55), so `AndiModule.launchModule("s"|"t"|"c"|"g")` loads them from local files.
-- **`andi_output` reads only part of what ANDI stores.**
-  - **What it reads:** each element's name, description, group, dangers and warnings (andi.py:88-125).
-  - **What it does not read:**
-    - ANDI's *cautions*;
-    - the contrast module's per-element data (`$(el).data("candi508")`);
-    - the tables module's cell indexes (`data-tandi508-*`);
-    - page-level alerts, such as "Ensure that background images are decorative." Those go only to ANDI's alert list in the DOM (andi.js:3691-3698).
-  - **Extending it is small work.** Each test below needs one more field read.
-- **ANDI only analyses the top document.** It wraps the page in `#ANDI508-testPage`.
-- **ANDI's tables module analyses one table per launch.** It defaults to the first table and uses its next/prev buttons for the others (tandi.js:148-149). It computes the header text a cell is announced with only when a cell is inspected (hover or focus, tandi.js:349-567).
+This builds on the coverage map ([2026-10-31-tt-coverage-map.md](2026-10-31-tt-coverage-map.md)). Its ANDI column rates how the TT uses ANDI per test, and its new section, "ANDI modules as vendored", lists each module, what we run and what we read. In short:
+- we run only the focusable-elements module;
+- `andi_output` reads names, descriptions, groups, dangers and warnings only;
+- the other modules load offline but are never launched.
+
+The rest of this note goes test by test.
 
 ### axe-core 4.14.0 (not vendored yet)
+
+The coverage map's axe-core column already lists the rules per TT test. What is new here, from `axe.getRules()`, is that axe tags some rules with TT v5 test IDs itself.
 
 - **Licence:** MPL-2.0. Unmodified files place no terms on our code.
 - **It tags some rules with TT v5 test IDs itself:**
