@@ -231,8 +231,8 @@ def evaluate(st: State2D, evidence_refs: list[str]) -> Finding:
 
 CHOICES = ["sufficient", "not_sufficient", "unsure"]
 J1_QUESTION = (
-    "While the page updated by itself, focus moved to input.focused (image A "
-    "before, image B after). Does the focused content itself say what changed "
+    "While the page updated by itself, focus moved to input.focused (its "
+    "text). Does the focused content itself say what changed "
     '(for example "New message from Ana" or "Prices updated at 2:15 PM"), so a '
     "screen reader user hearing it would know? Answer sufficient, "
     "not_sufficient or unsure."
@@ -245,7 +245,7 @@ J1_RUBRIC = (
 )
 J2_QUESTION = (
     "While the page updated by itself, a dialog opened (input.dialog: its role, "
-    "name and text; image A). Does it tell the user what changed on the page? "
+    "name and text). Does it tell the user what changed on the page? "
     "Answer sufficient, not_sufficient or unsure."
 )
 J2_RUBRIC = (
@@ -292,7 +292,9 @@ def questions_for(st: State2D, evidence_refs: list[str]) -> list[OpenQuestion]:
                     instance=i.id,
                     question=J1_QUESTION,
                     rubric=J1_RUBRIC,
-                    input={"focused": i.region.text, "images": imgs},
+                    # 2.D 1.0.1 (Abby, 2026-11-07): settled by reading the
+                    # words, so the pictures are evidence only, not input.
+                    input={"focused": i.region.text},
                     evidence_paths=evidence_refs + imgs,
                 )
             )
@@ -311,7 +313,6 @@ def questions_for(st: State2D, evidence_refs: list[str]) -> list[OpenQuestion]:
                     input={
                         "dialog": {"role": d.role, "name": d.name, "text": d.text},
                         "changed": content_name(i.region),
-                        "images": imgs,
                     },
                     evidence_paths=evidence_refs + imgs,
                 )
