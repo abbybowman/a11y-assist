@@ -226,7 +226,7 @@ def _soft_deadline(
     start: float, settings: Settings, no_time_limit: bool, pages: int = 0
 ) -> float:
     if no_time_limit:
-        return math.inf
+        return start + settings.max_run_s - RESERVE_S
     return start + _limit(settings, pages) - RESERVE_S
 
 
@@ -627,14 +627,16 @@ async def run_tt_tests(
     progress: Progress | None = None,
     no_time_limit: bool = False,
     other_pages: list[str] | None = None,
+    lift_media_cap: bool | None = None,
 ) -> RunResult:
     async def say(step: float, message: str) -> None:
         if progress is not None:
             await progress(step, 4, message)
 
     t_start = time.monotonic()
-    if no_time_limit:
-        # The user's choice also lifts the media store's cap (plan Q9).
+    if no_time_limit if lift_media_cap is None else lift_media_cap:
+        # The user's choice also lifts the media store's cap (plan Q9); the
+        # server's default of no time limit does not.
         settings = settings.model_copy(
             update={"media_cap_mb": None, "media_cap_s": None}
         )
@@ -665,7 +667,7 @@ async def run_tt_tests(
         others = []
     soft = _soft_deadline(t_start, settings, no_time_limit, len(others))
     hard = (
-        math.inf
+        t_start + settings.max_run_s - HARD_MARGIN_S
         if no_time_limit
         else t_start + _limit(settings, len(others)) - HARD_MARGIN_S
     )

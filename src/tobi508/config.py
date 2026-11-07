@@ -127,6 +127,13 @@ class Settings(BaseSettings):
     # ticker, a carousel), added once pass T finds it (Abby, 2026-11-04, T1
     # (a)): every key press waits longer there, and 2.A-2.C probe it.
     moving_allowance_s: int = Field(default=45, ge=0, le=300)
+    # A run is not held to run_limit_s unless the caller asks (Abby,
+    # 2026-11-07: every development run left a large page's test undone
+    # because the agent never put the no_time_limit choice to the user, and
+    # long polling keeps the user informed while it runs). max_run_s still
+    # stops a run that never ends.
+    no_time_limit_default: bool = True
+    max_run_s: int = Field(default=1800, ge=60)
     # How long one tool call waits for its run before it returns the job id
     # and progress (post-round 1 fixes 2 and 5, option C): under the common
     # 60 s MCP client timeout. The run goes on; tobi_run_status waits again.

@@ -84,12 +84,15 @@ Details: [round 1](evals/agent/README.md#results);
 
 ## How long it takes
 
-- **One run:** at most 10 min (`RUN_LIMIT_S`, 600 s), plus 20 s for each other page, plus 45 s
-  when something on the page keeps changing by itself (a ticker, a
-  carousel: every key press waits longer there, and Test 2 tries its
-  controls). On
-  www.nasa.gov, runs with 3 other pages took 2-3 minutes. Tests not
-  finished in time come back NEEDS REVIEW, with the reason.
+- **One run:** by default as long as the page needs, up to 30 min
+  (`MAX_RUN_S`); a large page can take several minutes, and each
+  still-running result says what the run is doing and for how long. With
+  `no_time_limit=false` a run is held to 10 min (`RUN_LIMIT_S`, 600 s),
+  plus 20 s for each other page, plus 45 s when something on the page
+  keeps changing by itself (a ticker, a carousel), and a page too large
+  for that is refused. On www.nasa.gov, runs with 3 other pages took 2-3
+  minutes. Tests not finished in time come back NEEDS REVIEW, with the
+  reason.
 - **One call:** at most 45 s (`CALL_WAIT_S`), under common MCP client
   timeouts. A run not done by then goes on in the server: the result says
   `"status": "running"` with a `job_id`, and `tobi_run_status` waits for it
@@ -192,7 +195,8 @@ Save the report in your repository: a run's files expire after 24 hours.
 ## Configuration and safety
 
 **Settings** come from the environment or `.env` (`.env.example`):
-- `ALLOWED_DOMAINS`, `RUN_LIMIT_S` and `OTHER_PAGE_S`;
+- `ALLOWED_DOMAINS`, `NO_TIME_LIMIT_DEFAULT` (default true), `MAX_RUN_S`,
+  `RUN_LIMIT_S` and `OTHER_PAGE_S`;
 - `CALL_WAIT_S` and `MAX_CONCURRENT_RUNS`;
 - `PAGE_CACHE_S` (default 1800): how long an other page's recording, and
   its reads, are reused by later calls of the same server session;

@@ -169,19 +169,18 @@ that admits nobody looked), and build these, the to-do list first.
 
 ### 4. Reconsider which choices stay with the agent or the user (Abby, 2026-11-06)
 
-- **`no_time_limit` by default.** Abby leans toward it, provided the user
-  running the agent sees frequent progress, so a long run never looks
-  stuck.
-  - **Needed first:** progress the user sees, not only the agent.
-    Progress notifications per phase and page exist; check what Claude
-    Code and other clients show of them.
-  - **Each `tobi_run_status` return carries a one-line human status**
-    (phase, page, stops walked of the estimate, elapsed, a rough ETA) for
-    the agent to relay.
-  - **Shorter waits per call** so updates come more often.
-  - **Decision:** if users can see the run moving, make `no_time_limit`
-    the default. Keep `RUN_LIMIT_S` as a safety cap far above any page
-    seen so far (NACA took 309-428 s), and update CLAUDE.md's time rule.
+- **`no_time_limit` by default: built (Abby, 2026-11-07).**
+  - **Why:** every development run left Missions' 5.D undone, because
+    the agent never put the choice to the user.
+  - **The setting:** `NO_TIME_LIMIT_DEFAULT` (true). A run stops at
+    `MAX_RUN_S` (1800 s). A caller passing `no_time_limit=false` gets the
+    600 s limit and its refusals; `true` also lifts the media caps, which
+    the default does not.
+  - **Progress the user sees.** Third-party reports say Claude Code does
+    not show MCP progress notifications. What the user sees is each status
+    result, which now has a progress line with elapsed time ("Checking 5.D
+    (3 min 10 s so far)") and asks the agent to relay it.
+  - **Not yet checked:** a development answering run.
 - **19.A's suggested pages: decided (Abby, 2026-11-06).** The server may
   visit them itself; built with change 1. CLAUDE.md principle 5 names the
   exception.

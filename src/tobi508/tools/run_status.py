@@ -114,7 +114,7 @@ def _start_follow_ups(s) -> list[jobs.Job]:
         pages = list(call.get("other_pages") or [])
 
         def go(p, url=url, tests=tests, pages=pages):
-            return run_pipeline(s, url, tests, p, False, pages)
+            return run_pipeline(s, url, tests, p, s.no_time_limit_default, pages)
 
         job = jobs.start(s, url, go)
         job.tests = [t.value for t in tests]

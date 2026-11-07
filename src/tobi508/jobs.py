@@ -122,6 +122,11 @@ async def wait(
     return pending(job, seconds)
 
 
+def _mmss(seconds: float) -> str:
+    m, sec = divmod(int(seconds), 60)
+    return f"{m} min {sec} s" if m else f"{sec} s"
+
+
 def pending(job: Job, wait_s: float) -> RunPending:
     now = time.monotonic()
     queued = job.started is None
@@ -131,9 +136,15 @@ def pending(job: Job, wait_s: float) -> RunPending:
         status="queued" if queued else "running",
         seconds_waiting=round((job.started or now) - job.created, 1),
         seconds_running=0.0 if queued else round(now - job.started, 1),
-        progress=job.message,
+        progress=(
+            f"Waiting for a free browser slot ({_mmss(now - job.created)} so far)"
+            if queued
+            else f"{job.message} ({_mmss(now - job.started)} so far)"
+        ),
         next_step=(
-            "The run is still going on in the server; nothing is lost. Call "
+            "Tell the user the progress line in a few words, so they know the "
+            "run is moving. The run is still going on in the server; nothing "
+            "is lost. Call "
             f"tobi_run_status with job_id {job.id!r} to wait for it again (each "
             f"call waits up to {int(wait_s)} s). Do not start the same run "
             "again, and do not end your turn while it runs: you would lose "

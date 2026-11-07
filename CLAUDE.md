@@ -130,8 +130,13 @@ by TT test ID. Package: `tobi508`.
   (default 20 s) for each other page the caller names (Abby, 2026-11-02),
   plus `MOVING_ALLOWANCE_S` (default 45 s) once pass T finds content that
   keeps changing by itself (Abby, 2026-11-04, T1),
-  unless the caller sets `no_time_limit` for a page the run refused as too
-  large (the user's choice). At most `MAX_CONCURRENT_RUNS` (default 2) runs
+  when the run is held to a limit. Since 2026-11-07 (Abby) a run is not,
+  by default (`NO_TIME_LIMIT_DEFAULT`): it tests the whole page and stops
+  only at `MAX_RUN_S` (default 1800 s), because agents never put the
+  `no_time_limit` choice to the user, and long polling shows the user each
+  still-running result's progress line. A caller passing
+  `no_time_limit=false` gets the limits above; `true` also lifts the media
+  store's caps. At most `MAX_CONCURRENT_RUNS` (default 2) runs
   use a browser at once; a queued run's limit starts when it starts.
 - Other pages of the same site (`other_pages`, 9.A-9.C) come only from the
   caller: allowlisted, on the tested page's host before and after
