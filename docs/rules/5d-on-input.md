@@ -1,7 +1,7 @@
 ---
 tt_test: 5.D
 tt_name: 3.2.2-on-input
-spec_version: 1.1.0
+spec_version: 1.2.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -83,6 +83,7 @@ Each completed field is an *instance*. After the Tab that leaves a field, focus 
 | M8 | J1 = told, and its quote is found in the preceding text | No instance (the user was notified) | p. 27 HtT 4.a.i; G13 |
 | M9 | J1 = not told | FAIL | p. 27 ER 1 |
 | M10 | J1 = unsure, or told but the quote is not in the preceding text | NEEDS REVIEW | Spec rule |
+| M15 | J2 = content only, and the change covers more than half the window (`COVER_MOST`, 0.5) or opened a modal dialog (1.2.0): the larger of the share of pixels that differ between images A and B and the largest new dialog's or positioned layer's (fixed, absolute or sticky, a quarter of the window or more) box over the window, read from the DOM before and after | NEEDS REVIEW: a change over most of the window is not "only adds content"; the agent's answer cannot make it so, and a person looks. A white panel on a white page changes few pixels, hence the DOM reading | Spec rule; Definition of change of context ("major changes in the content of the Web page"); research note 2026-11-07 section 2 |
 | M11 | J2 = content only | PASS | Definition of change of context, Note; Understanding 3.2.2 (revealing related fields keeps "the basic context") |
 | M12 | J2 = changes the context | J1 decides, as M4 (J1?, M8–M10) | p. 27 HtT 4; TC10.C-3-fail-1 (the form replaced by "Form Submitted" on leaving a field) |
 | M13 | J2 = unsure, or not answered yet | NEEDS REVIEW | Spec rule |
@@ -121,6 +122,7 @@ Each completed field is an *instance*. After the Tab that leaves a field, focus 
 | M8 (note) | "Filling in <field> <change in plain words>, but the page says so beforehand (\"<J1 quote>\"), so that is fine." |
 | M10 | "Filling in <field> <change in plain words>, and we could not tell whether the page warns about it first. Please look: load the page and press <keys>." |
 | M11 (note) | "Filling in <field> changes part of the page (<J2 reasons>); that only adds content, so it is fine." |
+| M15 | "Filling in <field> changes most of the window or opens a modal dialog, so it may take over the page. Please look: load the page and press <keys>." |
 | M13 | "Filling in <field> changes part of the page, and we could not tell whether that changes what the page is for. Please look: load the page and press <keys>." |
 
 ## 4. Judgment questions
@@ -151,13 +153,13 @@ J1 and J2 are questions a careful tester settles by reading and looking (CLAUDE.
 
 ### J2. Does this change only add content?
 
-**Question:** "Image A shows the page before the field named in input.field was filled in; image B shows it after the field was filled in and focus moved on. Does the change take over the page, replace or re-arrange the main content, or change what the page is for? Or does it only add or show related content, such as more fields, a hint or a message? Answer changes_context, content_only or unsure, and give your reasons in a few plain words."
+**Question:** "Image A shows the page before the field named in input.field was filled in; image B shows it after the field was filled in and focus moved on. Does the change take over the page, replace or re-arrange the main content, or change what the page is for? Or does it only add or show related content, such as more fields, a hint or a message? Answer changes_context, content_only or unsure, and give your reasons in a few plain words. input.covers_window says how much of the window changed, or how much a new dialog or panel laid over the page covers, and input.modal whether a new dialog is modal."
 
-**Input:** images A and B (viewport, before the action and after it); the field's label and kind; the changed region's box, labelled as untrusted page data.
+**Input:** images A and B (viewport, before the action and after it); the field's label and kind; the changed region's box, labelled as untrusted page data; `covers_window` and `modal` as M15 reads them (1.2.0). Fixture F16: a checkbox that lays the full terms over most of the window.
 
 **Output:** `{choice: changes_context|content_only|unsure, reasons: "<a few plain words>"}`.
 
-**Rubric.** changes_context: a modal dialog or a panel that covers the page or asks the user to act before going on; the main content replaced or re-arranged; the page now shows a different step or topic. content_only: more fields for the answer just given, a hint, an error or status message, a total that updates. unsure: whenever the images do not settle it.
+**Rubric.** changes_context: a modal dialog or a panel that covers the page or asks the user to act before going on; the main content replaced or re-arranged; the page now shows a different step or topic. content_only: more fields for the answer just given, a hint, an error or status message, a total that updates. unsure: whenever the images do not settle it. A change over more than half the window, or a modal dialog, is never content_only: changes_context when the images show the page taken over or replaced, else unsure. Mechanical guard (1.2.0): content_only for such a change is M15, NEEDS REVIEW.
 
 | Example | Answer |
 | --- | --- |

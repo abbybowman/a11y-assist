@@ -18,6 +18,13 @@ EXPECTED: dict[str, dict] = {
         "choice": "does_not_preserve",
         "signals": {"S1", "S5"},
     },
+    # 1.3.0: the form at the end of a long page; image A is the crop around
+    # the stops the signals name (test_order_image_is_cropped_to_the_signals).
+    "f19-long-report-form-interleaved": {
+        "outcome": "FAIL",
+        "choice": "does_not_preserve",
+        "signals": {"S1"},
+    },
     "f03-footer-first-tabindex": {
         "outcome": "FAIL",
         "choice": "does_not_preserve",
@@ -82,6 +89,22 @@ def test_every_fixture_is_listed():
     assert {p.stem for p in (FIXTURES / "4f").glob("*.html")} == set(EXPECTED)
 
 
+def _cropped(settings, got) -> None:
+    """1.3.0: on a long page, J1's image A is the parts of the order image
+    around the stops the signals name; the full page stays evidence. A full
+    page shrunk to 768 px was unreadable (development run 9)."""
+    from PIL import Image
+
+    [q] = got["asked"]
+    crop, full = q.input["image_a_order"], q.evidence_paths[-1]
+    assert crop.endswith("4f-order-crop.png") and full.endswith("4f-order.png"), q
+    assert "around the elements" in q.input["image_shows"]
+    run, rid = settings.runs_dir / got["run_id"], got["run_id"]
+    c = Image.open(run / crop.split(rid + "/", 1)[1])
+    f = Image.open(run / full.split(rid + "/", 1)[1])
+    assert c.height * 3 < f.height, (c.size, f.size)
+
+
 @pytest.mark.parametrize("name", sorted(EXPECTED))
 async def test_fixture(name, settings, server):
     e = EXPECTED[name]
@@ -90,6 +113,8 @@ async def test_fixture(name, settings, server):
     )
     f = got["finding"]
     assert f.outcome.value == e["outcome"], (f.rows, f.summary)
+    if name == "f19-long-report-form-interleaved":
+        _cropped(settings, got)
     if "rows" in e:
         assert [r.split("[")[0] for r in instance_rows(f)] == e["rows"], f.rows
     if "rows_include" in e:

@@ -1,7 +1,7 @@
 ---
 tt_test: 4.E
 tt_name: 3.2.1-on-focus
-spec_version: 1.1.0
+spec_version: 1.2.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -58,6 +58,7 @@ Each step with a context signal is an *instance*. Focus *moves on its own* when,
 | M8 | Only a dialog becomes visible; focus stays on the target | Ask J1 (J1?, M9–M11) | Definition of change of context |
 | J1? | J1 not answered yet | NEEDS REVIEW | Open question |
 | M9 | J1 = changes the context | FAIL | p. 22 ER 1; definition of change of context |
+| M12 | J1 = content only, and the dialog covers more than half the window (`COVER_MOST`, 0.5) or is modal (`:modal`, or `aria-modal="true"`), read from the DOM at the step (1.2.0) | NEEDS REVIEW: a dialog over most of the window, or one that makes the page behind it inert, is not "only adds content"; the agent's answer cannot make it so, and a person looks | Spec rule; Definition of change of context ("major changes in the content of the Web page"); research note 2026-11-07 section 2 |
 | M10 | J1 = content only | No instance (a change of content, not of context) | Definition of change of context, Note |
 | M11 | J1 = unsure, or not answered yet | NEEDS REVIEW | Spec rule |
 
@@ -93,6 +94,7 @@ A pass that ends on navigation is complete for 4.E only when that navigation is 
 | M7 | "<element> drops keyboard focus as soon as it gets it, so keyboard users can't use it. To see it, load the page and press <keys>." |
 | M9 | "When <element> gets keyboard focus, a dialog takes over the page (<J1 reasons>), which can disorient keyboard and screen reader users. To see it, load the page and press <keys>. If you disagree, tell your assistant." |
 | M10 (note) | "When <element> gets keyboard focus, a small panel appears (<J1 reasons>); that only adds content, so it is fine." |
+| M12 | "When <element> gets keyboard focus, a dialog appears that covers most of the window or is marked as modal, so it may take over the page. Please look: load the page and press <keys>." |
 | M11 | "When <element> gets keyboard focus, a dialog appears, and we could not tell whether it takes over the page. Please look: load the page and press <keys>." |
 
 ## 4. Judgment questions
@@ -101,13 +103,13 @@ One question, asked only for M8. It is a look-and-decide question (CLAUDE.md pri
 
 ### J1. Does this dialog change the context?
 
-**Question:** "Image A shows the page just before keyboard focus moved to the element named in input.target; image B shows it just after, when a dialog appeared. Does the dialog change the user's context: does it take over the page, cover or replace the main content, or change what the page is for? Or does it only add content, like a tooltip, hint or small panel beside the element? Answer changes_context, content_only or unsure, and give your reasons in a few plain words."
+**Question:** "Image A shows the page just before keyboard focus moved to the element named in input.target; image B shows it just after, when a dialog appeared. Does the dialog change the user's context: does it take over the page, cover or replace the main content, or change what the page is for? Or does it only add content, like a tooltip, hint or small panel beside the element? input.dialog.covers_window says how much of the window the dialog's box covers, and input.dialog.modal whether the page marks it modal. Answer changes_context, content_only or unsure, and give your reasons in a few plain words."
 
-**Input:** images A and B; the target's and the dialog's role, name and box, labelled as untrusted page data.
+**Input:** images A and B; the target's and the dialog's role, name and box, labelled as untrusted page data; `covers_window` (the largest new dialog's box over the window, as a percentage) and `modal` (1.2.0). Fixture F10: a tips panel over most of the window, not marked modal.
 
 **Output:** `{dialog: changes_context|content_only|unsure, reasons: "<a few plain words>"}`.
 
-**Rubric.** changes_context: a dialog that covers most of the page or its main content, a modal (the rest of the page dimmed or inert), a sign-up or survey prompt, anything that asks the user to act before going on. content_only: a tooltip, hint, autocomplete list or small panel next to the element that leaves the page usable. unsure: whenever the images do not settle it (part of the dialog is off screen, or its purpose is not clear).
+**Rubric.** changes_context: a dialog that covers most of the page or its main content, a modal (the rest of the page dimmed or inert), a sign-up or survey prompt, anything that asks the user to act before going on. content_only: a tooltip, hint, autocomplete list or small panel next to the element that leaves the page usable. unsure: whenever the images do not settle it (part of the dialog is off screen, or its purpose is not clear). A dialog that covers more than half the window, or is modal, is never content_only: changes_context when the images show it taking over the page, else unsure (its box can be a see-through layer wider than what it shows). Mechanical guard (1.2.0): content_only for such a dialog is M12, NEEDS REVIEW.
 
 | Example | Answer |
 | --- | --- |

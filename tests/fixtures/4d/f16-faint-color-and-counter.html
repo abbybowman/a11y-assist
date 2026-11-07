@@ -1,0 +1,10 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>F16 Faint colour and a counter</title>
+<style>a{outline:none;color:#003366}a:focus{color:#00406f}.age{margin-left:160px;color:#555}</style></head><body>
+<h1>Launch schedule</h1>
+<p><a href="#a">Schedule</a><span class="age">Updated <span id="t">0.0</span> s ago</span></p>
+<p style="margin-top:200px"><a href="#b">Contact</a></p>
+<script>
+// The counter updates by itself, every tenth of a second.
+const t0 = Date.now();
+setInterval(() => { document.getElementById("t").textContent = ((Date.now() - t0) / 1000).toFixed(1); }, 100);
+</script></body></html>

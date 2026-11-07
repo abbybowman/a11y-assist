@@ -58,16 +58,63 @@ CASES = {
 async def test_page(case, settings, server, drafts):  # noqa: F811
     answers, outcome, row = CASES[case]
     page = case.removesuffix("-essential").removesuffix("-loading")
+    asked: list = []
     got = await run_tests(
-        settings, f"{server.base}/2x/{page}.html", ["2.B"], {"2.B": answers}
+        settings,
+        f"{server.base}/2x/{page}.html",
+        ["2.B"],
+        {"2.B": answers},
+        asked=asked,
     )
     f = got["2.B"]
     assert f.outcome.value == outcome, (f.rows, f.summary)
     have = [*f.rows, *instance_rows(f)]
     assert any(r == row or r.endswith(row) for r in have), (row, f.rows)
+    j1 = [q for q in asked if q.question_id.endswith("-J1")]
+    if case == "t-below-fold":
+        # 1.1.0: content no frame shows whole gets two crops, about 1 s apart
+        # (judge eval run 16: J1 for this badge could only be unsure).
+        [q] = j1
+        names = [i.rsplit("/", 1)[1] for i in q.input["images"]]
+        assert names == ["2t-crop1-a.png", "2t-crop1-b.png"], names
+        assert "first screen does not show" in q.input["images_show"]
+    if case == "t-marquee":
+        assert j1 and all(
+            q.input["images_show"] == "the first screen of the page" for q in j1
+        )
 
 
-async def test_act_color_cycle_with_stop(settings, act_server, drafts):  # noqa: F811
+# The page picks one of four colours at random every second, so about one
+# tick in four changes nothing; when the ticks after 5 s all repeat, nothing
+# is seen moving then and 2.B is DOES NOT APPLY (about 1 run in 16, more
+# often on a busy machine, where the page starts its timer later). The test
+# makes each pick differ from the last, in the page's own Math.random, so
+# it tests the rules rather than the dice (the page itself is not edited).
+NO_REPEAT_JS = "(() => { let i = 0; Math.random = () => ((i++ % 4) + 0.5) / 4; })()"
+
+
+@pytest.fixture
+def no_repeated_colour(monkeypatch):
+    import tobi508.browser as browser
+    import tobi508.capture as capture
+
+    real = browser.new_context
+
+    async def new_context(b, s, **kw):
+        c = await real(b, s, **kw)
+        await c.add_init_script(NO_REPEAT_JS)
+        return c
+
+    monkeypatch.setattr(browser, "new_context", new_context)
+    monkeypatch.setattr(capture, "new_context", new_context)
+
+
+async def test_act_color_cycle_with_stop(
+    settings,
+    act_server,
+    drafts,  # noqa: F811
+    no_repeated_colour,
+):
     """ACT efbfc7 inapplicable 3 (a 2.C case): only its colour changes, four
     colours, with a "Stop color changes" button after it. For 2.B it is
     blinking with a working, evident control (spec section 5)."""
@@ -83,8 +130,8 @@ async def test_act_color_cycle_with_stop(settings, act_server, drafts):  # noqa:
 
 
 # For the judge eval (evals/judge_eval.py): page -> the outcome a correct
-# agent gets. The badge below the first screen has no frame that shows it,
-# so a careful agent answers J1 unsure (NEEDS REVIEW, A5).
+# agent gets. The badge below the first screen has no frame that shows it;
+# since 1.1.0 J1 shows it in two crops, so a careful agent can settle it.
 EVAL = {
     "t-css-infinite": "FAIL",
     "t-marquee": "FAIL",
@@ -92,5 +139,5 @@ EVAL = {
     "t-color-cycle": "NEEDS_REVIEW",
     "t-anim-pause": "NEEDS_REVIEW",
     "t-carousels": "FAIL",
-    "t-below-fold": "NEEDS_REVIEW",
+    "t-below-fold": "FAIL",
 }

@@ -1,7 +1,7 @@
 ---
 tt_test: 5.C
 tt_name: 1.3.1-programmatic-label
-spec_version: 1.3.0
+spec_version: 1.4.0
 source: DHS Section 508 Conformance Test Process for Web (Trusted Tester) v5.1.3, April 2024
 owner: Abby Bowman
 ---
@@ -29,7 +29,7 @@ The tool gives each page one 5.C outcome: PASS, FAIL, DOES NOT APPLY or NEEDS RE
 **Pass L** (5.A and 5.C share it; once per call, `RunContext.cache`): one fresh load of the recording after the walk, so ANDI never touches the walk's evidence ([solutions/scanners-after-the-walk.md](../solutions/scanners-after-the-walk.md)).
 
 1. Inventory every form component in the top document, with its CSS path matched to the walk's stops where it is one (so instances name "Tab N times"). Components inside frames are not read yet: their number is a NEEDS REVIEW note (G3), never an absence.
-2. Per component: the programmatic associations above; the visible-label candidates, placeholder, nearby visible text and, for data-entry fields, the focused image (5.A section 2).
+2. Per component: the programmatic associations above; the visible-label candidates, placeholder, nearby visible text and, for data-entry fields, the focused image (5.A section 2). For 5.C, the nearby visible text also holds text the page's style draws in the same region, as `::before` or `::after` content (quoted strings only; counters, `attr()` and images are left out), after the text nodes (1.4.0). A red "*" or "(required)" is often drawn that way, and no text node holds it, so without it M5 found nothing missing and passed. Drawn on the label itself, it is part of the label's accessible name and so announced (Chrome computes names with generated content), and M5 still passes; drawn on another element beside it (an empty span), it is not, and J1 is asked. 5.A and 5.B do not read it. Fixture F21 (5a/).
 3. Mark each component (`data-a11y-c`; ANDI wraps the page in its own container, which changes CSS paths that do not start at an id), inject the vendored ANDI (`andi.inject_andi`, served from `third_party/` only) and read its output for every component (`andi.andi_output`), matched by mark. ANDI does not report table headers (checked 2026-11-01), so the tool computes them. A component ANDI did not analyse has no ANDI output (M2).
 
 **Fields revealed by interaction** (p. 27 Note 2; Abby, 2026-11-01). Fields that appear during the run's existing replays (4.F's pass R opens disclosures; 5.D's fill pass reveals follow-up fields) are read on that replay, at its end: ANDI is injected there and the same reads are taken for the components that were not rendered at load. Fields only a path those passes do not take would reveal are not found; the finding says the check covers what the run opened.
@@ -92,7 +92,7 @@ J1 is settled by reading (CLAUDE.md principle 8): complete leads to PASS only wh
 
 **Question:** "input.announced is everything assistive technology gets for the component in input.component: its name, description, group label, table headers and list context, as ANDI reports them. input.visible is the text people see around it, and image A shows it. Does input.announced say what the component is for and include every instruction or cue in input.visible that belongs to it (required, format, the question a radio button or checkbox answers)? Answer complete, missing (copy the left-out words into quote), not_purpose or unsure."
 
-**Input:** the component's role and kind; `announced` (the ANDI output and the associations, each labelled by source); `visible`, nearest first, labelled as untrusted page data; image A where pass L took one.
+**Input:** the component's role and kind; `announced` (the ANDI output and the associations, each labelled by source); `visible`, nearest first, then text drawn by CSS (1.4.0), labelled as untrusted page data; image A where pass L took one.
 
 **Output:** `{choice: complete|missing|not_purpose|unsure, quote, reasons}`.
 

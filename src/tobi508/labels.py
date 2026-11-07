@@ -213,6 +213,33 @@ FOCUS_JS = (
                 d: Math.hypot((b.left + b.right) / 2 - cx, (b.top + b.bottom) / 2 - cy) });
   }
   near.sort((a, b) => a.d - b.d);
+  // Text the page's style draws (::before / ::after content: a red "*", a
+  // "(required)"), which no text node holds (5.C 1.4.0). Quoted strings
+  // only; counters, attr() and images are left out. Kept apart: 5.C counts
+  // it as visible, 5.A and 5.B do not read it.
+  const css = [];
+  const root = form || doc.body;
+  let seen = 0;
+  for (const p of root.querySelectorAll('*')) {
+    if (++seen > 3000) break;
+    if (p === el || p.closest('#ANDI508') || inOther(p) || !shown(p)) continue;
+    const b = p.getBoundingClientRect();
+    if (!b.width || !inReg(b)) continue;
+    for (const pseudo of ['::before', '::after']) {
+      const cs = getComputedStyle(p, pseudo);
+      if (!cs || cs.display === 'none' || cs.visibility === 'hidden') continue;
+      const lit = (cs.content || '').match(/"(?:[^"\\\\]|\\\\.)*"/g);
+      if (!lit) continue;
+      const unq = (x) => x.slice(1, -1)
+        .replace(/\\\\([0-9a-fA-F]{1,6}) ?/g, (_, h) => String.fromCodePoint(parseInt(h, 16)))
+        .replace(/\\\\(.)/g, '$1');
+      const t = lit.map(unq).join('').replace(/\\s+/g, ' ').trim();
+      if (t && !css.some((x) => x.t === t)) {
+        css.push({ t, d: Math.hypot((b.left + b.right) / 2 - cx, (b.top + b.bottom) / 2 - cy) });
+      }
+    }
+  }
+  css.sort((a, b) => a.d - b.d);
   // Visible labels of other fields in the region: a set of fields (a phone
   // number in three boxes) may share one label (F82); 5.A's J1 may quote them.
   const nbr = [];
@@ -227,6 +254,7 @@ FOCUS_JS = (
     focused: doc.activeElement === el,
     labels, nearby: near.map((x) => x.t), nearby_other: nbr.slice(0, 6),
     nearby_own: near.filter((x) => !x.g).map((x) => x.t), nearby_buttons: btns.slice(0, 6), nearby_images: imgs,
+    nearby_css: css.slice(0, 6).map((x) => x.t),
     placeholder_shown: !!el.getAttribute('placeholder') && !el.value,
     // Viewport coordinates: a viewport screenshot's clip is relative to it.
     clip: { x: reg.l, y: reg.t, width: Math.max(1, reg.r - reg.l), height: Math.max(1, reg.b - reg.t) },
@@ -271,6 +299,8 @@ class Comp(BaseModel):
     nearby_own: list[str] = Field(default_factory=list)  # nearby, minus the legend
     nearby_buttons: list[str] = Field(default_factory=list)  # buttons' text nearby
     nearby_images: int = 0  # pictures nearby that are not another field's
+    # Text drawn by CSS (::before / ::after) nearby: 5.C counts it as shown
+    nearby_css: list[str] = Field(default_factory=list)
     placeholder_shown: bool = False
     image: str | None = None
     andi: dict[str, Any] | None = None  # name, desc, group, dangers, warnings
@@ -377,6 +407,7 @@ async def read_session(
         c.nearby_own = r.get("nearby_own") or []
         c.nearby_buttons = r.get("nearby_buttons") or []
         c.nearby_images = r.get("nearby_images") or 0
+        c.nearby_css = r.get("nearby_css") or []
         if images:
             try:
                 ctx.shots.mkdir(parents=True, exist_ok=True)

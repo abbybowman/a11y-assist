@@ -38,6 +38,7 @@ from tests import (  # noqa: E402
     test_fixtures_4a,
     test_fixtures_4b,
     test_fixtures_4c,
+    test_fixtures_4d,
     test_fixtures_4e,
     test_fixtures_4f,
     test_fixtures_5a,
@@ -91,6 +92,7 @@ def cases() -> list[dict]:
         (test_fixtures_4a, "4.A", "4a"),
         (test_fixtures_4b, "4.B", "4b"),
         (test_fixtures_4c, "4.C", "4c"),
+        (test_fixtures_4d, "4.D", "4d"),
         (test_fixtures_4e, "4.E", "4e"),
         (test_fixtures_4f, "4.F", "4f"),
         (test_fixtures_5d, "5.D", "5d"),
@@ -204,7 +206,7 @@ def cases() -> list[dict]:
                     "expected": c["expected"],
                 }
             )
-        if c["tt_test"] in ("4.A", "4.C", "5.B", "2.C"):
+        if c["tt_test"] in ("4.A", "4.C", "4.D", "5.B", "2.C"):
             out.append(
                 {
                     "case": f"{c['tt_test']}-act-{c['id']}",

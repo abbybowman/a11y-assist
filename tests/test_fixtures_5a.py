@@ -53,6 +53,17 @@ EXPECTED: dict[str, dict] = {
         "5.A": {"outcome": "PASS", "rows": ["M2"]},
         "5.C": {"outcome": "FAIL", "rows": ["M5", "M7"], "answers": missing("*")},
     },
+    # 5.C 1.4.0: the "*" is drawn by CSS (::after) on an empty span beside
+    # the label, so no text node holds it and the name does not include it;
+    # it counts as shown, and the field is not marked required.
+    "f21-required-marker-from-css": {
+        "5.A": {"outcome": "PASS", "rows": ["M2", "M2"]},
+        "5.C": {
+            "outcome": "FAIL",
+            "rows": ["M5", "M5", "M7"],
+            "answers": missing("*"),
+        },
+    },
     "f05-radio-question-not-grouped": {
         "5.A": {"outcome": "PASS", "rows": ["M2", "M2"]},
         "5.C": {

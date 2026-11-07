@@ -49,6 +49,10 @@ EXPECTED: dict[str, dict] = {
     # clipped, and the card marks focus elsewhere; 0 px where the title is
     # is no clear view (M4), not a FAIL.
     "f15-card-title-outline-clipped": {"outcome": "NEEDS_REVIEW", "rows": ["M4"]},
+    # 1.3.0: focus shifts each link's text colour too little to see, and a
+    # counter 160 px to the first link's right updates by itself; J1 gets
+    # where the changed pixels sit.
+    "f16-faint-color-and-counter": {"outcome": "NEEDS_REVIEW", "choice": "unsure"},
     "f08-focusable-iframe": {"outcome": "PASS"},
     "f09-faint-outline": {"outcome": "NEEDS_REVIEW", "choice": "unsure"},
     # ~59-62 s alone on the 2026-11-01 container (was ~55 s when the guard was
@@ -61,6 +65,19 @@ EXPECTED: dict[str, dict] = {
     "f13-listbox-no-highlight": {"outcome": "FAIL"},
     "f14-menubar-roving-no-indicator": {"outcome": "FAIL"},
 }
+
+
+def _f16_pixels(asked) -> None:
+    """1.3.0: J1's input counts the changed pixels on the element, touching
+    it (within 8 px) and elsewhere. In F16 focus shifts the links' text colour
+    faintly, and a counter beside the first link changes by itself."""
+    px = {q.instance: q.input["changed_pixels"] for q in asked}
+    assert px and all(p["on_element"] > 0 for p in px.values()), px
+    assert any(p["elsewhere"] > 0 for p in px.values()), px  # the counter
+
+
+# Checks on the questions a fixture's run asks (on test_fixture's own run).
+ASKED = {"f16-faint-color-and-counter": _f16_pixels}
 
 
 def test_every_fixture_is_listed():
@@ -85,6 +102,8 @@ async def test_fixture(name, settings, server):
         assert set(e["rows"]) <= set(instance_rows(f)), f.rows
     if "max_s" in e:
         assert took < e["max_s"], took
+    if name in ASKED:
+        ASKED[name](got["asked"])
 
 
 def test_a_link_moved_by_the_page_while_pictured_is_not_failed():

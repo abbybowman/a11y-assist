@@ -119,6 +119,15 @@ def headings_of_set(lp: LabelsPass) -> dict[str, set[str]]:
     return out
 
 
+def shown(c: Comp) -> list[str]:
+    """What is visible around a field: its nearby text, then text the
+    page's style draws there (::before / ::after: a red "*", "(required)";
+    1.4.0). A button's own text for a button."""
+    if c.button:
+        return [c.own_text]
+    return c.nearby + [t for t in c.nearby_css if t not in c.nearby]
+
+
 def covered(c: Comp, multi: bool) -> bool:
     """M5: the announced text holds every word shown around the field (or a
     button's own text), any required cue, and a group label for an option
@@ -126,10 +135,10 @@ def covered(c: Comp, multi: bool) -> bool:
     prog = words(programmatic(c))
     if c.required:
         prog |= {"*", "required"}
-    shown = words(c.own_text) if c.button else words(" ".join(c.nearby))
+    seen = words(" ".join(shown(c)))
     if c.option and multi and not (c.andi or {}).get("group"):
         return False
-    return shown <= prog
+    return seen <= prog
 
 
 class State5C(BaseModel):
@@ -146,8 +155,8 @@ def _j(st: State5C, c: Comp) -> str | None:
 
 def _quote_ok(st: State5C, c: Comp) -> bool:
     q = (st.j.get(f"c{c.n}-J1") or {}).get("quote", "")
-    shown = [c.own_text] if c.button else c.nearby + ([c.heading] if c.heading else [])
-    return quote_in(q, shown) and not quote_in(q, [programmatic(c)])
+    texts = shown(c) + ([c.heading] if c.heading and not c.button else [])
+    return quote_in(q, texts) and not quote_in(q, [programmatic(c)])
 
 
 def instance_rows(st: State5C) -> list[Row]:
@@ -285,7 +294,7 @@ def _only_set_label(c: Comp) -> bool:
     prog = words(programmatic(c))
     if c.required:
         prog |= {"*", "required"}
-    return bool(c.nearby) and words(" ".join(c.nearby)) <= prog
+    return bool(c.nearby) and words(" ".join(shown(c))) <= prog
 
 
 def j1_sets(st: State5C) -> list[list[Comp]]:
@@ -331,7 +340,7 @@ def questions_for(st: State5C, evidence_refs: list[str]) -> list[OpenQuestion]:
                             {
                                 "kind": c.kind,
                                 "announced": announced(c),
-                                "visible": c.nearby,
+                                "visible": shown(c),
                             }
                             for c in group
                         ],
@@ -359,7 +368,7 @@ def questions_for(st: State5C, evidence_refs: list[str]) -> list[OpenQuestion]:
                 input={
                     "component": {"kind": c.kind, "required": c.required},
                     "announced": announced(c),
-                    "visible": [c.own_text] if c.button else c.nearby,
+                    "visible": shown(c),
                     "heading_over_it": c.heading or None,
                     "image_a": images[0] if images else None,
                 },

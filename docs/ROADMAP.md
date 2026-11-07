@@ -76,6 +76,7 @@ test's leftovers are under "Per-test leftovers" below.
 
 ## Soon
 
+- **2.B: content whose changes are random can be DOES NOT APPLY (found 2026-11-07; needs a rules decision).** A region that changed at a steady pace until 4 s but whose changes after 5 s all repeated what was shown (random colours, about 1 load in 16 for four colours) is "not still moving", so 2.B is DOES NOT APPLY. Option: a region with at least `MIN_CHANGES` changes at a steady pace whose last change is within about one period of the 5 s mark is NEEDS REVIEW, not DOES NOT APPLY (it moves outcomes only toward NEEDS REVIEW). [solutions/parallel-tests.md](solutions/parallel-tests.md).
 - **The settle rule can call a page settled before it reacts (found 2026-11-07).** It waits two animation frames (about 35 ms), then for 150 ms with no DOM change. A page whose first change comes later (a submit handler that starts a 50 ms timer, a reply to a request) is read as settled and quiet. 5.F then reads its attempt about 150 ms after the press: an error shown later is missed, and a page with no other indicator would be DOES NOT APPLY (A3). Fixture F20 starts its "checking" bar at once so that it tests M1; a variant whose bar starts on the first timer tick reproduces the gap. Options: a minimum wait after a submit press, or reading again after a second window when an attempt shows nothing. It needs a 4.C settle-rule decision, since every test uses the rule.
 - **Fixes found in agent eval round 1:** 20 fixes, all built, in
   [plans/2026-11-04-post-round1-fixes.md](plans/2026-11-04-post-round1-fixes.md)
@@ -231,8 +232,8 @@ None blocks an outcome: each is NEEDS REVIEW-safe today.
 - **2.A-2.D:** ER 3's shortlist (6.A, 7.A, 7.E, 12.D, 13.A, 13.B, 13.C,
   18.A): until each is built, a working mechanism is NEEDS REVIEW (E3),
   never PASS. 2.C J1's wording when the mechanism is page text naming a
-  key; 2.B J1 for content below the first screen needs a crop (judge eval
-  runs 15, 16; rerun it after either). A large media file fetched in
+  key (judge eval run 15; rerun it after). 2.B J1's crop for content below
+  the first screen is built (1.1.0). A large media file fetched in
   several byte ranges is not reproduced in a test; real YouTube and Vimeo
   embeds on a normal network are NEEDS REVIEW (2.A A2).
 

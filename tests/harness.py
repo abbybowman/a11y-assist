@@ -71,7 +71,14 @@ async def run_check(
     [finding] = [f for f in report.findings if f.test_id is test]
     assert_plain(finding.summary)
     assert_note(finding)
-    return {"finding": finding, "report": report, "run_id": out.run_id}
+    # "asked": the first report's questions, so a test can check a question's
+    # input on the run it already made instead of running the page again.
+    return {
+        "finding": finding,
+        "report": report,
+        "run_id": out.run_id,
+        "asked": out.report.open_questions,
+    }
 
 
 def instance_rows(finding) -> list[str]:
@@ -84,6 +91,7 @@ async def run_tests(
     tests,
     answers: dict[str, dict[str, dict[str, Any]]],
     other_pages: list[str] | None = None,
+    asked: list | None = None,
 ) -> dict[str, Any]:
     """Several tests in one call (tests that share a collection pass, such as
     5.A and 5.C). `answers` maps a test ID to its scripted answers, keyed by
@@ -93,6 +101,8 @@ async def run_tests(
     )
     assert out.errors == [], out.errors
     report = out.report
+    if asked is not None:  # the first report's questions (see run_check)
+        asked.extend(report.open_questions)
     for _ in range(3):
         qs = [q for q in report.open_questions if q.test_id.value in tests]
         if not qs:
