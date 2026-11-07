@@ -67,6 +67,19 @@ EXPECTED: dict[str, dict] = {
 }
 
 
+def _f16_pixels(asked) -> None:
+    """1.3.0: J1's input counts the changed pixels on the element, touching
+    it (within 8 px) and elsewhere. In F16 focus shifts the links' text colour
+    faintly, and a counter beside the first link changes by itself."""
+    px = {q.instance: q.input["changed_pixels"] for q in asked}
+    assert px and all(p["on_element"] > 0 for p in px.values()), px
+    assert any(p["elsewhere"] > 0 for p in px.values()), px  # the counter
+
+
+# Checks on the questions a fixture's run asks (on test_fixture's own run).
+ASKED = {"f16-faint-color-and-counter": _f16_pixels}
+
+
 def test_every_fixture_is_listed():
     from .conftest import FIXTURES
 
@@ -89,6 +102,8 @@ async def test_fixture(name, settings, server):
         assert set(e["rows"]) <= set(instance_rows(f)), f.rows
     if "max_s" in e:
         assert took < e["max_s"], took
+    if name in ASKED:
+        ASKED[name](got["asked"])
 
 
 def test_a_link_moved_by_the_page_while_pictured_is_not_failed():
@@ -118,19 +133,3 @@ def test_a_link_moved_by_the_page_while_pictured_is_not_failed():
     assert "moved on the page" in stuck.attempts[0].extras["incomplete"]
     slid_in = inst(3600.0)
     assert _best(slid_in) is slid_in.attempts[0]
-
-
-async def test_j1_gets_where_the_changed_pixels_sit(settings, server):
-    """1.3.0: J1's input counts the changed pixels on the element, touching
-    it (within 8 px) and elsewhere. In F16 focus shifts the links' text colour
-    faintly, and a counter beside the first link changes by itself."""
-    from tobi508.pipeline import run_tt_tests
-
-    out = await run_tt_tests(
-        settings, f"{server.base}/4d/f16-faint-color-and-counter.html", [TestId.T4D]
-    )
-    qs = [q for q in out.report.open_questions if q.test_id is TestId.T4D]
-    assert qs, out.report.findings
-    px = {q.instance: q.input["changed_pixels"] for q in qs}
-    assert all(p["on_element"] > 0 for p in px.values()), px
-    assert any(p["elsewhere"] > 0 for p in px.values()), px  # the counter

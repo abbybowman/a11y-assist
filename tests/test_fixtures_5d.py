@@ -118,6 +118,20 @@ async def test_outcome(name, settings, server, drafts):  # noqa: F811
         f.rationale,
         f.summary,
     )
+    if name in COVERS:
+        # 1.2.0: J2's input gives the share of the window that changed (or a
+        # new dialog or layer covers) and whether a new dialog is modal.
+        [q] = [q for q in got["asked"] if q.question_id.endswith("-J2")]
+        low, high = COVERS[name]
+        share = int(q.input["covers_window"].rstrip("%"))
+        assert low <= share <= high and q.input["modal"] is False, q.input
+
+
+# Fixture -> the range J2's covers_window must fall in (percent).
+COVERS = {
+    "f16-checkbox-shows-full-terms": (51, 100),
+    "f07-checkbox-reveals-fields": (0, 49),
+}
 
 
 async def test_f15_one_question_for_a_list_of_alike_fields(
@@ -306,22 +320,3 @@ def test_rejected_value_asks_j3_then_stands_when_unsure():
     }
     assert _row(_inst(attempt=rejected)) == "M3"
     assert _row(_inst(attempt=rejected, j3={"choice": "unsure"})) == "M14"
-
-
-async def test_j2_says_how_much_of_the_window_changed(settings, server):
-    """1.2.0: J2's input gives the share of the window that changed (or a new
-    dialog covers) and whether a new dialog is modal. F16's terms panel
-    covers most of it; F07's revealed fields do not."""
-    from tobi508.pipeline import run_tt_tests
-
-    async def j2(name: str) -> dict:
-        out = await run_tt_tests(
-            settings, f"{server.base}/5d/{name}.html", [TestId.T5D]
-        )
-        [q] = [q for q in out.report.open_questions if q.question_id.endswith("-J2")]
-        return q.input
-
-    big = await j2("f16-checkbox-shows-full-terms")
-    assert int(big["covers_window"].rstrip("%")) > 50 and big["modal"] is False, big
-    small = await j2("f07-checkbox-reveals-fields")
-    assert int(small["covers_window"].rstrip("%")) < 50, small

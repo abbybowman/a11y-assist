@@ -28,3 +28,12 @@ node core (with `-n 4` the full suite passed there in under 10 minutes;
 `PYTEST_XDIST_AUTO_NUM_WORKERS` or an explicit `-n` still wins. Verified:
 `docker run --cpus=2` on a 4-CPU host started 2 workers, and a faked
 `cpu.max` of 4 CPUs with 64 visible returned 4.
+
+## A test that fails only on a busy machine: look for chance in the page first (2026-11-07)
+
+`test_act_color_cycle_with_stop` (2.B on ACT efbfc7 inapplicable 3) failed about 1 run in 3 under `-n 8` on 4 CPUs and never alone, which looked like CPU starvation. The page picks one of four colours at random every second (`Math.random()`), so about one tick in four changes nothing. Pass T's watch is 6.5 s, and 2.B needs a change seen after 5 s: when the ticks near 5 s and 6 s both repeat (1 in 16), nothing moves late and 2.B is DOES NOT APPLY. On a busy machine the page starts its timer later, so fewer ticks fall in the window and it happens more often. Proof without load: with `Math.random` fixed so the colours repeat from the fifth tick, 2.B was DOES NOT APPLY every time; with every tick changing, NEEDS REVIEW.
+
+What we do: the test fixes the page's `Math.random` with an init script (the page itself is not edited), so it tests the rules, not the dice. A test that checks an input on the page's run reads `run_check(...)["asked"]` (or `run_tests(..., asked=[])`) instead of running the page again; folding five such tests into the outcome tests removed seven pipeline runs (about 60-80 CPU s).
+
+Where a run's CPU goes (4 CPUs, idle machine): 4-17 CPU s per test against 6-52 s of wall time; the Playwright driver and two browser launches are about 0.65 CPU s of that; pass T about 1.2 CPU s on a static page. The rest is Chromium doing the work (presses, settle polling, screenshots), which the outcomes need.
+

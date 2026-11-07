@@ -74,6 +74,17 @@ async def test_outcome(name, settings, server):
         f.rationale,
         f.summary,
     )
+    if name in COVERS:
+        # 1.2.0: J1's input gives the dialog's share of the window and whether
+        # it is modal, read from the DOM (checked on this run's questions).
+        [q] = got["asked"]
+        low, high = COVERS[name]
+        share = int(q.input["dialog"]["covers_window"].rstrip("%"))
+        assert low <= share <= high and q.input["dialog"]["modal"] is False, q.input
+
+
+# Fixture -> the range its dialog's covers_window must fall in (percent).
+COVERS = {"f10-tips-panel-covers-window": (51, 100), "f08-help-bubble-on-focus": (0, 4)}
 
 
 # ── Rules on recorded evidence (rows no page triggers reliably) ──────────────
@@ -147,25 +158,6 @@ async def test_focus_pulled_back_by_the_element_left_is_not_an_instance(
     )
     got = await run_check(settings, f"{act_server}/{case['path']}", TestId.T4E)
     assert got["finding"].outcome is Outcome.PASS, got["finding"].rationale
-
-
-async def test_j1_says_how_much_a_dialog_covers(settings, server):
-    """1.2.0: J1's input gives the dialog's share of the window and whether
-    it is modal, read from the DOM (F10 covers most of it; F08's bubble
-    very little)."""
-    from tobi508.pipeline import run_tt_tests
-
-    async def dialog(name: str) -> dict:
-        out = await run_tt_tests(
-            settings, f"{server.base}/4e/{name}.html", [TestId.T4E]
-        )
-        [q] = [q for q in out.report.open_questions if q.test_id is TestId.T4E]
-        return q.input["dialog"]
-
-    big = await dialog("f10-tips-panel-covers-window")
-    assert int(big["covers_window"].rstrip("%")) > 50 and big["modal"] is False, big
-    small = await dialog("f08-help-bubble-on-focus")
-    assert int(small["covers_window"].rstrip("%")) < 5 and small["modal"] is False
 
 
 def test_content_only_is_not_taken_for_a_dialog_over_most_of_the_window():
